@@ -1,0 +1,127 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "services": "Servicios",
+    "plans": "Planes",
+    "about": "Sobre el Doctor",
+    "faq": "Preguntas Frecuentes",
+    "contact": "Contacto",
+    "schedule": "Agenda por WhatsApp"
+  },
+  "hero": {
+    "title": "Salud personalizada para vivir más y mejor",
+    "subtitle": "Atención médica con enfoque de medicina familiar y funcional: prevención, acompañamiento continuo y planes basados en evidencia.",
+    "scheduleBtn": "Agenda tu consulta inicial",
+    "servicesBtn": "Ver servicios",
+    "stat1Label": "Consulta inicial",
+    "stat1Value": "60–90 min",
+    "stat2Label": "Plan escrito",
+    "stat2Value": "24 hrs",
+    "stat3Label": "Seguimiento",
+    "stat3Value": "15–30 días"
+  },
+  "flow": {
+    "title": "FLUJO DE ATENCIÓN",
+    "newPatient": "Paciente nuevo: agendamiento → historia clínica → labs 48h antes → consulta → plan integral.",
+    "followUp": "Seguimiento: evaluación de síntomas, revisión de labs, ajustes y metas del mes.",
+    "policies": "Políticas: reprogramación >12h, pago antes de consulta, no recetas sin consulta.",
+    "script": "Script de confirmación",
+    "scriptText": "Hola, soy del consultorio. Tu consulta está confirmada para mañana. Por favor trae tus laboratorios y llega 10 minutos antes."
+  },
+  "approach": {
+    "title1": "Medicina funcional",
+    "desc1": "Enfoque en causas raíz, biomarcadores y planes personalizados. Analizamos tu bioquímica única para entender qué desencadena tus síntomas. Combinamos nutrición terapéutica, optimización hormonal, suplementación basada en evidencia y ajustes de estilo de vida para restaurar el equilibrio de tu organismo.",
+    "title2": "Medicina familiar",
+    "desc2": "Visión integral que considera tu historial completo, contexto familiar, factores psicosociales y objetivos de vida. Tomamos decisiones informadas considerando no solo tu biología, sino también tu estilo de vida, creencias y preferencias. Continuidad de atención con seguimiento personalizado.",
+    "title3": "Acompañamiento",
+    "desc3": "Metas claras y alcanzables con revisión mensual o quincenal. Documentación clínica segura en expediente digital. Ajustes progresivos según tu evolución, sin protocolos rígidos. Comunicación directa para resolver dudas. Te acompañamos en cada paso hacia tu mejor versión."
+  },
+  "services": {
+    "title": "Servicios",
+    "subtitle": "Opciones claras y escalables según tu necesidad.",
+    "service1": "Evaluación inicial",
+    "desc1": "Consulta profunda de 60–90 minutos. Revisión exhaustiva de historia clínica, análisis integral de laboratorios desde perspectiva funcional, identificación de causas raíz y plan personalizado por escrito entregado en 24 horas.",
+    "service2": "Seguimiento mensual",
+    "desc2": "Evaluación de progreso, ajustes nutricionales personalizados, optimización hormonal si es necesario, revisión de suplementación, manejo de tratamiento médico y establecimiento de metas alcanzables del mes.",
+    "service3": "Seguimiento quincenal",
+    "desc3": "Ideal para casos complejos, inicio de protocolo intensivo, cambios hormonales significativos o cuando se requiere monitoreo cercano. Ajustes más frecuentes para resultados óptimos.",
+    "service4": "Interpretación de laboratorios",
+    "desc4": "Lectura funcional detallada de tus resultados de laboratorio. Explicación de biomarcadores, identificación de patrones y tendencias. Recomendaciones basadas en valores óptimos, no solo en rangos normales. Sesión educativa incluida.",
+    "service5": "Atención a domicilio",
+    "desc5": "Consultas en la comodidad de tu hogar en San Pedro y Monterrey. Ideal para pacientes con movilidad limitada, adultos mayores o quien prefiera atención privada. Disponibilidad según zona y horario.",
+    "service6": "Planes premium",
+    "desc6": "Acompañamiento continuo VIP con atención prioritaria. Acceso directo por WhatsApp para consultas rápidas. Seguimiento de métricas y progreso con reporte mensual. Descuentos en laboratorios asociados. Renovación de recetas sin consulta adicional."
+  },
+  "plans": {
+    "title": "Planes",
+    "subtitle": "Elige el plan que mejor se adapte a tus necesidades y objetivos de salud.",
+    "plan1": "Base",
+    "plan1Item1": "Consulta inicial completa",
+    "plan1Item2": "Plan integral por escrito",
+    "plan1Item3": "Seguimiento mensual",
+    "plan2": "Pro",
+    "plan2Item1": "Todo lo del Plan Base",
+    "plan2Item2": "Seguimiento quincenal",
+    "plan2Item3": "Interpretación de labs",
+    "plan2Item4": "Guías nutricionales personalizadas",
+    "plan3": "Premium",
+    "plan3Item1": "Todo lo del Plan Pro",
+    "plan3Item2": "Acompañamiento continuo",
+    "plan3Item3": "Atención prioritaria",
+    "plan3Item4": "Acceso directo por WhatsApp",
+    "plan3Item5": "Reporte mensual de progreso",
+    "chooseBtn": "Elegir"
+  },
+  "doctor": {
+    "title": "Sobre el Doctor",
+    "subtitle": "Experiencia, conocimiento y un enfoque humano centrado en ti.",
+    "name": "Dr. __________________",
+    "specialty": "Medicina familiar y funcional • 28 años de experiencia",
+    "approach": "Enfoque clínico",
+    "description": "Atención personalizada basada en evidencia científica y experiencia clínica. Nos enfocamos en la prevención de enfermedad, optimización de salud y longevidad. Cada plan es único, diseñado específicamente para tus necesidades, objetivos y estilo de vida. Documentación clínica segura y transparente.",
+    "value1": "Ética",
+    "value2": "Empatía",
+    "value3": "Educación continua",
+    "value4": "Confidencialidad",
+    "value5": "Ciencia + experiencia",
+    "value6": "Personalización"
+  },
+  "testimonials": {
+    "title": "Testimonios",
+    "subtitle": "Lo que dicen nuestros pacientes sobre su experiencia.",
+    "quote1": "Me ayudó a entender mis laboratorios y por fin tuve un plan claro. Después de años visitando médicos sin respuestas, aquí encontré soluciones reales.",
+    "quote2": "El seguimiento fue clave; ajustes pequeños, resultados sostenibles. No se trata de cambios radicales, sino de mejoras progresivas que realmente funcionan.",
+    "quote3": "Enfoque humano y profesional. Se siente acompañamiento real. No solo te dan recetas, realmente se preocupan por tu bienestar integral.",
+    "author": "Paciente (autorizado)"
+  },
+  "faq": {
+    "title": "Preguntas frecuentes",
+    "subtitle": "Resuelve tus dudas antes de agendar tu consulta.",
+    "q1": "¿Atienden urgencias?",
+    "a1": "No. Este servicio no sustituye atención de emergencia ni hospitalaria. En caso de urgencia médica, acude al hospital más cercano o llama al 911.",
+    "q2": "¿Puedo pedir receta sin consulta?",
+    "a2": "No se envían recetas sin consulta previa por responsabilidad médica y legal. Necesitamos evaluar tu estado actual antes de prescribir cualquier tratamiento.",
+    "q3": "¿Política de cancelación?",
+    "a3": "Reprogramación permitida con más de 12 horas de anticipación. Pago requerido antes de consulta. No hay reembolsos, solo crédito para consulta futura en casos de emergencia médica comprobada.",
+    "q4": "¿Dónde se guardan expedientes?",
+    "a4": "En plataforma digital segura con encriptación de datos. Acceso restringido únicamente al médico tratante. Cumplimiento con la Ley Federal de Protección de Datos Personales de México."
+  },
+  "contact": {
+    "title": "Contacto",
+    "subtitle": "San Pedro / Monterrey",
+    "schedule": "Agenda",
+    "scheduleDesc": "WhatsApp / llamada / web",
+    "scheduleBtn": "Agendar por WhatsApp",
+    "email": "Correo",
+    "emailPlaceholder": "correo@thriveformative.com",
+    "phone": "Teléfono",
+    "phonePlaceholder": "+52 ___ ___ ____",
+    "location": "Ubicación",
+    "locationDesc": "Consultorio en San Pedro Garza García, Nuevo León",
+    "mapPlaceholder": "Mapa embebido / dirección"
+  },
+  "footer": {
+    "brand": "THRIVE FORMATIVE • WELLNESS FROM WITHIN",
+    "rights": "Todos los derechos reservados."
+  }
+}

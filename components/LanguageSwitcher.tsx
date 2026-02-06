@@ -1,0 +1,76 @@
+"use client";
+
+import { useLocale } from 'next-intl';
+import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { Globe } from 'lucide-react';
+import { useState, useTransition } from 'react';
+
+export default function LanguageSwitcher() {
+  const locale = useLocale();
+  const router = useRouter();
+  const [isOpen, setIsOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  const switchLanguage = (newLocale: string) => {
+    if (newLocale === locale) {
+      setIsOpen(false);
+      return;
+    }
+
+    startTransition(() => {
+      // Establecer cookie y recargar
+      document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=31536000; SameSite=Lax`;
+      router.refresh();
+    });
+    setIsOpen(false);
+  };
+
+  const languages = [
+    { code: 'es', label: 'Español', flag: '🇲🇽' },
+    { code: 'en', label: 'English', flag: '🇺🇸' },
+    { code: 'ko', label: '한국어', flag: '🇰🇷' },
+  ];
+
+  return (
+    <div className="relative">
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 px-3 py-2 rounded-lg border border-theme hover:bg-[rgb(var(--surface))] transition-colors"
+        disabled={isPending}
+      >
+        <Globe size={18} />
+        <span className="text-sm font-medium uppercase">{locale}</span>
+      </motion.button>
+
+      {isOpen && (
+        <>
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => setIsOpen(false)}
+          />
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="absolute right-0 mt-2 w-40 bg-surface border border-theme rounded-lg shadow-soft overflow-hidden z-50"
+          >
+            {languages.map((lang) => (
+              <button
+                key={lang.code}
+                onClick={() => switchLanguage(lang.code)}
+                className={`w-full text-left px-4 py-2 text-sm hover:bg-[rgb(var(--bg))] transition-colors ${
+                  locale === lang.code ? 'bg-[rgb(var(--primary)/0.1)] font-semibold' : ''
+                }`}
+                disabled={isPending}
+              >
+                {lang.flag} {lang.label}
+              </button>
+            ))}
+          </motion.div>
+        </>
+      )}
+    </div>
+  );
+}
