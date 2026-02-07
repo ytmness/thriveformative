@@ -2,6 +2,8 @@
   "nav": {
     "home": "Home",
     "services": "Services",
+    "booking": "Book appointment",
+    "tshape": "T-Shape 2",
     "plans": "Plans",
     "about": "About the Doctor",
     "faq": "FAQ",
@@ -13,6 +15,10 @@
     "subtitle": "Medical care with a functional and family medicine approach: prevention, continuous support, and evidence-based plans.",
     "scheduleBtn": "Schedule your initial consultation",
     "servicesBtn": "View services",
+    "benefit1": "Restore balance in body, mind, and emotions",
+    "benefit2": "Personalized lifestyle and wellness coaching",
+    "benefit3": "Identify and heal root causes",
+    "benefit4": "Sustainable results for long-term health",
     "stat1Label": "Initial consultation",
     "stat1Value": "60–90 min",
     "stat2Label": "Written plan",
@@ -52,6 +58,23 @@
     "service6": "Premium plans",
     "desc6": "VIP continuous support with priority attention. Direct WhatsApp access for quick consultations. Metric tracking and progress monitoring with monthly report. Discounts at partner laboratories. Prescription renewals without additional consultation."
   },
+  "tshape": {
+    "title": "T-Shape 2",
+    "subtitle": "Cutting-edge FDA-approved technology for advanced body treatments.",
+    "fdaBadge": "FDA APPROVED",
+    "fdaDesc": "The United States Food and Drug Administration (FDA) has confirmed that T-SHAPE2 and its handpieces are specifically indicated for:",
+    "fdaItem1": "Cellulite reduction",
+    "fdaItem2": "Improved circulation",
+    "fdaItem3": "Mild muscle pain relief",
+    "fdaItem4": "Muscle spasm relief",
+    "fdaNote": "This recognition is not only a testament to the safety of our technology, but also confirms the efficacy of the claimed results, which are now certified and guaranteed by the FDA.",
+    "tech1Title": "Bipolar Radiofrequency + LLLT Laser",
+    "tech1Desc": "The combination of bipolar Radiofrequency and LLLT Laser creates intense thermal heat in connective tissues, including the fibrous septum. This heat promotes increased collagen deposits and accelerates cellular metabolism, resulting in a remarkable localized reduction of volume and skin laxity.",
+    "tech2Title": "Vacuum Aspiration",
+    "tech2Desc": "Vacuum aspiration generates an immediate increase in blood circulation and lymphatic drainage, both essential for improving overall health. It also contributes to greater tissue oxygenation and the elimination of accumulated toxins, promoting healthier and more radiant skin.",
+    "tech3Title": "Micro-vibration with Rotating Spheres",
+    "tech3Desc": "The handpiece equipped with automatic rotation and sphere pressure delivers micro-vibration directly to the tissues. This enables a complete treatment of skin and muscles, stimulating circulation and promoting muscle tone."
+  },
   "plans": {
     "title": "Plans",
     "subtitle": "Choose the plan that best fits your health needs and goals.",
@@ -72,19 +95,53 @@
     "plan3Item5": "Monthly progress report",
     "chooseBtn": "Choose"
   },
+  "booking": {
+    "title": "Schedule your appointment",
+    "subtitle": "Choose date and available time for your consultation. This is an example of how the booking system will look.",
+    "demoNote": "Demo view — slots marked as occupied show how they would appear when a time is already reserved.",
+    "dateLabel": "DATE",
+    "sampleDate": "February 2025",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "slotsLabel": "AVAILABLE TIMES",
+    "occupied": "Occupied",
+    "occupiedHint": "Slots marked «Occupied» may be reserved by another patient or unavailable. Select an available slot to continue.",
+    "ctaHint": "Prefer to schedule via WhatsApp?",
+    "ctaButton": "Schedule via WhatsApp"
+  },
   "doctor": {
     "title": "About the Doctor",
     "subtitle": "Experience, knowledge, and a human-centered approach focused on you.",
-    "name": "Dr. __________________",
-    "specialty": "Family and functional medicine • 28 years of experience",
-    "approach": "Clinical approach",
+    "name": "Dr. Roel Maldonado",
+    "specialty": "Family Medicine",
+    "subspecialty": "General Family Medicine",
+    "location": "Laredo, Texas",
+    "experience": "20+ years of experience",
+    "languages": "Languages",
+    "languagesList": "Spanish & English",
+    "bio": "Dr. Roel Maldonado is a family medicine doctor in Laredo, Texas, affiliated with Doctors Hospital of Laredo and Laredo Medical Center. He received his medical degree from Universidad Autónoma de Nuevo León and has been in practice for more than 20 years.",
+    "approach": "Clinical Approach",
     "description": "Personalized care based on scientific evidence and clinical experience. We focus on disease prevention, health optimization, and longevity. Each plan is unique, specifically designed for your needs, goals, and lifestyle. Secure and transparent clinical documentation.",
-    "value1": "Ethics",
-    "value2": "Empathy",
-    "value3": "Continuous education",
-    "value4": "Confidentiality",
-    "value5": "Science + experience",
-    "value6": "Personalization"
+    "educationTitle": "Education & Training",
+    "medSchool": "Universidad Autónoma de Nuevo León — Medical School",
+    "residency": "Wyckoff Heights Medical Center — Residency, Family Medicine (1997–2000)",
+    "certificationsTitle": "Certifications & Licenses",
+    "cert1": "TX State Medical License",
+    "cert2": "NC State Medical License",
+    "npi": "Provider NPI: 1417091919",
+    "awardsTitle": "Awards & Recognitions",
+    "award1": "CMS Stage 1 EHR, 2013",
+    "award2": "AMA Physician Recognition Award",
+    "hospitalsTitle": "Hospital Affiliations",
+    "hospital1": "Doctors Hospital of Laredo",
+    "hospital2": "Laredo Medical Center",
+    "patientAwardsTitle": "Patient Recognition",
+    "patientAward1": "Patients' Top Choice",
+    "patientAward2": "Patients Recommend",
+    "patientAward3": "Listens Attentively",
+    "patientAward4": "Clearly Explains",
+    "patientAward5": "Thorough Exams",
+    "patientAward6": "Great Bedside Manner"
   },
   "testimonials": {
     "title": "Testimonials",
@@ -120,8 +177,25 @@
     "locationDesc": "Office in San Pedro Garza García, Nuevo León",
     "mapPlaceholder": "Embedded map / address"
   },
+  "info": {
+    "pageTitle": "About Us",
+    "pageSubtitle": "Meet the doctor, get your questions answered, and get in touch with us."
+  },
+  "cta": {
+    "title": "Ready to transform your health?",
+    "subtitle": "Take the first step toward a healthier, more fulfilling life. Schedule your consultation and discover a medical approach designed for you.",
+    "button": "Schedule your consultation now"
+  },
   "footer": {
     "brand": "THRIVE FORMATIVE • WELLNESS FROM WITHIN",
-    "rights": "All rights reserved."
+    "rights": "All rights reserved.",
+    "quickLinks": "Quick Links",
+    "linkHome": "Home",
+    "linkServices": "Services",
+    "linkPlans": "Plans",
+    "linkDoctor": "About the Doctor",
+    "linkFaq": "FAQ",
+    "contactTitle": "Contact",
+    "tagline": "Personalized health with a functional and human approach. Prevention, support, and real results."
   }
 }

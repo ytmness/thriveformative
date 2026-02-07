@@ -1,0 +1,62 @@
+/* =========================
+   Theme system (CSS vars)
+   
+   Each theme defines a palette of 
+   RGB triplets consumed via rgb(var(--name)).
+   ========================= */
+
+:root {
+  /* defaults → nocturnal (dark-first matching reference) */
+  --bg: 26 26 26;
+  --surface: 38 38 36;
+  --text: 237 231 222;
+  --muted: 168 163 158;
+  --primary: 212 164 115;
+  --secondary: 202 188 154;
+  --accent: 188 166 148;
+  --border: 212 164 115;
+}
+
+[data-theme="golden-sand"] {
+  --bg: 247 245 240;
+  --surface: 242 236 230;
+  --text: 26 26 26;
+  --muted: 81 78 77;
+  --primary: 212 164 115;
+  --secondary: 202 188 154;
+  --accent: 188 166 148;
+  --border: 81 78 77;
+}
+
+[data-theme="nocturnal"] {
+  --bg: 26 26 26;
+  --surface: 38 38 36;
+  --text: 237 231 222;
+  --muted: 168 163 158;
+  --primary: 212 164 115;
+  --secondary: 202 188 154;
+  --accent: 109 95 88;
+  --border: 212 164 115;
+}
+
+[data-theme="metals"] {
+  --bg: 242 236 230;
+  --surface: 247 245 240;
+  --text: 26 26 26;
+  --muted: 83 86 85;
+  --primary: 212 164 115;
+  --secondary: 168 169 168;
+  --accent: 188 166 148;
+  --border: 83 86 85;
+}
+
+[data-theme="earth-modern"] {
+  --bg: 247 245 240;
+  --surface: 242 236 230;
+  --text: 26 26 26;
+  --muted: 109 95 88;
+  --primary: 83 86 85;
+  --secondary: 202 188 154;
+  --accent: 168 169 168;
+  --border: 83 86 85;
+}

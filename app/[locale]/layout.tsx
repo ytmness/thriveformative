@@ -1,4 +1,9 @@
 import "../globals.css";
+import "../styles/themes.css";
+import "../styles/base.css";
+import "../styles/utilities.css";
+import "../styles/waves.css";
+import "../styles/animations.css";
 import type { Metadata } from "next";
 import { Montserrat, Poppins } from "next/font/google";
 import { NextIntlClientProvider } from 'next-intl';

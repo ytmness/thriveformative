@@ -1,0 +1,100 @@
+/* =========================
+   Wave divider
+   
+   Layered SVG waves with gentle
+   ocean-like drift animations.
+   ========================= */
+
+.wave-divider {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  line-height: 0;
+}
+
+/* Wave dentro de sección: es parte de la sección, sin márgenes negativos */
+.wave-divider--inside-section {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* Solo la wave de Services: sube para encajar con Approach */
+.wave-divider--pull-up {
+  margin-top: -40px;
+}
+
+@media (min-width: 768px) {
+  .wave-divider--pull-up { margin-top: -60px; }
+}
+
+@media (min-width: 1280px) {
+  .wave-divider--pull-up { margin-top: -80px; }
+}
+
+/* Wave dentro del hero */
+.wave-hero-bottom {
+  margin-top: 0;
+}
+
+.wave-svg {
+  display: block;
+  width: 120%;
+  margin-left: -10%;
+  height: 100px;
+  /* Evita artefactos de subpixel en bordes */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+@media (min-width: 768px) {
+  .wave-svg { height: 160px; }
+}
+
+@media (min-width: 1280px) {
+  .wave-svg { height: 220px; }
+}
+
+.wave-flip {
+  transform: rotate(180deg);
+}
+
+/* All wave layers use the primary theme color */
+.wave-layer {
+  fill: rgb(var(--primary));
+}
+
+/* Back wave — slowest, wide drift */
+.wave-back {
+  animation: wave-drift-back 10s ease-in-out infinite;
+}
+
+/* Middle wave — medium rhythm, opposite direction */
+.wave-mid {
+  animation: wave-drift-mid 8s ease-in-out infinite;
+}
+
+/* Front wave — slightly faster sway */
+.wave-front {
+  animation: wave-drift-front 9s ease-in-out infinite;
+}
+
+@keyframes wave-drift-back {
+  0%, 100% { transform: translateX(0) translateY(0); }
+  25%  { transform: translateX(-35px) translateY(5px); }
+  50%  { transform: translateX(-55px) translateY(-3px); }
+  75%  { transform: translateX(-20px) translateY(6px); }
+}
+
+@keyframes wave-drift-mid {
+  0%, 100% { transform: translateX(0) translateY(0); }
+  25%  { transform: translateX(28px) translateY(-6px); }
+  50%  { transform: translateX(48px) translateY(4px); }
+  75%  { transform: translateX(15px) translateY(-4px); }
+}
+
+@keyframes wave-drift-front {
+  0%, 100% { transform: translateX(0) translateY(0); }
+  30%  { transform: translateX(-20px) translateY(5px); }
+  55%  { transform: translateX(15px) translateY(-4px); }
+  80%  { transform: translateX(-10px) translateY(3px); }
+}

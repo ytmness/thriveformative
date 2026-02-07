@@ -2,6 +2,8 @@
   "nav": {
     "home": "홈",
     "services": "서비스",
+    "booking": "예약하기",
+    "tshape": "T-Shape 2",
     "plans": "플랜",
     "about": "의사 소개",
     "faq": "자주 묻는 질문",
@@ -13,6 +15,10 @@
     "subtitle": "가족 의학 및 기능 의학 접근 방식을 통한 의료 서비스: 예방, 지속적인 지원, 증거 기반 계획.",
     "scheduleBtn": "초기 상담 예약",
     "servicesBtn": "서비스 보기",
+    "benefit1": "몸, 마음, 감정의 균형 회복",
+    "benefit2": "맞춤형 라이프스타일 및 웰니스 코칭",
+    "benefit3": "근본 원인 파악 및 치유",
+    "benefit4": "장기적 건강을 위한 지속 가능한 결과",
     "stat1Label": "초기 상담",
     "stat1Value": "60–90분",
     "stat2Label": "서면 계획",
@@ -52,6 +58,23 @@
     "service6": "프리미엄 플랜",
     "desc6": "우선 순위 지정 및 메트릭을 통한 지속적인 동반."
   },
+  "tshape": {
+    "title": "T-Shape 2",
+    "subtitle": "첨단 바디 트리트먼트를 위한 FDA 승인 최첨단 기술.",
+    "fdaBadge": "FDA 승인",
+    "fdaDesc": "미국 식품의약국(FDA)은 T-SHAPE2와 핸드피스가 다음 용도에 특별히 지정되었음을 확인했습니다:",
+    "fdaItem1": "셀룰라이트 감소",
+    "fdaItem2": "혈액 순환 개선",
+    "fdaItem3": "경미한 근육통 완화",
+    "fdaItem4": "근육 경련 완화",
+    "fdaNote": "이 인증은 우리 기술의 안전성에 대한 증거일 뿐만 아니라, 주장된 결과의 효능을 확인하며 이제 FDA에 의해 인증되고 보장됩니다.",
+    "tech1Title": "바이폴라 고주파 + LLLT 레이저",
+    "tech1Desc": "바이폴라 고주파와 LLLT 레이저의 조합은 결합 조직에 강렬한 열을 생성합니다. 이 열은 콜라겐 침착을 증가시키고 세포 대사를 가속화하여 국소적 부피와 피부 이완의 현저한 감소를 가져옵니다.",
+    "tech2Title": "진공 흡입",
+    "tech2Desc": "진공 흡입은 혈액 순환과 림프 배출을 즉시 증가시켜 전반적인 건강 개선에 필수적입니다. 또한 조직의 산소 공급을 높이고 축적된 독소를 제거하여 더 건강하고 빛나는 피부를 촉진합니다.",
+    "tech3Title": "회전 구체를 이용한 미세 진동",
+    "tech3Desc": "자동 회전 및 구체 압력이 장착된 핸드피스는 조직에 직접 미세 진동을 전달합니다. 이를 통해 피부와 근육의 완전한 치료가 가능하며 혈액 순환과 근육 톤을 촉진합니다."
+  },
   "plans": {
     "title": "플랜",
     "subtitle": "건강 목표에 가장 적합한 플랜을 선택하세요.",
@@ -69,19 +92,53 @@
     "plan3Item3": "우선 진료",
     "chooseBtn": "선택"
   },
+  "booking": {
+    "title": "예약하기",
+    "subtitle": "상담 날짜와 가능한 시간을 선택하세요. 예약 시스템이 어떻게 보일지 예시입니다.",
+    "demoNote": "데모 보기 — 예약됨으로 표시된 슬롯은 이미 예약된 시간의 표시 방식을 보여줍니다.",
+    "dateLabel": "날짜",
+    "sampleDate": "2025년 2월",
+    "prevMonth": "이전 달",
+    "nextMonth": "다음 달",
+    "slotsLabel": "가능한 시간",
+    "occupied": "예약됨",
+    "occupiedHint": "«예약됨»으로 표시된 슬롯은 다른 환자가 예약했거나 사용할 수 없을 수 있습니다. 가능한 슬롯을 선택하세요.",
+    "ctaHint": "WhatsApp으로 예약하시겠습니까?",
+    "ctaButton": "WhatsApp으로 예약"
+  },
   "doctor": {
     "title": "의사 소개",
-    "subtitle": "실제 사진과 자격증을 여기에 배치하세요.",
-    "name": "Dr. __________________",
-    "specialty": "가족 및 기능 의학 • 28년 경력",
+    "subtitle": "경험, 지식, 그리고 당신에게 집중하는 인간 중심 접근.",
+    "name": "Dr. Roel Maldonado",
+    "specialty": "가족 의학",
+    "subspecialty": "일반 가족 의학",
+    "location": "텍사스주 라레도",
+    "experience": "20년 이상의 경력",
+    "languages": "언어",
+    "languagesList": "스페인어 & 영어",
+    "bio": "Dr. Roel Maldonado는 텍사스주 라레도의 가족 의학 전문의로, Doctors Hospital of Laredo와 Laredo Medical Center에 소속되어 있습니다. 누에보레온 자치대학교에서 의학 학위를 취득했으며 20년 이상의 진료 경력을 보유하고 있습니다.",
     "approach": "임상 접근 방식",
-    "description": "증거 기반 맞춤형 진료, 질병 예방, 건강 최적화 및 장수. 월간 목표와 안전한 임상 문서가 포함된 종합 계획.",
-    "value1": "윤리",
-    "value2": "공감",
-    "value3": "지속적인 교육",
-    "value4": "기밀성",
-    "value5": "과학 + 경험",
-    "value6": "개인화"
+    "description": "과학적 증거와 임상 경험에 기반한 맞춤형 진료. 질병 예방, 건강 최적화, 장수에 중점을 둡니다. 각 계획은 고유하며 필요, 목표, 생활 방식에 맞게 설계됩니다. 안전하고 투명한 임상 문서화.",
+    "educationTitle": "교육 및 훈련",
+    "medSchool": "누에보레온 자치대학교 — 의과대학",
+    "residency": "Wyckoff Heights Medical Center — 레지던시, 가족 의학 (1997–2000)",
+    "certificationsTitle": "자격증 및 면허",
+    "cert1": "텍사스주 의사 면허",
+    "cert2": "노스캐롤라이나주 의사 면허",
+    "npi": "제공자 NPI: 1417091919",
+    "awardsTitle": "수상 및 인정",
+    "award1": "CMS Stage 1 EHR, 2013",
+    "award2": "AMA 의사 인정 상",
+    "hospitalsTitle": "병원 소속",
+    "hospital1": "Doctors Hospital of Laredo",
+    "hospital2": "Laredo Medical Center",
+    "patientAwardsTitle": "환자 인정",
+    "patientAward1": "환자 최고 선택",
+    "patientAward2": "환자 추천",
+    "patientAward3": "경청하는 의사",
+    "patientAward4": "명확한 설명",
+    "patientAward5": "꼼꼼한 검진",
+    "patientAward6": "훌륭한 진료 태도"
   },
   "testimonials": {
     "title": "후기",
@@ -117,8 +174,25 @@
     "locationDesc": "나중에 지도를 삽입합니다. 지금은 자리 표시자입니다.",
     "mapPlaceholder": "Google 지도 삽입 / 주소"
   },
+  "info": {
+    "pageTitle": "소개",
+    "pageSubtitle": "의사를 만나고 궁금한 점을 해결하고 연락하세요."
+  },
+  "cta": {
+    "title": "건강을 변화시킬 준비가 되셨나요?",
+    "subtitle": "더 건강하고 충만한 삶을 향한 첫 걸음을 내딛으세요. 상담을 예약하고 당신을 위해 설계된 의료 접근 방식을 경험하세요.",
+    "button": "지금 상담 예약하기"
+  },
   "footer": {
     "brand": "THRIVE FORMATIVE • WELLNESS FROM WITHIN",
-    "rights": "모든 권리 보유."
+    "rights": "모든 권리 보유.",
+    "quickLinks": "빠른 링크",
+    "linkHome": "홈",
+    "linkServices": "서비스",
+    "linkPlans": "플랜",
+    "linkDoctor": "의사 소개",
+    "linkFaq": "자주 묻는 질문",
+    "contactTitle": "연락처",
+    "tagline": "기능적이고 인간 중심적인 맞춤형 건강 관리. 예방, 지원, 그리고 실제 결과."
   }
 }

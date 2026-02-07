@@ -1,0 +1,47 @@
+/* =========================
+   Base styles
+   
+   Core body styles, selection,
+   smooth scroll and scrollbar.
+   ========================= */
+
+html,
+body {
+  overflow-x: hidden;
+}
+
+body {
+  background: rgb(var(--bg));
+  color: rgb(var(--text));
+  font-family: var(--font-body), 'Poppins', system-ui, sans-serif;
+}
+
+::selection {
+  background: rgb(var(--primary) / 0.25);
+  color: rgb(var(--text));
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar (dark theme friendly) */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgb(var(--bg));
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--primary) / 0.3);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--primary) / 0.5);
+}
+
+/* Section alternating bg */
+.section-elevated {
+  background: rgb(var(--surface) / 0.5);
+}

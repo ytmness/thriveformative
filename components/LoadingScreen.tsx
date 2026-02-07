@@ -25,7 +25,7 @@ export default function LoadingScreen() {
     "earth-modern": "/logos/Recurso 4@5x.png",
   };
 
-  const currentLogo = logoMap[theme] || logoMap["golden-sand"];
+  const currentLogo = logoMap[theme] || logoMap["nocturnal"];
 
   return (
     <AnimatePresence>

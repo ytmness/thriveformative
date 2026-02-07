@@ -1,0 +1,48 @@
+/* =========================
+   Hero decorative animations
+   
+   Organic pattern rotation, circle
+   glow pulse, benefit dot ripple.
+   ========================= */
+
+/* Mandala pattern — slow continuous rotation */
+.hero-organic-pattern {
+  animation: organic-rotate 60s linear infinite;
+}
+
+@keyframes organic-rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Circle glow pulse — very subtle */
+.hero-circle-glow {
+  animation: glow-pulse 4s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.15; transform: scale(1); }
+  50%      { opacity: 0.25; transform: scale(1.04); }
+}
+
+/* =========================
+   Benefit dot icon
+   ========================= */
+
+.benefit-dot {
+  position: relative;
+}
+
+.benefit-dot::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 9999px;
+  background: rgb(var(--primary) / 0.15);
+  animation: dot-glow 3s ease-in-out infinite;
+}
+
+@keyframes dot-glow {
+  0%, 100% { transform: scale(1); opacity: 0.4; }
+  50%      { transform: scale(1.5); opacity: 0; }
+}

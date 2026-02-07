@@ -2,6 +2,8 @@
   "nav": {
     "home": "Inicio",
     "services": "Servicios",
+    "booking": "Agendar cita",
+    "tshape": "T-Shape 2",
     "plans": "Planes",
     "about": "Sobre el Doctor",
     "faq": "Preguntas Frecuentes",
@@ -13,6 +15,10 @@
     "subtitle": "Atención médica con enfoque de medicina familiar y funcional: prevención, acompañamiento continuo y planes basados en evidencia.",
     "scheduleBtn": "Agenda tu consulta inicial",
     "servicesBtn": "Ver servicios",
+    "benefit1": "Restaura el equilibrio en cuerpo, mente y emociones",
+    "benefit2": "Coaching personalizado de estilo de vida y bienestar",
+    "benefit3": "Identifica y trata las causas raíz",
+    "benefit4": "Resultados sostenibles para tu salud a largo plazo",
     "stat1Label": "Consulta inicial",
     "stat1Value": "60–90 min",
     "stat2Label": "Plan escrito",
@@ -52,6 +58,23 @@
     "service6": "Planes premium",
     "desc6": "Acompañamiento continuo VIP con atención prioritaria. Acceso directo por WhatsApp para consultas rápidas. Seguimiento de métricas y progreso con reporte mensual. Descuentos en laboratorios asociados. Renovación de recetas sin consulta adicional."
   },
+  "tshape": {
+    "title": "T-Shape 2",
+    "subtitle": "Tecnología de vanguardia aprobada por la FDA para tratamientos corporales avanzados.",
+    "fdaBadge": "APROBADO POR LA FDA",
+    "fdaDesc": "La Administración de Alimentos y Medicamentos de los Estados Unidos (FDA) ha confirmado que T-SHAPE2 y sus piezas de mano están específicamente indicadas para:",
+    "fdaItem1": "Reducción de la celulitis",
+    "fdaItem2": "Mejorar la circulación",
+    "fdaItem3": "Aliviar dolores musculares leves",
+    "fdaItem4": "Aliviar los espasmos musculares",
+    "fdaNote": "Este reconocimiento no sólo es un testimonio de la seguridad de nuestra tecnología, sino que también confirma la eficacia de los resultados reivindicados, que ahora están certificados y garantizados por la FDA.",
+    "tech1Title": "Radiofrecuencia Bipolar + Láser LLLT",
+    "tech1Desc": "La combinación de la Radiofrecuencia bipolar y el Láser LLLT crea un intenso calor térmico en los tejidos conectivos, incluyendo el septo fibroso. Este calor favorece un aumento de los depósitos de colágeno y acelera el metabolismo celular, lo que resulta en una notable reducción localizada del volumen y la flacidez cutánea.",
+    "tech2Title": "Aspiración por Vacío",
+    "tech2Desc": "La aspiración por vacío genera un aumento inmediato de la circulación sanguínea y del drenaje linfático, ambos esenciales para mejorar la salud en general. Además, contribuye a una mayor oxigenación de los tejidos y a la eliminación de toxinas acumuladas, promoviendo una piel más saludable y radiante.",
+    "tech3Title": "Micro-vibración con Esferas Rotativas",
+    "tech3Desc": "El manipulo equipado con rotación automática y presión de las esferas ofrece una micro-vibración que llega directamente a los tejidos. Esto permite un tratamiento completo de la piel y los músculos, estimulando la circulación y favoreciendo el tono muscular."
+  },
   "plans": {
     "title": "Planes",
     "subtitle": "Elige el plan que mejor se adapte a tus necesidades y objetivos de salud.",
@@ -72,19 +95,53 @@
     "plan3Item5": "Reporte mensual de progreso",
     "chooseBtn": "Elegir"
   },
+  "booking": {
+    "title": "Agenda tu cita",
+    "subtitle": "Elige fecha y horario disponible para tu consulta. Este es un ejemplo de cómo se verá el sistema de agendamiento.",
+    "demoNote": "Vista demo — los horarios marcados como ocupados muestran cómo se verían cuando un espacio ya está reservado.",
+    "dateLabel": "FECHA",
+    "sampleDate": "Febrero 2025",
+    "prevMonth": "Mes anterior",
+    "nextMonth": "Mes siguiente",
+    "slotsLabel": "HORARIOS DISPONIBLES",
+    "occupied": "Ocupado",
+    "occupiedHint": "Los horarios con «Ocupado» pueden estar reservados por otro paciente o no disponibles. Selecciona un horario disponible para continuar.",
+    "ctaHint": "¿Prefieres agendar por WhatsApp?",
+    "ctaButton": "Agendar por WhatsApp"
+  },
   "doctor": {
     "title": "Sobre el Doctor",
     "subtitle": "Experiencia, conocimiento y un enfoque humano centrado en ti.",
-    "name": "Dr. __________________",
-    "specialty": "Medicina familiar y funcional • 28 años de experiencia",
-    "approach": "Enfoque clínico",
+    "name": "Dr. Roel Maldonado",
+    "specialty": "Medicina Familiar",
+    "subspecialty": "Medicina Familiar General",
+    "location": "Laredo, Texas",
+    "experience": "Más de 20 años de experiencia",
+    "languages": "Idiomas",
+    "languagesList": "Español e Inglés",
+    "bio": "El Dr. Roel Maldonado es médico de medicina familiar en Laredo, Texas, afiliado al Doctors Hospital of Laredo y al Laredo Medical Center. Obtuvo su título médico de la Universidad Autónoma de Nuevo León y tiene más de 20 años de práctica clínica.",
+    "approach": "Enfoque Clínico",
     "description": "Atención personalizada basada en evidencia científica y experiencia clínica. Nos enfocamos en la prevención de enfermedad, optimización de salud y longevidad. Cada plan es único, diseñado específicamente para tus necesidades, objetivos y estilo de vida. Documentación clínica segura y transparente.",
-    "value1": "Ética",
-    "value2": "Empatía",
-    "value3": "Educación continua",
-    "value4": "Confidencialidad",
-    "value5": "Ciencia + experiencia",
-    "value6": "Personalización"
+    "educationTitle": "Educación y Formación",
+    "medSchool": "Universidad Autónoma de Nuevo León — Escuela de Medicina",
+    "residency": "Wyckoff Heights Medical Center — Residencia, Medicina Familiar (1997–2000)",
+    "certificationsTitle": "Certificaciones y Licencias",
+    "cert1": "Licencia Médica Estatal de Texas",
+    "cert2": "Licencia Médica Estatal de Carolina del Norte",
+    "npi": "NPI del Proveedor: 1417091919",
+    "awardsTitle": "Premios y Reconocimientos",
+    "award1": "CMS Stage 1 EHR, 2013",
+    "award2": "Premio de Reconocimiento Médico de la AMA",
+    "hospitalsTitle": "Afiliaciones Hospitalarias",
+    "hospital1": "Doctors Hospital of Laredo",
+    "hospital2": "Laredo Medical Center",
+    "patientAwardsTitle": "Reconocimiento de Pacientes",
+    "patientAward1": "Elección Favorita",
+    "patientAward2": "Recomendado por Pacientes",
+    "patientAward3": "Escucha Atentamente",
+    "patientAward4": "Explica con Claridad",
+    "patientAward5": "Exámenes Exhaustivos",
+    "patientAward6": "Excelente Trato"
   },
   "testimonials": {
     "title": "Testimonios",
@@ -120,8 +177,25 @@
     "locationDesc": "Consultorio en San Pedro Garza García, Nuevo León",
     "mapPlaceholder": "Mapa embebido / dirección"
   },
+  "info": {
+    "pageTitle": "Conócenos",
+    "pageSubtitle": "Conoce al doctor, resuelve tus dudas y ponte en contacto con nosotros."
+  },
+  "cta": {
+    "title": "¿Listo para transformar tu salud?",
+    "subtitle": "Da el primer paso hacia una vida más saludable y plena. Agenda tu consulta y descubre un enfoque médico diseñado para ti.",
+    "button": "Agenda tu consulta ahora"
+  },
   "footer": {
     "brand": "THRIVE FORMATIVE • WELLNESS FROM WITHIN",
-    "rights": "Todos los derechos reservados."
+    "rights": "Todos los derechos reservados.",
+    "quickLinks": "Enlaces rápidos",
+    "linkHome": "Inicio",
+    "linkServices": "Servicios",
+    "linkPlans": "Planes",
+    "linkDoctor": "Sobre el Doctor",
+    "linkFaq": "Preguntas Frecuentes",
+    "contactTitle": "Contacto",
+    "tagline": "Salud personalizada con enfoque funcional y humano. Prevención, acompañamiento y resultados reales."
   }
 }

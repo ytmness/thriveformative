@@ -1,0 +1,51 @@
+/* =========================
+   Utility classes
+   
+   Theme-aware helpers: surface bg,
+   muted text, borders, buttons.
+   ========================= */
+
+.bg-surface { background: rgb(var(--surface)); }
+.text-muted { color: rgb(var(--muted)); }
+.border-theme { border-color: rgb(var(--border) / 0.18); }
+.ring-theme { --tw-ring-color: rgb(var(--primary) / 0.35); }
+
+/* Primary button */
+.btn-primary {
+  background: rgb(var(--primary));
+  color: #1a1a1a;
+}
+.btn-primary:hover { filter: brightness(1.06); }
+
+/* Outline button */
+.btn-outline {
+  border: 1px solid rgb(var(--border) / 0.22);
+  background: rgb(var(--surface));
+}
+
+/* Hero CTA — cream on dark, matching reference */
+.btn-cta {
+  background: rgb(237 231 222);
+  color: #1a1a1a;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: all 0.3s ease;
+}
+.btn-cta:hover {
+  background: rgb(247 245 240);
+  box-shadow: 0 8px 30px rgb(237 231 222 / 0.15);
+}
+
+/* CTA overrides for light themes */
+[data-theme="golden-sand"] .btn-cta,
+[data-theme="metals"] .btn-cta,
+[data-theme="earth-modern"] .btn-cta {
+  background: rgb(var(--primary));
+  color: #1a1a1a;
+}
+[data-theme="golden-sand"] .btn-cta:hover,
+[data-theme="metals"] .btn-cta:hover,
+[data-theme="earth-modern"] .btn-cta:hover {
+  filter: brightness(1.06);
+  box-shadow: 0 8px 30px rgb(var(--primary) / 0.25);
+}
