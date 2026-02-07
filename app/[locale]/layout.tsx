@@ -5,13 +5,12 @@ import "../styles/utilities.css";
 import "../styles/waves.css";
 import "../styles/animations.css";
 import type { Metadata } from "next";
-import { Montserrat, Poppins } from "next/font/google";
+import {  Poppins } from "next/font/google";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { locales } from '@/i18n/config';
 
-const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-display" });
-const poppins = Poppins({ subsets: ["latin"], weight: ["300","400","500","600"], variable: "--font-body" });
+const poppins = Poppins({ subsets: ["latin"], weight: ["300","400","500","600","700"], variable: "--font-body" });
 
 export const metadata: Metadata = {
   title: "Thrive Formative — Wellness from Within",
@@ -33,7 +32,7 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className={`${montserrat.variable} ${poppins.variable}`}>
+    <html lang={locale} className={`${poppins.variable}`}>
       <body>
         <NextIntlClientProvider messages={messages}>
           {children}
