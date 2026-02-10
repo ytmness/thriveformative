@@ -34,7 +34,7 @@ else
 fi
 
 echo "==> Instalando dependencias y construyendo..."
-npm ci
+npm install
 npm run build
 
 # Copiar archivos estáticos para standalone
