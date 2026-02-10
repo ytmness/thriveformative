@@ -9,7 +9,7 @@ import WaveDivider from "@/components/WaveDivider";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 
-const WHATSAPP_LINK = "https://google.com";
+const WHATSAPP_LINK = "https://wa.me/528120036699";
 
 /* ───────────────────────────────────────────
    Info page content
