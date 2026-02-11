@@ -107,22 +107,44 @@ Certbot configurará SSL en Nginx y la renovación automática.
 
 ---
 
-## 5. Actualizar el sitio en el futuro
+## 5. Actualizar el sitio cada vez que hagas cambios
 
-En el servidor:
+**Copia y pega este bloque completo en el servidor** (después de hacer push desde tu PC):
 
 ```bash
 cd /var/www/thriveformative
-sudo git fetch origin
-sudo git reset --hard origin/main
-sudo npm ci
-sudo npm run build
-sudo cp -r public .next/standalone/
-sudo cp -r .next/static .next/standalone/.next/
+git pull origin main
+npm run build
+cp -r public .next/standalone/
+cp -r .next/static .next/standalone/.next/
 sudo systemctl restart thriveformative
 ```
 
-O volver a ejecutar el script de despliegue (actualiza el repo y reconstruye).
+Orden: entrar en la carpeta → traer cambios de GitHub → construir → copiar `public` y estáticos al standalone → reiniciar el servicio. Sin saltarte ningún paso se evitan 404/400 en logos y en JS/CSS.
+
+**Alternativa:** en el servidor puedes ejecutar solo el script (hace pull + build + copias + restart):
+```bash
+cd /var/www/thriveformative
+bash scripts/update-site.sh
+```
+
+En el navegador, después de actualizar: **Ctrl+Shift+R** (o Cmd+Shift+R en Mac) para recarga sin caché.
+
+---
+
+### Si algo sigue fallando: rebuild limpio
+
+Solo si las imágenes o los estáticos no se actualizan, haz un build desde cero:
+
+```bash
+cd /var/www/thriveformative
+git pull origin main
+rm -rf .next
+npm run build
+cp -r public .next/standalone/
+cp -r .next/static .next/standalone/.next/
+sudo systemctl restart thriveformative
+```
 
 ---
 
