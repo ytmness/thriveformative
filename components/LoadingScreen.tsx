@@ -19,10 +19,10 @@ export default function LoadingScreen() {
 
   // Mapeo de logos según el tema
   const logoMap: Record<string, string> = {
-    "golden-sand": "/logos/Recurso 1@2x.png",
-    "nocturnal": "/logos/Recurso 2@2x.png",
-    "metals": "/logos/Recurso 3@2x.png",
-    "earth-modern": "/logos/Recurso 4@5x.png",
+    "golden-sand": "/logos/Recurso-1-2x.png",
+    "nocturnal": "/logos/Recurso-2-2x.png",
+    "metals": "/logos/Recurso-3-2x.png",
+    "earth-modern": "/logos/Recurso-4-5x.png",
   };
 
   const currentLogo = logoMap[theme] || logoMap["nocturnal"];

@@ -8,10 +8,10 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 const WHATSAPP_LINK = "https://google.com";
 
 const logoMap: Record<string, string> = {
-  "golden-sand": "/logos/Recurso 5@5x.png",
-  nocturnal: "/logos/Recurso 6@5x.png",
-  metals: "/logos/Recurso 7@5x.png",
-  "earth-modern": "/logos/Recurso 8@5x.png",
+  "golden-sand": "/logos/Recurso-5-5x.png",
+  nocturnal: "/logos/Recurso-6-5x.png",
+  metals: "/logos/Recurso-7-5x.png",
+  "earth-modern": "/logos/Recurso-8-5x.png",
 };
 
 export default function Header() {
