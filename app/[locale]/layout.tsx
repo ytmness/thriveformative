@@ -4,6 +4,8 @@ import "../styles/base.css";
 import "../styles/utilities.css";
 import "../styles/waves.css";
 import "../styles/animations.css";
+import "../styles/cursor.css";
+import "../styles/scroll.css";
 import type { Metadata } from "next";
 import {  Poppins } from "next/font/google";
 import { NextIntlClientProvider } from 'next-intl';

@@ -6,6 +6,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LoadingScreen from "@/components/LoadingScreen";
 import AnimatedSection from "@/components/AnimatedSection";
+import CustomCursor from "@/components/CustomCursor";
+import ScrollProgress from "@/components/ScrollProgress";
 import WaveDivider from "@/components/WaveDivider";
 import BookingSection from "@/components/BookingSection";
 import { motion } from "framer-motion";
@@ -59,6 +61,8 @@ function PageContent() {
 
   return (
     <>
+      <CustomCursor />
+      <ScrollProgress />
       <LoadingScreen />
       <ThemeSwitcher />
       <Header />
