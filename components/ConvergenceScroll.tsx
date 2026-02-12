@@ -38,7 +38,7 @@ export default function ConvergenceScroll({
   });
 
   const n = Math.max(1, sections.length);
-  const height = totalHeightVh ?? 140 * n;
+  const height = totalHeightVh ?? 95 * n;
 
   return (
     <div
@@ -79,14 +79,22 @@ function Layer({
   reduce: boolean;
   children: React.ReactNode;
 }) {
-  const start = index / total;
-  const end = (index + 1) / total;
-  const mid = start + (end - start) * 0.5;
+  const step = 1 / total;
+  const overlap = step * 0.35;
+  const start = Math.max(0, index * step - overlap);
+  const midIn = index * step + step * 0.15;
+  const midOut = (index + 1) * step - step * 0.15;
+  const end = Math.min(1, (index + 1) * step + overlap);
 
-  const opacity = useTransform(progress, [start, mid, end], [0, 1, 0]);
-  const y = useTransform(progress, [start, mid, end], [60, 0, -24]);
-  const scale = useTransform(progress, [start, mid, end], [0.92, 1.02, 1.06]);
-  const blur = useTransform(progress, [start, mid, end], [10, 0, 10]);
+  const opacityIn = index === 0 ? 0.92 : 0;
+  const opacity = useTransform(
+    progress,
+    [start, midIn, midOut, end],
+    [opacityIn, 1, 1, 0]
+  );
+  const y = useTransform(progress, [start, midIn, end], [50, 0, -20]);
+  const scale = useTransform(progress, [start, midIn, end], [0.94, 1, 1.02]);
+  const blur = useTransform(progress, [start, midIn, midOut, end], [8, 0, 0, 6]);
   const filter = useTransform(blur, (v) => `blur(${v}px)`);
 
   if (reduce) {
