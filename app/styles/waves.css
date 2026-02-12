@@ -63,6 +63,20 @@
   fill: rgb(var(--primary));
 }
 
+/* En secciones cinematográficas (stage fijo): ondas más sutiles, sin drift */
+.convergence-stage .wave-svg {
+  height: 70px;
+  opacity: 0.22;
+  width: 140%;
+  margin-left: -20%;
+}
+
+.convergence-stage .wave-back,
+.convergence-stage .wave-mid,
+.convergence-stage .wave-front {
+  animation: none;
+}
+
 /* Back wave — slowest, wide drift */
 .wave-back {
   animation: wave-drift-back 10s ease-in-out infinite;

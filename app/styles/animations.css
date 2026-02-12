@@ -200,8 +200,8 @@
 }
 
 /* =========================
-   Convergence Scroll
-   "La info viene hacia ti"
+   Convergence Scroll v2
+   Stage fijo tipo cámara — la info viene hacia ti
    ========================= */
 
 .convergence-container {
@@ -209,18 +209,32 @@
   background: rgb(var(--bg));
 }
 
-.convergence-sticky {
+/* Un solo stage pinned: el scroll avanza la animación, no el layout */
+.convergence-stage {
   position: sticky;
   top: 4rem;
   height: calc(100vh - 4rem);
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
-  will-change: transform;
+  padding: 0 1rem;
 }
 
-.convergence-sticky .giant-card-inner {
+/* Capas apiladas (cada sección ocupa el mismo stage) */
+.convergence-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1.25rem;
+  pointer-events: none;
+  will-change: transform, opacity, filter;
+}
+
+.convergence-layer .giant-card-inner {
+  pointer-events: auto;
   min-height: auto;
   height: auto;
   width: 100%;
