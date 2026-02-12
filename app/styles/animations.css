@@ -46,3 +46,27 @@
   0%, 100% { transform: scale(1); opacity: 0.4; }
   50%      { transform: scale(1.5); opacity: 0; }
 }
+
+/* =========================
+   Hero logo — brillo / resplandor
+   ========================= */
+
+.logo-glow {
+  position: relative;
+  filter: drop-shadow(0 0 12px rgb(var(--primary) / 0.4))
+          drop-shadow(0 0 24px rgb(var(--primary) / 0.2));
+  animation: logo-shimmer 3s ease-in-out infinite;
+}
+
+@keyframes logo-shimmer {
+  0%, 100% {
+    filter: drop-shadow(0 0 12px rgb(var(--primary) / 0.4))
+            drop-shadow(0 0 24px rgb(var(--primary) / 0.2));
+    opacity: 1;
+  }
+  50% {
+    filter: drop-shadow(0 0 20px rgb(var(--primary) / 0.6))
+            drop-shadow(0 0 40px rgb(var(--primary) / 0.35));
+    opacity: 0.95;
+  }
+}

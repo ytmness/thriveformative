@@ -30,6 +30,7 @@ export default function LanguageSwitcher() {
     { code: 'es', label: 'Español', flag: '🇲🇽' },
     { code: 'en', label: 'English', flag: '🇺🇸' },
     { code: 'ko', label: '한국어', flag: '🇰🇷' },
+    { code: 'it', label: 'Italiano', flag: '🇮🇹' },
   ];
 
   return (
