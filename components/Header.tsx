@@ -39,18 +39,18 @@ export default function Header() {
       transition={{ duration: 0.6, ease: "easeOut" }}
       className="sticky top-0 z-40 backdrop-blur-md bg-[rgb(var(--bg)/0.85)] border-b border-theme"
     >
-      <div className="w-full px-8 lg:px-12 py-4 flex items-center">
+      <div className="w-full px-8 lg:px-12 py-5 min-h-[5rem] flex items-center">
         {/* Logo — links to home */}
         <motion.a
           href={`/${locale}`}
           whileHover={{ scale: 1.02 }}
           transition={{ duration: 0.2 }}
-          className="flex-shrink-0 mr-10"
+          className="flex-shrink-0 mr-10 flex items-center"
         >
           <img
             src={currentLogo}
             alt="Thrive Formative"
-            className="h-12 w-auto object-contain"
+            className="h-14 sm:h-16 md:h-[4.25rem] w-auto object-contain max-h-[5rem]"
           />
         </motion.a>
 

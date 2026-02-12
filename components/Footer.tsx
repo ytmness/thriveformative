@@ -45,7 +45,7 @@ export default function Footer() {
               whileHover={{ scale: 1.02 }}
               src={currentLogo}
               alt="Thrive Formative"
-              className="h-10 w-auto object-contain"
+              className="h-12 md:h-14 w-auto object-contain"
             />
             <p className="text-sm text-muted leading-relaxed max-w-xs">
               {t("footer.tagline")}
