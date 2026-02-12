@@ -55,7 +55,7 @@ export default function Header() {
         </motion.a>
 
         {/* Nav links — centered, spread out */}
-        <nav className="hidden lg:flex items-center gap-10 xl:gap-12 text-[13px] flex-1 justify-center">
+        <nav className="hidden lg:flex items-center gap-10 xl:gap-12 text-base font-medium flex-1 justify-center">
           {navItems.map((item, i) => (
             <motion.a
               key={item.key}
@@ -76,7 +76,7 @@ export default function Header() {
           <motion.a
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="btn-primary rounded-xl px-4 py-2 text-[13px] font-medium shadow-lg hover:shadow-xl transition-shadow whitespace-nowrap"
+            className="btn-primary rounded-xl px-5 py-2.5 text-base font-medium shadow-lg hover:shadow-xl transition-shadow whitespace-nowrap"
             href={WHATSAPP_LINK}
             target="_blank"
             rel="noreferrer"

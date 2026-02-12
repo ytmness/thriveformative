@@ -39,11 +39,11 @@ export default function LanguageSwitcher() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg border border-theme hover:bg-[rgb(var(--surface))] transition-colors"
+        className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-theme hover:bg-[rgb(var(--surface))] transition-colors"
         disabled={isPending}
       >
-        <Globe size={18} />
-        <span className="text-sm font-medium uppercase">{locale}</span>
+        <Globe size={20} />
+        <span className="text-base font-medium uppercase">{locale}</span>
       </motion.button>
 
       {isOpen && (
@@ -61,7 +61,7 @@ export default function LanguageSwitcher() {
               <button
                 key={lang.code}
                 onClick={() => switchLanguage(lang.code)}
-                className={`w-full text-left px-4 py-2 text-sm hover:bg-[rgb(var(--bg))] transition-colors ${
+                className={`w-full text-left px-4 py-2.5 text-base hover:bg-[rgb(var(--bg))] transition-colors ${
                   locale === lang.code ? 'bg-[rgb(var(--primary)/0.1)] font-semibold' : ''
                 }`}
                 disabled={isPending}
