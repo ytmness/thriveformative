@@ -71,7 +71,7 @@ export default function GiantScrollCard({
       className={`giant-card ${className}`}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: false, amount: 0.08, margin: "-60px" }}
+      viewport={{ once: false, amount: 0.15, margin: "-50px" }}
       transition={{
         duration: 0.55,
         ease: [0.22, 0.61, 0.36, 1],
