@@ -11,6 +11,7 @@ import ScrollProgress from "@/components/ScrollProgress";
 import WaveDivider from "@/components/WaveDivider";
 import BookingSection from "@/components/BookingSection";
 import PremiumScrollScene from "@/components/PremiumScrollScene";
+import GiantScrollCard from "@/components/GiantScrollCard";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 
@@ -206,33 +207,30 @@ function PageContent() {
         </div>
       </AnimatedSection>
 
-      {/* ─── MAIN CONTENT ─── */}
-      <main>
-        {/* APPROACH CARDS — wave dentro de la sección para que la abrace */}
-        <AnimatedSection>
-          <div className="section-elevated">
-            <WaveDivider variant="subtle" flip className="wave-divider--inside-section" />
-            <div className="max-w-7xl mx-auto px-6 py-20 md:py-28">
-              <div className="grid md:grid-cols-3 gap-8">
-                <Card title={t("approach.title1")} delay={0}>
-                  {t("approach.desc1")}
-                </Card>
-                <Card title={t("approach.title2")} delay={0.1}>
-                  {t("approach.desc2")}
-                </Card>
-                <Card title={t("approach.title3")} delay={0.2}>
-                  {t("approach.desc3")}
-                </Card>
-              </div>
+      {/* ─── MAIN CONTENT — Tarjetas gigantes ─── */}
+      <main className="scroll-cards-stack">
+        {/* APPROACH CARDS */}
+        <GiantScrollCard variant="scale" id="approach">
+          <WaveDivider variant="subtle" flip className="wave-divider--inside-section" />
+          <div className="max-w-7xl mx-auto px-6 py-20 md:py-28">
+            <div className="grid md:grid-cols-3 gap-8">
+              <Card title={t("approach.title1")} delay={0}>
+                {t("approach.desc1")}
+              </Card>
+              <Card title={t("approach.title2")} delay={0.1}>
+                {t("approach.desc2")}
+              </Card>
+              <Card title={t("approach.title3")} delay={0.2}>
+                {t("approach.desc3")}
+              </Card>
             </div>
           </div>
-        </AnimatedSection>
+        </GiantScrollCard>
 
-        {/* SERVICES — wave dentro de la sección para que la abrace */}
-        <AnimatedSection>
-          <section id="servicios">
-            <WaveDivider variant="subtle" className="wave-divider--inside-section wave-divider--pull-up" />
-            <div className="max-w-7xl mx-auto px-6 py-20 md:py-28">
+        {/* SERVICES */}
+        <GiantScrollCard variant="slideRight" id="servicios">
+          <WaveDivider variant="subtle" className="wave-divider--inside-section wave-divider--pull-up" />
+          <div className="max-w-7xl mx-auto px-6 py-20 md:py-28">
               <SectionTitle title={t("services.title")} subtitle={t("services.subtitle")} />
               <div className="mt-10 grid md:grid-cols-2 gap-8">
                 <Service name={t("services.service1")} desc={t("services.desc1")} delay={0} />
@@ -243,14 +241,12 @@ function PageContent() {
                 <Service name={t("services.service6")} desc={t("services.desc6")} delay={0.5} />
               </div>
             </div>
-          </section>
-        </AnimatedSection>
+        </GiantScrollCard>
 
-        {/* T-SHAPE 2 — wave dentro de la sección para que la abrace */}
-        <AnimatedSection>
-          <div className="section-elevated">
-            <WaveDivider variant="subtle" flip className="wave-divider--inside-section" />
-            <section id="tshape" className="max-w-7xl mx-auto px-6 py-20 md:py-28">
+        {/* T-SHAPE 2 */}
+        <GiantScrollCard variant="slideLeft" id="tshape">
+          <WaveDivider variant="subtle" flip className="wave-divider--inside-section" />
+          <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
               <SectionTitle title={t("tshape.title")} subtitle={t("tshape.subtitle")} />
 
               <div className="mt-10 grid md:grid-cols-[1fr_1.4fr] gap-10 items-start">
@@ -333,14 +329,12 @@ function PageContent() {
                 ))}
               </div>
             </section>
-          </div>
-        </AnimatedSection>
+        </GiantScrollCard>
 
-        {/* PLANS — wave dentro de la sección para que la abrace */}
-        <AnimatedSection>
-          <div className="section-elevated">
-            <WaveDivider variant="accent" flip className="wave-divider--inside-section" />
-            <section id="planes" className="max-w-7xl mx-auto px-6 py-20 md:py-28">
+        {/* PLANS */}
+        <GiantScrollCard variant="stack" id="planes">
+          <WaveDivider variant="accent" flip className="wave-divider--inside-section" />
+          <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
               <SectionTitle title={t("plans.title")} subtitle={t("plans.subtitle")} />
               <div className="mt-10 grid md:grid-cols-3 gap-8 items-center">
                 <Plan name={t("plans.plan1")} items={[t("plans.plan1Item1"), t("plans.plan1Item2"), t("plans.plan1Item3")]} delay={0} />
@@ -348,21 +342,19 @@ function PageContent() {
                 <Plan name={t("plans.plan3")} items={[t("plans.plan3Item1"), t("plans.plan3Item2"), t("plans.plan3Item3")]} delay={0.2} />
               </div>
             </section>
-          </div>
-        </AnimatedSection>
+        </GiantScrollCard>
 
-        {/* ─── SECCIÓN DE CITAS (emulada) ─── */}
-        <div className="section-elevated">
+        {/* AGENDA TU CITA */}
+        <GiantScrollCard variant="blur" id="citas">
           <WaveDivider variant="subtle" flip className="wave-divider--inside-section" />
           <BookingSection />
-        </div>
+        </GiantScrollCard>
 
-        {/* ─── CTA BANNER ─── wave dentro de la sección para que la abrace */}
-        <section className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--primary)/0.08)] via-[rgb(var(--bg))] to-[rgb(var(--primary)/0.05)] pointer-events-none" />
+        {/* CTA BANNER */}
+        <GiantScrollCard variant="curtain" id="cta">
+          <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--primary)/0.08)] via-transparent to-[rgb(var(--primary)/0.05)] pointer-events-none" />
           <WaveDivider variant="primary" flip className="wave-divider--inside-section relative z-10" />
           <div className="relative z-10 max-w-4xl mx-auto px-6 py-24 md:py-32 text-center">
-            <AnimatedSection>
               <motion.h2
                 className="font-display text-3xl md:text-4xl lg:text-5xl tracking-wide"
                 initial={{ opacity: 0, y: 20 }}
@@ -399,9 +391,8 @@ function PageContent() {
                   {t("cta.button")}
                 </motion.a>
               </motion.div>
-            </AnimatedSection>
           </div>
-        </section>
+        </GiantScrollCard>
       </main>
 
       {/* ─── FOOTER (wave dentro para que abrace) ─── */}

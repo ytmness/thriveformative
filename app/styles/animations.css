@@ -83,8 +83,8 @@
 
 .scene-stage {
   position: sticky;
-  top: 0;
-  height: 100vh;
+  top: 4rem; /* debajo del header (~3.5rem) */
+  height: calc(100vh - 4rem);
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -149,5 +149,48 @@
   }
   .scene-wrap {
     min-height: auto !important;
+  }
+}
+
+/* =========================
+   Giant Scroll Cards
+   Secciones como tarjetas gigantes
+   ========================= */
+
+.scroll-cards-stack {
+  --card-gap: 2.5rem;
+  padding: var(--card-gap) 0;
+}
+
+.giant-card {
+  min-height: min(100vh, 900px);
+  scroll-margin-top: 5rem;
+  padding: var(--card-gap) 0;
+}
+
+.giant-card-inner {
+  position: relative;
+  width: 100%;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  min-height: 85vh;
+  border-radius: 1.5rem;
+  border: 1px solid rgb(var(--border) / 0.2);
+  background: rgb(var(--surface) / 0.6);
+  backdrop-filter: blur(12px);
+  box-shadow:
+    0 4px 24px rgb(0 0 0 / 0.06),
+    0 0 0 1px rgb(var(--border) / 0.08);
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .giant-card-inner {
+    padding: 0 2rem;
+    border-radius: 2rem;
+    box-shadow:
+      0 8px 40px rgb(0 0 0 / 0.08),
+      0 0 0 1px rgb(var(--border) / 0.1);
   }
 }

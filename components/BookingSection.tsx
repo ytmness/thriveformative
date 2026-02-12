@@ -33,7 +33,7 @@ export default function BookingSection() {
 
   return (
     <AnimatedSection>
-      <section id="citas" className="max-w-7xl mx-auto px-6 py-20 md:py-28">
+      <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}

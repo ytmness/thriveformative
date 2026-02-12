@@ -16,7 +16,7 @@ import { useTranslations } from "next-intl";
    Respects prefers-reduced-motion.
    ─────────────────────────────────────────── */
 
-const SCENE_HEIGHT_VH = 320;
+const SCENE_HEIGHT_VH = 200;
 const TILE_POSITIONS = [
   { top: "12%", right: "8%", delay: 0.1 },
   { bottom: "18%", left: "12%", delay: 0.25 },
@@ -31,9 +31,9 @@ interface TileProps {
 }
 
 function SceneTile({ label, position, progress, reducedMotion }: TileProps) {
-  const opacity = useTransform(progress, [0.15, 0.35], [0, 1]);
-  const y = useTransform(progress, [0.2, 0.45], [40, 0]);
-  const scale = useTransform(progress, [0.2, 0.4], [0.92, 1]);
+  const opacity = useTransform(progress, [0.08, 0.28], [0, 1]);
+  const y = useTransform(progress, [0.1, 0.35], [30, 0]);
+  const scale = useTransform(progress, [0.08, 0.3], [0.9, 1]);
 
   const positionStyle = {
     top: "top" in position ? position.top : undefined,
@@ -75,13 +75,13 @@ export default function PremiumScrollScene() {
     offset: ["start start", "end end"],
   });
 
-  // Timeline mappings — scroll progress 0→1 drives all animations
-  const titleOpacity = useTransform(scrollYProgress, [0, 0.2], [0, 1]);
-  const titleY = useTransform(scrollYProgress, [0, 0.25], [32, 0]);
-  const wipe1Progress = useTransform(scrollYProgress, [0.12, 0.32], [0, 1]);
-  const wipe2Progress = useTransform(scrollYProgress, [0.28, 0.48], [0, 1]);
-  const topoOpacity = useTransform(scrollYProgress, [0.05, 0.35], [0, 0.06]);
-  const bgShift = useTransform(scrollYProgress, [0, 0.6], [0, 0.03]);
+  // Timeline mappings — scroll progress 0→1 (más compacto para completar antes)
+  const titleOpacity = useTransform(scrollYProgress, [0, 0.12], [0.3, 1]);
+  const titleY = useTransform(scrollYProgress, [0, 0.18], [24, 0]);
+  const wipe1Progress = useTransform(scrollYProgress, [0.05, 0.2], [0, 1]);
+  const wipe2Progress = useTransform(scrollYProgress, [0.15, 0.35], [0, 1]);
+  const topoOpacity = useTransform(scrollYProgress, [0, 0.25], [0.03, 0.08]);
+  const bgShift = useTransform(scrollYProgress, [0, 0.5], [0, 0.05]);
 
   const staticFallback = !!shouldReduceMotion;
 
