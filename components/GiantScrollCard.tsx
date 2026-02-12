@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion, Variants } from "framer-motion";
+import FloralSideOrnaments from "./FloralSideOrnaments";
 
 type CardVariant =
   | "slideUp"
@@ -78,7 +79,10 @@ export default function GiantScrollCard({
       }}
       variants={effectiveVariants}
     >
-      <div className="giant-card-inner">{children}</div>
+      <div className="giant-card-inner">
+        <FloralSideOrnaments />
+        {children}
+      </div>
     </motion.article>
   );
 }
