@@ -39,7 +39,7 @@ export default function Header() {
       transition={{ duration: 0.6, ease: "easeOut" }}
       className="sticky top-0 z-40 backdrop-blur-md bg-[rgb(var(--bg)/0.85)] border-b border-theme"
     >
-      <div className="w-full px-8 lg:px-12 py-5 min-h-[5rem] flex items-center">
+      <div className="w-full px-8 lg:px-12 py-3 md:py-4 min-h-[3.5rem] flex items-center">
         {/* Logo — links to home */}
         <motion.a
           href={`/${locale}`}
@@ -50,7 +50,7 @@ export default function Header() {
           <img
             src={currentLogo}
             alt="Thrive Formative"
-            className="h-14 sm:h-16 md:h-[4.25rem] w-auto object-contain max-h-[5rem]"
+            className="h-10 sm:h-11 md:h-12 w-auto object-contain max-h-[3.5rem]"
           />
         </motion.a>
 
