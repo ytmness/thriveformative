@@ -10,7 +10,6 @@ import CustomCursor from "@/components/CustomCursor";
 import ScrollProgress from "@/components/ScrollProgress";
 import WaveDivider from "@/components/WaveDivider";
 import BookingSection from "@/components/BookingSection";
-import PremiumScrollScene from "@/components/PremiumScrollScene";
 import GiantScrollCard from "@/components/GiantScrollCard";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
@@ -171,9 +170,6 @@ function PageContent() {
         </div>
       </section>
 
-      {/* ─── PREMIUM SCROLL SCENE ─── */}
-      <PremiumScrollScene />
-
       {/* ─── STATS BAR ─── */}
       <AnimatedSection>
         <div className="max-w-7xl mx-auto px-6 py-16">
@@ -207,32 +203,34 @@ function PageContent() {
         </div>
       </AnimatedSection>
 
-      {/* ─── MAIN CONTENT — Tarjetas gigantes ─── */}
+      {/* ─── MAIN CONTENT — Tarjetas full-screen ─── */}
       <main className="scroll-cards-stack">
-        {/* APPROACH CARDS */}
-        <GiantScrollCard variant="scale" id="approach">
+        {/* APPROACH — 3 tarjetas full-screen, una encima de otra */}
+        <GiantScrollCard variant="slideUp" id="approach">
           <WaveDivider variant="subtle" flip className="wave-divider--inside-section" />
-          <div className="max-w-7xl mx-auto px-6 py-20 md:py-28">
-            <div className="grid md:grid-cols-3 gap-8">
-              <Card title={t("approach.title1")} delay={0}>
-                {t("approach.desc1")}
-              </Card>
-              <Card title={t("approach.title2")} delay={0.1}>
-                {t("approach.desc2")}
-              </Card>
-              <Card title={t("approach.title3")} delay={0.2}>
-                {t("approach.desc3")}
-              </Card>
-            </div>
+          <div className="fullscreen-content">
+            <FullscreenCard title={t("approach.title1")}>{t("approach.desc1")}</FullscreenCard>
+          </div>
+        </GiantScrollCard>
+        <GiantScrollCard variant="slideRight" id="approach-2">
+          <WaveDivider variant="subtle" className="wave-divider--inside-section" />
+          <div className="fullscreen-content">
+            <FullscreenCard title={t("approach.title2")}>{t("approach.desc2")}</FullscreenCard>
+          </div>
+        </GiantScrollCard>
+        <GiantScrollCard variant="slideLeft" id="approach-3">
+          <WaveDivider variant="subtle" flip className="wave-divider--inside-section" />
+          <div className="fullscreen-content">
+            <FullscreenCard title={t("approach.title3")}>{t("approach.desc3")}</FullscreenCard>
           </div>
         </GiantScrollCard>
 
         {/* SERVICES */}
         <GiantScrollCard variant="slideRight" id="servicios">
           <WaveDivider variant="subtle" className="wave-divider--inside-section wave-divider--pull-up" />
-          <div className="max-w-7xl mx-auto px-6 py-20 md:py-28">
+          <div className="max-w-7xl mx-auto px-6 py-16 md:py-24">
               <SectionTitle title={t("services.title")} subtitle={t("services.subtitle")} />
-              <div className="mt-10 grid md:grid-cols-2 gap-8">
+              <div className="mt-12 grid md:grid-cols-2 gap-8 md:gap-10">
                 <Service name={t("services.service1")} desc={t("services.desc1")} delay={0} />
                 <Service name={t("services.service2")} desc={t("services.desc2")} delay={0.1} />
                 <Service name={t("services.service3")} desc={t("services.desc3")} delay={0.2} />
@@ -416,6 +414,19 @@ export default function Page() {
    Sub-components
    ═══════════════════════════════════════════ */
 
+function FullscreenCard({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="py-8 md:py-12">
+      <h2 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl tracking-wide leading-tight">
+        {title}
+      </h2>
+      <p className="mt-6 md:mt-8 text-base md:text-lg lg:text-xl text-muted leading-relaxed max-w-3xl">
+        {children}
+      </p>
+    </div>
+  );
+}
+
 function Stat({ label, value, delay = 0 }: { label: string; value: string; delay?: number }) {
   return (
     <motion.div
@@ -432,21 +443,6 @@ function Stat({ label, value, delay = 0 }: { label: string; value: string; delay
   );
 }
 
-function Card({ title, children, delay = 0 }: { title: string; children: React.ReactNode; delay?: number }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.6, delay }}
-      whileHover={{ y: -6, boxShadow: "0 20px 50px rgba(0,0,0,0.18)" }}
-      className="bg-surface border border-theme rounded-2xl shadow-soft p-8 md:p-10"
-    >
-      <div className="font-display text-lg md:text-xl tracking-wide">{title}</div>
-      <p className="mt-3 text-base text-muted leading-relaxed">{children}</p>
-    </motion.div>
-  );
-}
 
 function SectionTitle({ title, subtitle }: { title: string; subtitle: string }) {
   return (
@@ -470,11 +466,11 @@ function Service({ name, desc, delay = 0 }: { name: string; desc: string; delay?
       whileInView={{ opacity: 1, scale: 1 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay }}
-      whileHover={{ y: -4, boxShadow: "0 15px 40px rgba(0,0,0,0.15)" }}
-      className="bg-surface border border-theme rounded-2xl shadow-soft p-8"
+      whileHover={{ y: -6, boxShadow: "0 20px 50px rgba(0,0,0,0.18)" }}
+      className="bg-surface border border-theme rounded-2xl shadow-soft p-8 md:p-10"
     >
-      <div className="font-display text-lg font-semibold">{name}</div>
-      <p className="text-base text-muted mt-3 leading-relaxed">{desc}</p>
+      <div className="font-display text-xl md:text-2xl font-semibold">{name}</div>
+      <p className="text-base md:text-lg text-muted mt-4 leading-relaxed">{desc}</p>
     </motion.div>
   );
 }
@@ -493,11 +489,11 @@ function Plan({ name, items, featured, delay = 0 }: { name: string; items: strin
           ? "0 25px 60px rgba(var(--primary), 0.15)"
           : "0 20px 50px rgba(0,0,0,0.18)",
       }}
-      className={`bg-surface border rounded-2xl shadow-soft p-8 md:p-10 ${
+      className={`bg-surface border rounded-2xl shadow-soft p-8 md:p-10 lg:p-12 ${
         featured ? "border-[rgb(var(--primary)/0.4)] ring-1 ring-[rgb(var(--primary)/0.2)] scale-[1.03]" : "border-theme"
       }`}
     >
-      <div className="font-display text-xl tracking-wide">{name}</div>
+      <div className="font-display text-2xl md:text-3xl tracking-wide">{name}</div>
       <ul className="mt-4 space-y-3 text-base text-muted">
         {items.map((x) => (
           <li key={x} className="flex items-start gap-2">
