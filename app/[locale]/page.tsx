@@ -10,7 +10,7 @@ import CustomCursor from "@/components/CustomCursor";
 import ScrollProgress from "@/components/ScrollProgress";
 import WaveDivider from "@/components/WaveDivider";
 import BookingSection from "@/components/BookingSection";
-import GiantScrollCard from "@/components/GiantScrollCard";
+import ConvergenceScroll from "@/components/ConvergenceScroll";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 
@@ -203,48 +203,68 @@ function PageContent() {
         </div>
       </AnimatedSection>
 
-      {/* ─── MAIN CONTENT — Tarjetas full-screen ─── */}
-      <main className="scroll-cards-stack">
-        {/* APPROACH — 3 tarjetas full-screen, una encima de otra */}
-        <GiantScrollCard variant="slideUp" id="approach">
-          <WaveDivider variant="subtle" flip className="wave-divider--inside-section" />
-          <div className="fullscreen-content">
-            <FullscreenCard title={t("approach.title1")}>{t("approach.desc1")}</FullscreenCard>
-          </div>
-        </GiantScrollCard>
-        <GiantScrollCard variant="slideRight" id="approach-2">
-          <WaveDivider variant="subtle" className="wave-divider--inside-section" />
-          <div className="fullscreen-content">
-            <FullscreenCard title={t("approach.title2")}>{t("approach.desc2")}</FullscreenCard>
-          </div>
-        </GiantScrollCard>
-        <GiantScrollCard variant="slideLeft" id="approach-3">
-          <WaveDivider variant="subtle" flip className="wave-divider--inside-section" />
-          <div className="fullscreen-content">
-            <FullscreenCard title={t("approach.title3")}>{t("approach.desc3")}</FullscreenCard>
-          </div>
-        </GiantScrollCard>
-
-        {/* SERVICES */}
-        <GiantScrollCard variant="slideRight" id="servicios">
-          <WaveDivider variant="subtle" className="wave-divider--inside-section wave-divider--pull-up" />
-          <div className="max-w-7xl mx-auto px-6 py-16 md:py-24">
-              <SectionTitle title={t("services.title")} subtitle={t("services.subtitle")} />
-              <div className="mt-12 grid md:grid-cols-2 gap-8 md:gap-10">
-                <Service name={t("services.service1")} desc={t("services.desc1")} delay={0} />
-                <Service name={t("services.service2")} desc={t("services.desc2")} delay={0.1} />
-                <Service name={t("services.service3")} desc={t("services.desc3")} delay={0.2} />
-                <Service name={t("services.service4")} desc={t("services.desc4")} delay={0.3} />
-                <Service name={t("services.service5")} desc={t("services.desc5")} delay={0.4} />
-                <Service name={t("services.service6")} desc={t("services.desc6")} delay={0.5} />
-              </div>
-            </div>
-        </GiantScrollCard>
-
-        {/* T-SHAPE 2 */}
-        <GiantScrollCard variant="slideLeft" id="tshape">
-          <WaveDivider variant="subtle" flip className="wave-divider--inside-section" />
-          <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
+      {/* ─── MAIN CONTENT — La info viene hacia ti ─── */}
+      <main>
+        <ConvergenceScroll
+          sections={[
+            {
+              id: "approach",
+              content: (
+                <>
+                  <WaveDivider variant="subtle" flip className="wave-divider--inside-section" />
+                  <div className="fullscreen-content">
+                    <FullscreenCard title={t("approach.title1")}>{t("approach.desc1")}</FullscreenCard>
+                  </div>
+                </>
+              ),
+            },
+            {
+              id: "approach-2",
+              content: (
+                <>
+                  <WaveDivider variant="subtle" className="wave-divider--inside-section" />
+                  <div className="fullscreen-content">
+                    <FullscreenCard title={t("approach.title2")}>{t("approach.desc2")}</FullscreenCard>
+                  </div>
+                </>
+              ),
+            },
+            {
+              id: "approach-3",
+              content: (
+                <>
+                  <WaveDivider variant="subtle" flip className="wave-divider--inside-section" />
+                  <div className="fullscreen-content">
+                    <FullscreenCard title={t("approach.title3")}>{t("approach.desc3")}</FullscreenCard>
+                  </div>
+                </>
+              ),
+            },
+            {
+              id: "servicios",
+              content: (
+                <>
+                  <WaveDivider variant="subtle" className="wave-divider--inside-section wave-divider--pull-up" />
+                  <div className="max-w-7xl mx-auto px-6 py-16 md:py-24">
+                    <SectionTitle title={t("services.title")} subtitle={t("services.subtitle")} />
+                    <div className="mt-12 grid md:grid-cols-2 gap-8 md:gap-10">
+                      <Service name={t("services.service1")} desc={t("services.desc1")} delay={0} />
+                      <Service name={t("services.service2")} desc={t("services.desc2")} delay={0.1} />
+                      <Service name={t("services.service3")} desc={t("services.desc3")} delay={0.2} />
+                      <Service name={t("services.service4")} desc={t("services.desc4")} delay={0.3} />
+                      <Service name={t("services.service5")} desc={t("services.desc5")} delay={0.4} />
+                      <Service name={t("services.service6")} desc={t("services.desc6")} delay={0.5} />
+                    </div>
+                  </div>
+                </>
+              ),
+            },
+            {
+              id: "tshape",
+              content: (
+                <>
+                  <WaveDivider variant="subtle" flip className="wave-divider--inside-section" />
+                  <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
               <SectionTitle title={t("tshape.title")} subtitle={t("tshape.subtitle")} />
 
               <div className="mt-10 grid md:grid-cols-[1fr_1.4fr] gap-10 items-start">
@@ -327,70 +347,83 @@ function PageContent() {
                 ))}
               </div>
             </section>
-        </GiantScrollCard>
-
-        {/* PLANS */}
-        <GiantScrollCard variant="stack" id="planes">
-          <WaveDivider variant="accent" flip className="wave-divider--inside-section" />
-          <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
-              <SectionTitle title={t("plans.title")} subtitle={t("plans.subtitle")} />
-              <div className="mt-10 grid md:grid-cols-3 gap-8 items-center">
-                <Plan name={t("plans.plan1")} items={[t("plans.plan1Item1"), t("plans.plan1Item2"), t("plans.plan1Item3")]} delay={0} />
-                <Plan featured name={t("plans.plan2")} items={[t("plans.plan2Item1"), t("plans.plan2Item2"), t("plans.plan2Item3")]} delay={0.1} />
-                <Plan name={t("plans.plan3")} items={[t("plans.plan3Item1"), t("plans.plan3Item2"), t("plans.plan3Item3")]} delay={0.2} />
-              </div>
-            </section>
-        </GiantScrollCard>
-
-        {/* AGENDA TU CITA */}
-        <GiantScrollCard variant="blur" id="citas">
-          <WaveDivider variant="subtle" flip className="wave-divider--inside-section" />
-          <BookingSection />
-        </GiantScrollCard>
-
-        {/* CTA BANNER */}
-        <GiantScrollCard variant="curtain" id="cta">
-          <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--primary)/0.08)] via-transparent to-[rgb(var(--primary)/0.05)] pointer-events-none" />
-          <WaveDivider variant="primary" flip className="wave-divider--inside-section relative z-10" />
-          <div className="relative z-10 max-w-4xl mx-auto px-6 py-24 md:py-32 text-center">
-              <motion.h2
-                className="font-display text-3xl md:text-4xl lg:text-5xl tracking-wide"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.7 }}
-              >
-                {t("cta.title")}
-              </motion.h2>
-              <motion.p
-                className="mt-5 text-lg md:text-xl text-muted leading-relaxed max-w-2xl mx-auto"
-                initial={{ opacity: 0, y: 15 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.7, delay: 0.15 }}
-              >
-                {t("cta.subtitle")}
-              </motion.p>
-              <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.7, delay: 0.3 }}
-                className="mt-10"
-              >
-                <motion.a
-                  whileHover={{ scale: 1.04, y: -3 }}
-                  whileTap={{ scale: 0.97 }}
-                  href={WHATSAPP_LINK}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn-cta inline-block rounded-xl px-12 py-5 text-lg tracking-wide shadow-xl"
-                >
-                  {t("cta.button")}
-                </motion.a>
-              </motion.div>
-          </div>
-        </GiantScrollCard>
+                </>
+              ),
+            },
+            {
+              id: "planes",
+              content: (
+                <>
+                  <WaveDivider variant="accent" flip className="wave-divider--inside-section" />
+                  <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
+                    <SectionTitle title={t("plans.title")} subtitle={t("plans.subtitle")} />
+                    <div className="mt-10 grid md:grid-cols-3 gap-8 items-center">
+                      <Plan name={t("plans.plan1")} items={[t("plans.plan1Item1"), t("plans.plan1Item2"), t("plans.plan1Item3")]} delay={0} />
+                      <Plan featured name={t("plans.plan2")} items={[t("plans.plan2Item1"), t("plans.plan2Item2"), t("plans.plan2Item3")]} delay={0.1} />
+                      <Plan name={t("plans.plan3")} items={[t("plans.plan3Item1"), t("plans.plan3Item2"), t("plans.plan3Item3")]} delay={0.2} />
+                    </div>
+                  </section>
+                </>
+              ),
+            },
+            {
+              id: "citas",
+              content: (
+                <>
+                  <WaveDivider variant="subtle" flip className="wave-divider--inside-section" />
+                  <BookingSection />
+                </>
+              ),
+            },
+            {
+              id: "cta",
+              content: (
+                <>
+                  <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--primary)/0.08)] via-transparent to-[rgb(var(--primary)/0.05)] pointer-events-none" />
+                  <WaveDivider variant="primary" flip className="wave-divider--inside-section relative z-10" />
+                  <div className="relative z-10 max-w-4xl mx-auto px-6 py-24 md:py-32 text-center">
+                    <motion.h2
+                      className="font-display text-3xl md:text-4xl lg:text-5xl tracking-wide"
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.7 }}
+                    >
+                      {t("cta.title")}
+                    </motion.h2>
+                    <motion.p
+                      className="mt-5 text-lg md:text-xl text-muted leading-relaxed max-w-2xl mx-auto"
+                      initial={{ opacity: 0, y: 15 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.7, delay: 0.15 }}
+                    >
+                      {t("cta.subtitle")}
+                    </motion.p>
+                    <motion.div
+                      initial={{ opacity: 0, y: 15 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.7, delay: 0.3 }}
+                      className="mt-10"
+                    >
+                      <motion.a
+                        whileHover={{ scale: 1.04, y: -3 }}
+                        whileTap={{ scale: 0.97 }}
+                        href={WHATSAPP_LINK}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="btn-cta inline-block rounded-xl px-12 py-5 text-lg tracking-wide shadow-xl"
+                      >
+                        {t("cta.button")}
+                      </motion.a>
+                    </motion.div>
+                  </div>
+                </>
+              ),
+            },
+          ]}
+        />
       </main>
 
       {/* ─── FOOTER (wave dentro para que abrace) ─── */}
