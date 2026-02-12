@@ -18,17 +18,9 @@
   margin-bottom: 0;
 }
 
-/* Solo la wave de Services: sube para encajar con Approach */
+/* Wave dentro de sección — sin pull-up para evitar solapamiento entre tarjetas */
 .wave-divider--pull-up {
-  margin-top: -40px;
-}
-
-@media (min-width: 768px) {
-  .wave-divider--pull-up { margin-top: -60px; }
-}
-
-@media (min-width: 1280px) {
-  .wave-divider--pull-up { margin-top: -80px; }
+  margin-top: 0;
 }
 
 /* Wave dentro del hero */

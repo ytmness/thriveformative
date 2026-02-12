@@ -205,25 +205,25 @@ function PageContent() {
 
       {/* ─── MAIN CONTENT — Tarjetas con animación al entrar ─── */}
       <main className="scroll-cards-stack">
-        <GiantScrollCard variant="scale" id="approach">
+        <GiantScrollCard variant="slideUp" id="approach">
           <WaveDivider variant="subtle" flip className="wave-divider--inside-section" />
           <div className="fullscreen-content">
             <FullscreenCard title={t("approach.title1")}>{t("approach.desc1")}</FullscreenCard>
           </div>
         </GiantScrollCard>
-        <GiantScrollCard variant="scale" id="approach-2">
+        <GiantScrollCard variant="slideUp" id="approach-2">
           <WaveDivider variant="subtle" className="wave-divider--inside-section" />
           <div className="fullscreen-content">
             <FullscreenCard title={t("approach.title2")}>{t("approach.desc2")}</FullscreenCard>
           </div>
         </GiantScrollCard>
-        <GiantScrollCard variant="scale" id="approach-3">
+        <GiantScrollCard variant="slideUp" id="approach-3">
           <WaveDivider variant="subtle" flip className="wave-divider--inside-section" />
           <div className="fullscreen-content">
             <FullscreenCard title={t("approach.title3")}>{t("approach.desc3")}</FullscreenCard>
           </div>
         </GiantScrollCard>
-        <GiantScrollCard variant="scale" id="servicios">
+        <GiantScrollCard variant="slideUp" id="servicios">
           <WaveDivider variant="subtle" className="wave-divider--inside-section wave-divider--pull-up" />
           <div className="max-w-7xl mx-auto px-6 py-16 md:py-24">
             <SectionTitle title={t("services.title")} subtitle={t("services.subtitle")} />
@@ -237,7 +237,7 @@ function PageContent() {
             </div>
           </div>
         </GiantScrollCard>
-        <GiantScrollCard variant="scale" id="tshape">
+        <GiantScrollCard variant="slideUp" id="tshape">
           <WaveDivider variant="subtle" flip className="wave-divider--inside-section" />
           <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
             <SectionTitle title={t("tshape.title")} subtitle={t("tshape.subtitle")} />
@@ -323,7 +323,7 @@ function PageContent() {
               </div>
             </section>
         </GiantScrollCard>
-        <GiantScrollCard variant="scale" id="planes">
+        <GiantScrollCard variant="slideUp" id="planes">
           <WaveDivider variant="accent" flip className="wave-divider--inside-section" />
           <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
             <SectionTitle title={t("plans.title")} subtitle={t("plans.subtitle")} />
@@ -334,11 +334,11 @@ function PageContent() {
             </div>
           </section>
         </GiantScrollCard>
-        <GiantScrollCard variant="scale" id="citas">
+        <GiantScrollCard variant="slideUp" id="citas">
           <WaveDivider variant="subtle" flip className="wave-divider--inside-section" />
           <BookingSection />
         </GiantScrollCard>
-        <GiantScrollCard variant="scale" id="cta">
+        <GiantScrollCard variant="slideUp" id="cta">
           <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--primary)/0.08)] via-transparent to-[rgb(var(--primary)/0.05)] pointer-events-none" />
           <WaveDivider variant="primary" flip className="wave-divider--inside-section relative z-10" />
           <div className="relative z-10 max-w-4xl mx-auto px-6 py-24 md:py-32 text-center">
