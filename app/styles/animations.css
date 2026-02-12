@@ -70,3 +70,84 @@
     opacity: 0.95;
   }
 }
+
+/* =========================
+   Premium Scroll Scene
+   Editorial-style pinned section
+   ========================= */
+
+.scene-wrap {
+  position: relative;
+  background: rgb(var(--bg));
+}
+
+.scene-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(var(--bg));
+}
+
+.scene-topo {
+  position: absolute;
+  inset: 0;
+  /* Line-art / topo pattern via CSS gradients (uses theme vars) */
+  background-image:
+    linear-gradient(rgb(var(--primary) / 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--primary) / 0.15) 1px, transparent 1px),
+    radial-gradient(circle at 50% 50%, rgb(var(--primary) / 0.04) 0%, transparent 50%);
+  background-size: 48px 48px, 48px 48px, 100% 100%;
+  pointer-events: none;
+}
+
+.tile {
+  position: absolute;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(var(--border) / 0.25);
+  background: rgb(var(--surface) / 0.6);
+  backdrop-filter: blur(8px);
+  transform-origin: center;
+}
+
+.tile-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: rgb(var(--text));
+}
+
+/* Wipe effect — bar animated via framer-motion scaleX */
+.wipe {
+  position: relative;
+  display: inline-block;
+}
+
+.wipe-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+  background: rgb(var(--primary) / 0.2);
+  transform-origin: left;
+  z-index: -1;
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-stage {
+    position: relative;
+    height: auto;
+    min-height: 70vh;
+    overflow: visible;
+  }
+  .scene-wrap {
+    min-height: auto !important;
+  }
+}

@@ -26,6 +26,14 @@
     "stat3Label": "Follow-up",
     "stat3Value": "15–30 days"
   },
+  "premiumScene": {
+    "word1": "Balance",
+    "word2": "results",
+    "titleSuffix": "that last",
+    "tile1": "Prevention",
+    "tile2": "Support",
+    "tile3": "Evidence"
+  },
   "flow": {
     "title": "CARE FLOW",
     "newPatient": "New patient: scheduling → medical history → labs 48h before → consultation → comprehensive plan.",

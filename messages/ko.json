@@ -26,6 +26,14 @@
     "stat3Label": "후속 조치",
     "stat3Value": "15–30일"
   },
+  "premiumScene": {
+    "word1": "균형",
+    "word2": "결과",
+    "titleSuffix": "지속되다",
+    "tile1": "예방",
+    "tile2": "지원",
+    "tile3": "증거"
+  },
   "flow": {
     "title": "진료 흐름",
     "newPatient": "신규 환자: 예약 → 병력 → 검사 48시간 전 → 상담 → 종합 계획.",

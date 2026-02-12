@@ -26,6 +26,14 @@
     "stat3Label": "Seguimiento",
     "stat3Value": "15–30 días"
   },
+  "premiumScene": {
+    "word1": "Equilibrio",
+    "word2": "resultados",
+    "titleSuffix": "que perduran",
+    "tile1": "Prevención",
+    "tile2": "Acompañamiento",
+    "tile3": "Evidencia"
+  },
   "flow": {
     "title": "FLUJO DE ATENCIÓN",
     "newPatient": "Paciente nuevo: agendamiento → historia clínica → labs 48h antes → consulta → plan integral.",

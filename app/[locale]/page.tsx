@@ -10,6 +10,7 @@ import CustomCursor from "@/components/CustomCursor";
 import ScrollProgress from "@/components/ScrollProgress";
 import WaveDivider from "@/components/WaveDivider";
 import BookingSection from "@/components/BookingSection";
+import PremiumScrollScene from "@/components/PremiumScrollScene";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 
@@ -168,6 +169,9 @@ function PageContent() {
           <WaveDivider variant="accent" className="wave-hero-bottom" />
         </div>
       </section>
+
+      {/* ─── PREMIUM SCROLL SCENE ─── */}
+      <PremiumScrollScene />
 
       {/* ─── STATS BAR ─── */}
       <AnimatedSection>
