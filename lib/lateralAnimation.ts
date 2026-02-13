@@ -13,4 +13,7 @@ export const LATERAL = {
   scaleFlower: 0.2,
   scaleBranch: 0.75,
   rotateFlower: 480,
+  /** Rango de scroll para animaciones progresivas: [entrada, revelado completo].
+   * Más rango = revelado más gradual mientras scrolleas. */
+  scrollOffset: ["start 1", "start 0.15"],
 };
