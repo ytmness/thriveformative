@@ -161,7 +161,7 @@
 .scroll-cards-stack {
   --card-gap: 0.75rem;   /* padding top/bottom de cada giant-card */
   --path-height: 12rem;  /* altura del camino horizontal */
-  --tile-w: 32rem;      /* ramas horizontales grandes como antes */
+  --tile-w: 4rem;       /* ~16 ramas por mitad (igual que vertical: 16 por lado) */
   --path-overlap: 2.5rem; /* solapa con cards para que ramas y slides se conecten */
   padding: var(--card-gap) 0;
 }
