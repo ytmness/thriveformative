@@ -157,8 +157,10 @@
    Secciones como tarjetas gigantes
    ========================= */
 
+/* Espaciado entre cards: --card-gap (padding de cada card) + --path-height (camino floral) */
 .scroll-cards-stack {
-  --card-gap: 3rem;
+  --card-gap: 0.75rem;   /* padding top/bottom de cada giant-card */
+  --path-height: 8rem;   /* altura del camino horizontal entre cards */
   padding: var(--card-gap) 0;
 }
 
@@ -169,6 +171,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Path: solapa con cards para transición compacta */
+.scroll-cards-stack .horizontal-card-path {
+  margin-top: -0.5rem;
+  margin-bottom: -0.5rem;
 }
 
 .giant-card-inner {
@@ -257,59 +265,47 @@
   }
 }
 
-/* ─── Camino horizontal entre cards — ramas 1,2,5 + flores (mismo estilo que laterales) ─── */
+/* ─── Camino horizontal entre cards — compacto, ramas unificadas ─── */
 .horizontal-card-path {
   position: relative;
   width: 100%;
-  height: 24rem;
-  min-height: 24rem;
+  height: var(--path-height, 8rem);
+  min-height: var(--path-height, 8rem);
   flex-shrink: 0;
-  overflow: visible;
+  overflow: hidden;
   pointer-events: none;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .horizontal-path-side {
   position: absolute;
   top: 0;
   bottom: 0;
+  z-index: 1;
 }
 
 .horizontal-path-left {
   left: 0;
-  width: 50%;
+  width: 55%;
   transform-origin: left center;
 }
 
 .horizontal-path-right {
   right: 0;
-  width: 50%;
+  width: 55%;
   transform-origin: right center;
 }
 
 .horizontal-path-ornament {
   position: absolute;
   transform: translate(-50%, -50%);
-  filter: drop-shadow(0 2px 8px rgb(0 0 0 / 0.15));
-}
-
-.horizontal-path-left .horizontal-path-ornament {
-  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 2px 6px rgb(0 0 0 / 0.12));
 }
 
 .horizontal-path-right .horizontal-path-ornament {
   transform: translate(50%, -50%);
-}
-
-.horizontal-path-right .horizontal-path-ornament.floral-ornament--branch,
-.horizontal-path-right .horizontal-path-ornament.floral-ornament--branchCorner {
-  left: auto !important;
-}
-
-.horizontal-path-right .horizontal-path-ornament.floral-ornament--branch > div,
-.horizontal-path-right .horizontal-path-ornament.floral-ornament--branchCorner > div {
-  transform: scaleX(-1);
 }
 
 .horizontal-path-ornament img {
@@ -318,10 +314,30 @@
   object-fit: contain;
 }
 
+/* Ramas: proporción similar a laterales (w-36 ≈ 9rem, escalado para path 8rem de alto) */
+.horizontal-path-branch {
+  width: 10rem;
+  height: 8rem;
+}
+
+.horizontal-path-left .horizontal-path-branch img,
+.horizontal-path-right .horizontal-path-branch img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.horizontal-path-right .horizontal-path-branch > div {
+  transform: scaleX(-1);
+}
+
 @media (min-width: 768px) {
-  .horizontal-card-path {
-    height: 28rem;
-    min-height: 28rem;
+  .scroll-cards-stack {
+    --path-height: 9rem;
+  }
+  .horizontal-path-branch {
+    width: 11rem;
+    height: 9rem;
   }
 }
 
