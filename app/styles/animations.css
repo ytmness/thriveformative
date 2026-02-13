@@ -257,55 +257,46 @@
   }
 }
 
-/* ─── Camino horizontal entre cards — ramas 1, 2, 5 ─── */
+/* ─── Camino horizontal entre cards — flores (mismo estilo que laterales) ─── */
 .horizontal-card-path {
   position: relative;
   width: 100%;
   height: 6rem;
   min-height: 6rem;
   flex-shrink: 0;
-  overflow: hidden;
+  overflow: visible;
   pointer-events: none;
-  display: flex;
-  align-items: center;
 }
 
 .horizontal-path-side {
   position: absolute;
   top: 0;
   bottom: 0;
-  display: flex;
-  align-items: center;
-  gap: 0;
 }
 
 .horizontal-path-left {
   left: 0;
   width: 50%;
-  justify-content: flex-start;
   transform-origin: left center;
 }
 
 .horizontal-path-right {
   right: 0;
   width: 50%;
-  justify-content: flex-end;
   transform-origin: right center;
 }
 
-.horizontal-path-segment {
-  width: 6rem;
-  height: 8rem;
-  flex-shrink: 0;
-  transform: rotate(-90deg);
+.horizontal-path-flower {
+  top: 50%;
+  transform: translateY(-50%);
   filter: drop-shadow(0 2px 8px rgb(0 0 0 / 0.15));
 }
 
-.horizontal-path-right .horizontal-path-segment {
-  transform: rotate(-90deg) scaleX(-1);
+.horizontal-path-flower--right {
+  transform: translateY(-50%);
 }
 
-.horizontal-path-segment img {
+.horizontal-path-flower img {
   width: 100%;
   height: 100%;
   object-fit: contain;
@@ -315,10 +306,6 @@
   .horizontal-card-path {
     height: 8rem;
     min-height: 8rem;
-  }
-  .horizontal-path-segment {
-    width: 8rem;
-    height: 10rem;
   }
 }
 
