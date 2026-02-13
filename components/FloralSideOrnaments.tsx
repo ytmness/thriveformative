@@ -1,164 +1,43 @@
 "use client";
 
 import { useMemo } from "react";
+import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
 
 /* ───────────────────────────────────────────
-   Arbusto floral — muchos motivos alrededor
-   de las tarjetas, ramas, flores apiladas
-   x10 densidad, carga de arriba a abajo,
-   flores creciendo al aparecer (rotate + scale)
+   Arbusto floral — imágenes de 5x/
+   flor 1-5, rama 1-5. Carga de arriba a abajo,
+   flores creciendo al aparecer.
    ─────────────────────────────────────────── */
 
-function PetalFlower() {
+const FLOR_IMAGES = ["/floral/flor-1.png", "/floral/flor-2.png", "/floral/flor-3.png", "/floral/flor-4.png", "/floral/flor-5.png"];
+const RAMA_IMAGES = ["/floral/rama-1.png", "/floral/rama-2.png", "/floral/rama-3.png", "/floral/rama-4.png", "/floral/rama-5.png"];
+
+function FlorImage({ variant }: { variant: number }) {
+  const src = FLOR_IMAGES[variant % FLOR_IMAGES.length];
   return (
-    <svg viewBox="0 0 80 80" fill="none" className="w-full h-full" aria-hidden>
-      <g fill="rgb(var(--primary))" fillOpacity="0.12">
-        <ellipse cx="40" cy="20" rx="8" ry="16" transform="rotate(0 40 40)" />
-        <ellipse cx="40" cy="20" rx="8" ry="16" transform="rotate(72 40 40)" />
-        <ellipse cx="40" cy="20" rx="8" ry="16" transform="rotate(144 40 40)" />
-        <ellipse cx="40" cy="20" rx="8" ry="16" transform="rotate(216 40 40)" />
-        <ellipse cx="40" cy="20" rx="8" ry="16" transform="rotate(288 40 40)" />
-        <circle cx="40" cy="40" r="6" fillOpacity="0.18" />
-      </g>
-    </svg>
+    <div className="relative w-full h-full">
+      <Image src={src} alt="" fill className="object-contain" sizes="(max-width: 768px) 64px, 96px" />
+    </div>
   );
 }
 
-function LeafCluster() {
+function RamaImage({ variant, alignBottom = false }: { variant: number; alignBottom?: boolean }) {
+  const src = RAMA_IMAGES[variant % RAMA_IMAGES.length];
   return (
-    <svg viewBox="0 0 60 60" fill="none" className="w-full h-full" aria-hidden>
-      <g fill="rgb(var(--primary))" fillOpacity="0.1">
-        <path d="M30 5 Q45 25 30 55 Q15 25 30 5" />
-        <path d="M30 10 Q50 30 25 50 Q10 30 30 10" transform="rotate(-40 30 30)" />
-        <path d="M30 10 Q10 30 35 50 Q50 30 30 10" transform="rotate(40 30 30)" />
-      </g>
-    </svg>
+    <div className="relative w-full h-full">
+      <Image
+        src={src}
+        alt=""
+        fill
+        className={`object-contain ${alignBottom ? "object-bottom" : "object-top"}`}
+        sizes="(max-width: 768px) 56px, 120px"
+      />
+    </div>
   );
 }
 
-function OrganicBloom() {
-  return (
-    <svg viewBox="0 0 100 100" fill="none" className="w-full h-full" aria-hidden>
-      <g stroke="rgb(var(--primary))" strokeWidth="1" strokeOpacity="0.2" fill="none">
-        <circle cx="50" cy="50" r="8" />
-        <path d="M50 42 Q55 50 50 58 Q45 50 50 42" />
-        <path d="M42 50 Q50 45 58 50 Q50 55 42 50" />
-        <circle cx="50" cy="50" r="20" opacity="0.4" />
-        <circle cx="50" cy="50" r="32" opacity="0.2" />
-      </g>
-    </svg>
-  );
-}
-
-function SmallBud() {
-  return (
-    <svg viewBox="0 0 40 40" fill="none" className="w-full h-full" aria-hidden>
-      <g fill="rgb(var(--primary))" fillOpacity="0.15">
-        <ellipse cx="20" cy="20" rx="6" ry="10" />
-        <ellipse cx="20" cy="20" rx="6" ry="10" transform="rotate(60 20 20)" />
-        <ellipse cx="20" cy="20" rx="6" ry="10" transform="rotate(120 20 20)" />
-      </g>
-    </svg>
-  );
-}
-
-/* Ramas — curvas orgánicas */
-function BranchLeft() {
-  return (
-    <svg viewBox="0 0 120 200" fill="none" className="w-full h-full floral-branch" aria-hidden>
-      <path
-        d="M100 0 Q60 40 80 80 Q100 120 70 160 Q50 190 30 200"
-        stroke="rgb(var(--primary))"
-        strokeWidth="1.5"
-        strokeOpacity="0.15"
-        fill="none"
-        strokeLinecap="round"
-      />
-      <path
-        d="M90 30 Q70 50 75 90"
-        stroke="rgb(var(--primary))"
-        strokeWidth="1"
-        strokeOpacity="0.12"
-        fill="none"
-        strokeLinecap="round"
-      />
-      <path
-        d="M95 70 Q75 95 80 130"
-        stroke="rgb(var(--primary))"
-        strokeWidth="1"
-        strokeOpacity="0.1"
-        fill="none"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function BranchRight() {
-  return (
-    <svg viewBox="0 0 120 200" fill="none" className="w-full h-full floral-branch floral-branch--right" aria-hidden>
-      <path
-        d="M20 0 Q60 40 40 80 Q20 120 50 160 Q70 190 90 200"
-        stroke="rgb(var(--primary))"
-        strokeWidth="1.5"
-        strokeOpacity="0.15"
-        fill="none"
-        strokeLinecap="round"
-      />
-      <path
-        d="M30 30 Q50 50 45 90"
-        stroke="rgb(var(--primary))"
-        strokeWidth="1"
-        strokeOpacity="0.12"
-        fill="none"
-        strokeLinecap="round"
-      />
-      <path
-        d="M25 70 Q45 95 40 130"
-        stroke="rgb(var(--primary))"
-        strokeWidth="1"
-        strokeOpacity="0.1"
-        fill="none"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function BranchCornerTL() {
-  return (
-    <svg viewBox="0 0 150 150" fill="none" className="w-full h-full floral-branch" aria-hidden>
-      <path
-        d="M0 80 Q40 60 80 80 Q120 100 150 120"
-        stroke="rgb(var(--primary))"
-        strokeWidth="1.2"
-        strokeOpacity="0.12"
-        fill="none"
-        strokeLinecap="round"
-      />
-      <path d="M40 50 Q70 70 90 60" stroke="rgb(var(--primary))" strokeWidth="0.8" strokeOpacity="0.1" fill="none" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function BranchCornerBR() {
-  return (
-    <svg viewBox="0 0 150 150" fill="none" className="w-full h-full floral-branch floral-branch--right" aria-hidden>
-      <path
-        d="M150 70 Q110 90 70 70 Q30 50 0 30"
-        stroke="rgb(var(--primary))"
-        strokeWidth="1.2"
-        strokeOpacity="0.12"
-        fill="none"
-        strokeLinecap="round"
-      />
-      <path d="M110 100 Q80 80 60 90" stroke="rgb(var(--primary))" strokeWidth="0.8" strokeOpacity="0.1" fill="none" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-type OrnamentType = "flower" | "leaf" | "bloom" | "bud" | "branch" | "branchCorner";
+type OrnamentType = "flower" | "leaf" | "bloom" | "bud" | "flor5" | "branch" | "branchCorner";
 
 interface OrnamentDef {
   type: OrnamentType;
@@ -169,10 +48,12 @@ interface OrnamentDef {
   bottom?: string;
   zIndex: number;
   mirror?: boolean;
-  orderKey: number; /* para ordenar arriba→abajo y calcular delay dinámico */
+  orderKey: number;
+  florVariant?: number; /* 0-4 para flor 1-5 */
+  ramaVariant?: number; /* 0-4 para rama 1-5 */
 }
 
-const FLOWER_TYPES: OrnamentType[] = ["flower", "leaf", "bloom", "bud"];
+const FLOWER_TYPES: OrnamentType[] = ["flower", "leaf", "bloom", "bud", "flor5"];
 const SIZES = [
   "w-6 h-6 md:w-7 md:h-7",
   "w-7 h-7 md:w-8 md:h-8",
@@ -189,7 +70,7 @@ function generateOrnaments(): OrnamentDef[] {
   const items: OrnamentDef[] = [];
   let orderKey = 0;
 
-  /* Ramas base (arriba de todo) */
+  /* Ramas base — rama 1, 2, 3, 4 */
   items.push({
     type: "branch",
     size: "w-14 h-full min-h-[220px]",
@@ -198,6 +79,7 @@ function generateOrnaments(): OrnamentDef[] {
     zIndex: 0,
     mirror: false,
     orderKey: orderKey++,
+    ramaVariant: 0,
   });
   items.push({
     type: "branch",
@@ -207,6 +89,7 @@ function generateOrnaments(): OrnamentDef[] {
     zIndex: 0,
     mirror: true,
     orderKey: orderKey++,
+    ramaVariant: 1,
   });
   items.push({
     type: "branchCorner",
@@ -215,6 +98,7 @@ function generateOrnaments(): OrnamentDef[] {
     top: "0",
     zIndex: 0,
     orderKey: orderKey++,
+    ramaVariant: 2,
   });
   items.push({
     type: "branchCorner",
@@ -223,12 +107,13 @@ function generateOrnaments(): OrnamentDef[] {
     bottom: "0",
     zIndex: 0,
     orderKey: orderKey++,
+    ramaVariant: 4, /* rama 5 */
   });
 
-  /* Columna izquierda — x10 filas de flores/hojas (empiezan más arriba: -8% a 105%) */
+  /* Columna izquierda — flores 1-5 */
   for (let row = 0; row < 40; row++) {
-    const topPct = -8 + (row / 39) * 113; /* -8% hasta 105% */
-    const count = row % 3 === 0 ? 3 : 2; /* cada 3 filas una extra */
+    const topPct = -8 + (row / 39) * 113;
+    const count = row % 3 === 0 ? 3 : 2;
     for (let c = 0; c < count; c++) {
       const type = FLOWER_TYPES[(row + c) % FLOWER_TYPES.length];
       const size = SIZES[(row + c) % SIZES.length];
@@ -240,11 +125,12 @@ function generateOrnaments(): OrnamentDef[] {
         top: `${topPct.toFixed(1)}%`,
         zIndex: (row + c) % 4,
         orderKey: orderKey++,
+        florVariant: (row + c) % 5,
       });
     }
   }
 
-  /* Columna derecha — x10 filas */
+  /* Columna derecha */
   for (let row = 0; row < 40; row++) {
     const topPct = -8 + (row / 39) * 113;
     const count = row % 3 === 0 ? 3 : 2;
@@ -259,11 +145,12 @@ function generateOrnaments(): OrnamentDef[] {
         top: `${topPct.toFixed(1)}%`,
         zIndex: (row + c) % 4,
         orderKey: orderKey++,
+        florVariant: (row + c + 1) % 5,
       });
     }
   }
 
-  /* Centro-top y centro-bottom — más densidad */
+  /* Centro-top y centro-bottom */
   for (let i = 0; i < 30; i++) {
     const side = i % 2 === 0 ? "left" : "right";
     const pct = 5 + (i % 18) * 5;
@@ -277,6 +164,7 @@ function generateOrnaments(): OrnamentDef[] {
         top: `${-2 + (i % 5)}%`,
         zIndex: i % 3,
         orderKey: orderKey++,
+        florVariant: i % 5,
       });
     } else {
       items.push({
@@ -286,6 +174,7 @@ function generateOrnaments(): OrnamentDef[] {
         bottom: `${(i % 5)}%`,
         zIndex: i % 3,
         orderKey: orderKey++,
+        florVariant: (i + 2) % 5,
       });
     }
   }
@@ -295,14 +184,15 @@ function generateOrnaments(): OrnamentDef[] {
     const corner = i % 4;
     const type = FLOWER_TYPES[i % FLOWER_TYPES.length];
     const size = SIZES[(i % 3) + 1];
+    const base = { type, size, zIndex: 2, orderKey: orderKey++, florVariant: i % 5 };
     if (corner === 0) {
-      items.push({ type, size, left: `${(i % 3) * 0.8}rem`, top: `${-4 + i}%`, zIndex: 2, orderKey: orderKey++ });
+      items.push({ ...base, left: `${(i % 3) * 0.8}rem`, top: `${-4 + i}%` });
     } else if (corner === 1) {
-      items.push({ type, size, right: `${(i % 3) * 0.8}rem`, top: `${-4 + i}%`, zIndex: 2, orderKey: orderKey++ });
+      items.push({ ...base, right: `${(i % 3) * 0.8}rem`, top: `${-4 + i}%` });
     } else if (corner === 2) {
-      items.push({ type, size, left: `${(i % 3) * 0.8}rem`, bottom: `${i % 4}%`, zIndex: 2, orderKey: orderKey++ });
+      items.push({ ...base, left: `${(i % 3) * 0.8}rem`, bottom: `${i % 4}%` });
     } else {
-      items.push({ type, size, right: `${(i % 3) * 0.8}rem`, bottom: `${i % 4}%`, zIndex: 2, orderKey: orderKey++ });
+      items.push({ ...base, right: `${(i % 3) * 0.8}rem`, bottom: `${i % 4}%` });
     }
   }
 
@@ -317,14 +207,7 @@ function generateOrnaments(): OrnamentDef[] {
   });
 }
 
-const COMPONENT_MAP = {
-  flower: PetalFlower,
-  leaf: LeafCluster,
-  bloom: OrganicBloom,
-  bud: SmallBud,
-  branch: BranchLeft,
-  branchCorner: BranchCornerTL,
-};
+/* Flores usan FlorImage con florVariant 0-4; ramas usan RamaImage con ramaVariant 0-4 */
 
 const STAGGER_BASE = 0.012; /* delay por orden (arriba→abajo) */
 const STAGGER_MAX = 1.8; /* delay máximo total */
@@ -336,20 +219,10 @@ export default function FloralSideOrnaments() {
   return (
     <div className="floral-arbor-wrapper floral-arbor-wrapper--extended" aria-hidden>
       {ornaments.map((item, i) => {
-        let Rendered: () => JSX.Element;
-        if (item.type === "branch") {
-          Rendered = item.mirror ? BranchRight : BranchLeft;
-        } else if (item.type === "branchCorner") {
-          Rendered = item.right !== undefined && item.bottom !== undefined ? BranchCornerBR : BranchCornerTL;
-        } else {
-          Rendered = COMPONENT_MAP[item.type];
-        }
-
-        const needsMirror = item.mirror && item.type !== "branch" && item.type !== "branchCorner";
         const isRightSide = item.right !== undefined && item.left === undefined;
         const isFlower = FLOWER_TYPES.includes(item.type);
+        const needsMirror = item.mirror && item.type !== "branch" && item.type !== "branchCorner";
 
-        /* Delay dinámico: arriba (i bajo) → poco delay; abajo → más delay */
         const staggerDelay = Math.min(i * STAGGER_BASE, STAGGER_MAX);
 
         return (
@@ -381,7 +254,14 @@ export default function FloralSideOrnaments() {
             }}
           >
             <div className={needsMirror ? "floral-ornament-mirror" : ""}>
-              <Rendered />
+              {isFlower ? (
+                <FlorImage variant={item.florVariant ?? 0} />
+              ) : (
+                <RamaImage
+                  variant={item.ramaVariant ?? 0}
+                  alignBottom={item.type === "branchCorner" && item.bottom !== undefined}
+                />
+              )}
             </div>
           </motion.div>
         );
