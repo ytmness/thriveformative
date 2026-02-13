@@ -53,37 +53,39 @@ function generateOrnaments(): OrnamentDef[] {
   const items: OrnamentDef[] = [];
   let orderKey = 0;
 
-  const NUM_SEGMENTS = 95; /* muchísimas ramas pequeñas para mismo volumen que antes, pero en pedacitos */
+  const NUM_SEGMENTS = 95;
   const BRANCH_SIZE = "w-16 md:w-22 h-[115px] md:h-[160px]";
-  const STEP_PCT = 1.25; /* muy denso: se solapan para llenar como las grandes de antes */
-  const OFFSET = "-2.5rem";
+  const STEP_PCT = 2; /* espaciado vertical: se esparcen sin amontonarse */
+  /* Offset horizontal variable: ramas en distintas profundidades para volumen más grueso */
+  const LEFT_OFFSETS = ["-5rem", "-4rem", "-3.2rem", "-4.5rem", "-2.8rem", "-3.8rem"];
+  const RIGHT_OFFSETS = ["-5rem", "-4.2rem", "-3rem", "-4.5rem", "-2.5rem", "-3.5rem"];
 
-  /* Izquierda: ramas pequeñas, muchas */
+  /* Izquierda: esparcidas en profundidad */
   for (let i = 0; i < NUM_SEGMENTS; i++) {
     const topPct = -6 + i * STEP_PCT;
     const variant: 2 | 3 = i % 2 === 0 ? 2 : 3;
     items.push({
       type: "branch",
       size: BRANCH_SIZE,
-      left: OFFSET,
+      left: LEFT_OFFSETS[i % LEFT_OFFSETS.length],
       top: `${topPct}%`,
-      zIndex: 1,
+      zIndex: 1 + (i % 3),
       mirror: false,
       orderKey: orderKey++,
       ramaVariant: variant,
     });
   }
 
-  /* Derecha: mismas ramas pequeñas */
+  /* Derecha: esparcidas en profundidad */
   for (let i = 0; i < NUM_SEGMENTS; i++) {
     const topPct = -6 + i * STEP_PCT;
     const variant: 2 | 3 = i % 2 === 0 ? 3 : 2;
     items.push({
       type: "branch",
       size: BRANCH_SIZE,
-      right: OFFSET,
+      right: RIGHT_OFFSETS[i % RIGHT_OFFSETS.length],
       top: `${topPct}%`,
-      zIndex: 1,
+      zIndex: 1 + (i % 3),
       mirror: true,
       orderKey: orderKey++,
       ramaVariant: variant,
