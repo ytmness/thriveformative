@@ -257,15 +257,17 @@
   }
 }
 
-/* ─── Camino horizontal entre cards — flores (mismo estilo que laterales) ─── */
+/* ─── Camino horizontal entre cards — ramas 1,2,5 + flores (mismo estilo que laterales) ─── */
 .horizontal-card-path {
   position: relative;
   width: 100%;
-  height: 6rem;
-  min-height: 6rem;
+  height: 24rem;
+  min-height: 24rem;
   flex-shrink: 0;
   overflow: visible;
   pointer-events: none;
+  display: flex;
+  align-items: center;
 }
 
 .horizontal-path-side {
@@ -286,17 +288,31 @@
   transform-origin: right center;
 }
 
-.horizontal-path-flower {
-  top: 50%;
-  transform: translateY(-50%);
+.horizontal-path-ornament {
+  position: absolute;
+  transform: translate(-50%, -50%);
   filter: drop-shadow(0 2px 8px rgb(0 0 0 / 0.15));
 }
 
-.horizontal-path-flower--right {
-  transform: translateY(-50%);
+.horizontal-path-left .horizontal-path-ornament {
+  transform: translate(-50%, -50%);
 }
 
-.horizontal-path-flower img {
+.horizontal-path-right .horizontal-path-ornament {
+  transform: translate(50%, -50%);
+}
+
+.horizontal-path-right .horizontal-path-ornament.floral-ornament--branch,
+.horizontal-path-right .horizontal-path-ornament.floral-ornament--branchCorner {
+  left: auto !important;
+}
+
+.horizontal-path-right .horizontal-path-ornament.floral-ornament--branch > div,
+.horizontal-path-right .horizontal-path-ornament.floral-ornament--branchCorner > div {
+  transform: scaleX(-1);
+}
+
+.horizontal-path-ornament img {
   width: 100%;
   height: 100%;
   object-fit: contain;
@@ -304,8 +320,8 @@
 
 @media (min-width: 768px) {
   .horizontal-card-path {
-    height: 8rem;
-    min-height: 8rem;
+    height: 28rem;
+    min-height: 28rem;
   }
 }
 
