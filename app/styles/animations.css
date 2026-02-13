@@ -160,8 +160,8 @@
 /* Espaciado entre cards: --card-gap (padding de cada card) + --path-height (camino floral) */
 .scroll-cards-stack {
   --card-gap: 0.75rem;   /* padding top/bottom de cada giant-card */
-  --path-height: 12rem;  /* altura del camino horizontal */
-  --tile-w: 8rem;       /* densidad moderada, menos saturado que 4rem */
+  --path-height: 9rem;   /* un poco más pequeño que antes (12rem) */
+  --tile-w: 2.5rem;     /* ~30 ramas por mitad (laterales tienen 16 por lado) */
   --path-overlap: 2.5rem; /* solapa con cards para que ramas y slides se conecten */
   padding: var(--card-gap) 0;
 }
@@ -351,7 +351,7 @@
 
 @media (min-width: 768px) {
   .scroll-cards-stack {
-    --path-height: 13rem;
+    --path-height: 10rem;  /* desktop: un poco más pequeño que antes (13rem) */
   }
 }
 
