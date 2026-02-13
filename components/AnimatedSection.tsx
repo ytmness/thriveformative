@@ -3,6 +3,8 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
+import { useScrollDirection } from "@/lib/useScrollDirection";
+import { LATERAL } from "@/lib/lateralAnimation";
 
 interface AnimatedSectionProps {
   children: React.ReactNode;
@@ -18,23 +20,25 @@ export default function AnimatedSection({
   direction = "up" 
 }: AnimatedSectionProps) {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const isInView = useInView(ref, { once: false, margin: "-100px", amount: 0.02 });
+  const scrollDirection = useScrollDirection();
+  const fromY = scrollDirection === "down" ? LATERAL.fromY : -LATERAL.fromY;
 
   const variants = {
     up: {
-      hidden: { opacity: 0, y: 75 },
+      hidden: { opacity: 0, y: fromY },
       visible: { opacity: 1, y: 0 },
     },
     down: {
-      hidden: { opacity: 0, y: -75 },
+      hidden: { opacity: 0, y: -fromY },
       visible: { opacity: 1, y: 0 },
     },
     left: {
-      hidden: { opacity: 0, x: -75 },
+      hidden: { opacity: 0, x: -LATERAL.fromY },
       visible: { opacity: 1, x: 0 },
     },
     right: {
-      hidden: { opacity: 0, x: 75 },
+      hidden: { opacity: 0, x: LATERAL.fromY },
       visible: { opacity: 1, x: 0 },
     },
     fade: {
@@ -50,9 +54,9 @@ export default function AnimatedSection({
       animate={isInView ? "visible" : "hidden"}
       variants={variants[direction]}
       transition={{
-        duration: 0.9,
+        duration: LATERAL.durationFlower,
         delay,
-        ease: [0.25, 0.1, 0.25, 1],
+        ease: LATERAL.ease,
       }}
       className={className}
     >

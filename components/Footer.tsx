@@ -3,6 +3,8 @@
 import { motion } from "framer-motion";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { useTranslations, useLocale } from "next-intl";
+import { useScrollDirection } from "@/lib/useScrollDirection";
+import { LATERAL } from "@/lib/lateralAnimation";
 
 const WHATSAPP_LINK = "https://google.com";
 
@@ -17,6 +19,8 @@ export default function Footer() {
   const { theme } = useTheme();
   const t = useTranslations();
   const locale = useLocale();
+  const scrollDirection = useScrollDirection();
+  const fromY = scrollDirection === "down" ? LATERAL.fromY : -LATERAL.fromY;
 
   const currentLogo = logoMap[theme] || logoMap["nocturnal"];
 
@@ -30,10 +34,10 @@ export default function Footer() {
 
   return (
     <motion.footer
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.85 }}
+      initial={{ opacity: 0, y: fromY }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: false, amount: 0.02 }}
+      transition={{ duration: LATERAL.durationFlower, ease: LATERAL.ease }}
       className="py-16 md:py-20 border-t border-theme"
     >
       <div className="max-w-7xl mx-auto px-6">

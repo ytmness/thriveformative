@@ -2,6 +2,8 @@
 
 import { useMemo, useRef } from "react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
+import { useScrollDirection } from "@/lib/useScrollDirection";
+import { LATERAL } from "@/lib/lateralAnimation";
 
 const FLOR_IMAGES = ["/floral/flor-1.png", "/floral/flor-2.png", "/floral/flor-3.png", "/floral/flor-4.png", "/floral/flor-5.png"];
 const FLOWER_SIZES = ["w-13 h-13 md:w-16 md:h-16", "w-10 h-10 md:w-13 md:h-13", "w-16 h-16 md:w-18 md:h-18", "w-12 h-12 md:w-14 md:h-14", "w-9 h-9 md:w-12 md:h-12"];
@@ -45,12 +47,12 @@ function FlorImage({ variant }: { variant: number }) {
   return <img src={src} alt="" className="block w-full h-full object-contain" aria-hidden draggable={false} />;
 }
 
-const STAGGER = 0.045; /* Flores: aparición escalonada, más espaciada */
-
 export default function HorizontalCardPath() {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(wrapperRef, { once: false, amount: 0.05 });
   const shouldReduceMotion = useReducedMotion();
+  const scrollDirection = useScrollDirection();
+  const fromY = scrollDirection === "down" ? LATERAL.fromY : -LATERAL.fromY;
 
   const leftFlowers = useMemo(() => FLOWER_POSITIONS.filter((p) => p.side === "left"), []);
   const rightFlowers = useMemo(() => FLOWER_POSITIONS.filter((p) => p.side === "right"), []);
@@ -80,13 +82,12 @@ export default function HorizontalCardPath() {
 
   return (
     <div ref={wrapperRef} className="horizontal-card-path" aria-hidden>
-      {/* Izquierda: ramas crecen desde el borde izquierdo hacia el centro */}
+      {/* Izquierda — mismo estilo que laterales: y + scale + rotate */}
       <motion.div
         className="horizontal-card-path__side horizontal-card-path__side--left"
-        initial={{ opacity: 0, scaleX: 0 }}
-        animate={isInView ? { opacity: 1, scaleX: 1 } : { opacity: 0, scaleX: 0 }}
-        transition={{ duration: 1.4, ease: [0.22, 0.61, 0.36, 1] }}
-        style={{ transformOrigin: "left center" }}
+        initial={{ opacity: 0, y: fromY, scale: LATERAL.scaleBranch }}
+        animate={isInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: fromY, scale: LATERAL.scaleBranch }}
+        transition={{ duration: LATERAL.durationBranch, ease: LATERAL.ease }}
       >
         <div className="horizontal-card-path__branches" />
         {leftFlowers.map((pos, i) => (
@@ -94,12 +95,12 @@ export default function HorizontalCardPath() {
             key={`left-f-${i}`}
             className={`horizontal-card-path__flower ${FLOWER_SIZES[i % FLOWER_SIZES.length]}`}
             style={{ left: pos.x, top: pos.top, zIndex: 3 }}
-            initial={{ opacity: 0, scale: 0.2, rotate: 540 }}
-            animate={isInView ? { opacity: 1, scale: 1, rotate: 0 } : { opacity: 0, scale: 0.2, rotate: 540 }}
+            initial={{ opacity: 0, y: fromY, scale: LATERAL.scaleFlower, rotate: LATERAL.rotateFlower }}
+            animate={isInView ? { opacity: 1, y: 0, scale: 1, rotate: 0 } : { opacity: 0, y: fromY, scale: LATERAL.scaleFlower, rotate: LATERAL.rotateFlower }}
             transition={{
-              duration: 0.95,
-              delay: isInView ? Math.min(i * STAGGER, 2) : 0,
-              ease: [0.22, 0.61, 0.36, 1],
+              duration: LATERAL.durationFlower,
+              delay: isInView ? Math.min(i * LATERAL.staggerBase, LATERAL.staggerMax) : 0,
+              ease: LATERAL.ease,
             }}
           >
             <FlorImage variant={i % 5} />
@@ -107,13 +108,12 @@ export default function HorizontalCardPath() {
         ))}
       </motion.div>
 
-      {/* Derecha: ramas crecen desde el borde derecho hacia el centro — se unen en medio */}
+      {/* Derecha — mismo estilo que laterales */}
       <motion.div
         className="horizontal-card-path__side horizontal-card-path__side--right"
-        initial={{ opacity: 0, scaleX: 0 }}
-        animate={isInView ? { opacity: 1, scaleX: 1 } : { opacity: 0, scaleX: 0 }}
-        transition={{ duration: 1.4, ease: [0.22, 0.61, 0.36, 1] }}
-        style={{ transformOrigin: "right center" }}
+        initial={{ opacity: 0, y: fromY, scale: LATERAL.scaleBranch }}
+        animate={isInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: fromY, scale: LATERAL.scaleBranch }}
+        transition={{ duration: LATERAL.durationBranch, ease: LATERAL.ease }}
       >
         <div className="horizontal-card-path__branches horizontal-card-path__branches--right" />
         {rightFlowers.map((pos, i) => (
@@ -121,12 +121,12 @@ export default function HorizontalCardPath() {
             key={`right-f-${i}`}
             className={`horizontal-card-path__flower horizontal-card-path__flower--right ${FLOWER_SIZES[i % FLOWER_SIZES.length]}`}
             style={{ right: pos.x, top: pos.top, zIndex: 3 }}
-            initial={{ opacity: 0, scale: 0.2, rotate: -540 }}
-            animate={isInView ? { opacity: 1, scale: 1, rotate: 0 } : { opacity: 0, scale: 0.2, rotate: -540 }}
+            initial={{ opacity: 0, y: fromY, scale: LATERAL.scaleFlower, rotate: -LATERAL.rotateFlower }}
+            animate={isInView ? { opacity: 1, y: 0, scale: 1, rotate: 0 } : { opacity: 0, y: fromY, scale: LATERAL.scaleFlower, rotate: -LATERAL.rotateFlower }}
             transition={{
-              duration: 0.95,
-              delay: isInView ? Math.min(i * STAGGER + 0.12, 2.2) : 0,
-              ease: [0.22, 0.61, 0.36, 1],
+              duration: LATERAL.durationFlower,
+              delay: isInView ? Math.min(i * LATERAL.staggerBase + 0.1, LATERAL.staggerMax + 0.2) : 0,
+              ease: LATERAL.ease,
             }}
           >
             <FlorImage variant={i % 5} />

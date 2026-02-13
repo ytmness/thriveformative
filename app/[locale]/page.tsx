@@ -14,6 +14,8 @@ import GiantScrollCard from "@/components/GiantScrollCard";
 import HorizontalCardPath from "@/components/HorizontalCardPath";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
+import { useScrollDirection } from "@/lib/useScrollDirection";
+import { LATERAL } from "@/lib/lateralAnimation";
 
 const WHATSAPP_LINK = "https://google.com";
 
@@ -60,6 +62,8 @@ function OrganicPattern({ className = "" }: { className?: string }) {
    ─────────────────────────────────────────── */
 function PageContent() {
   const t = useTranslations();
+  const scrollDirection = useScrollDirection();
+  const fromY = scrollDirection === "down" ? LATERAL.fromY : -LATERAL.fromY;
 
   return (
     <>
@@ -89,9 +93,9 @@ function PageContent() {
 
                 {/* Main circle */}
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.85 }}
+                  initial={{ opacity: 0, scale: LATERAL.scaleBranch }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.8, delay: 0.3 }}
+                  transition={{ duration: LATERAL.durationFlower, delay: 0.3, ease: LATERAL.ease }}
                   className="relative w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full border border-[rgb(var(--primary)/0.25)] overflow-hidden flex items-center justify-center bg-[rgb(var(--surface)/0.3)] backdrop-blur-sm"
                 >
                   {/* Inner ring */}
@@ -111,9 +115,9 @@ function PageContent() {
           <div>
             <motion.h1
               className="font-display text-4xl sm:text-5xl md:text-6xl leading-tight tracking-wide italic"
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: LATERAL.fromY }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+              transition={{ duration: LATERAL.durationFlower, delay: 0.2, ease: LATERAL.ease }}
             >
               {t("hero.title")}
             </motion.h1>
@@ -122,7 +126,7 @@ function PageContent() {
               className="mt-5 text-muted text-lg leading-relaxed"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
+              transition={{ duration: LATERAL.durationFlower, delay: 0.4, ease: LATERAL.ease }}
             >
               {t("hero.subtitle")}
             </motion.p>
@@ -130,9 +134,9 @@ function PageContent() {
             {/* Benefits grid — 2×2 like reference */}
             <motion.div
               className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: LATERAL.fromY }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.55 }}
+              transition={{ duration: LATERAL.durationFlower, delay: 0.55, ease: LATERAL.ease }}
             >
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="flex items-start gap-3">
@@ -147,9 +151,9 @@ function PageContent() {
             {/* CTA button */}
             <motion.div
               className="mt-9"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: LATERAL.fromY }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.7 }}
+              transition={{ duration: LATERAL.durationFlower, delay: 0.7, ease: LATERAL.ease }}
             >
               <motion.a
                 whileHover={{ scale: 1.03, y: -2 }}
@@ -175,9 +179,9 @@ function PageContent() {
       <AnimatedSection>
         <div className="max-w-7xl mx-auto px-6 py-16">
           <div className="grid grid-cols-3 gap-6">
-            <Stat label={t("hero.stat1Label")} value={t("hero.stat1Value")} delay={0} />
-            <Stat label={t("hero.stat2Label")} value={t("hero.stat2Value")} delay={0.1} />
-            <Stat label={t("hero.stat3Label")} value={t("hero.stat3Value")} delay={0.2} />
+            <Stat label={t("hero.stat1Label")} value={t("hero.stat1Value")} delay={0} fromY={fromY} />
+            <Stat label={t("hero.stat2Label")} value={t("hero.stat2Value")} delay={0.1} fromY={fromY} />
+            <Stat label={t("hero.stat3Label")} value={t("hero.stat3Value")} delay={0.2} fromY={fromY} />
           </div>
         </div>
       </AnimatedSection>
@@ -230,7 +234,7 @@ function PageContent() {
         <GiantScrollCard variant="slideUp" id="servicios">
           <WaveDivider variant="subtle" className="wave-divider--inside-section wave-divider--pull-up" />
           <div className="max-w-7xl mx-auto px-6 py-16 md:py-24">
-            <SectionTitle title={t("services.title")} subtitle={t("services.subtitle")} />
+            <SectionTitle title={t("services.title")} subtitle={t("services.subtitle")} fromY={fromY} />
             <div className="mt-12 grid md:grid-cols-2 gap-8 md:gap-10">
               <Service name={t("services.service1")} desc={t("services.desc1")} delay={0} />
               <Service name={t("services.service2")} desc={t("services.desc2")} delay={0.1} />
@@ -245,15 +249,15 @@ function PageContent() {
         <GiantScrollCard variant="slideUp" id="tshape">
           <WaveDivider variant="subtle" flip className="wave-divider--inside-section" />
           <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
-            <SectionTitle title={t("tshape.title")} subtitle={t("tshape.subtitle")} />
+            <SectionTitle title={t("tshape.title")} subtitle={t("tshape.subtitle")} fromY={fromY} />
 
             <div className="mt-10 grid md:grid-cols-[1fr_1.4fr] gap-10 items-start">
                 {/* Left — Machine image + FDA badge overlay */}
                 <motion.div
-                  initial={{ opacity: 0, x: -30 }}
+                  initial={{ opacity: 0, x: -LATERAL.fromY }}
                   whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6 }}
+                  viewport={{ once: false, amount: 0.02 }}
+                  transition={{ duration: LATERAL.durationBranch, ease: LATERAL.ease }}
                   className="relative"
                 >
                   <motion.div
@@ -268,10 +272,10 @@ function PageContent() {
                   </motion.div>
                   {/* FDA seal — positioned as stamp on top-right */}
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.5, rotate: -15 }}
+                    initial={{ opacity: 0, scale: LATERAL.scaleFlower, rotate: -15 }}
                     whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: 0.3, type: "spring", stiffness: 150 }}
+                    viewport={{ once: false, amount: 0.02 }}
+                    transition={{ duration: LATERAL.durationFlower, delay: 0.25, ease: LATERAL.ease }}
                     className="absolute -top-8 -right-8 w-32 h-32 md:w-40 md:h-40"
                   >
                     <img
@@ -285,10 +289,10 @@ function PageContent() {
 
                 {/* Right — FDA info + indications */}
                 <motion.div
-                  initial={{ opacity: 0, x: 30 }}
+                  initial={{ opacity: 0, x: LATERAL.fromY }}
                   whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: 0.1 }}
+                  viewport={{ once: false, amount: 0.02 }}
+                  transition={{ duration: LATERAL.durationBranch, delay: 0.1, ease: LATERAL.ease }}
                   className="bg-surface border border-theme rounded-2xl shadow-soft p-6"
                 >
                   <p className="text-base leading-relaxed">{t("tshape.fdaDesc")}</p>
@@ -311,10 +315,10 @@ function PageContent() {
                 {[1, 2, 3].map((i) => (
                   <motion.div
                     key={i}
-                    initial={{ opacity: 0, y: 30 }}
+                    initial={{ opacity: 0, y: fromY }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: i * 0.1 }}
+                    viewport={{ once: false, amount: 0.02 }}
+                    transition={{ duration: LATERAL.durationBranch, delay: i * LATERAL.staggerBase, ease: LATERAL.ease }}
                     whileHover={{ y: -5, boxShadow: "0 20px 50px rgba(0,0,0,0.18)" }}
                     className="bg-surface border border-theme rounded-2xl shadow-soft p-8"
                   >
@@ -332,11 +336,11 @@ function PageContent() {
         <GiantScrollCard variant="slideUp" id="planes">
           <WaveDivider variant="accent" flip className="wave-divider--inside-section" />
           <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
-            <SectionTitle title={t("plans.title")} subtitle={t("plans.subtitle")} />
+            <SectionTitle title={t("plans.title")} subtitle={t("plans.subtitle")} fromY={fromY} />
             <div className="mt-10 grid md:grid-cols-3 gap-8 items-center">
-              <Plan name={t("plans.plan1")} items={[t("plans.plan1Item1"), t("plans.plan1Item2"), t("plans.plan1Item3")]} delay={0} />
-              <Plan featured name={t("plans.plan2")} items={[t("plans.plan2Item1"), t("plans.plan2Item2"), t("plans.plan2Item3")]} delay={0.1} />
-              <Plan name={t("plans.plan3")} items={[t("plans.plan3Item1"), t("plans.plan3Item2"), t("plans.plan3Item3")]} delay={0.2} />
+              <Plan name={t("plans.plan1")} items={[t("plans.plan1Item1"), t("plans.plan1Item2"), t("plans.plan1Item3")]} delay={0} fromY={fromY} />
+              <Plan featured name={t("plans.plan2")} items={[t("plans.plan2Item1"), t("plans.plan2Item2"), t("plans.plan2Item3")]} delay={0.1} fromY={fromY} />
+              <Plan name={t("plans.plan3")} items={[t("plans.plan3Item1"), t("plans.plan3Item2"), t("plans.plan3Item3")]} delay={0.2} fromY={fromY} />
             </div>
           </section>
         </GiantScrollCard>
@@ -352,27 +356,27 @@ function PageContent() {
           <div className="relative z-10 max-w-4xl mx-auto px-6 py-24 md:py-32 text-center">
             <motion.h2
               className="font-display text-3xl md:text-4xl lg:text-5xl tracking-wide"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: fromY }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7 }}
+              viewport={{ once: false, amount: 0.02 }}
+              transition={{ duration: LATERAL.durationFlower, ease: LATERAL.ease }}
             >
               {t("cta.title")}
             </motion.h2>
             <motion.p
               className="mt-5 text-lg md:text-xl text-muted leading-relaxed max-w-2xl mx-auto"
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: fromY }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: 0.15 }}
+              viewport={{ once: false, amount: 0.02 }}
+              transition={{ duration: LATERAL.durationFlower, delay: 0.12, ease: LATERAL.ease }}
             >
               {t("cta.subtitle")}
             </motion.p>
             <motion.div
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: fromY }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: 0.3 }}
+              viewport={{ once: false, amount: 0.02 }}
+              transition={{ duration: LATERAL.durationBranch, delay: 0.25, ease: LATERAL.ease }}
               className="mt-10"
             >
               <motion.a
@@ -424,13 +428,13 @@ function FullscreenCard({ title, children }: { title: string; children: React.Re
   );
 }
 
-function Stat({ label, value, delay = 0 }: { label: string; value: string; delay?: number }) {
+function Stat({ label, value, delay = 0, fromY = LATERAL.fromY }: { label: string; value: string; delay?: number; fromY?: number }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: fromY }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay }}
+      viewport={{ once: false, amount: 0.02 }}
+      transition={{ duration: LATERAL.durationBranch, delay, ease: LATERAL.ease }}
       whileHover={{ y: -4, boxShadow: "0 10px 30px rgba(0,0,0,0.12)" }}
       className="bg-surface border border-theme rounded-2xl p-6 md:p-8 cursor-default text-center"
     >
@@ -441,13 +445,13 @@ function Stat({ label, value, delay = 0 }: { label: string; value: string; delay
 }
 
 
-function SectionTitle({ title, subtitle }: { title: string; subtitle: string }) {
+function SectionTitle({ title, subtitle, fromY = LATERAL.fromY }: { title: string; subtitle: string; fromY?: number }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: fromY }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.6 }}
+      viewport={{ once: false, amount: 0.02 }}
+      transition={{ duration: LATERAL.durationBranch, ease: LATERAL.ease }}
       className="mb-4"
     >
       <h2 className="font-display text-3xl md:text-4xl lg:text-5xl tracking-wide">{title}</h2>
@@ -459,10 +463,10 @@ function SectionTitle({ title, subtitle }: { title: string; subtitle: string }) 
 function Service({ name, desc, delay = 0 }: { name: string; desc: string; delay?: number }) {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
+      initial={{ opacity: 0, scale: LATERAL.scaleBranch }}
       whileInView={{ opacity: 1, scale: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay }}
+      viewport={{ once: false, amount: 0.02 }}
+      transition={{ duration: LATERAL.durationBranch, delay, ease: LATERAL.ease }}
       whileHover={{ y: -6, boxShadow: "0 20px 50px rgba(0,0,0,0.18)" }}
       className="bg-surface border border-theme rounded-2xl shadow-soft p-8 md:p-10"
     >
@@ -472,14 +476,14 @@ function Service({ name, desc, delay = 0 }: { name: string; desc: string; delay?
   );
 }
 
-function Plan({ name, items, featured, delay = 0 }: { name: string; items: string[]; featured?: boolean; delay?: number }) {
+function Plan({ name, items, featured, delay = 0, fromY = LATERAL.fromY }: { name: string; items: string[]; featured?: boolean; delay?: number; fromY?: number }) {
   const t = useTranslations();
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: fromY }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.6, delay }}
+      viewport={{ once: false, amount: 0.02 }}
+      transition={{ duration: LATERAL.durationBranch, delay, ease: LATERAL.ease }}
       whileHover={{
         y: -8,
         boxShadow: featured

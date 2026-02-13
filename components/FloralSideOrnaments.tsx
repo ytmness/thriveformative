@@ -1,7 +1,9 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
-import { motion, useReducedMotion, useScroll, useInView, useMotionValueEvent } from "framer-motion";
+import { useMemo, useRef } from "react";
+import { motion, useReducedMotion, useInView } from "framer-motion";
+import { useScrollDirection } from "@/lib/useScrollDirection";
+import { LATERAL } from "@/lib/lateralAnimation";
 
 /* ───────────────────────────────────────────
    Camino entre ramas + flores por encima
@@ -133,22 +135,6 @@ function generateOrnaments(): OrnamentDef[] {
   });
 }
 
-const STAGGER_BASE = 0.022;
-const STAGGER_MAX = 2;
-
-function useScrollDirection() {
-  const [direction, setDirection] = useState<"down" | "up">("down");
-  const { scrollY } = useScroll();
-  const prev = useRef(0);
-
-  useMotionValueEvent(scrollY, "change", (v) => {
-    setDirection(v > prev.current ? "down" : "up");
-    prev.current = v;
-  });
-
-  return direction;
-}
-
 export default function FloralSideOrnaments() {
   const shouldReduceMotion = useReducedMotion();
   const ornaments = useMemo(() => generateOrnaments(), []);
@@ -156,8 +142,8 @@ export default function FloralSideOrnaments() {
   const isInView = useInView(wrapperRef, { once: false, amount: 0.02 });
   const scrollDirection = useScrollDirection();
 
-  /* Scroll abajo: entran desde abajo. Scroll arriba: entran desde arriba. Más recorrido para mayor fluidez */
-  const fromY = scrollDirection === "down" ? 55 : -55;
+
+  const fromY = scrollDirection === "down" ? LATERAL.fromY : -LATERAL.fromY;
 
   return (
     <div ref={wrapperRef} className="floral-arbor-wrapper floral-arbor-wrapper--extended" aria-hidden>
@@ -165,11 +151,11 @@ export default function FloralSideOrnaments() {
         const isRightSide = item.right !== undefined && item.left === undefined;
         const needsMirror = item.mirror && item.type !== "branch" && item.type !== "branchCorner";
         const isFlower = item.type === "flower";
-        const staggerDelay = Math.min(i * STAGGER_BASE, STAGGER_MAX);
+        const staggerDelay = Math.min(i * LATERAL.staggerBase, LATERAL.staggerMax);
 
         const hiddenState = shouldReduceMotion
           ? { opacity: 0 }
-          : { opacity: 0, y: fromY, scale: isFlower ? 0.2 : 0.75, rotate: isFlower ? 480 : 0 };
+          : { opacity: 0, y: fromY, scale: isFlower ? LATERAL.scaleFlower : LATERAL.scaleBranch, rotate: isFlower ? LATERAL.rotateFlower : 0 };
         const visibleState = { opacity: 1, y: 0, scale: 1, rotate: 0 };
 
         return (
@@ -186,9 +172,9 @@ export default function FloralSideOrnaments() {
             initial={hiddenState}
             animate={isInView ? visibleState : hiddenState}
             transition={{
-              duration: shouldReduceMotion ? 0.3 : isFlower ? 0.92 : 0.78 + (i % 3) * 0.05,
+              duration: shouldReduceMotion ? 0.3 : isFlower ? LATERAL.durationFlower : LATERAL.durationBranch + (i % 3) * 0.05,
               delay: isInView ? (shouldReduceMotion ? 0 : staggerDelay) : 0,
-              ease: [0.22, 0.61, 0.36, 1],
+              ease: LATERAL.ease,
             }}
           >
             <div className={`w-full h-full ${needsMirror ? "floral-ornament-mirror" : ""}`}>

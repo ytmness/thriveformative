@@ -2,6 +2,8 @@
 
 import { motion, useReducedMotion, Variants } from "framer-motion";
 import FloralSideOrnaments from "./FloralSideOrnaments";
+import { useScrollDirection } from "@/lib/useScrollDirection";
+import { LATERAL } from "@/lib/lateralAnimation";
 
 type CardVariant =
   | "slideUp"
@@ -19,24 +21,25 @@ interface GiantScrollCardProps {
   id?: string;
 }
 
-const variants: Record<CardVariant, Variants> = {
-  slideUp: {
-    hidden: { opacity: 0, y: 180 },
-    visible: { opacity: 1, y: 0 },
-  },
-  slideLeft: {
-    hidden: { opacity: 0, x: 180 },
-    visible: { opacity: 1, x: 0 },
-  },
-  slideRight: {
-    hidden: { opacity: 0, x: -180 },
-    visible: { opacity: 1, x: 0 },
-  },
-  scale: {
-    hidden: { opacity: 0, scale: 0.82 },
-    visible: { opacity: 1, scale: 1 },
-  },
-  curtain: {
+function buildVariants(fromY: number): Record<CardVariant, Variants> {
+  return {
+    slideUp: {
+      hidden: { opacity: 0, y: fromY },
+      visible: { opacity: 1, y: 0 },
+    },
+    slideLeft: {
+      hidden: { opacity: 0, x: fromY },
+      visible: { opacity: 1, x: 0 },
+    },
+    slideRight: {
+      hidden: { opacity: 0, x: -fromY },
+      visible: { opacity: 1, x: 0 },
+    },
+    scale: {
+      hidden: { opacity: 0, scale: LATERAL.scaleBranch },
+      visible: { opacity: 1, scale: 1 },
+    },
+    curtain: {
     hidden: { opacity: 0, y: 0, filter: "brightness(0.7)" },
     visible: { opacity: 1, y: 0, filter: "brightness(1)" },
   },
@@ -45,10 +48,11 @@ const variants: Record<CardVariant, Variants> = {
     visible: { opacity: 1, filter: "blur(0px)" },
   },
   stack: {
-    hidden: { opacity: 0, y: 120, scale: 0.9 },
+    hidden: { opacity: 0, y: fromY, scale: LATERAL.scaleBranch },
     visible: { opacity: 1, y: 0, scale: 1 },
   },
 };
+}
 
 export default function GiantScrollCard({
   children,
@@ -57,6 +61,9 @@ export default function GiantScrollCard({
   id,
 }: GiantScrollCardProps) {
   const shouldReduceMotion = useReducedMotion();
+  const scrollDirection = useScrollDirection();
+  const fromY = scrollDirection === "down" ? LATERAL.fromY : -LATERAL.fromY;
+  const variants = buildVariants(fromY);
   const v = variants[variant];
 
   const reducedVariants: Variants = {
@@ -74,8 +81,8 @@ export default function GiantScrollCard({
       whileInView="visible"
       viewport={{ once: false, amount: 0.15, margin: "-50px" }}
       transition={{
-        duration: 0.95,
-        ease: [0.22, 0.61, 0.36, 1],
+        duration: LATERAL.durationFlower,
+        ease: LATERAL.ease,
       }}
       variants={effectiveVariants}
     >
