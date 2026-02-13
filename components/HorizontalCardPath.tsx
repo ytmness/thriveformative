@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 
 const FLOR_IMAGES = ["/floral/flor-1.png", "/floral/flor-2.png", "/floral/flor-3.png", "/floral/flor-4.png", "/floral/flor-5.png"];
@@ -49,15 +49,21 @@ function FlorImage({ variant }: { variant: number }) {
 }
 
 export default function HorizontalCardPath() {
+  const [mounted, setMounted] = useState(false);
   const flowers = useMemo(() => generateFlowers(), []);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(wrapperRef, { once: false, amount: 0.1 });
   const shouldReduceMotion = useReducedMotion();
-  const STAGGER_BASE = 0.01;
 
-  const closedLeft = shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scaleX: 0 };
+  useEffect(() => setMounted(true), []);
+
+  const STAGGER_BASE = 0.01;
+  const effectiveInView = mounted && isInView;
+  const effectiveReduceMotion = mounted && !!shouldReduceMotion;
+
+  const closedLeft = effectiveReduceMotion ? { opacity: 0 } : { opacity: 0, scaleX: 0 };
   const openLeft = { opacity: 1, scaleX: 1 };
-  const closedRight = shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scaleX: 0 };
+  const closedRight = effectiveReduceMotion ? { opacity: 0 } : { opacity: 0, scaleX: 0 };
   const openRight = { opacity: 1, scaleX: 1 };
 
   const leftFlowers = flowers.filter((f) => f.left !== undefined);
@@ -68,15 +74,15 @@ export default function HorizontalCardPath() {
       <motion.div
         className="horizontal-path-side horizontal-path-left"
         initial={closedLeft}
-        animate={isInView ? openLeft : closedLeft}
+        animate={effectiveInView ? openLeft : closedLeft}
         transition={{
-          duration: shouldReduceMotion ? 0.25 : 0.55,
+          duration: effectiveReduceMotion ? 0.25 : 0.55,
           ease: [0.22, 0.61, 0.36, 1],
         }}
       >
         {leftFlowers.map((item, i) => {
           const staggerDelay = Math.min(i * STAGGER_BASE, 0.5);
-          const hiddenState = shouldReduceMotion
+          const hiddenState = effectiveReduceMotion
             ? { opacity: 0 }
             : { opacity: 0, scale: 0.8 };
           const visibleState = { opacity: 1, scale: 1 };
@@ -86,10 +92,10 @@ export default function HorizontalCardPath() {
               className={`horizontal-path-flower absolute ${item.size}`}
               style={{ left: item.left, zIndex: item.zIndex }}
               initial={hiddenState}
-              animate={isInView ? visibleState : hiddenState}
+              animate={effectiveInView ? visibleState : hiddenState}
               transition={{
-                duration: shouldReduceMotion ? 0.3 : 0.6,
-                delay: isInView ? (shouldReduceMotion ? 0 : staggerDelay) : 0,
+                duration: effectiveReduceMotion ? 0.3 : 0.6,
+                delay: effectiveInView ? (effectiveReduceMotion ? 0 : staggerDelay) : 0,
                 ease: [0.22, 0.61, 0.36, 1],
               }}
             >
@@ -101,15 +107,15 @@ export default function HorizontalCardPath() {
       <motion.div
         className="horizontal-path-side horizontal-path-right"
         initial={closedRight}
-        animate={isInView ? openRight : closedRight}
+        animate={effectiveInView ? openRight : closedRight}
         transition={{
-          duration: shouldReduceMotion ? 0.25 : 0.55,
+          duration: effectiveReduceMotion ? 0.25 : 0.55,
           ease: [0.22, 0.61, 0.36, 1],
         }}
       >
         {rightFlowers.map((item, i) => {
           const staggerDelay = Math.min(i * STAGGER_BASE, 0.5);
-          const hiddenState = shouldReduceMotion
+          const hiddenState = effectiveReduceMotion
             ? { opacity: 0 }
             : { opacity: 0, scale: 0.8 };
           const visibleState = { opacity: 1, scale: 1 };
@@ -119,10 +125,10 @@ export default function HorizontalCardPath() {
               className={`horizontal-path-flower horizontal-path-flower--right absolute ${item.size}`}
               style={{ right: item.right, zIndex: item.zIndex }}
               initial={hiddenState}
-              animate={isInView ? visibleState : hiddenState}
+              animate={effectiveInView ? visibleState : hiddenState}
               transition={{
-                duration: shouldReduceMotion ? 0.3 : 0.6,
-                delay: isInView ? (shouldReduceMotion ? 0 : staggerDelay) : 0,
+                duration: effectiveReduceMotion ? 0.3 : 0.6,
+                delay: effectiveInView ? (effectiveReduceMotion ? 0 : staggerDelay) : 0,
                 ease: [0.22, 0.61, 0.36, 1],
               }}
             >
