@@ -53,50 +53,48 @@ function generateOrnaments(): OrnamentDef[] {
   const items: OrnamentDef[] = [];
   let orderKey = 0;
 
-  const NUM_SEGMENTS = 120; /* densidad similar al horizontal: muchas ramas solapadas */
-  const BRANCH_SIZE = "w-16 md:w-22 h-[115px] md:h-[160px]";
-  const STEP_PCT = 0.95; /* muy denso: se solapan como la banda horizontal continua */
-  /* Offset horizontal variable: ramas en distintas profundidades para volumen grueso */
-  const LEFT_OFFSETS = ["-5rem", "-4rem", "-3.2rem", "-4.5rem", "-2.8rem", "-3.8rem", "-4.8rem", "-3.5rem"];
-  const RIGHT_OFFSETS = ["-5rem", "-4.2rem", "-3rem", "-4.5rem", "-2.5rem", "-3.5rem", "-4.6rem", "-3.2rem"];
+  const NUM_SEGMENTS = 16;
+  const BRANCH_SIZE = "w-36 md:w-52 h-[286px] md:h-[364px]";
+  const STEP_PCT = 6.5;
+  const OFFSET = "-4rem";
 
-  /* Izquierda: esparcidas en profundidad */
+  /* Izquierda: ramas grandes como antes */
   for (let i = 0; i < NUM_SEGMENTS; i++) {
-    const topPct = -6 + i * STEP_PCT;
+    const topPct = -8 + i * STEP_PCT;
     const variant: 2 | 3 = i % 2 === 0 ? 2 : 3;
     items.push({
       type: "branch",
       size: BRANCH_SIZE,
-      left: LEFT_OFFSETS[i % LEFT_OFFSETS.length],
+      left: OFFSET,
       top: `${topPct}%`,
-      zIndex: 1 + (i % 3),
+      zIndex: 1,
       mirror: false,
       orderKey: orderKey++,
       ramaVariant: variant,
     });
   }
 
-  /* Derecha: esparcidas en profundidad */
+  /* Derecha: ramas grandes como antes */
   for (let i = 0; i < NUM_SEGMENTS; i++) {
-    const topPct = -6 + i * STEP_PCT;
+    const topPct = -8 + i * STEP_PCT;
     const variant: 2 | 3 = i % 2 === 0 ? 3 : 2;
     items.push({
       type: "branch",
       size: BRANCH_SIZE,
-      right: RIGHT_OFFSETS[i % RIGHT_OFFSETS.length],
+      right: OFFSET,
       top: `${topPct}%`,
-      zIndex: 1 + (i % 3),
+      zIndex: 1,
       mirror: true,
       orderKey: orderKey++,
       ramaVariant: variant,
     });
   }
 
-  /* Esquinas — también más pequeñas */
-  items.push({ type: "branchCorner", size: "w-20 h-20 md:w-28 md:h-28", left: "-2rem", top: "0", zIndex: 0, orderKey: orderKey++, ramaVariant: 2 });
-  items.push({ type: "branchCorner", size: "w-20 h-20 md:w-28 md:h-28", right: "-2.5rem", top: "0", zIndex: 0, orderKey: orderKey++, ramaVariant: 3 });
-  items.push({ type: "branchCorner", size: "w-20 h-20 md:w-28 md:h-28", left: "-2rem", bottom: "0", zIndex: 0, orderKey: orderKey++, ramaVariant: 2 });
-  items.push({ type: "branchCorner", size: "w-20 h-20 md:w-28 md:h-28", right: "-2.5rem", bottom: "0", zIndex: 0, orderKey: orderKey++, ramaVariant: 3 });
+  /* Esquinas — 30% más grandes */
+  items.push({ type: "branchCorner", size: "w-42 h-42 md:w-58 md:h-58", left: "-3.5rem", top: "0", zIndex: 0, orderKey: orderKey++, ramaVariant: 2 });
+  items.push({ type: "branchCorner", size: "w-36 h-36 md:w-52 md:h-52", right: "-4rem", top: "0", zIndex: 0, orderKey: orderKey++, ramaVariant: 3 });
+  items.push({ type: "branchCorner", size: "w-36 h-36 md:w-50 md:h-50", left: "-3.5rem", bottom: "0", zIndex: 0, orderKey: orderKey++, ramaVariant: 2 });
+  items.push({ type: "branchCorner", size: "w-36 h-36 md:w-50 md:h-50", right: "-4rem", bottom: "0", zIndex: 0, orderKey: orderKey++, ramaVariant: 3 });
 
   /* Flores — izquierda más hacia la orilla, derecha pegada al borde */
   const flowerPositions = [
