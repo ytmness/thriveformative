@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef } from "react";
-import { motion, useReducedMotion, useInView, useTransform, type MotionValue } from "framer-motion";
+import { motion, useReducedMotion, useInView } from "framer-motion";
 import { useScrollDirection } from "@/lib/useScrollDirection";
 import { LATERAL } from "@/lib/lateralAnimation";
 
@@ -135,128 +135,57 @@ function generateOrnaments(): OrnamentDef[] {
   });
 }
 
-interface FloralSideOrnamentsProps {
-  scrollProgress?: MotionValue<number>;
-}
-
-function ScrollDrivenOrnament({
-  item,
-  i,
-  scrollProgress,
-  fromY,
-}: {
-  item: OrnamentDef;
-  i: number;
-  scrollProgress: MotionValue<number>;
-  fromY: number;
-}) {
-  const isRightSide = item.right !== undefined && item.left === undefined;
-  const needsMirror = item.mirror && item.type !== "branch" && item.type !== "branchCorner";
-  const isFlower = item.type === "flower";
-  const staggerStart = Math.min(i * 0.018, 0.65);
-  const staggerEnd = Math.min(staggerStart + 0.4, 1);
-
-  const localProgress = useTransform(scrollProgress, [staggerStart, staggerEnd], [0, 1]);
-  const opacity = useTransform(localProgress, [0, 1], [0, 1]);
-  const y = useTransform(localProgress, [0, 1], [fromY, 0]);
-  const scale = useTransform(localProgress, [0, 1], [isFlower ? LATERAL.scaleFlower : LATERAL.scaleBranch, 1]);
-  const rotate = useTransform(localProgress, [0, 1], [isFlower ? LATERAL.rotateFlower : 0, 0]);
-
-  return (
-    <motion.div
-      className={`floral-ornament floral-ornament--${item.type} ${isRightSide ? "floral-ornament--right" : ""} ${item.size}`}
-      style={{
-        left: item.left,
-        right: item.right,
-        top: item.top,
-        bottom: item.bottom,
-        zIndex: item.zIndex,
-        opacity,
-        y,
-        scale,
-        rotate,
-      }}
-    >
-      <div className={`w-full h-full ${needsMirror ? "floral-ornament-mirror" : ""}`}>
-        {isFlower ? <FlorImage variant={item.florVariant ?? 0} /> : <RamaImage variant={item.ramaVariant ?? 2} alignBottom={item.type === "branchCorner" && item.bottom !== undefined} />}
-      </div>
-    </motion.div>
-  );
-}
-
-function ViewTriggeredOrnament({ item, i, fromY }: { item: OrnamentDef; i: number; fromY: number }) {
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(wrapperRef, { once: false, amount: 0.02 });
-  const isRightSide = item.right !== undefined && item.left === undefined;
-  const needsMirror = item.mirror && item.type !== "branch" && item.type !== "branchCorner";
-  const isFlower = item.type === "flower";
-  const staggerDelay = Math.min(i * LATERAL.staggerBase, LATERAL.staggerMax);
-  const hiddenState = { opacity: 0, y: fromY, scale: isFlower ? LATERAL.scaleFlower : LATERAL.scaleBranch, rotate: isFlower ? LATERAL.rotateFlower : 0 };
-  const visibleState = { opacity: 1, y: 0, scale: 1, rotate: 0 };
-
-  return (
-    <motion.div
-      ref={wrapperRef}
-      className={`floral-ornament floral-ornament--${item.type} ${isRightSide ? "floral-ornament--right" : ""} ${item.size}`}
-      style={{ left: item.left, right: item.right, top: item.top, bottom: item.bottom, zIndex: item.zIndex }}
-      initial={hiddenState}
-      animate={isInView ? visibleState : hiddenState}
-      transition={{
-        duration: isFlower ? LATERAL.durationFlower : LATERAL.durationBranch + (i % 3) * 0.05,
-        delay: isInView ? staggerDelay : 0,
-        ease: LATERAL.ease,
-      }}
-    >
-      <div className={`w-full h-full ${needsMirror ? "floral-ornament-mirror" : ""}`}>
-        {isFlower ? <FlorImage variant={item.florVariant ?? 0} /> : <RamaImage variant={item.ramaVariant ?? 2} alignBottom={item.type === "branchCorner" && item.bottom !== undefined} />}
-      </div>
-    </motion.div>
-  );
-}
-
-export default function FloralSideOrnaments({ scrollProgress }: FloralSideOrnamentsProps) {
+export default function FloralSideOrnaments() {
   const shouldReduceMotion = useReducedMotion();
   const ornaments = useMemo(() => generateOrnaments(), []);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(wrapperRef, { once: false, amount: 0.02 });
   const scrollDirection = useScrollDirection();
   const fromY = scrollDirection === "down" ? LATERAL.fromY : -LATERAL.fromY;
 
   return (
-    <div className="floral-arbor-wrapper floral-arbor-wrapper--extended" aria-hidden>
+    <div ref={wrapperRef} className="floral-arbor-wrapper floral-arbor-wrapper--extended" aria-hidden>
       {ornaments.map((item, i) => {
-        if (shouldReduceMotion) {
-          const isRightSide = item.right !== undefined && item.left === undefined;
-          const needsMirror = item.mirror && item.type !== "branch" && item.type !== "branchCorner";
-          const isFlower = item.type === "flower";
-          return (
-            <div
-              key={`${item.type}-${item.orderKey}-${i}`}
-              className={`floral-ornament floral-ornament--${item.type} ${isRightSide ? "floral-ornament--right" : ""} ${item.size}`}
-              style={{ left: item.left, right: item.right, top: item.top, bottom: item.bottom, zIndex: item.zIndex }}
-            >
-              <div className={`w-full h-full ${needsMirror ? "floral-ornament-mirror" : ""}`}>
-                {isFlower ? <FlorImage variant={item.florVariant ?? 0} /> : <RamaImage variant={item.ramaVariant ?? 2} alignBottom={item.type === "branchCorner" && item.bottom !== undefined} />}
-              </div>
-            </div>
-          );
-        }
-        if (scrollProgress) {
-          return (
-            <ScrollDrivenOrnament
-              key={`${item.type}-${item.orderKey}-${i}`}
-              item={item}
-              i={i}
-              scrollProgress={scrollProgress}
-              fromY={fromY}
-            />
-          );
-        }
+        const isRightSide = item.right !== undefined && item.left === undefined;
+        const needsMirror = item.mirror && item.type !== "branch" && item.type !== "branchCorner";
+        const isFlower = item.type === "flower";
+        const staggerDelay = Math.min(i * LATERAL.staggerBase, LATERAL.staggerMax);
+
+        const hiddenState = shouldReduceMotion
+          ? { opacity: 0 }
+          : { opacity: 0, y: fromY, scale: isFlower ? LATERAL.scaleFlower : LATERAL.scaleBranch, rotate: isFlower ? LATERAL.rotateFlower : 0 };
+        const visibleState = { opacity: 1, y: 0, scale: 1, rotate: 0 };
+
         return (
-          <ViewTriggeredOrnament
+          <motion.div
             key={`${item.type}-${item.orderKey}-${i}`}
-            item={item}
-            i={i}
-            fromY={fromY}
-          />
+            className={`floral-ornament floral-ornament--${item.type} ${isRightSide ? "floral-ornament--right" : ""} ${item.size}`}
+            style={{
+              left: item.left,
+              right: item.right,
+              top: item.top,
+              bottom: item.bottom,
+              zIndex: item.zIndex,
+            }}
+            initial={hiddenState}
+            animate={isInView ? visibleState : hiddenState}
+            transition={{
+              duration: shouldReduceMotion ? 0.3 : isFlower ? LATERAL.durationFlower : LATERAL.durationBranch + (i % 3) * 0.05,
+              delay: isInView ? (shouldReduceMotion ? 0 : staggerDelay) : 0,
+              ease: LATERAL.ease,
+            }}
+          >
+            <div className={`w-full h-full ${needsMirror ? "floral-ornament-mirror" : ""}`}>
+              {isFlower ? (
+                <FlorImage variant={item.florVariant ?? 0} />
+              ) : (
+                <RamaImage
+                  variant={item.ramaVariant ?? 2}
+                  alignBottom={item.type === "branchCorner" && item.bottom !== undefined}
+                />
+              )}
+            </div>
+          </motion.div>
         );
       })}
     </div>
