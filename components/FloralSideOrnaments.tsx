@@ -173,16 +173,15 @@ interface OrnamentDef {
 }
 
 const FLOWER_TYPES: OrnamentType[] = ["flower", "leaf", "bloom", "bud"];
-/* Tamaños x2 — flores el doble de grandes */
 const SIZES = [
+  "w-6 h-6 md:w-7 md:h-7",
+  "w-7 h-7 md:w-8 md:h-8",
+  "w-8 h-8 md:w-9 md:h-9",
+  "w-9 h-9 md:w-10 md:h-10",
+  "w-10 h-10 md:w-12 md:h-12",
+  "w-11 h-11 md:w-13 md:h-13",
   "w-12 h-12 md:w-14 md:h-14",
   "w-14 h-14 md:w-16 md:h-16",
-  "w-16 h-16 md:w-18 md:h-18",
-  "w-18 h-18 md:w-20 md:h-20",
-  "w-20 h-20 md:w-24 md:h-24",
-  "w-22 h-22 md:w-26 md:h-26",
-  "w-24 h-24 md:w-28 md:h-28",
-  "w-28 h-28 md:w-32 md:h-32",
 ];
 
 /* Genera ornamentos x10 — dinámicos, posicionados más arriba */
@@ -190,10 +189,10 @@ function generateOrnaments(): OrnamentDef[] {
   const items: OrnamentDef[] = [];
   let orderKey = 0;
 
-  /* Ramas base (arriba de todo) — también x2 */
+  /* Ramas base (arriba de todo) */
   items.push({
     type: "branch",
-    size: "w-28 h-full min-h-[220px]",
+    size: "w-14 h-full min-h-[220px]",
     left: "0",
     top: "0",
     zIndex: 0,
@@ -202,7 +201,7 @@ function generateOrnaments(): OrnamentDef[] {
   });
   items.push({
     type: "branch",
-    size: "w-28 h-full min-h-[220px]",
+    size: "w-14 h-full min-h-[220px]",
     right: "0",
     top: "0",
     zIndex: 0,
@@ -211,7 +210,7 @@ function generateOrnaments(): OrnamentDef[] {
   });
   items.push({
     type: "branchCorner",
-    size: "w-48 h-48 md:w-64 md:h-64",
+    size: "w-24 h-24 md:w-32 md:h-32",
     left: "0",
     top: "0",
     zIndex: 0,
@@ -219,17 +218,17 @@ function generateOrnaments(): OrnamentDef[] {
   });
   items.push({
     type: "branchCorner",
-    size: "w-40 h-40 md:w-56 md:h-56",
+    size: "w-20 h-20 md:w-28 md:h-28",
     right: "0",
     bottom: "0",
     zIndex: 0,
     orderKey: orderKey++,
   });
 
-  /* Columna izquierda — x20 filas (doble), 4-6 flores por fila */
-  for (let row = 0; row < 80; row++) {
-    const topPct = -8 + (row / 79) * 113; /* -8% hasta 105% */
-    const count = row % 2 === 0 ? 5 : 4; /* 4 o 5 flores por fila */
+  /* Columna izquierda — x10 filas de flores/hojas (empiezan más arriba: -8% a 105%) */
+  for (let row = 0; row < 40; row++) {
+    const topPct = -8 + (row / 39) * 113; /* -8% hasta 105% */
+    const count = row % 3 === 0 ? 3 : 2; /* cada 3 filas una extra */
     for (let c = 0; c < count; c++) {
       const type = FLOWER_TYPES[(row + c) % FLOWER_TYPES.length];
       const size = SIZES[(row + c) % SIZES.length];
@@ -245,10 +244,10 @@ function generateOrnaments(): OrnamentDef[] {
     }
   }
 
-  /* Columna derecha — x20 filas (doble), 4-5 flores por fila */
-  for (let row = 0; row < 80; row++) {
-    const topPct = -8 + (row / 79) * 113;
-    const count = row % 2 === 0 ? 5 : 4;
+  /* Columna derecha — x10 filas */
+  for (let row = 0; row < 40; row++) {
+    const topPct = -8 + (row / 39) * 113;
+    const count = row % 3 === 0 ? 3 : 2;
     for (let c = 0; c < count; c++) {
       const type = FLOWER_TYPES[(row + c + 2) % FLOWER_TYPES.length];
       const size = SIZES[(row + c + 1) % SIZES.length];
@@ -264,13 +263,13 @@ function generateOrnaments(): OrnamentDef[] {
     }
   }
 
-  /* Centro-top y centro-bottom — doble densidad */
-  for (let i = 0; i < 60; i++) {
+  /* Centro-top y centro-bottom — más densidad */
+  for (let i = 0; i < 30; i++) {
     const side = i % 2 === 0 ? "left" : "right";
     const pct = 5 + (i % 18) * 5;
     const type = FLOWER_TYPES[i % FLOWER_TYPES.length];
     const size = SIZES[i % SIZES.length];
-    if (i < 30) {
+    if (i < 15) {
       items.push({
         type,
         size,
@@ -291,8 +290,8 @@ function generateOrnaments(): OrnamentDef[] {
     }
   }
 
-  /* Esquinas extra — doble */
-  for (let i = 0; i < 40; i++) {
+  /* Esquinas extra */
+  for (let i = 0; i < 20; i++) {
     const corner = i % 4;
     const type = FLOWER_TYPES[i % FLOWER_TYPES.length];
     const size = SIZES[(i % 3) + 1];
@@ -327,8 +326,8 @@ const COMPONENT_MAP = {
   branchCorner: BranchCornerTL,
 };
 
-const STAGGER_BASE = 0.006; /* delay por orden (reducido para doble cantidad) */
-const STAGGER_MAX = 2.5; /* delay máximo total */
+const STAGGER_BASE = 0.012; /* delay por orden (arriba→abajo) */
+const STAGGER_MAX = 1.8; /* delay máximo total */
 
 export default function FloralSideOrnaments() {
   const shouldReduceMotion = useReducedMotion();
