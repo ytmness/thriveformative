@@ -53,16 +53,19 @@ function generateOrnaments(): OrnamentDef[] {
   const items: OrnamentDef[] = [];
   let orderKey = 0;
 
-  const NUM_SEGMENTS = 16; /* ramas seguidas y unidas hacia abajo */
+  const NUM_SEGMENTS = 56; /* muchas ramas pequeñas para efecto en cascada más delicado */
+  const BRANCH_SIZE = "w-14 md:w-20 h-[100px] md:h-[140px]";
+  const STEP_PCT = 2.2; /* más denso para cubrir con ramas pequeñas */
+  const OFFSET = "-2.5rem";
 
-  /* Izquierda: ramas un poco más hacia la orilla */
+  /* Izquierda: ramas pequeñas, muchas */
   for (let i = 0; i < NUM_SEGMENTS; i++) {
-    const topPct = -8 + i * 6.5;
+    const topPct = -6 + i * STEP_PCT;
     const variant: 2 | 3 = i % 2 === 0 ? 2 : 3;
     items.push({
       type: "branch",
-      size: "w-36 md:w-52 h-[286px] md:h-[364px]",
-      left: "-4rem",
+      size: BRANCH_SIZE,
+      left: OFFSET,
       top: `${topPct}%`,
       zIndex: 1,
       mirror: false,
@@ -71,14 +74,14 @@ function generateOrnaments(): OrnamentDef[] {
     });
   }
 
-  /* Derecha: ramas más hacia la orilla (alineadas con las flores) */
+  /* Derecha: mismas ramas pequeñas */
   for (let i = 0; i < NUM_SEGMENTS; i++) {
-    const topPct = -8 + i * 6.5;
+    const topPct = -6 + i * STEP_PCT;
     const variant: 2 | 3 = i % 2 === 0 ? 3 : 2;
     items.push({
       type: "branch",
-      size: "w-36 md:w-52 h-[286px] md:h-[364px]",
-      right: "-4rem",
+      size: BRANCH_SIZE,
+      right: OFFSET,
       top: `${topPct}%`,
       zIndex: 1,
       mirror: true,
@@ -87,11 +90,11 @@ function generateOrnaments(): OrnamentDef[] {
     });
   }
 
-  /* Esquinas — 30% más grandes */
-  items.push({ type: "branchCorner", size: "w-42 h-42 md:w-58 md:h-58", left: "-3.5rem", top: "0", zIndex: 0, orderKey: orderKey++, ramaVariant: 2 });
-  items.push({ type: "branchCorner", size: "w-36 h-36 md:w-52 md:h-52", right: "-4rem", top: "0", zIndex: 0, orderKey: orderKey++, ramaVariant: 3 });
-  items.push({ type: "branchCorner", size: "w-36 h-36 md:w-50 md:h-50", left: "-3.5rem", bottom: "0", zIndex: 0, orderKey: orderKey++, ramaVariant: 2 });
-  items.push({ type: "branchCorner", size: "w-36 h-36 md:w-50 md:h-50", right: "-4rem", bottom: "0", zIndex: 0, orderKey: orderKey++, ramaVariant: 3 });
+  /* Esquinas — también más pequeñas */
+  items.push({ type: "branchCorner", size: "w-20 h-20 md:w-28 md:h-28", left: "-2rem", top: "0", zIndex: 0, orderKey: orderKey++, ramaVariant: 2 });
+  items.push({ type: "branchCorner", size: "w-20 h-20 md:w-28 md:h-28", right: "-2.5rem", top: "0", zIndex: 0, orderKey: orderKey++, ramaVariant: 3 });
+  items.push({ type: "branchCorner", size: "w-20 h-20 md:w-28 md:h-28", left: "-2rem", bottom: "0", zIndex: 0, orderKey: orderKey++, ramaVariant: 2 });
+  items.push({ type: "branchCorner", size: "w-20 h-20 md:w-28 md:h-28", right: "-2.5rem", bottom: "0", zIndex: 0, orderKey: orderKey++, ramaVariant: 3 });
 
   /* Flores — izquierda más hacia la orilla, derecha pegada al borde */
   const flowerPositions = [
