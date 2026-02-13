@@ -53,9 +53,9 @@ function generateOrnaments(): OrnamentDef[] {
   const items: OrnamentDef[] = [];
   let orderKey = 0;
 
-  const NUM_SEGMENTS = 56; /* muchas ramas pequeñas para efecto en cascada más delicado */
-  const BRANCH_SIZE = "w-14 md:w-20 h-[100px] md:h-[140px]";
-  const STEP_PCT = 2.2; /* más denso para cubrir con ramas pequeñas */
+  const NUM_SEGMENTS = 95; /* muchísimas ramas pequeñas para mismo volumen que antes, pero en pedacitos */
+  const BRANCH_SIZE = "w-16 md:w-22 h-[115px] md:h-[160px]";
+  const STEP_PCT = 1.25; /* muy denso: se solapan para llenar como las grandes de antes */
   const OFFSET = "-2.5rem";
 
   /* Izquierda: ramas pequeñas, muchas */
