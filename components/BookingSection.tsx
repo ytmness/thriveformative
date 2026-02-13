@@ -35,10 +35,10 @@ export default function BookingSection() {
     <AnimatedSection>
       <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 45 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.9 }}
           className="mb-4"
         >
           <h2 className="font-display text-3xl md:text-4xl lg:text-5xl tracking-wide">
@@ -55,10 +55,10 @@ export default function BookingSection() {
         <div className="mt-10 grid md:grid-cols-[1fr_1.2fr] gap-10 items-start">
           {/* Calendario emulado */}
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, x: -45 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.8 }}
             className="bg-surface border border-theme rounded-2xl shadow-soft p-6"
           >
             <div className="text-sm text-muted tracking-[0.22em] mb-4">
@@ -111,10 +111,10 @@ export default function BookingSection() {
 
           {/* Horarios */}
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 0, x: 45 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.8 }}
           >
             <div className="text-sm text-muted tracking-[0.22em] mb-4">
               {t("slotsLabel")}
@@ -124,10 +124,10 @@ export default function BookingSection() {
                 <motion.button
                   key={slot.time}
                   type="button"
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 22 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.3, delay: i * 0.02 }}
+                  transition={{ duration: 0.45, delay: i * 0.032 }}
                   disabled={slot.occupied}
                   className={`rounded-xl px-4 py-3 text-sm font-medium text-left transition-all ${
                     slot.occupied
@@ -151,10 +151,10 @@ export default function BookingSection() {
         </div>
 
         <motion.div
-          initial={{ opacity: 0, y: 15 }}
+          initial={{ opacity: 0, y: 35 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+          transition={{ duration: 0.8, delay: 0.25 }}
           className="mt-10 text-center"
         >
           <p className="text-muted text-sm mb-3">{t("ctaHint")}</p>

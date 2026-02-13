@@ -21,19 +21,19 @@ interface GiantScrollCardProps {
 
 const variants: Record<CardVariant, Variants> = {
   slideUp: {
-    hidden: { opacity: 0, y: 120 },
+    hidden: { opacity: 0, y: 180 },
     visible: { opacity: 1, y: 0 },
   },
   slideLeft: {
-    hidden: { opacity: 0, x: 120 },
+    hidden: { opacity: 0, x: 180 },
     visible: { opacity: 1, x: 0 },
   },
   slideRight: {
-    hidden: { opacity: 0, x: -120 },
+    hidden: { opacity: 0, x: -180 },
     visible: { opacity: 1, x: 0 },
   },
   scale: {
-    hidden: { opacity: 0, scale: 0.9 },
+    hidden: { opacity: 0, scale: 0.82 },
     visible: { opacity: 1, scale: 1 },
   },
   curtain: {
@@ -45,7 +45,7 @@ const variants: Record<CardVariant, Variants> = {
     visible: { opacity: 1, filter: "blur(0px)" },
   },
   stack: {
-    hidden: { opacity: 0, y: 80, scale: 0.96 },
+    hidden: { opacity: 0, y: 120, scale: 0.9 },
     visible: { opacity: 1, y: 0, scale: 1 },
   },
 };
@@ -74,7 +74,7 @@ export default function GiantScrollCard({
       whileInView="visible"
       viewport={{ once: false, amount: 0.15, margin: "-50px" }}
       transition={{
-        duration: 0.55,
+        duration: 0.95,
         ease: [0.22, 0.61, 0.36, 1],
       }}
       variants={effectiveVariants}

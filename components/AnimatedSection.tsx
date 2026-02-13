@@ -22,19 +22,19 @@ export default function AnimatedSection({
 
   const variants = {
     up: {
-      hidden: { opacity: 0, y: 50 },
+      hidden: { opacity: 0, y: 75 },
       visible: { opacity: 1, y: 0 },
     },
     down: {
-      hidden: { opacity: 0, y: -50 },
+      hidden: { opacity: 0, y: -75 },
       visible: { opacity: 1, y: 0 },
     },
     left: {
-      hidden: { opacity: 0, x: -50 },
+      hidden: { opacity: 0, x: -75 },
       visible: { opacity: 1, x: 0 },
     },
     right: {
-      hidden: { opacity: 0, x: 50 },
+      hidden: { opacity: 0, x: 75 },
       visible: { opacity: 1, x: 0 },
     },
     fade: {
@@ -50,7 +50,7 @@ export default function AnimatedSection({
       animate={isInView ? "visible" : "hidden"}
       variants={variants[direction]}
       transition={{
-        duration: 0.6,
+        duration: 0.9,
         delay,
         ease: [0.25, 0.1, 0.25, 1],
       }}
