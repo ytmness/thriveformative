@@ -52,7 +52,6 @@ interface OrnamentDef {
 function generateOrnaments(): OrnamentDef[] {
   const items: OrnamentDef[] = [];
   let orderKey = 0;
-  const seed = 0.39472;
 
   /* Pocas ramas pero muy grandes */
   const BRANCH_SIZE = "w-32 md:w-44 h-[200px] md:h-[280px]";
