@@ -211,7 +211,7 @@ function PageContent() {
       <main className="scroll-cards-stack">
         <GiantScrollCard variant="slideUp" id="approach">
           <div className="fullscreen-content">
-            <FullscreenCard title={t("approach.title1")}>{t("approach.desc1")}</FullscreenCard>
+            <FullscreenCard title={t("approach.title1")} large>{t("approach.desc1")}</FullscreenCard>
           </div>
         </GiantScrollCard>
         <GiantScrollCard variant="slideUp" id="approach-2">
@@ -399,13 +399,13 @@ export default function Page() {
    Sub-components
    ═══════════════════════════════════════════ */
 
-function FullscreenCard({ title, children }: { title: string; children: React.ReactNode }) {
+function FullscreenCard({ title, children, large }: { title: string; children: React.ReactNode; large?: boolean }) {
   return (
     <div className="py-8 md:py-12">
-      <h2 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl tracking-wide leading-tight">
+      <h2 className={large ? "font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl tracking-wide leading-tight" : "font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl tracking-wide leading-tight"}>
         {title}
       </h2>
-      <p className="mt-6 md:mt-8 text-lg md:text-xl lg:text-2xl text-muted leading-relaxed max-w-3xl">
+      <p className={large ? "mt-8 md:mt-10 text-xl md:text-2xl lg:text-3xl xl:text-4xl text-muted leading-relaxed max-w-4xl" : "mt-6 md:mt-8 text-lg md:text-xl lg:text-2xl text-muted leading-relaxed max-w-3xl"}>
         {children}
       </p>
     </div>
