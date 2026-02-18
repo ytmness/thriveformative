@@ -75,7 +75,7 @@ function PageContent() {
       <Header />
 
       {/* ─── HERO ─── */}
-      <section id="inicio" className="relative flex flex-col min-h-[calc(100vh-5rem)] overflow-hidden">
+      <section id="inicio" className="scroll-snap-section relative flex flex-col min-h-[calc(100vh-5rem)] overflow-hidden">
         {/* Subtle gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--bg))] via-[rgb(var(--bg))] to-[rgb(var(--primary)/0.04)] pointer-events-none" />
 
@@ -177,8 +177,8 @@ function PageContent() {
       </section>
 
       {/* ─── STATS BAR ─── */}
-      <AnimatedSection>
-        <div className="max-w-7xl mx-auto px-6 py-16">
+      <AnimatedSection className="scroll-snap-section">
+        <div className="max-w-7xl mx-auto px-6 py-16 min-h-[50vh] flex flex-col justify-center">
           <div className="grid grid-cols-3 gap-6">
             <Stat label={t("hero.stat1Label")} value={t("hero.stat1Value")} delay={0} fromY={fromY} />
             <Stat label={t("hero.stat2Label")} value={t("hero.stat2Value")} delay={0.1} fromY={fromY} />
@@ -188,8 +188,8 @@ function PageContent() {
       </AnimatedSection>
 
       {/* ─── FLOW CARD ─── */}
-      <AnimatedSection delay={0.1}>
-        <div className="max-w-7xl mx-auto px-6 pb-14">
+      <AnimatedSection delay={0.1} className="scroll-snap-section">
+        <div className="max-w-7xl mx-auto px-6 pb-14 min-h-[50vh] flex flex-col justify-center">
           <motion.div
             whileHover={{ y: -4, boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}
             transition={{ duration: 0.3 }}
@@ -221,9 +221,9 @@ function PageContent() {
             <FullscreenCard titleA={t("approach.title2a")} titleB={t("approach.title2b")} large>{t("approach.desc2")}</FullscreenCard>
           </div>
         </GiantScrollCard>
-        <GiantScrollCard variant="slideUp" id="approach-3">
-          <div className="fullscreen-content">
-            <FullscreenCard title={t("approach.title3")}>{t("approach.desc3")}</FullscreenCard>
+        <GiantScrollCard variant="slideUp" id="approach-3" noFade>
+          <div className="fullscreen-content fullscreen-content--expanded">
+            <FullscreenCard titleA={t("approach.title3")} large>{t("approach.desc3")}</FullscreenCard>
           </div>
         </GiantScrollCard>
         <GiantScrollCard variant="slideUp" id="servicios">
@@ -337,51 +337,20 @@ function PageContent() {
         <GiantScrollCard variant="slideUp" id="citas">
           <BookingSection />
         </GiantScrollCard>
-        <GiantScrollCard variant="slideUp" id="cta">
+        <GiantScrollCard variant="slideUp" id="cta" noFade>
           <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--primary)/0.08)] via-transparent to-[rgb(var(--primary)/0.05)] pointer-events-none" />
           <div className="relative z-10 max-w-4xl mx-auto px-6 py-24 md:py-32 text-center">
-            <motion.h2
-              className="font-display text-4xl md:text-5xl lg:text-6xl tracking-wide"
-              initial={{ opacity: 0, y: fromY }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: false, amount: 0.02 }}
-              transition={{ duration: LATERAL.durationFlower, ease: LATERAL.ease }}
-            >
-              {t("cta.title")}
-            </motion.h2>
-            <motion.p
-              className="mt-5 text-xl md:text-2xl text-muted leading-relaxed max-w-2xl mx-auto"
-              initial={{ opacity: 0, y: fromY }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: false, amount: 0.02 }}
-              transition={{ duration: LATERAL.durationFlower, delay: 0.12, ease: LATERAL.ease }}
-            >
-              {t("cta.subtitle")}
-            </motion.p>
-            <motion.div
-              initial={{ opacity: 0, y: fromY }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: false, amount: 0.02 }}
-              transition={{ duration: LATERAL.durationBranch, delay: 0.25, ease: LATERAL.ease }}
-              className="mt-10"
-            >
-              <motion.a
-                whileHover={{ scale: 1.04, y: -3 }}
-                whileTap={{ scale: 0.97 }}
-                href={WHATSAPP_LINK}
-                target="_blank"
-                rel="noreferrer"
-                className="btn-cta inline-block rounded-xl px-12 py-5 text-lg tracking-wide shadow-xl"
-              >
-                {t("cta.button")}
-              </motion.a>
-            </motion.div>
+            <CTASection
+              title={t("cta.title")}
+              subtitle={t("cta.subtitle")}
+              buttonText={t("cta.button")}
+            />
           </div>
         </GiantScrollCard>
       </main>
 
       {/* ─── FOOTER (wave dentro para que abrace) ─── */}
-      <div>
+      <div className="scroll-snap-section">
         <WaveDivider variant="primary" flip className="wave-divider--inside-section" />
         <Footer />
       </div>
@@ -401,11 +370,52 @@ export default function Page() {
    Sub-components
    ═══════════════════════════════════════════ */
 
+function CTASection({ title, subtitle, buttonText }: { title: string; subtitle: string; buttonText: string }) {
+  const [titleDone, setTitleDone] = useState(false);
+
+  return (
+    <>
+      <TypewriterText
+        text={title}
+        speed={50}
+        as="h2"
+        className="font-display text-4xl md:text-5xl lg:text-6xl tracking-wide block"
+        onComplete={() => setTitleDone(true)}
+      />
+      <TypewriterText
+        text={subtitle}
+        speed={28}
+        delay={200}
+        active={titleDone}
+        as="p"
+        className="mt-5 text-xl md:text-2xl text-muted leading-relaxed max-w-2xl mx-auto block"
+      />
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.5 }}
+        className="mt-10"
+      >
+        <motion.a
+          whileHover={{ scale: 1.04, y: -3 }}
+          whileTap={{ scale: 0.97 }}
+          href={WHATSAPP_LINK}
+          target="_blank"
+          rel="noreferrer"
+          className="btn-cta inline-block rounded-xl px-12 py-5 text-lg tracking-wide shadow-xl"
+        >
+          {buttonText}
+        </motion.a>
+      </motion.div>
+    </>
+  );
+}
+
 function FullscreenCard({ title, titleA, titleB, children, large }: { title?: string; titleA?: string; titleB?: string; children: React.ReactNode; large?: boolean }) {
   const [titleDone, setTitleDone] = useState(false);
 
-  if (large && titleA != null && titleB != null) {
-    const titleText = `${titleA} ${titleB}`;
+  if (large && titleA != null) {
+    const titleText = titleB ? `${titleA} ${titleB}` : titleA;
     const descText = typeof children === "string" ? children : String(children);
 
     return (

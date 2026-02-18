@@ -83,7 +83,7 @@ export default function GiantScrollCard({
   return (
     <motion.article
       id={id}
-      className={`giant-card ${className}`}
+      className={`giant-card scroll-snap-section ${className}`}
       initial="hidden"
       whileInView="visible"
       viewport={{ once: false, amount: 0.15, margin: "-50px" }}
