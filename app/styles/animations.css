@@ -236,14 +236,23 @@
   z-index: 1;
 }
 
-.floral-ornament--branch.floral-ornament--right {
-  left: auto !important;
-  /* right viene del componente (inline) para posicionar hacia la orilla */
+/* Mitad visible — como si entraran/salieran de pantalla de repente */
+.floral-ornament-inner {
+  width: 100%;
+  height: 100%;
+}
+.floral-ornament:not(.floral-ornament--right) .floral-ornament-inner {
+  transform: translateX(-50%);
+}
+.floral-ornament--right .floral-ornament-inner {
+  transform: translateX(50%);
+}
+.floral-ornament--branch.floral-ornament--right .floral-ornament-inner {
+  transform: translateX(50%) scaleX(-1);
 }
 
-.floral-ornament--branch.floral-ornament--right .floral-branch,
-.floral-ornament--branch.floral-ornament--right > div {
-  transform: scaleX(-1);
+.floral-ornament--branch.floral-ornament--right {
+  left: auto !important;
 }
 
 
