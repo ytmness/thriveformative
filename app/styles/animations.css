@@ -206,6 +206,12 @@
   margin: 0 auto;
 }
 
+/* Card Medicina funcional: texto más expandido */
+.giant-card-inner .fullscreen-content--expanded {
+  max-width: 72rem;
+  padding: 0 1rem;
+}
+
 /* Área de contenido: crece y centra su contenido según el espacio disponible */
 .giant-card-inner > .wave-divider--inside-section + * {
   flex: 1;
