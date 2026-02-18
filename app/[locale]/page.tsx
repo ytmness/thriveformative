@@ -377,18 +377,20 @@ function CTASection({ title, subtitle, buttonText }: { title: string; subtitle: 
     <>
       <TypewriterText
         text={title}
-        speed={50}
+        speed={35}
         as="h2"
         className="font-display text-4xl md:text-5xl lg:text-6xl tracking-wide block"
         onComplete={() => setTitleDone(true)}
+        center
       />
       <TypewriterText
         text={subtitle}
-        speed={28}
-        delay={200}
+        speed={18}
+        delay={150}
         active={titleDone}
         as="p"
-        className="mt-5 text-xl md:text-2xl text-muted leading-relaxed max-w-2xl mx-auto block"
+        className="mt-5 text-xl md:text-2xl text-muted leading-relaxed block"
+        center
       />
       <motion.div
         initial={{ opacity: 0 }}
@@ -422,15 +424,15 @@ function FullscreenCard({ title, titleA, titleB, children, large }: { title?: st
       <div className="py-10 md:py-14 px-2 md:px-6">
         <TypewriterText
           text={titleText}
-          speed={55}
+          speed={38}
           as="h2"
           className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl tracking-wide leading-tight"
           onComplete={() => setTitleDone(true)}
         />
         <TypewriterText
           text={descText}
-          speed={28}
-          delay={200}
+          speed={18}
+          delay={150}
           active={titleDone}
           as="p"
           className="mt-8 md:mt-12 text-xl md:text-2xl lg:text-3xl xl:text-4xl text-muted leading-loose max-w-none tracking-wide"

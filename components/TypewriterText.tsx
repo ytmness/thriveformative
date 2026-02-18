@@ -11,6 +11,7 @@ interface TypewriterTextProps {
   onComplete?: () => void;
   className?: string;
   as?: "span" | "p" | "h2" | "div";
+  center?: boolean;
 }
 
 export default function TypewriterText({
@@ -21,6 +22,7 @@ export default function TypewriterText({
   onComplete,
   className = "",
   as: Tag = "span",
+  center = false,
 }: TypewriterTextProps) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
@@ -56,19 +58,24 @@ export default function TypewriterText({
   const displayed = isInView ? text.slice(0, visibleLength) : "";
   const isTyping = visibleLength < text.length;
 
+  const wrapperClass = center ? "relative flex justify-center" : "relative";
+  const innerClass = center ? "relative w-full max-w-2xl" : "relative w-full";
+
   return (
-    <div ref={ref} className="relative">
-      {/* Espacio reservado: texto completo invisible para evitar que crezca el recuadro */}
-      <Tag className={`${className} invisible`} aria-hidden>
-        {text}
-      </Tag>
-      {/* Contenido visible encima, sin afectar el layout */}
-      <Tag className={`${className} absolute top-0 left-0`}>
-        {displayed}
-        {isTyping && isInView && (
-          <span className="inline-block w-[2px] h-[0.9em] align-baseline ml-0.5 bg-current animate-pulse" aria-hidden />
-        )}
-      </Tag>
+    <div ref={ref} className={wrapperClass}>
+      <div className={innerClass}>
+        {/* Espacio reservado: texto completo invisible para evitar que crezca el recuadro */}
+        <Tag className={`${className} invisible ${center ? "text-center" : ""}`} aria-hidden>
+          {text}
+        </Tag>
+        {/* Contenido visible encima, sin afectar el layout */}
+        <Tag className={`${className} absolute top-0 left-0 ${center ? "right-0 text-center" : ""}`}>
+          {displayed}
+          {isTyping && isInView && (
+            <span className="inline-block w-[2px] h-[0.9em] align-baseline ml-0.5 bg-current animate-pulse" aria-hidden />
+          )}
+        </Tag>
+      </div>
     </div>
   );
 }
