@@ -10,6 +10,11 @@ body {
   overflow-x: hidden;
 }
 
+/* 1rem = 48px → texto base (text-base) será ~48px */
+html {
+  font-size: 48px;
+}
+
 body {
   background: rgb(var(--bg));
   color: rgb(var(--text));
