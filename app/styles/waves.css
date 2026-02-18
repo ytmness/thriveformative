@@ -23,7 +23,24 @@
   margin-top: 0;
 }
 
-/* Olas en hero: arriba (visible al cargar) y abajo */
+/* Olas en hero: compactas para caber en una sola vista con contenido */
+.wave-hero-top .wave-svg,
+.wave-hero-bottom .wave-svg {
+  height: 48px;
+}
+@media (min-width: 768px) {
+  .wave-hero-top .wave-svg,
+  .wave-hero-bottom .wave-svg {
+    height: 64px;
+  }
+}
+@media (min-width: 1280px) {
+  .wave-hero-top .wave-svg,
+  .wave-hero-bottom .wave-svg {
+    height: 80px;
+  }
+}
+
 .wave-hero-top {
   margin-top: 0;
   margin-bottom: 0;

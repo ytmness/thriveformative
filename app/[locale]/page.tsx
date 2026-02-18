@@ -75,15 +75,15 @@ function PageContent() {
       <Header />
 
       {/* ─── HERO ─── */}
-      <section id="inicio" className="scroll-snap-section relative flex flex-col min-h-[calc(100vh-5rem)] overflow-hidden">
+      <section id="inicio" className="scroll-snap-section relative flex flex-col h-[calc(100vh-5rem)] overflow-hidden">
         {/* Olas visibles desde arriba al cargar */}
-        <div className="relative z-10 w-full flex-shrink-0 pt-4">
+        <div className="relative z-10 w-full flex-shrink-0 pt-2">
           <WaveDivider variant="accent" className="wave-hero-top" flip />
         </div>
         {/* Subtle gradient overlay */}
         <div className="absolute inset-0 z-0 bg-gradient-to-br from-[rgb(var(--bg))] via-[rgb(var(--bg))] to-[rgb(var(--primary)/0.04)] pointer-events-none" />
 
-        <div className="relative z-10 flex-1 max-w-7xl mx-auto px-6 py-12 md:py-16 lg:py-20 grid md:grid-cols-2 gap-12 lg:gap-16 items-center w-full">
+        <div className="relative z-10 flex-1 min-h-0 max-w-7xl mx-auto px-6 py-4 md:py-6 grid md:grid-cols-2 gap-6 lg:gap-8 items-center w-full">
           {/* LEFT — Decorative circle with logo */}
           <AnimatedSection direction="left">
             <div className="flex justify-center">
@@ -101,7 +101,7 @@ function PageContent() {
                   initial={{ opacity: 0, scale: LATERAL.scaleBranch }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: LATERAL.durationFlower, delay: 0.3, ease: LATERAL.ease }}
-                  className="relative w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full border border-[rgb(var(--primary)/0.25)] overflow-hidden flex items-center justify-center bg-[rgb(var(--surface)/0.3)] backdrop-blur-sm"
+                  className="relative w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 lg:w-72 lg:h-72 rounded-full border border-[rgb(var(--primary)/0.25)] overflow-hidden flex items-center justify-center bg-[rgb(var(--surface)/0.3)] backdrop-blur-sm"
                 >
                   {/* Inner ring */}
                   <div className="absolute inset-2 rounded-full border border-[rgb(var(--primary)/0.12)]" />
@@ -119,7 +119,7 @@ function PageContent() {
           {/* RIGHT — Text content */}
           <div>
             <motion.h1
-              className="font-display text-4xl sm:text-5xl md:text-6xl leading-tight tracking-wide italic"
+              className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl leading-tight tracking-wide italic"
               initial={{ opacity: 0, y: LATERAL.fromY }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: LATERAL.durationFlower, delay: 0.2, ease: LATERAL.ease }}
@@ -128,7 +128,7 @@ function PageContent() {
             </motion.h1>
 
             <motion.p
-              className="mt-5 text-muted text-xl leading-relaxed"
+              className="mt-3 text-muted text-base md:text-lg leading-relaxed"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: LATERAL.durationFlower, delay: 0.4, ease: LATERAL.ease }}
@@ -138,24 +138,24 @@ function PageContent() {
 
             {/* Benefits grid — 2×2 like reference */}
             <motion.div
-              className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5"
+              className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3"
               initial={{ opacity: 0, y: LATERAL.fromY }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: LATERAL.durationFlower, delay: 0.55, ease: LATERAL.ease }}
             >
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <div className="benefit-dot relative mt-1.5 w-4 h-4 rounded-full bg-[rgb(var(--primary)/0.2)] flex items-center justify-center flex-shrink-0">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[rgb(var(--primary))]" />
+                <div key={i} className="flex items-start gap-2">
+                  <div className="benefit-dot relative mt-1 w-3.5 h-3.5 rounded-full bg-[rgb(var(--primary)/0.2)] flex items-center justify-center flex-shrink-0">
+                    <div className="w-1 h-1 rounded-full bg-[rgb(var(--primary))]" />
                   </div>
-                  <span className="text-lg leading-snug">{t(`hero.benefit${i}`)}</span>
+                  <span className="text-sm md:text-base leading-snug">{t(`hero.benefit${i}`)}</span>
                 </div>
               ))}
             </motion.div>
 
             {/* CTA button */}
             <motion.div
-              className="mt-9"
+              className="mt-5"
               initial={{ opacity: 0, y: LATERAL.fromY }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: LATERAL.durationFlower, delay: 0.7, ease: LATERAL.ease }}
@@ -166,7 +166,7 @@ function PageContent() {
                 href={WHATSAPP_LINK}
                 target="_blank"
                 rel="noreferrer"
-                className="btn-cta inline-block rounded-xl px-10 py-5 text-base tracking-wide shadow-lg"
+                className="btn-cta inline-block rounded-xl px-8 py-4 text-sm md:text-base tracking-wide shadow-lg"
               >
                 {t("hero.scheduleBtn")}
               </motion.a>
