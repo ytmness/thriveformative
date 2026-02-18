@@ -19,6 +19,7 @@ interface GiantScrollCardProps {
   variant?: CardVariant;
   className?: string;
   id?: string;
+  noFade?: boolean;
 }
 
 function buildVariants(fromY: number): Record<CardVariant, Variants> {
@@ -54,11 +55,17 @@ function buildVariants(fromY: number): Record<CardVariant, Variants> {
   };
 }
 
+const noFadeVariants: Variants = {
+  hidden: { opacity: 1, y: 0 },
+  visible: { opacity: 1, y: 0 },
+};
+
 export default function GiantScrollCard({
   children,
   variant = "slideUp",
   className = "",
   id,
+  noFade = false,
 }: GiantScrollCardProps) {
   const shouldReduceMotion = useReducedMotion();
   const scrollDirection = useScrollDirection();
@@ -71,7 +78,7 @@ export default function GiantScrollCard({
     visible: { opacity: 1 },
   };
 
-  const effectiveVariants: Variants = shouldReduceMotion ? reducedVariants : v;
+  const effectiveVariants: Variants = noFade ? noFadeVariants : (shouldReduceMotion ? reducedVariants : v);
 
   return (
     <motion.article
@@ -87,8 +94,8 @@ export default function GiantScrollCard({
       variants={effectiveVariants}
     >
       <div className="giant-card-inner">
-        <FloralSideOrnaments />
         {children}
+        <FloralSideOrnaments />
       </div>
     </motion.article>
   );

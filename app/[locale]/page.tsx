@@ -11,8 +11,7 @@ import ScrollProgress from "@/components/ScrollProgress";
 import WaveDivider from "@/components/WaveDivider";
 import BookingSection from "@/components/BookingSection";
 import GiantScrollCard from "@/components/GiantScrollCard";
-import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { useScrollDirection } from "@/lib/useScrollDirection";
 import { LATERAL } from "@/lib/lateralAnimation";
@@ -210,9 +209,9 @@ function PageContent() {
 
       {/* ─── MAIN CONTENT — Tarjetas con animación al entrar ─── */}
       <main className="scroll-cards-stack">
-        <GiantScrollCard variant="slideUp" id="approach">
+        <GiantScrollCard variant="slideUp" id="approach" noFade>
           <div className="fullscreen-content fullscreen-content--expanded">
-            <FullscreenCard title={t("approach.title1")} large>{t("approach.desc1")}</FullscreenCard>
+            <FullscreenCard titleA={t("approach.title1a")} titleB={t("approach.title1b")} large>{t("approach.desc1")}</FullscreenCard>
           </div>
         </GiantScrollCard>
         <GiantScrollCard variant="slideUp" id="approach-2">
@@ -400,40 +399,17 @@ export default function Page() {
    Sub-components
    ═══════════════════════════════════════════ */
 
-function FullscreenCard({ title, children, large }: { title: string; children: React.ReactNode; large?: boolean }) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.2 });
-
-  if (large) {
+function FullscreenCard({ title, titleA, titleB, children, large }: { title?: string; titleA?: string; titleB?: string; children: React.ReactNode; large?: boolean }) {
+  if (large && titleA != null && titleB != null) {
     return (
-      <div ref={ref} className="py-10 md:py-14 px-2 md:px-6">
-        <motion.div
-          className="overflow-hidden"
-          initial={{ clipPath: "inset(0 100% 0 0)" }}
-          animate={isInView ? { clipPath: "inset(0 0% 0 0)" } : { clipPath: "inset(0 100% 0 0)" }}
-          transition={{ duration: 1.8, ease: [0.22, 0.61, 0.36, 1] }}
-        >
-          <h2 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl tracking-wide leading-tight">
-            {title}
-          </h2>
-        </motion.div>
-        <motion.div
-          className="overflow-hidden mt-8 md:mt-12"
-          initial={{ clipPath: "inset(0 100% 0 0)" }}
-          animate={isInView ? { clipPath: "inset(0 0% 0 0)" } : { clipPath: "inset(0 100% 0 0)" }}
-          transition={{ duration: 2.4, delay: 0.3, ease: [0.22, 0.61, 0.36, 1] }}
-        >
-          <p className="text-xl md:text-2xl lg:text-3xl xl:text-4xl text-muted leading-loose max-w-none tracking-wide">
-            {children}
-          </p>
-        </motion.div>
-        <motion.span
-          className="inline-block w-0.5 h-8 md:h-10 bg-[rgb(var(--primary))] align-middle ml-1 -mb-2"
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: [0, 1, 0, 1, 0, 1, 0] } : { opacity: 0 }}
-          transition={{ duration: 3, delay: 2.2, times: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 1] }}
-          aria-hidden
-        />
+      <div className="py-10 md:py-14 px-2 md:px-6">
+        <h2 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl tracking-wide leading-tight flex flex-wrap items-baseline gap-x-4 md:gap-x-6 gap-y-2">
+          <span>{titleA}</span>
+          <span>{titleB}</span>
+        </h2>
+        <p className="mt-8 md:mt-12 text-xl md:text-2xl lg:text-3xl xl:text-4xl text-muted leading-loose max-w-none tracking-wide">
+          {children}
+        </p>
       </div>
     );
   }
@@ -441,7 +417,7 @@ function FullscreenCard({ title, children, large }: { title: string; children: R
   return (
     <div className="py-8 md:py-12">
       <h2 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl tracking-wide leading-tight">
-        {title}
+        {title ?? `${titleA ?? ""} ${titleB ?? ""}`.trim()}
       </h2>
       <p className="mt-6 md:mt-8 text-lg md:text-xl lg:text-2xl text-muted leading-relaxed max-w-3xl">
         {children}

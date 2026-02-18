@@ -43,7 +43,8 @@
     "scriptText": "Hello, this is from the doctor's office. Your appointment is confirmed for tomorrow. Please bring your lab results and arrive 10 minutes early."
   },
   "approach": {
-    "title1": "Functional medicine",
+    "title1a": "Functional",
+    "title1b": "medicine",
     "desc1": "Focus on root causes, biomarkers, and personalized plans. We analyze your unique biochemistry to understand what triggers your symptoms. We combine therapeutic nutrition, hormonal optimization, evidence-based supplementation, and lifestyle adjustments to restore your body's balance.",
     "title2": "Family medicine",
     "desc2": "Comprehensive view considering your complete history, family context, psychosocial factors, and life goals. We make informed decisions considering not only your biology but also your lifestyle, beliefs, and preferences. Continuity of care with personalized follow-up.",
