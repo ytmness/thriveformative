@@ -8,7 +8,7 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 const WHATSAPP_LINK = "https://google.com";
 
 const logoMap: Record<string, string> = {
-  "golden-sand": "/logos/Recurso-5-5x.png",
+  "golden-sand": "/logos/Logo-Golden-Sand-color-06.png",
   nocturnal: "/logos/Recurso-6-5x.png",
   metals: "/logos/Recurso-7-5x.png",
   "earth-modern": "/logos/Recurso-8-5x.png",
@@ -50,7 +50,7 @@ export default function Header() {
           <img
             src={currentLogo}
             alt="Thrive Formative"
-            className="h-10 sm:h-11 md:h-12 w-auto object-contain max-h-[3.5rem]"
+            className="h-12 sm:h-14 md:h-16 w-auto object-contain max-h-[4.5rem]"
           />
         </motion.a>
 

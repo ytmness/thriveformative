@@ -76,9 +76,12 @@ function PageContent() {
 
       {/* ─── HERO ─── */}
       <section id="inicio" className="scroll-snap-section relative flex flex-col h-[calc(100vh-5rem)] overflow-hidden">
-        {/* Olas visibles desde arriba al cargar */}
-        <div className="relative z-10 w-full flex-shrink-0 pt-2">
+        {/* Olas en capas absolutas — traspasan el contenido, sin hitbox */}
+        <div className="absolute top-0 left-0 right-0 z-[5] pointer-events-none wave-hero-top">
           <WaveDivider variant="accent" className="wave-hero-top" flip />
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 z-[5] pointer-events-none wave-hero-bottom">
+          <WaveDivider variant="accent" className="wave-hero-bottom" />
         </div>
         {/* Subtle gradient overlay */}
         <div className="absolute inset-0 z-0 bg-gradient-to-br from-[rgb(var(--bg))] via-[rgb(var(--bg))] to-[rgb(var(--primary)/0.04)] pointer-events-none" />
@@ -90,7 +93,7 @@ function PageContent() {
               <div className="relative">
                 {/* Organic pattern behind circle */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <OrganicPattern className="w-[130%] h-[130%] text-[rgb(var(--primary))]" />
+                  <OrganicPattern className="w-[200%] h-[200%] text-[rgb(var(--primary))]" />
                 </div>
 
                 {/* Glow behind circle */}
@@ -101,7 +104,7 @@ function PageContent() {
                   initial={{ opacity: 0, scale: LATERAL.scaleBranch }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: LATERAL.durationFlower, delay: 0.3, ease: LATERAL.ease }}
-                  className="relative w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 lg:w-72 lg:h-72 rounded-full border border-[rgb(var(--primary)/0.25)] overflow-hidden flex items-center justify-center bg-[rgb(var(--surface)/0.3)] backdrop-blur-sm"
+                  className="relative w-56 h-56 sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full border border-[rgb(var(--primary)/0.25)] overflow-hidden flex items-center justify-center bg-[rgb(var(--surface)/0.3)] backdrop-blur-sm"
                 >
                   {/* Inner ring */}
                   <div className="absolute inset-2 rounded-full border border-[rgb(var(--primary)/0.12)]" />
@@ -119,7 +122,7 @@ function PageContent() {
           {/* RIGHT — Text content */}
           <div>
             <motion.h1
-              className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl leading-tight tracking-wide italic"
+              className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-tight tracking-wide italic"
               initial={{ opacity: 0, y: LATERAL.fromY }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: LATERAL.durationFlower, delay: 0.2, ease: LATERAL.ease }}
@@ -128,7 +131,7 @@ function PageContent() {
             </motion.h1>
 
             <motion.p
-              className="mt-3 text-muted text-base md:text-lg leading-relaxed"
+              className="mt-4 text-muted text-lg md:text-xl leading-relaxed"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: LATERAL.durationFlower, delay: 0.4, ease: LATERAL.ease }}
@@ -148,7 +151,7 @@ function PageContent() {
                   <div className="benefit-dot relative mt-1 w-3.5 h-3.5 rounded-full bg-[rgb(var(--primary)/0.2)] flex items-center justify-center flex-shrink-0">
                     <div className="w-1 h-1 rounded-full bg-[rgb(var(--primary))]" />
                   </div>
-                  <span className="text-sm md:text-base leading-snug">{t(`hero.benefit${i}`)}</span>
+                  <span className="text-base md:text-lg leading-snug">{t(`hero.benefit${i}`)}</span>
                 </div>
               ))}
             </motion.div>
@@ -166,7 +169,7 @@ function PageContent() {
                 href={WHATSAPP_LINK}
                 target="_blank"
                 rel="noreferrer"
-                className="btn-cta inline-block rounded-xl px-8 py-4 text-sm md:text-base tracking-wide shadow-lg"
+                className="btn-cta inline-block rounded-xl px-10 py-5 text-base md:text-lg tracking-wide shadow-lg"
               >
                 {t("hero.scheduleBtn")}
               </motion.a>
@@ -174,10 +177,6 @@ function PageContent() {
           </div>
         </div>
 
-        {/* Wave al fondo del hero — visible sin scroll */}
-        <div className="relative z-10 w-full mt-auto flex-shrink-0">
-          <WaveDivider variant="accent" className="wave-hero-bottom" />
-        </div>
       </section>
 
       {/* ─── STATS BAR ─── */}

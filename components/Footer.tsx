@@ -9,7 +9,7 @@ import { LATERAL } from "@/lib/lateralAnimation";
 const WHATSAPP_LINK = "https://google.com";
 
 const logoMap: Record<string, string> = {
-  "golden-sand": "/logos/Recurso-5-5x.png",
+  "golden-sand": "/logos/Logo-Golden-Sand-color-06.png",
   nocturnal: "/logos/Recurso-6-5x.png",
   metals: "/logos/Recurso-7-5x.png",
   "earth-modern": "/logos/Recurso-8-5x.png",
@@ -49,7 +49,7 @@ export default function Footer() {
               whileHover={{ scale: 1.02 }}
               src={currentLogo}
               alt="Thrive Formative"
-              className="h-12 md:h-14 w-auto object-contain"
+              className="h-14 md:h-16 w-auto object-contain"
             />
             <p className="text-sm text-muted leading-relaxed max-w-xs">
               {t("footer.tagline")}

@@ -23,31 +23,29 @@
   margin-top: 0;
 }
 
-/* Olas en hero: compactas para caber en una sola vista con contenido */
+/* Olas en hero: grandes, pueden traspasar el contenido (pointer-events-none) */
 .wave-hero-top .wave-svg,
 .wave-hero-bottom .wave-svg {
-  height: 48px;
+  height: 120px;
 }
 @media (min-width: 768px) {
   .wave-hero-top .wave-svg,
   .wave-hero-bottom .wave-svg {
-    height: 64px;
+    height: 180px;
   }
 }
 @media (min-width: 1280px) {
   .wave-hero-top .wave-svg,
   .wave-hero-bottom .wave-svg {
-    height: 80px;
+    height: 240px;
   }
 }
 
-.wave-hero-top {
-  margin-top: 0;
-  margin-bottom: 0;
-}
-
+.wave-hero-top,
 .wave-hero-bottom {
   margin-top: 0;
+  margin-bottom: 0;
+  pointer-events: none;
 }
 
 .wave-svg {
