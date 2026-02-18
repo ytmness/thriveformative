@@ -76,8 +76,12 @@ function PageContent() {
 
       {/* ─── HERO ─── */}
       <section id="inicio" className="scroll-snap-section relative flex flex-col min-h-[calc(100vh-5rem)] overflow-hidden">
+        {/* Olas visibles desde arriba al cargar */}
+        <div className="relative z-10 w-full flex-shrink-0 pt-4">
+          <WaveDivider variant="accent" className="wave-hero-top" flip />
+        </div>
         {/* Subtle gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--bg))] via-[rgb(var(--bg))] to-[rgb(var(--primary)/0.04)] pointer-events-none" />
+        <div className="absolute inset-0 z-0 bg-gradient-to-br from-[rgb(var(--bg))] via-[rgb(var(--bg))] to-[rgb(var(--primary)/0.04)] pointer-events-none" />
 
         <div className="relative z-10 flex-1 max-w-7xl mx-auto px-6 py-12 md:py-16 lg:py-20 grid md:grid-cols-2 gap-12 lg:gap-16 items-center w-full">
           {/* LEFT — Decorative circle with logo */}

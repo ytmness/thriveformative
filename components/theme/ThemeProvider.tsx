@@ -16,7 +16,7 @@ export function useThemes() {
 }
 
 export default function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = React.useState<ThemeId>("nocturnal");
+  const [theme, setTheme] = React.useState<ThemeId>("golden-sand");
 
   React.useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);

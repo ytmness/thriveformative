@@ -23,7 +23,12 @@
   margin-top: 0;
 }
 
-/* Wave dentro del hero */
+/* Olas en hero: arriba (visible al cargar) y abajo */
+.wave-hero-top {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
 .wave-hero-bottom {
   margin-top: 0;
 }
@@ -36,6 +41,35 @@
   /* Evita artefactos de subpixel en bordes */
   transform: translateZ(0);
   backface-visibility: hidden;
+}
+
+/* Dentro de tarjetas: olas en flujo, lado plano en la división
+   - flip: order -1 → arriba (división superior)
+   - normal: order 1 → abajo (división inferior)
+   El contenido queda centrado en el espacio entre olas */
+.giant-card-inner .wave-divider--inside-section,
+.scroll-cards-stack .wave-divider--inside-section {
+  flex-shrink: 0;
+  left: 0;
+  right: 0;
+  margin: 0;
+  z-index: 1;
+}
+
+.giant-card-inner .wave-divider--inside-section.wave-flip,
+.scroll-cards-stack .wave-divider--inside-section.wave-flip {
+  order: -1; /* Arriba del contenido */
+}
+
+.giant-card-inner .wave-divider--inside-section:not(.wave-flip),
+.scroll-cards-stack .wave-divider--inside-section:not(.wave-flip) {
+  order: 1; /* Abajo del contenido */
+}
+
+.giant-card-inner .wave-divider--inside-section .wave-svg,
+.scroll-cards-stack .wave-divider--inside-section .wave-svg {
+  width: 100%;
+  margin-left: 0;
 }
 
 @media (min-width: 768px) {
@@ -69,17 +103,14 @@
   animation: none;
 }
 
-/* Back wave — slowest, wide drift */
 .wave-back {
   animation: wave-drift-back 10s ease-in-out infinite;
 }
 
-/* Middle wave — medium rhythm, opposite direction */
 .wave-mid {
   animation: wave-drift-mid 8s ease-in-out infinite;
 }
 
-/* Front wave — slightly faster sway */
 .wave-front {
   animation: wave-drift-front 9s ease-in-out infinite;
 }
