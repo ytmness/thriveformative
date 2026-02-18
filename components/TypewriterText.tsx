@@ -57,8 +57,13 @@ export default function TypewriterText({
   const isTyping = visibleLength < text.length;
 
   return (
-    <div ref={ref}>
-      <Tag className={className}>
+    <div ref={ref} className="relative">
+      {/* Espacio reservado: texto completo invisible para evitar que crezca el recuadro */}
+      <Tag className={`${className} invisible`} aria-hidden>
+        {text}
+      </Tag>
+      {/* Contenido visible encima, sin afectar el layout */}
+      <Tag className={`${className} absolute top-0 left-0`}>
         {displayed}
         {isTyping && isInView && (
           <span className="inline-block w-[2px] h-[0.9em] align-baseline ml-0.5 bg-current animate-pulse" aria-hidden />
