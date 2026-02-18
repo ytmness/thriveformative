@@ -12,6 +12,8 @@ import WaveDivider from "@/components/WaveDivider";
 import BookingSection from "@/components/BookingSection";
 import GiantScrollCard from "@/components/GiantScrollCard";
 import { motion } from "framer-motion";
+import { useState } from "react";
+import TypewriterText from "@/components/TypewriterText";
 import { useTranslations } from "next-intl";
 import { useScrollDirection } from "@/lib/useScrollDirection";
 import { LATERAL } from "@/lib/lateralAnimation";
@@ -400,16 +402,29 @@ export default function Page() {
    ═══════════════════════════════════════════ */
 
 function FullscreenCard({ title, titleA, titleB, children, large }: { title?: string; titleA?: string; titleB?: string; children: React.ReactNode; large?: boolean }) {
+  const [titleDone, setTitleDone] = useState(false);
+
   if (large && titleA != null && titleB != null) {
+    const titleText = `${titleA} ${titleB}`;
+    const descText = typeof children === "string" ? children : String(children);
+
     return (
       <div className="py-10 md:py-14 px-2 md:px-6">
-        <h2 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl tracking-wide leading-tight flex flex-wrap items-baseline gap-x-4 md:gap-x-6 gap-y-2">
-          <span>{titleA}</span>
-          <span>{titleB}</span>
-        </h2>
-        <p className="mt-8 md:mt-12 text-xl md:text-2xl lg:text-3xl xl:text-4xl text-muted leading-loose max-w-none tracking-wide">
-          {children}
-        </p>
+        <TypewriterText
+          text={titleText}
+          speed={55}
+          as="h2"
+          className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl tracking-wide leading-tight"
+          onComplete={() => setTitleDone(true)}
+        />
+        <TypewriterText
+          text={descText}
+          speed={28}
+          delay={200}
+          active={titleDone}
+          as="p"
+          className="mt-8 md:mt-12 text-xl md:text-2xl lg:text-3xl xl:text-4xl text-muted leading-loose max-w-none tracking-wide"
+        />
       </div>
     );
   }
