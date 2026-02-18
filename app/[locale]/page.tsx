@@ -122,7 +122,7 @@ function PageContent() {
             </motion.h1>
 
             <motion.p
-              className="mt-5 text-muted text-lg leading-relaxed"
+              className="mt-5 text-muted text-xl leading-relaxed"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: LATERAL.durationFlower, delay: 0.4, ease: LATERAL.ease }}
@@ -142,7 +142,7 @@ function PageContent() {
                   <div className="benefit-dot relative mt-1.5 w-4 h-4 rounded-full bg-[rgb(var(--primary)/0.2)] flex items-center justify-center flex-shrink-0">
                     <div className="w-1.5 h-1.5 rounded-full bg-[rgb(var(--primary))]" />
                   </div>
-                  <span className="text-base leading-snug">{t(`hero.benefit${i}`)}</span>
+                  <span className="text-lg leading-snug">{t(`hero.benefit${i}`)}</span>
                 </div>
               ))}
             </motion.div>
@@ -193,15 +193,15 @@ function PageContent() {
             transition={{ duration: 0.3 }}
             className="bg-surface border border-theme rounded-2xl shadow-soft p-8"
           >
-            <div className="text-sm text-muted tracking-[0.22em]">{t("flow.title")}</div>
-            <ul className="mt-4 space-y-3 text-base leading-relaxed">
+            <div className="text-base text-muted tracking-[0.22em]">{t("flow.title")}</div>
+            <ul className="mt-4 space-y-3 text-lg leading-relaxed">
               <li>{t("flow.newPatient")}</li>
               <li>{t("flow.followUp")}</li>
               <li>{t("flow.policies")}</li>
             </ul>
             <div className="mt-6 p-5 rounded-xl border border-theme bg-[rgb(var(--bg)/0.6)]">
-              <div className="text-sm text-muted">{t("flow.script")}</div>
-              <p className="text-base mt-2">&ldquo;{t("flow.scriptText")}&rdquo;</p>
+              <div className="text-base text-muted">{t("flow.script")}</div>
+              <p className="text-lg mt-2">&ldquo;{t("flow.scriptText")}&rdquo;</p>
             </div>
           </motion.div>
         </div>
@@ -285,16 +285,16 @@ function PageContent() {
                   transition={{ duration: LATERAL.durationBranch, delay: 0.1, ease: LATERAL.ease }}
                   className="bg-surface border border-theme rounded-2xl shadow-soft p-6"
                 >
-                  <p className="text-base leading-relaxed">{t("tshape.fdaDesc")}</p>
+                  <p className="text-lg leading-relaxed">{t("tshape.fdaDesc")}</p>
                   <ul className="mt-5 space-y-3">
                     {[1, 2, 3, 4].map((i) => (
-                      <li key={i} className="flex items-center gap-3 text-base">
+                      <li key={i} className="flex items-center gap-3 text-lg">
                         <span className="w-2 h-2 rounded-full bg-[rgb(var(--primary))] flex-shrink-0" />
                         {t(`tshape.fdaItem${i}`)}
                       </li>
                     ))}
                   </ul>
-                  <p className="mt-6 text-sm text-muted leading-relaxed border-t border-theme pt-5">
+                  <p className="mt-6 text-base text-muted leading-relaxed border-t border-theme pt-5">
                     {t("tshape.fdaNote")}
                   </p>
                 </motion.div>
@@ -315,8 +315,8 @@ function PageContent() {
                     <div className="w-12 h-12 rounded-full bg-[rgb(var(--primary)/0.1)] flex items-center justify-center mb-5">
                       <div className="w-5 h-5 rounded-full bg-[rgb(var(--primary)/0.4)]" />
                     </div>
-                    <h4 className="font-display text-base tracking-wide">{t(`tshape.tech${i}Title`)}</h4>
-                    <p className="mt-3 text-sm text-muted leading-relaxed">{t(`tshape.tech${i}Desc`)}</p>
+                    <h4 className="font-display text-lg tracking-wide">{t(`tshape.tech${i}Title`)}</h4>
+                    <p className="mt-3 text-base text-muted leading-relaxed">{t(`tshape.tech${i}Desc`)}</p>
                   </motion.div>
                 ))}
               </div>
@@ -339,7 +339,7 @@ function PageContent() {
           <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--primary)/0.08)] via-transparent to-[rgb(var(--primary)/0.05)] pointer-events-none" />
           <div className="relative z-10 max-w-4xl mx-auto px-6 py-24 md:py-32 text-center">
             <motion.h2
-              className="font-display text-3xl md:text-4xl lg:text-5xl tracking-wide"
+              className="font-display text-4xl md:text-5xl lg:text-6xl tracking-wide"
               initial={{ opacity: 0, y: fromY }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: false, amount: 0.02 }}
@@ -348,7 +348,7 @@ function PageContent() {
               {t("cta.title")}
             </motion.h2>
             <motion.p
-              className="mt-5 text-lg md:text-xl text-muted leading-relaxed max-w-2xl mx-auto"
+              className="mt-5 text-xl md:text-2xl text-muted leading-relaxed max-w-2xl mx-auto"
               initial={{ opacity: 0, y: fromY }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: false, amount: 0.02 }}
@@ -402,10 +402,10 @@ export default function Page() {
 function FullscreenCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="py-8 md:py-12">
-      <h2 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl tracking-wide leading-tight">
+      <h2 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl tracking-wide leading-tight">
         {title}
       </h2>
-      <p className="mt-6 md:mt-8 text-base md:text-lg lg:text-xl text-muted leading-relaxed max-w-3xl">
+      <p className="mt-6 md:mt-8 text-lg md:text-xl lg:text-2xl text-muted leading-relaxed max-w-3xl">
         {children}
       </p>
     </div>
@@ -422,8 +422,8 @@ function Stat({ label, value, delay = 0, fromY = LATERAL.fromY }: { label: strin
       whileHover={{ y: -4, boxShadow: "0 10px 30px rgba(0,0,0,0.12)" }}
       className="bg-surface border border-theme rounded-2xl p-6 md:p-8 cursor-default text-center"
     >
-      <div className="text-sm text-muted">{label}</div>
-      <div className="text-2xl md:text-3xl font-display font-bold mt-2" style={{ color: "rgb(var(--primary))" }}>{value}</div>
+      <div className="text-base text-muted">{label}</div>
+      <div className="text-3xl md:text-4xl font-display font-bold mt-2" style={{ color: "rgb(var(--primary))" }}>{value}</div>
     </motion.div>
   );
 }
@@ -438,8 +438,8 @@ function SectionTitle({ title, subtitle, fromY = LATERAL.fromY }: { title: strin
       transition={{ duration: LATERAL.durationBranch, ease: LATERAL.ease }}
       className="mb-4"
     >
-      <h2 className="font-display text-3xl md:text-4xl lg:text-5xl tracking-wide">{title}</h2>
-      <p className="text-base md:text-lg text-muted mt-3 max-w-2xl leading-relaxed">{subtitle}</p>
+      <h2 className="font-display text-4xl md:text-5xl lg:text-6xl tracking-wide">{title}</h2>
+      <p className="text-lg md:text-xl text-muted mt-3 max-w-2xl leading-relaxed">{subtitle}</p>
     </motion.div>
   );
 }
@@ -454,8 +454,8 @@ function Service({ name, desc, delay = 0 }: { name: string; desc: string; delay?
       whileHover={{ y: -6, boxShadow: "0 20px 50px rgba(0,0,0,0.18)" }}
       className="bg-surface border border-theme rounded-2xl shadow-soft p-8 md:p-10"
     >
-      <div className="font-display text-xl md:text-2xl font-semibold">{name}</div>
-      <p className="text-base md:text-lg text-muted mt-4 leading-relaxed">{desc}</p>
+      <div className="font-display text-2xl md:text-3xl font-semibold">{name}</div>
+      <p className="text-lg md:text-xl text-muted mt-4 leading-relaxed">{desc}</p>
     </motion.div>
   );
 }
@@ -478,8 +478,8 @@ function Plan({ name, items, featured, delay = 0, fromY = LATERAL.fromY }: { nam
         featured ? "border-[rgb(var(--primary)/0.4)] ring-1 ring-[rgb(var(--primary)/0.2)] scale-[1.03]" : "border-theme"
       }`}
     >
-      <div className="font-display text-2xl md:text-3xl tracking-wide">{name}</div>
-      <ul className="mt-4 space-y-3 text-base text-muted">
+      <div className="font-display text-3xl md:text-4xl tracking-wide">{name}</div>
+      <ul className="mt-4 space-y-3 text-lg text-muted">
         {items.map((x) => (
           <li key={x} className="flex items-start gap-2">
             <span className="mt-1.5 w-2 h-2 rounded-full bg-[rgb(var(--primary)/0.4)] flex-shrink-0" />
@@ -490,7 +490,7 @@ function Plan({ name, items, featured, delay = 0, fromY = LATERAL.fromY }: { nam
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className={`mt-6 w-full rounded-xl px-5 py-4 text-base font-semibold ${
+        className={`mt-6 w-full rounded-xl px-5 py-4 text-lg font-semibold ${
           featured ? "btn-primary shadow-lg" : "btn-outline"
         }`}
       >

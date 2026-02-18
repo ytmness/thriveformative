@@ -45,13 +45,13 @@ export default function BookingSection() {
           transition={{ duration: LATERAL.durationFlower, ease: LATERAL.ease }}
           className="mb-4"
         >
-          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl tracking-wide">
+          <h2 className="font-display text-4xl md:text-5xl lg:text-6xl tracking-wide">
             {t("title")}
           </h2>
-          <p className="text-base md:text-lg text-muted mt-3 max-w-2xl leading-relaxed">
+          <p className="text-lg md:text-xl text-muted mt-3 max-w-2xl leading-relaxed">
             {t("subtitle")}
           </p>
-          <p className="text-sm text-muted mt-2 opacity-80">
+          <p className="text-base text-muted mt-2 opacity-80">
             {t("demoNote")}
           </p>
         </motion.div>
@@ -65,29 +65,29 @@ export default function BookingSection() {
             transition={{ duration: LATERAL.durationBranch, ease: LATERAL.ease }}
             className="bg-surface border border-theme rounded-2xl shadow-soft p-6"
           >
-            <div className="text-sm text-muted tracking-[0.22em] mb-4">
+            <div className="text-base text-muted tracking-[0.22em] mb-4">
               {t("dateLabel")}
             </div>
             <div className="flex items-center justify-between mb-6">
               <button
                 type="button"
-                className="w-10 h-10 rounded-xl border border-theme flex items-center justify-center text-muted hover:bg-[rgb(var(--primary)/0.08)] transition-colors"
+                className="w-11 h-11 rounded-xl border border-theme flex items-center justify-center text-muted hover:bg-[rgb(var(--primary)/0.08)] transition-colors text-lg"
                 aria-label={t("prevMonth")}
               >
                 ‹
               </button>
-              <span className="font-display text-lg tracking-wide">
+              <span className="font-display text-xl tracking-wide">
                 {t("sampleDate")}
               </span>
               <button
                 type="button"
-                className="w-10 h-10 rounded-xl border border-theme flex items-center justify-center text-muted hover:bg-[rgb(var(--primary)/0.08)] transition-colors"
+                className="w-11 h-11 rounded-xl border border-theme flex items-center justify-center text-muted hover:bg-[rgb(var(--primary)/0.08)] transition-colors text-lg"
                 aria-label={t("nextMonth")}
               >
                 ›
               </button>
             </div>
-            <div className="grid grid-cols-7 gap-1 text-center text-sm text-muted">
+            <div className="grid grid-cols-7 gap-1 text-center text-base text-muted">
               {["L", "M", "X", "J", "V", "S", "D"].map((d) => (
                 <div key={d} className="py-1">{d}</div>
               ))}
@@ -120,7 +120,7 @@ export default function BookingSection() {
             viewport={{ once: false, amount: 0.02 }}
             transition={{ duration: LATERAL.durationBranch, ease: LATERAL.ease }}
           >
-            <div className="text-sm text-muted tracking-[0.22em] mb-4">
+            <div className="text-base text-muted tracking-[0.22em] mb-4">
               {t("slotsLabel")}
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -133,7 +133,7 @@ export default function BookingSection() {
                   viewport={{ once: false, amount: 0.02 }}
                   transition={{ duration: LATERAL.durationFlower, delay: i * LATERAL.staggerBase, ease: LATERAL.ease }}
                   disabled={slot.occupied}
-                  className={`rounded-xl px-4 py-3 text-sm font-medium text-left transition-all ${
+                  className={`rounded-xl px-4 py-3 text-base font-medium text-left transition-all ${
                     slot.occupied
                       ? "bg-[rgb(var(--bg)/0.6)] border border-theme text-muted cursor-not-allowed opacity-70 line-through"
                       : "bg-surface border border-theme hover:border-[rgb(var(--primary)/0.4)] hover:bg-[rgb(var(--primary)/0.06)] cursor-pointer"
@@ -141,14 +141,14 @@ export default function BookingSection() {
                 >
                   <span className="block">{slot.time}</span>
                   {slot.occupied && (
-                    <span className="block text-xs mt-0.5 opacity-80">
+                    <span className="block text-sm mt-0.5 opacity-80">
                       {t("occupied")}
                     </span>
                   )}
                 </motion.button>
               ))}
             </div>
-            <p className="mt-4 text-sm text-muted leading-relaxed border-t border-theme pt-4">
+            <p className="mt-4 text-base text-muted leading-relaxed border-t border-theme pt-4">
               {t("occupiedHint")}
             </p>
           </motion.div>
@@ -161,12 +161,12 @@ export default function BookingSection() {
           transition={{ duration: LATERAL.durationBranch, delay: 0.2, ease: LATERAL.ease }}
           className="mt-10 text-center"
         >
-          <p className="text-muted text-sm mb-3">{t("ctaHint")}</p>
+          <p className="text-muted text-base mb-3">{t("ctaHint")}</p>
           <a
             href={WHATSAPP_LINK}
             target="_blank"
             rel="noreferrer"
-            className="btn-cta inline-block rounded-xl px-10 py-5 text-base tracking-wide shadow-lg"
+            className="btn-cta inline-block rounded-xl px-10 py-5 text-lg tracking-wide shadow-lg"
           >
             {t("ctaButton")}
           </a>
