@@ -160,9 +160,9 @@
 /* Espaciado entre cards: --card-gap (padding de cada card) + --path-height (camino floral) */
 .scroll-cards-stack {
   --card-gap: 0.75rem;   /* padding top/bottom de cada giant-card */
-  --path-height: 9rem;   /* un poco más pequeño que antes (12rem) */
+  --path-height: 4.5rem; /* 50% del original (9rem) */
   --tile-w: 2.5rem;     /* ~30 ramas por mitad (laterales tienen 16 por lado) */
-  --path-overlap: 2.5rem; /* solapa con cards para que ramas y slides se conecten */
+  --path-overlap: 1.25rem; /* 50% del original */
   padding: var(--card-gap) 0;
 }
 
@@ -196,7 +196,7 @@
   background: rgb(var(--surface) / 0.5);
   backdrop-filter: blur(16px);
   box-shadow: 0 0 60px rgb(0 0 0 / 0.15);
-  overflow: hidden;
+  overflow: visible; /* permite que flores/ramas se superpongan sin cortarse */
 }
 
 /* Tarjetas full-screen con contenido centrado */
@@ -221,8 +221,8 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 0;
-  overflow: visible; /* permite que ramas/flores se salgan un poco */
+  z-index: 50; /* prioridad máxima: flores/ramas siempre encima de la tarjeta */
+  overflow: visible;
 }
 
 /* Extendido hacia arriba — ornamentos empiezan más arriba */
@@ -233,7 +233,7 @@
 
 .floral-ornament {
   position: absolute;
-  z-index: 0;
+  z-index: 1;
 }
 
 .floral-ornament--branch.floral-ornament--right {
@@ -253,7 +253,21 @@
 
 .giant-card-inner > *:not(.floral-arbor-wrapper) {
   position: relative;
-  z-index: 1;
+  z-index: 0; /* debajo del floral para que flores/ramas nunca queden tapadas */
+}
+
+/* Wave y todo el contenido de la tarjeta debe quedar bajo las flores/ramas */
+.giant-card-inner .wave-divider--inside-section,
+.giant-card-inner .fullscreen-content {
+  z-index: 0;
+}
+
+/* Ornamentos más sutiles para reducir ruido visual */
+.floral-ornament--branch {
+  opacity: 0.88;
+}
+.floral-ornament--flower {
+  opacity: 0.92;
 }
 
 @media (max-width: 640px) {
@@ -262,7 +276,10 @@
   }
   .floral-ornament--branch,
   .floral-ornament--branchCorner {
-    opacity: 0.8;
+    opacity: 0.75;
+  }
+  .floral-ornament--flower {
+    opacity: 0.85;
   }
 }
 
@@ -295,33 +312,43 @@
   transform-origin: right center; /* crece desde borde derecho hacia centro */
 }
 
-/* Ramas: 5 capas repeat-x. Filtros para unificar con vertical (rama-3/4 más sobrias) */
+/* Ramas: 1, 2 y 5. Más capas = más imágenes empalmadas (sin deformar) */
 .horizontal-card-path__branches {
   position: absolute;
   inset: 0;
   width: 200%;
   height: 100%;
-  filter: saturate(0.7) brightness(0.9) sepia(0.08); /* unificar con laterales (verdes/ocre sobrios) */
   background-image:
     url(/floral/rama-1.png),
     url(/floral/rama-2.png),
     url(/floral/rama-5.png),
     url(/floral/rama-1.png),
-    url(/floral/rama-2.png);
-  background-repeat: repeat-x, repeat-x, repeat-x, repeat-x, repeat-x;
+    url(/floral/rama-2.png),
+    url(/floral/rama-5.png),
+    url(/floral/rama-1.png),
+    url(/floral/rama-2.png),
+    url(/floral/rama-5.png);
+  background-repeat: repeat-x, repeat-x, repeat-x, repeat-x, repeat-x, repeat-x, repeat-x, repeat-x, repeat-x;
   background-size:
-    var(--tile-w, 32rem) 100%,
-    var(--tile-w, 32rem) 100%,
-    var(--tile-w, 32rem) 100%,
-    var(--tile-w, 32rem) 100%,
-    var(--tile-w, 32rem) 100%;
-  /* Offsets para empalme */
+    auto 100%,
+    auto 100%,
+    auto 100%,
+    auto 100%,
+    auto 100%,
+    auto 100%,
+    auto 100%,
+    auto 100%,
+    auto 100%;
   background-position:
     0 50%,
-    calc(var(--tile-w, 32rem) * 0.2) 42%,
-    calc(var(--tile-w, 32rem) * 0.4) 58%,
-    calc(var(--tile-w, 32rem) * 0.6) 48%,
-    calc(var(--tile-w, 32rem) * 0.8) 52%;
+    8% 38%,
+    16% 62%,
+    24% 48%,
+    32% 42%,
+    40% 58%,
+    48% 52%,
+    56% 45%,
+    64% 55%;
   background-origin: border-box;
 }
 
@@ -331,16 +358,16 @@
   /* Sin scaleX(-1): las ramas horizontales ya vienen orientadas */
 }
 
-/* Flores: mismas que laterales (16 total) */
+/* Flores: 50% del tamaño original (proporcional al path reducido) */
 .horizontal-card-path__flower {
   position: absolute;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(0.5);
   filter: drop-shadow(0 2px 6px rgb(0 0 0 / 0.12));
 }
 
 .horizontal-card-path__flower--right {
   left: auto;
-  transform: translate(50%, -50%);
+  transform: translate(50%, -50%) scale(0.5);
 }
 
 .horizontal-card-path__flower img,
@@ -352,7 +379,7 @@
 
 @media (min-width: 768px) {
   .scroll-cards-stack {
-    --path-height: 10rem;  /* desktop: un poco más pequeño que antes (13rem) */
+    --path-height: 5rem;  /* 50% del original (10rem) */
   }
 }
 

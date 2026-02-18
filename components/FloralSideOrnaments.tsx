@@ -53,14 +53,16 @@ function generateOrnaments(): OrnamentDef[] {
   const items: OrnamentDef[] = [];
   let orderKey = 0;
 
-  const NUM_SEGMENTS = 16;
-  const BRANCH_SIZE = "w-36 md:w-52 h-[286px] md:h-[364px]";
-  const STEP_PCT = 6.5;
-  const OFFSET = "-4rem";
+  /* Intercalado: ramas y flores en posiciones alternas para reducir ruido visual */
+  const BRANCH_SIZE = "w-14 md:w-20 h-[100px] md:h-[130px]";
+  const OFFSET = "-1.5rem";
 
-  /* Izquierda: ramas grandes como antes */
-  for (let i = 0; i < NUM_SEGMENTS; i++) {
-    const topPct = -8 + i * STEP_PCT;
+  /* Posiciones intercaladas: rama-flor-rama-flor... */
+  const BRANCH_PCTS = [0, 14, 28, 42, 56, 70, 84, 98];
+  const FLOWER_PCTS = [7, 21, 35, 49, 63, 77, 91]; /* entre ramas */
+
+  /* Izquierda: ramas */
+  BRANCH_PCTS.forEach((topPct, i) => {
     const variant: 2 | 3 = i % 2 === 0 ? 2 : 3;
     items.push({
       type: "branch",
@@ -72,11 +74,10 @@ function generateOrnaments(): OrnamentDef[] {
       orderKey: orderKey++,
       ramaVariant: variant,
     });
-  }
+  });
 
-  /* Derecha: ramas grandes como antes */
-  for (let i = 0; i < NUM_SEGMENTS; i++) {
-    const topPct = -8 + i * STEP_PCT;
+  /* Derecha: ramas */
+  BRANCH_PCTS.forEach((topPct, i) => {
     const variant: 2 | 3 = i % 2 === 0 ? 3 : 2;
     items.push({
       type: "branch",
@@ -88,34 +89,25 @@ function generateOrnaments(): OrnamentDef[] {
       orderKey: orderKey++,
       ramaVariant: variant,
     });
-  }
+  });
 
-  /* Esquinas — 30% más grandes */
-  items.push({ type: "branchCorner", size: "w-42 h-42 md:w-58 md:h-58", left: "-3.5rem", top: "0", zIndex: 0, orderKey: orderKey++, ramaVariant: 2 });
-  items.push({ type: "branchCorner", size: "w-36 h-36 md:w-52 md:h-52", right: "-4rem", top: "0", zIndex: 0, orderKey: orderKey++, ramaVariant: 3 });
-  items.push({ type: "branchCorner", size: "w-36 h-36 md:w-50 md:h-50", left: "-3.5rem", bottom: "0", zIndex: 0, orderKey: orderKey++, ramaVariant: 2 });
-  items.push({ type: "branchCorner", size: "w-36 h-36 md:w-50 md:h-50", right: "-4rem", bottom: "0", zIndex: 0, orderKey: orderKey++, ramaVariant: 3 });
+  /* Esquinas — discretas */
+  items.push({ type: "branchCorner", size: "w-12 h-12 md:w-16 md:h-16", left: "-1rem", top: "0", zIndex: 2, orderKey: orderKey++, ramaVariant: 2 });
+  items.push({ type: "branchCorner", size: "w-12 h-12 md:w-16 md:h-16", right: "-1rem", top: "0", zIndex: 2, orderKey: orderKey++, ramaVariant: 3 });
+  items.push({ type: "branchCorner", size: "w-12 h-12 md:w-16 md:h-16", left: "-1rem", bottom: "0", zIndex: 2, orderKey: orderKey++, ramaVariant: 2 });
+  items.push({ type: "branchCorner", size: "w-12 h-12 md:w-16 md:h-16", right: "-1rem", bottom: "0", zIndex: 2, orderKey: orderKey++, ramaVariant: 3 });
 
-  /* Flores — izquierda más hacia la orilla, derecha pegada al borde */
+  /* Flores intercaladas entre ramas — alternando lados */
   const flowerPositions = [
-    { side: "left" as const, top: "3%", offset: "-2rem" },
-    { side: "right" as const, top: "8%", offset: "0" },
-    { side: "left" as const, top: "15%", offset: "-1.5rem" },
-    { side: "right" as const, top: "20%", offset: "0.2rem" },
-    { side: "left" as const, top: "25%", offset: "-2.5rem" },
-    { side: "right" as const, top: "32%", offset: "0" },
-    { side: "left" as const, top: "40%", offset: "-1.5rem" },
-    { side: "right" as const, top: "45%", offset: "0.5rem" },
-    { side: "left" as const, top: "55%", offset: "-2rem" },
-    { side: "right" as const, top: "60%", offset: "0" },
-    { side: "left" as const, top: "70%", offset: "-2.5rem" },
-    { side: "right" as const, top: "75%", offset: "0.2rem" },
-    { side: "left" as const, top: "82%", offset: "-1rem" },
-    { side: "right" as const, top: "88%", offset: "0.5rem" },
-    { side: "left" as const, top: "95%", offset: "-2rem" },
-    { side: "right" as const, top: "98%", offset: "0" },
+    { side: "left" as const, top: "7%", offset: "-0.75rem" },
+    { side: "right" as const, top: "21%", offset: "0" },
+    { side: "left" as const, top: "35%", offset: "-0.75rem" },
+    { side: "right" as const, top: "49%", offset: "0" },
+    { side: "left" as const, top: "63%", offset: "-0.75rem" },
+    { side: "right" as const, top: "77%", offset: "0" },
+    { side: "left" as const, top: "91%", offset: "-0.75rem" },
   ];
-  const flowerSizes = ["w-13 h-13 md:w-16 md:h-16", "w-10 h-10 md:w-13 md:h-13", "w-16 h-16 md:w-18 md:h-18", "w-12 h-12 md:w-14 md:h-14", "w-9 h-9 md:w-12 md:h-12"];
+  const flowerSizes = ["w-5 h-5 md:w-6 md:h-6", "w-4 h-4 md:w-5 md:h-5", "w-6 h-6 md:w-7 md:h-7"];
   flowerPositions.forEach((pos, i) => {
     items.push({
       type: "flower",

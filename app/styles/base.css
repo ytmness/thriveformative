@@ -10,9 +10,9 @@ body {
   overflow-x: hidden;
 }
 
-/* 1rem = 24px → texto base un poco más grande que el estándar (16px) */
+/* Tamaño estándar para que todo encaje en viewport */
 html {
-  font-size: 24px;
+  font-size: 16px;
 }
 
 body {
