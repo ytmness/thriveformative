@@ -49,32 +49,19 @@ interface OrnamentDef {
   florVariant?: number;
 }
 
-function shuffle<T>(arr: T[], seed: number): T[] {
-  const out = [...arr];
-  for (let i = out.length - 1; i > 0; i--) {
-    const r = Math.sin(seed * (i + 1)) * 0.5 + 0.5;
-    const j = Math.min(i, Math.floor(r * (i + 1)));
-    [out[i], out[j]] = [out[j], out[i]];
-  }
-  return out;
-}
-
 function generateOrnaments(): OrnamentDef[] {
   const items: OrnamentDef[] = [];
   let orderKey = 0;
-  const seed = 0.39472; /* semilla para aleatoriedad consistente */
+  const seed = 0.39472;
 
-  /* Imágenes más grandes */
-  const BRANCH_SIZE = "w-18 md:w-26 h-[120px] md:h-[165px]";
-  const OFFSET = "-1.5rem";
+  /* Pocas ramas pero muy grandes */
+  const BRANCH_SIZE = "w-32 md:w-44 h-[200px] md:h-[280px]";
+  const OFFSET = "-2.5rem";
 
-  /* Posiciones base distribuidas, luego barajadas para orden aleatorio */
-  const basePcts = [2, 12, 22, 35, 48, 58, 70, 82, 95];
-  const branchPctsLeft = shuffle(basePcts.slice(0, 8), seed);
-  const branchPctsRight = shuffle(basePcts.slice(0, 8), seed + 0.1);
+  /* Solo 3 ramas por lado, bien espaciadas */
+  const branchPcts = [15, 50, 85];
 
-  /* Izquierda: ramas en orden aleatorio */
-  branchPctsLeft.forEach((topPct, i) => {
+  branchPcts.forEach((topPct, i) => {
     items.push({
       type: "branch",
       size: BRANCH_SIZE,
@@ -85,10 +72,6 @@ function generateOrnaments(): OrnamentDef[] {
       orderKey: orderKey++,
       ramaVariant: (i % 2 === 0 ? 2 : 3) as 2 | 3,
     });
-  });
-
-  /* Derecha: ramas en orden aleatorio */
-  branchPctsRight.forEach((topPct, i) => {
     items.push({
       type: "branch",
       size: BRANCH_SIZE,
@@ -101,30 +84,24 @@ function generateOrnaments(): OrnamentDef[] {
     });
   });
 
-  /* Esquinas — más grandes */
-  items.push({ type: "branchCorner", size: "w-14 h-14 md:w-20 md:h-20", left: "-1rem", top: "0", zIndex: 2, orderKey: orderKey++, ramaVariant: 2 });
-  items.push({ type: "branchCorner", size: "w-14 h-14 md:w-20 md:h-20", right: "-1rem", top: "0", zIndex: 2, orderKey: orderKey++, ramaVariant: 3 });
-  items.push({ type: "branchCorner", size: "w-14 h-14 md:w-20 md:h-20", left: "-1rem", bottom: "0", zIndex: 2, orderKey: orderKey++, ramaVariant: 2 });
-  items.push({ type: "branchCorner", size: "w-14 h-14 md:w-20 md:h-20", right: "-1rem", bottom: "0", zIndex: 2, orderKey: orderKey++, ramaVariant: 3 });
+  /* Solo 2 esquinas (arriba), más grandes */
+  items.push({ type: "branchCorner", size: "w-24 h-24 md:w-32 md:h-32", left: "-1.5rem", top: "0", zIndex: 2, orderKey: orderKey++, ramaVariant: 2 });
+  items.push({ type: "branchCorner", size: "w-24 h-24 md:w-32 md:h-32", right: "-1.5rem", top: "0", zIndex: 2, orderKey: orderKey++, ramaVariant: 3 });
 
-  /* Flores: posiciones y lados aleatorios, tamaños variados y más grandes */
-  const flowerTops = shuffle([8, 19, 33, 44, 52, 65, 78, 88], seed + 0.2);
-  const flowerSides = shuffle(
-    Array.from({ length: 8 }, (_, i) => (i % 2 === 0 ? "left" : "right")),
-    seed + 0.3
-  );
-  const flowerSizes = ["w-6 h-6 md:w-8 md:h-8", "w-5 h-5 md:w-7 md:h-7", "w-7 h-7 md:w-9 md:h-9", "w-6 h-6 md:w-8 md:h-8"];
-  const leftOffsets = ["-0.75rem", "-1rem", "-0.5rem", "-1rem"];
-  const rightOffsets = ["0", "0.1rem", "0.15rem", "0"];
+  /* Solo 3 flores, muy grandes, alternando lados */
+  const flowerPositions = [
+    { side: "left" as const, top: 35, offset: "-1.5rem" },
+    { side: "right" as const, top: 65, offset: "0" },
+    { side: "left" as const, top: 92, offset: "-1.5rem" },
+  ];
+  const FLOWER_SIZE = "w-14 h-14 md:w-20 md:h-20"; /* flores grandes */
 
-  flowerTops.forEach((topPct, i) => {
-    const side = flowerSides[i] as "left" | "right";
-    const offset = side === "left" ? leftOffsets[i % leftOffsets.length] : rightOffsets[i % rightOffsets.length];
+  flowerPositions.forEach((pos, i) => {
     items.push({
       type: "flower",
-      size: flowerSizes[i % flowerSizes.length],
-      ...(side === "left" ? { left: offset } : { right: offset }),
-      top: `${topPct}%`,
+      size: FLOWER_SIZE,
+      ...(pos.side === "left" ? { left: pos.offset } : { right: pos.offset }),
+      top: `${pos.top}%`,
       zIndex: 3,
       orderKey: orderKey++,
       florVariant: i % 5,
