@@ -10,9 +10,9 @@ body {
   overflow-x: hidden;
 }
 
-/* 1rem = 48px → texto base (text-base) será ~48px */
+/* 1rem = 24px → texto base un poco más grande que el estándar (16px) */
 html {
-  font-size: 48px;
+  font-size: 24px;
 }
 
 body {
