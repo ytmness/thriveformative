@@ -216,9 +216,9 @@ function PageContent() {
             <FullscreenCard titleA={t("approach.title1a")} titleB={t("approach.title1b")} large>{t("approach.desc1")}</FullscreenCard>
           </div>
         </GiantScrollCard>
-        <GiantScrollCard variant="slideUp" id="approach-2">
-          <div className="fullscreen-content">
-            <FullscreenCard title={t("approach.title2")}>{t("approach.desc2")}</FullscreenCard>
+        <GiantScrollCard variant="slideUp" id="approach-2" noFade>
+          <div className="fullscreen-content fullscreen-content--expanded">
+            <FullscreenCard titleA={t("approach.title2a")} titleB={t("approach.title2b")} large>{t("approach.desc2")}</FullscreenCard>
           </div>
         </GiantScrollCard>
         <GiantScrollCard variant="slideUp" id="approach-3">
