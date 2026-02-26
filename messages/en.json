@@ -142,9 +142,16 @@
     "hasAccount": "Already have an account?",
     "loginLink": "Sign in",
     "successTitle": "Check your email",
-    "successText": "We sent you a link to confirm your account. Click the link and then sign in.",
+    "successText": "We sent a verification code to your email. Enter it below to activate your account.",
     "goToLogin": "Go to sign in",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "codeSentTitle": "Code sent",
+    "codeSentText": "We sent a 6-digit code to your email. Enter it below.",
+    "codeLabel": "Code",
+    "codePlaceholder": "000000",
+    "verifyCode": "Verify code",
+    "verifying": "Verifying…",
+    "invalidCode": "Invalid or expired code. Check your email or request a new one."
   },
   "doctor": {
     "title": "About the Doctor",

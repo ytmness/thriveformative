@@ -142,11 +142,17 @@
     "hasAccount": "¿Ya tienes cuenta?",
     "loginLink": "Inicia sesión",
     "successTitle": "Revisa tu correo",
-    "successText": "Te enviamos un enlace para confirmar tu cuenta. Haz clic en el enlace y luego inicia sesión.",
+    "successText": "Te enviamos un código de verificación a tu correo. Introdúcelo abajo para activar tu cuenta.",
     "goToLogin": "Ir a iniciar sesión",
-    "signOut": "Cerrar sesión"
+    "signOut": "Cerrar sesión",
+    "codeSentTitle": "Código enviado",
+    "codeSentText": "Te enviamos un código de 6 dígitos a tu correo. Introdúcelo abajo.",
+    "codeLabel": "Código",
+    "codePlaceholder": "000000",
+    "verifyCode": "Verificar código",
+    "verifying": "Verificando…",
+    "invalidCode": "Código incorrecto o expirado. Revisa el correo o pide uno nuevo."
   },
-  "doctor": {
     "title": "Sobre el Doctor",
     "subtitle": "Experiencia, conocimiento y un enfoque humano centrado en ti.",
     "name": "Dr. Roel Maldonado",
