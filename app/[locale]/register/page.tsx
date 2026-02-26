@@ -51,10 +51,15 @@ export default function RegisterPage() {
     setError(null);
     setVerifying(true);
     const supabase = createClient();
+    const redirectTo =
+      typeof window !== "undefined"
+        ? `${window.location.origin}/${locale}`
+        : undefined;
     const { error: err } = await supabase.auth.verifyOtp({
       email: pendingEmail,
       token: otpCode.trim(),
       type: "signup",
+      options: redirectTo ? { redirectTo } : undefined,
     });
     setVerifying(false);
     if (err) {

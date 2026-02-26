@@ -50,3 +50,20 @@ where id = (select id from auth.users where email = 'tu-admin@ejemplo.com');
 ```
 
 No hay panel de admin todavía; el rol queda guardado en `profiles` para usarlo cuando lo implementes.
+
+## Si aparece 403 (Forbidden) al verificar el código OTP
+
+Un **403** en `POST .../auth/v1/verify` suele deberse a que el **origen** desde el que se hace la petición no está permitido en Supabase. Revisa lo siguiente en el Dashboard:
+
+1. **Authentication** → **URL Configuration**  
+   - **Site URL**: debe ser la URL base de tu app (ej. `https://thriveformative.com` o `http://localhost:3000` en desarrollo).  
+   - **Redirect URLs**: añade **todas** las URLs desde las que los usuarios pueden iniciar sesión o verificar el código:
+     - Producción: `https://tu-dominio.com`, `https://tu-dominio.com/**`
+     - Desarrollo: `http://localhost:3000`, `http://localhost:3000/**`
+   - Puedes usar comodines: `**` para cualquier ruta bajo ese origen.
+
+2. **Coincidencia exacta**: La URL desde la que cargas la app (la que sale en la barra del navegador, sin la ruta final) debe coincidir con el **Site URL** o estar incluida en **Redirect URLs**. Por ejemplo, si pruebas en `http://localhost:3000/es/login`, el origen es `http://localhost:3000` → ese valor debe estar en Redirect URLs o ser el Site URL.
+
+3. En la app ya se envía `redirectTo` en `verifyOtp` (origen + locale) para que Supabase acepte la petición; asegúrate de que ese origen esté permitido como arriba.
+
+4. **Código caducado o ya usado**: Si el 403 sigue, puede ser que el token esté vencido o ya utilizado (p. ej. por prefetch del correo). Prueba pidiendo un **código nuevo** y verificándolo de inmediato.
