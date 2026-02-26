@@ -50,7 +50,7 @@
   box-shadow: 0 8px 30px rgb(var(--primary) / 0.25);
 }
 
-/* Register page: logo gigante de fondo, al revés, de izquierda hacia el centro; no se corta y no afecta al texto */
+/* Register page: logo Golden Sand gigante de fondo, al revés, hasta la mera izquierda (casi se pierde de vista); no afecta al texto */
 .register-bg-half {
   position: absolute;
   left: 0;
@@ -68,17 +68,17 @@
   top: 50%;
   transform: translateY(-50%) scaleX(-1);
   width: 100%;
-  height: 85vmin;
+  height: 95vmin;
   max-height: calc(100vh - 5rem);
   background-image: url("/logos/register-bg.png");
   background-size: contain;
-  background-position: left center;
+  background-position: -55% center;
   background-repeat: no-repeat;
-  opacity: 0.9;
+  opacity: 0.85;
 }
 @media (min-width: 768px) {
   .register-bg-half::before {
-    height: 90vmin;
-    width: 75vw;
+    height: 100vmin;
+    background-position: -65% center;
   }
 }

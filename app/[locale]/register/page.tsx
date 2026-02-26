@@ -73,7 +73,7 @@ export default function RegisterPage() {
         {/* Capa de fondo: logo gigante al revés, de izquierda hacia el centro, sin cortar; no afecta al texto */}
         <div className="register-bg-half" aria-hidden />
         {/* Formulario encima del fondo */}
-        <div className="flex-1 flex items-center justify-center md:justify-end px-6 py-12 md:pr-16 md:pl-10 relative z-10">
+        <div className="flex-1 flex items-center justify-center md:justify-end px-6 py-12 md:pr-28 md:pl-10 relative z-10">
           <div className="w-full max-w-md">
             <h1 className="font-display text-3xl md:text-4xl tracking-wide mb-2">
               {t("registerTitle")}
