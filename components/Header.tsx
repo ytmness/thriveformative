@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { useTranslations, useLocale } from "next-intl";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useUser, signOut } from "@/lib/useUser";
+import { useRouter } from "next/navigation";
 
 const WHATSAPP_LINK = "https://google.com";
 
@@ -18,6 +20,8 @@ export default function Header() {
   const { theme } = useTheme();
   const t = useTranslations();
   const locale = useLocale();
+  const { user, loading } = useUser();
+  const router = useRouter();
 
   const currentLogo = logoMap[theme] || logoMap["nocturnal"];
 
@@ -71,8 +75,53 @@ export default function Header() {
           ))}
         </nav>
 
-        {/* Right side — CTA + Language */}
+        {/* Right side — Auth + CTA + Language */}
         <div className="flex items-center gap-4 flex-shrink-0 ml-10">
+          {!loading && (
+            <>
+              {user ? (
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-muted hidden sm:inline truncate max-w-[120px]">
+                    {user.email}
+                  </span>
+                  <motion.a
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    href={`/${locale}#citas`}
+                    className="text-sm font-medium text-[rgb(var(--primary))] hover:opacity-80"
+                  >
+                    {t("nav.booking")}
+                  </motion.a>
+                  <button
+                    type="button"
+                    onClick={() => { signOut(); router.refresh(); }}
+                    className="text-sm text-muted hover:opacity-80"
+                  >
+                    Cerrar sesión
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <motion.a
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    href={`/${locale}/login`}
+                    className="text-sm font-medium hover:opacity-80"
+                  >
+                    Iniciar sesión
+                  </motion.a>
+                  <motion.a
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    href={`/${locale}/register`}
+                    className="btn-outline rounded-xl px-4 py-2 text-sm font-medium"
+                  >
+                    Registrarse
+                  </motion.a>
+                </>
+              )}
+            </>
+          )}
           <motion.a
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}

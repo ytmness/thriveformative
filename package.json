@@ -10,6 +10,8 @@
     "dev:clean": "node scripts/dev-clean.js"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.98.0",
     "framer-motion": "^11.11.17",
     "lucide-react": "^0.469.0",
     "next": "^15.1.0",

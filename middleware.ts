@@ -5,6 +5,7 @@ export default createMiddleware(routing);
 
 export const config = {
   matcher: [
-    '/((?!api|_next|_vercel|.*\\..*).*)'
-  ]
+    // Excluir auth (callback de Supabase), api, estáticos
+    "/((?!api|auth|_next|_vercel|.*\\..*).*)",
+  ],
 };
