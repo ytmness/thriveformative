@@ -49,3 +49,12 @@
   filter: brightness(1.06);
   box-shadow: 0 8px 30px rgb(var(--primary) / 0.25);
 }
+
+/* Register page: medio logo gigante como fondo (mitad izquierda) */
+.register-bg-half {
+  background-image: url("/logos/register-bg.png");
+  background-size: 200% 100%;
+  background-position: left center;
+  background-repeat: no-repeat;
+  min-height: calc(100vh - 5rem);
+}
