@@ -76,10 +76,27 @@ if ! command -v nginx &> /dev/null; then
 fi
 
 echo "==> Configurando Nginx para $DOMAIN..."
-cat > /etc/nginx/sites-available/thriveformative << NGXEOF
+STANDALONE="$APP_DIR/.next/standalone"
+cat > /etc/nginx/sites-available/thriveformative << EOF
 server {
     listen 80;
     server_name $DOMAIN www.$DOMAIN;
+    root $STANDALONE;
+
+    # Archivos estáticos de Next.js (_next/static) — servidos por Nginx
+    location /_next/static/ {
+        alias $STANDALONE/.next/static/;
+    }
+
+    # Logos e imágenes públicas
+    location /logos/ {
+        alias $STANDALONE/public/logos/;
+    }
+    location /floral/ {
+        alias $STANDALONE/public/floral/;
+    }
+
+    # Resto: proxy a Node
     location / {
         proxy_pass http://127.0.0.1:3001;
         proxy_http_version 1.1;
@@ -92,7 +109,7 @@ server {
         proxy_cache_bypass \$http_upgrade;
     }
 }
-NGXEOF
+EOF
 
 ln -sf /etc/nginx/sites-available/thriveformative /etc/nginx/sites-enabled/
 rm -f /etc/nginx/sites-enabled/default
