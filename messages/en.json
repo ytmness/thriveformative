@@ -117,7 +117,9 @@
     "occupied": "Occupied",
     "occupiedHint": "Slots marked «Occupied» may be reserved by another patient or unavailable. Select an available slot to continue.",
     "ctaHint": "Prefer to schedule via WhatsApp?",
-    "ctaButton": "Schedule via WhatsApp"
+    "ctaButton": "Schedule via WhatsApp",
+    "loginPrompt": "Sign in or register to choose date and time.",
+    "loginCardLabel": "Online scheduling"
   },
   "auth": {
     "loginTitle": "Sign in",

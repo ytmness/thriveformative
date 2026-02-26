@@ -117,7 +117,9 @@
     "occupied": "Ocupado",
     "occupiedHint": "Los horarios con «Ocupado» pueden estar reservados por otro paciente o no disponibles. Selecciona un horario disponible para continuar.",
     "ctaHint": "¿Prefieres agendar por WhatsApp?",
-    "ctaButton": "Agendar por WhatsApp"
+    "ctaButton": "Agendar por WhatsApp",
+    "loginPrompt": "Inicia sesión o regístrate para elegir fecha y horario.",
+    "loginCardLabel": "Agenda en línea"
   },
   "auth": {
     "loginTitle": "Iniciar sesión",

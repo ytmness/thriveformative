@@ -27,6 +27,7 @@ function formatDateKey(d: Date) {
 
 export default function BookingSection() {
   const t = useTranslations("booking");
+  const tAuth = useTranslations("auth");
   const locale = useLocale();
   const scrollDirection = useScrollDirection();
   const fromY = scrollDirection === "down" ? LATERAL.fromY : -LATERAL.fromY;
@@ -146,36 +147,55 @@ export default function BookingSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: false, amount: 0.02 }}
             transition={{ duration: LATERAL.durationBranch, delay: 0.1, ease: LATERAL.ease }}
-            className="mt-10 bg-surface border border-theme rounded-2xl shadow-soft p-10 text-center max-w-xl mx-auto"
+            className="mt-10 max-w-xl mx-auto"
           >
-            <p className="text-lg text-muted mb-6">
-              Inicia sesión o regístrate para elegir fecha y horario.
-            </p>
-            <div className="flex flex-wrap gap-4 justify-center">
-              <Link
-                href={`/${locale}/login`}
-                className="btn-primary rounded-xl px-8 py-4 text-base font-medium"
-              >
-                Iniciar sesión
-              </Link>
-              <Link
-                href={`/${locale}/register`}
-                className="btn-outline rounded-xl px-8 py-4 text-base font-medium"
-              >
-                Registrarse
-              </Link>
+            <div className="rounded-2xl border border-theme bg-surface shadow-soft overflow-hidden">
+              <div className="border-l-4 border-[rgb(var(--primary))] p-8 md:p-10">
+                <div className="flex items-center gap-3 mb-6">
+                  <span className="flex items-center justify-center w-12 h-12 rounded-xl bg-[rgb(var(--primary)/0.12)] text-[rgb(var(--primary))]" aria-hidden>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                      <line x1="16" y1="2" x2="16" y2="6"/>
+                      <line x1="8" y1="2" x2="8" y2="6"/>
+                      <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                  </span>
+                  <span className="text-sm font-medium tracking-[0.2em] uppercase text-muted">
+                    {t("loginCardLabel")}
+                  </span>
+                </div>
+                <p className="text-lg text-muted leading-relaxed mb-8">
+                  {t("loginPrompt")}
+                </p>
+                <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
+                  <Link
+                    href={`/${locale}/login`}
+                    className="btn-primary rounded-xl px-8 py-4 text-base font-medium min-w-[10rem] text-center"
+                  >
+                    {tAuth("submitLogin")}
+                  </Link>
+                  <Link
+                    href={`/${locale}/register`}
+                    className="btn-outline rounded-xl px-8 py-4 text-base font-medium min-w-[10rem] text-center border-theme hover:bg-[rgb(var(--primary)/0.08)]"
+                  >
+                    {tAuth("submitRegister")}
+                  </Link>
+                </div>
+                <div className="mt-8 pt-8 border-t border-theme">
+                  <p className="text-muted text-sm mb-3">
+                    {t("ctaHint")}
+                  </p>
+                  <a
+                    href={WHATSAPP_LINK}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn-cta inline-block rounded-xl px-8 py-4 text-base font-medium"
+                  >
+                    {t("ctaButton")}
+                  </a>
+                </div>
+              </div>
             </div>
-            <p className="text-muted text-sm mt-6">
-              ¿Prefieres agendar por WhatsApp?
-            </p>
-            <a
-              href={WHATSAPP_LINK}
-              target="_blank"
-              rel="noreferrer"
-              className="btn-cta inline-block rounded-xl px-8 py-4 text-base mt-3"
-            >
-              {t("ctaButton")}
-            </a>
           </motion.div>
         </section>
       </AnimatedSection>
