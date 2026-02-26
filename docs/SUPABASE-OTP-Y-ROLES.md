@@ -1,35 +1,16 @@
-# Código de verificación (OTP) en Supabase
+# Auth con Supabase (magic link)
 
-Para que **registro** y **login** usen un **código de 6 dígitos** en lugar del enlace mágico, hay que configurar las plantillas de email en el Dashboard de Supabase.
-
-## Plantillas con estilo Thrive Formative y logo
-
-En la carpeta **`docs/supabase-emails/`** tienes dos HTML listos para copiar en Supabase:
-
-- **`confirm-signup.html`** → para **Confirm signup** (correo de registro con código).
-- **`magic-link.html`** → para **Magic Link** (correo de login con código).
-
-Incluyen el mismo estilo que la web (fondo beige, tarjeta clara, acento dorado) y el logo de Thrive Formative. Para que el logo se vea, configura en Supabase **Authentication → URL Configuration** la **Site URL** con tu dominio público (ej. `https://thriveformative.com`). Detalles en **`docs/supabase-emails/README.md`**.
-
-## Pasos en Supabase Dashboard
-
-1. Entra en tu proyecto: **https://supabase.com/dashboard** → tu proyecto.
-2. Ve a **Authentication** → **Email Templates**.
-3. En **Confirm signup**: pega el contenido de `docs/supabase-emails/confirm-signup.html` y guarda.
-4. En **Magic Link**: pega el contenido de `docs/supabase-emails/magic-link.html` y guarda.
-
-Las plantillas ya incluyen `{{ .Token }}` y el logo con `{{ .SiteURL }}/logos/Logo-Golden-Sand-color-06.png`.
+Registro y login hacen **lo mismo**: solo email → enlace mágico. Si el usuario no existe, se crea automáticamente (`signInWithOtp` con `shouldCreateUser: true`). No se usa `signUp(email, password)`, así se evita el límite bajo de correos del plan Free.
 
 ## Comportamiento en la app
 
-- **Registro:** El usuario rellena nombre, email y contraseña → se envía un email con el código → en la misma página introduce el código → `verifyOtp` con `type: 'signup'` → queda verificado y logueado.
-- **Login:** El usuario introduce solo el email → se envía un email con el código → introduce el código → `verifyOtp` con `type: 'email'` → queda logueado.
+- **Login y Register:** Una sola pantalla con email. Al enviar se llama `signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: origin + '/auth/callback' } })`.
+- **Magic link:** El usuario recibe un correo con un enlace. Al hacer clic, llega a `/auth/callback?code=...`. La ruta hace `exchangeCodeForSession(code)` y redirige a la app (o a `?next=...`). No hay paso de “introducir código” en la UI.
+- **Redirect URLs:** En Supabase **Authentication → URL Configuration** debe estar permitida la URL de callback, p. ej. `https://tudominio.com/auth/callback` y `http://localhost:3000/auth/callback`.
 
-## Expiración del código
+## Plantillas de email (opcional)
 
-Por defecto el OTP caduca en **1 hora**. Se puede cambiar en:
-
-**Authentication** → **Providers** → **Email** → **Email OTP Expiration** (máx. 86400 segundos = 1 día).
+En **`docs/supabase-emails/`** hay plantillas con estilo Thrive (Magic Link, Confirm signup). Si usas solo magic link, basta personalizar **Magic Link** en **Authentication → Email Templates**. Detalles en **`docs/supabase-emails/README.md`**.
 
 ## Roles (admin / cliente)
 
@@ -67,3 +48,15 @@ Un **403** en `POST .../auth/v1/verify` suele deberse a que el **origen** desde 
 3. En la app ya se envía `redirectTo` en `verifyOtp` (origen + locale) para que Supabase acepte la petición; asegúrate de que ese origen esté permitido como arriba.
 
 4. **Código caducado o ya usado**: Si el 403 sigue, puede ser que el token esté vencido o ya utilizado (p. ej. por prefetch del correo). Prueba pidiendo un **código nuevo** y verificándolo de inmediato.
+
+## Por qué sale 429 (Too Many Requests) en signup / login
+
+En el **plan Free**, Supabase usa un SMTP por defecto con un límite muy bajo: **solo 2 correos por hora** para todo el proyecto (signup, recuperar contraseña y cambio de email suman al mismo límite). No es un bug de tu código: es la cuota del plan con el servidor de correo integrado.
+
+- **Por qué en otros proyectos no te limita:** El límite de 2 correos/hora es **el mismo** en todos los proyectos que usan el SMTP por defecto. La diferencia suele ser: (1) **Uso:** en este proyecto has hecho muchos intentos de registro en poco tiempo; en el otro, menos. (2) **Custom SMTP:** si en el otro proyecto tienes configurado SMTP custom (SendGrid, Brevo, etc.), ese proyecto ya no usa el límite de 2/hora.
+- **Cómo comprobarlo:** En este proyecto: **Dashboard → Authentication → Rate Limits**. En el otro: mismo menú y además **Project Settings → Auth → SMTP**; si tiene Custom SMTP configurado, ese es el motivo.
+- **Qué hacer:**
+  1. **Desarrollo:** Esperar ~1 h o usar SMTP custom en **Project Settings → Auth → SMTP**.
+  2. **Producción:** Configurar **Custom SMTP** en Supabase (Authentication → SMTP) para no depender del límite de 2/hora.
+
+En la app hay un mensaje amigable para el 429 (`auth.rateLimit`) y un cooldown tras enviar el formulario para evitar envíos dobles por doble clic.

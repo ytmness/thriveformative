@@ -151,7 +151,12 @@
     "codePlaceholder": "000000",
     "verifyCode": "Verify code",
     "verifying": "Verifying…",
-    "invalidCode": "Invalid or expired code. Check your email or request a new one."
+    "invalidCode": "Invalid or expired code. Check your email or request a new one.",
+    "rateLimit": "Too many attempts. Please wait a few minutes and try again.",
+    "magicLinkSentTitle": "Check your email",
+    "magicLinkSentText": "We sent you a link to sign in. Click the link in the email and you'll be signed in.",
+    "magicLinkHint": "If you don't see it, check your spam folder.",
+    "useAnotherEmail": "Use another email"
   },
   "doctor": {
     "title": "About the Doctor",

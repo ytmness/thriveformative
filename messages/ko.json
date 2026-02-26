@@ -148,7 +148,12 @@
     "codePlaceholder": "000000",
     "verifyCode": "코드 확인",
     "verifying": "확인 중…",
-    "invalidCode": "코드가 잘못되었거나 만료되었습니다. 이메일을 확인하거나 새 코드를 요청하세요."
+    "invalidCode": "코드가 잘못되었거나 만료되었습니다. 이메일을 확인하거나 새 코드를 요청하세요.",
+    "rateLimit": "시도 횟수가 너무 많습니다. 몇 분 후에 다시 시도해 주세요.",
+    "magicLinkSentTitle": "이메일을 확인하세요",
+    "magicLinkSentText": "로그인 링크를 보냈습니다. 이메일의 링크를 클릭하면 로그인됩니다.",
+    "magicLinkHint": "보이지 않으면 스팸 폴더를 확인하세요.",
+    "useAnotherEmail": "다른 이메일 사용"
   },
   "doctor": {
     "title": "의사 소개",

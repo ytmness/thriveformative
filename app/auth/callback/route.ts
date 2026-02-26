@@ -9,9 +9,12 @@ export async function GET(request: Request) {
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
-      return NextResponse.redirect(new URL(next, requestUrl.origin));
+    if (error) {
+      return NextResponse.redirect(
+        new URL(`/login?error=${encodeURIComponent(error.message)}`, requestUrl.origin)
+      );
     }
+    return NextResponse.redirect(new URL(next, requestUrl.origin));
   }
 
   return NextResponse.redirect(new URL("/?error=auth", requestUrl.origin));

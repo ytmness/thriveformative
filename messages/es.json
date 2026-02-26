@@ -151,7 +151,12 @@
     "codePlaceholder": "000000",
     "verifyCode": "Verificar código",
     "verifying": "Verificando…",
-    "invalidCode": "Código incorrecto o expirado. Revisa el correo o pide uno nuevo."
+    "invalidCode": "Código incorrecto o expirado. Revisa el correo o pide uno nuevo.",
+    "rateLimit": "Demasiados intentos. Espera unos minutos y vuelve a intentarlo.",
+    "magicLinkSentTitle": "Revisa tu correo",
+    "magicLinkSentText": "Te enviamos un enlace para acceder. Haz clic en el enlace del correo y volverás aquí con la sesión iniciada.",
+    "magicLinkHint": "Si no lo ves, revisa la carpeta de spam.",
+    "useAnotherEmail": "Usar otro correo"
   },
   "doctor": {
     "title": "Sobre el Doctor",
