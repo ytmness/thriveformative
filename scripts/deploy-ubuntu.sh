@@ -80,7 +80,11 @@ fi
 
 echo "==> Configurando Nginx para $DOMAIN..."
 STANDALONE="$APP_DIR/.next/standalone"
-cat > /etc/nginx/sites-available/thriveformative << EOF
+NGINX_CONF="/etc/nginx/sites-available/thriveformative"
+if [ -f "$NGINX_CONF" ]; then
+  echo "==> Nginx: config ya existe, no se sobrescribe (se conserva SSL de Certbot)"
+else
+  cat > "$NGINX_CONF" << EOF
 # Thrive Formative — solo para $DOMAIN y www.$DOMAIN
 server {
     listen 80;
@@ -114,8 +118,10 @@ server {
     }
 }
 EOF
+  echo "==> Nginx: config creada. Para HTTPS ejecuta: sudo certbot --nginx -d $DOMAIN -d www.$DOMAIN"
+fi
 
-ln -sf /etc/nginx/sites-available/thriveformative /etc/nginx/sites-enabled/
+ln -sf "$NGINX_CONF" /etc/nginx/sites-enabled/thriveformative
 if [ -z "$MULTI_SITE" ]; then
   # Una sola web: quitar default para que thriveformative sea la única
   rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
