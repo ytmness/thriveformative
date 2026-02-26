@@ -97,7 +97,7 @@ export default function Header() {
                     onClick={() => { signOut(); router.refresh(); }}
                     className="text-sm text-muted hover:opacity-80"
                   >
-                    Cerrar sesión
+                    {t("auth.signOut")}
                   </button>
                 </div>
               ) : (
@@ -108,7 +108,7 @@ export default function Header() {
                     href={`/${locale}/login`}
                     className="text-sm font-medium hover:opacity-80"
                   >
-                    Iniciar sesión
+                    {t("auth.loginTitle")}
                   </motion.a>
                   <motion.a
                     whileHover={{ scale: 1.05 }}
@@ -116,7 +116,7 @@ export default function Header() {
                     href={`/${locale}/register`}
                     className="btn-outline rounded-xl px-4 py-2 text-sm font-medium"
                   >
-                    Registrarse
+                    {t("auth.registerLink")}
                   </motion.a>
                 </>
               )}

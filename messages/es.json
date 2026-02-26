@@ -2,13 +2,13 @@
   "nav": {
     "home": "Inicio",
     "services": "Servicios",
-    "booking": "Agendar cita",
+    "booking": "Agendar",
     "tshape": "T-Shape 2",
     "plans": "Planes",
-    "about": "Sobre el Doctor",
-    "faq": "Preguntas Frecuentes",
+    "about": "El Doctor",
+    "faq": "FAQ",
     "contact": "Contacto",
-    "schedule": "Agenda por WhatsApp"
+    "schedule": "Por WhatsApp"
   },
   "hero": {
     "title": "Salud personalizada para vivir más y mejor",
@@ -143,7 +143,8 @@
     "loginLink": "Inicia sesión",
     "successTitle": "Revisa tu correo",
     "successText": "Te enviamos un enlace para confirmar tu cuenta. Haz clic en el enlace y luego inicia sesión.",
-    "goToLogin": "Ir a iniciar sesión"
+    "goToLogin": "Ir a iniciar sesión",
+    "signOut": "Cerrar sesión"
   },
   "doctor": {
     "title": "Sobre el Doctor",

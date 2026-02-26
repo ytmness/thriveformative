@@ -140,7 +140,8 @@
     "loginLink": "로그인",
     "successTitle": "이메일을 확인하세요",
     "successText": "계정 확인 링크를 보냈습니다. 링크를 클릭한 후 로그인하세요.",
-    "goToLogin": "로그인으로 이동"
+    "goToLogin": "로그인으로 이동",
+    "signOut": "로그아웃"
   },
   "doctor": {
     "title": "의사 소개",
