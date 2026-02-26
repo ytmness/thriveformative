@@ -1,6 +1,9 @@
 #!/bin/bash
 # Script de despliegue Thrive Formative en Ubuntu
 # Ejecutar como root o con sudo en el servidor: bash deploy-ubuntu.sh
+#
+# Si tienes varias webs en el mismo servidor:
+#   MULTI_SITE=1 bash deploy-ubuntu.sh  (no elimina default, solo actualiza thriveformative)
 
 set -e
 REPO_URL="https://github.com/ytmness/thriveformative.git"
@@ -78,6 +81,7 @@ fi
 echo "==> Configurando Nginx para $DOMAIN..."
 STANDALONE="$APP_DIR/.next/standalone"
 cat > /etc/nginx/sites-available/thriveformative << EOF
+# Thrive Formative — solo para $DOMAIN y www.$DOMAIN
 server {
     listen 80;
     server_name $DOMAIN www.$DOMAIN;
@@ -112,11 +116,17 @@ server {
 EOF
 
 ln -sf /etc/nginx/sites-available/thriveformative /etc/nginx/sites-enabled/
-rm -f /etc/nginx/sites-enabled/default
+if [ -z "$MULTI_SITE" ]; then
+  # Una sola web: quitar default para que thriveformative sea la única
+  rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
+else
+  echo "==> MULTI_SITE: no se toca default (varias webs en el servidor)"
+fi
 nginx -t && systemctl reload nginx
 
 echo ""
 echo "==> Despliegue completado."
+echo "    Si al visitar $DOMAIN ves otra web, ejecuta: sudo bash scripts/nginx-audit.sh"
 echo "    App: http://127.0.0.1:3000"
 echo "    Nginx escuchando en puerto 80 para $DOMAIN y www.$DOMAIN"
 echo ""
