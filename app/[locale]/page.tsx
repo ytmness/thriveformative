@@ -122,7 +122,7 @@ function PageContent() {
           {/* RIGHT — Text content */}
           <div>
             <motion.h1
-              className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-tight tracking-wide italic"
+              className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-tight tracking-wide"
               initial={{ opacity: 0, y: LATERAL.fromY }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: LATERAL.durationFlower, delay: 0.2, ease: LATERAL.ease }}
