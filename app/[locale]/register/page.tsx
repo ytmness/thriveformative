@@ -133,7 +133,7 @@ export default function RegisterPage() {
             type="text"
             inputMode="numeric"
             autoComplete="one-time-code"
-            maxLength={6}
+            maxLength={8}
             value={otpCode}
             onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
             placeholder={t("codePlaceholder")}
@@ -142,7 +142,7 @@ export default function RegisterPage() {
         </div>
         <button
           type="submit"
-          disabled={verifying || otpCode.length !== 6}
+          disabled={verifying || otpCode.length !== 8}
           className="btn-primary w-full rounded-xl px-5 py-4 text-base md:text-lg font-medium disabled:opacity-60"
         >
           {verifying ? t("verifying") : t("verifyCode")}
