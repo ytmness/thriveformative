@@ -258,7 +258,7 @@ export default function RegisterPage() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="sex" className="block text-base font-medium text-muted mb-2">
+            <label htmlFor="sex" className="auth-label-equal block text-base font-medium text-muted mb-2">
               {t("sex")}
             </label>
             <select
@@ -274,7 +274,7 @@ export default function RegisterPage() {
             </select>
           </div>
           <div>
-            <label htmlFor="referralSource" className="block text-base font-medium text-muted mb-2">
+            <label htmlFor="referralSource" className="auth-label-equal block text-base font-medium text-muted mb-2">
               {t("referralSource")}
             </label>
             <select

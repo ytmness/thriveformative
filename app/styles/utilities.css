@@ -83,3 +83,10 @@
     background-position: 115% center;
   }
 }
+
+/* Auth forms: keep selects aligned when labels wrap */
+.auth-label-equal {
+  min-height: 2.75rem; /* enough for 2 lines at text-base */
+  display: flex;
+  align-items: flex-end;
+}
