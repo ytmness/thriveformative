@@ -1,0 +1,315 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { createClient } from "@/lib/supabase";
+
+type AppointmentRow = {
+  id: string;
+  user_id: string;
+  appointment_date: string;
+  time_slot: string;
+  type: string;
+  status: string;
+  notes: string | null;
+  created_at: string;
+};
+
+type ProfileRow = {
+  id: string;
+  role: string;
+  full_name: string | null;
+  phone: string | null;
+  birth_date: string | null;
+  age: number | null;
+  contact_preference: string | null;
+  address: string | null;
+  sex: string | null;
+  referral_source: string | null;
+  referral_source_other: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
+export default function AdminDashboard({ locale }: { locale: string }) {
+  const [tab, setTab] = useState<"appointments" | "clients">("appointments");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [appointments, setAppointments] = useState<AppointmentRow[]>([]);
+  const [profiles, setProfiles] = useState<ProfileRow[]>([]);
+
+  const profileById = useMemo(() => {
+    const map = new Map<string, ProfileRow>();
+    profiles.forEach((p) => map.set(p.id, p));
+    return map;
+  }, [profiles]);
+
+  async function loadAll() {
+    setLoading(true);
+    setError(null);
+    const supabase = createClient();
+
+    const { data: appts, error: apptErr } = await supabase
+      .from("appointments")
+      .select(
+        "id,user_id,appointment_date,time_slot,type,status,notes,created_at"
+      )
+      .order("appointment_date", { ascending: false })
+      .order("time_slot", { ascending: false });
+
+    if (apptErr) {
+      setError(apptErr.message);
+      setLoading(false);
+      return;
+    }
+
+    const userIds = Array.from(new Set((appts ?? []).map((a) => a.user_id)));
+
+    const { data: profs, error: profErr } = await supabase
+      .from("profiles")
+      .select(
+        "id,role,full_name,phone,birth_date,age,contact_preference,address,sex,referral_source,referral_source_other,created_at,updated_at"
+      )
+      .in("id", userIds.length ? userIds : ["00000000-0000-0000-0000-000000000000"]);
+
+    if (profErr) {
+      setError(profErr.message);
+      setLoading(false);
+      return;
+    }
+
+    setAppointments((appts ?? []) as AppointmentRow[]);
+    setProfiles((profs ?? []) as ProfileRow[]);
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    loadAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function updateAppointmentStatus(id: string, status: string) {
+    const supabase = createClient();
+    const { error: upErr } = await supabase
+      .from("appointments")
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq("id", id);
+    if (upErr) {
+      setError(upErr.message);
+      return;
+    }
+    setAppointments((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, status } : a))
+    );
+  }
+
+  async function updateAppointmentNotes(id: string, notes: string) {
+    const supabase = createClient();
+    const { error: upErr } = await supabase
+      .from("appointments")
+      .update({ notes, updated_at: new Date().toISOString() })
+      .eq("id", id);
+    if (upErr) {
+      setError(upErr.message);
+      return;
+    }
+    setAppointments((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, notes } : a))
+    );
+  }
+
+  return (
+    <main className="max-w-7xl mx-auto px-6 py-12">
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+        <div>
+          <h1 className="font-display text-3xl md:text-4xl tracking-wide">
+            Admin
+          </h1>
+          <p className="text-muted mt-2">
+            Gestiona citas y revisa los datos de clientes registrados.
+          </p>
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setTab("appointments")}
+            className={`rounded-xl px-4 py-2 text-sm font-medium border ${
+              tab === "appointments"
+                ? "bg-[rgb(var(--primary)/0.14)] border-[rgb(var(--primary)/0.35)]"
+                : "bg-surface border-theme hover:bg-[rgb(var(--primary)/0.06)]"
+            }`}
+          >
+            Citas
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab("clients")}
+            className={`rounded-xl px-4 py-2 text-sm font-medium border ${
+              tab === "clients"
+                ? "bg-[rgb(var(--primary)/0.14)] border-[rgb(var(--primary)/0.35)]"
+                : "bg-surface border-theme hover:bg-[rgb(var(--primary)/0.06)]"
+            }`}
+          >
+            Clientes
+          </button>
+          <button
+            type="button"
+            onClick={loadAll}
+            className="rounded-xl px-4 py-2 text-sm font-medium border border-theme bg-surface hover:bg-[rgb(var(--primary)/0.06)]"
+          >
+            Refrescar
+          </button>
+        </div>
+      </div>
+
+      {error && (
+        <div className="mt-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 text-base">
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="mt-10 animate-pulse h-64 bg-surface rounded-2xl border border-theme" />
+      ) : tab === "appointments" ? (
+        <section className="mt-10">
+          <div className="rounded-2xl border border-theme bg-surface overflow-hidden">
+            <div className="grid grid-cols-[1.2fr_1fr_0.8fr_0.9fr_1.2fr] gap-4 px-6 py-4 text-sm text-muted border-b border-theme">
+              <div>Cliente</div>
+              <div>Fecha / hora</div>
+              <div>Tipo</div>
+              <div>Estado</div>
+              <div>Acciones</div>
+            </div>
+            <div className="divide-y divide-[rgb(var(--border)/0.18)]">
+              {appointments.map((a) => {
+                const p = profileById.get(a.user_id);
+                return (
+                  <div
+                    key={a.id}
+                    className="grid grid-cols-[1.2fr_1fr_0.8fr_0.9fr_1.2fr] gap-4 px-6 py-4"
+                  >
+                    <div className="min-w-0">
+                      <div className="font-medium truncate">
+                        {p?.full_name || a.user_id}
+                      </div>
+                      <div className="text-sm text-muted truncate">
+                        {p?.phone || "—"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="font-medium">
+                        {a.appointment_date} {a.time_slot}
+                      </div>
+                      <div className="text-sm text-muted">
+                        {new Date(a.created_at).toLocaleString(locale)}
+                      </div>
+                    </div>
+                    <div className="capitalize">{a.type}</div>
+                    <div className="capitalize">{a.status}</div>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => updateAppointmentStatus(a.id, "confirmed")}
+                          className="rounded-lg px-3 py-1.5 text-xs font-medium border border-theme bg-[rgb(var(--primary)/0.10)] hover:bg-[rgb(var(--primary)/0.16)]"
+                        >
+                          Confirmar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateAppointmentStatus(a.id, "pending")}
+                          className="rounded-lg px-3 py-1.5 text-xs font-medium border border-theme bg-surface hover:bg-[rgb(var(--primary)/0.06)]"
+                        >
+                          Pendiente
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateAppointmentStatus(a.id, "cancelled")}
+                          className="rounded-lg px-3 py-1.5 text-xs font-medium border border-red-500/40 text-red-600 hover:bg-red-500/10"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                      <textarea
+                        value={a.notes ?? ""}
+                        onChange={(e) =>
+                          setAppointments((prev) =>
+                            prev.map((x) =>
+                              x.id === a.id ? { ...x, notes: e.target.value } : x
+                            )
+                          )
+                        }
+                        onBlur={(e) => updateAppointmentNotes(a.id, e.target.value)}
+                        placeholder="Notas…"
+                        className="w-full rounded-xl border border-theme bg-[rgb(var(--bg)/0.35)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]"
+                        rows={2}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+
+              {!appointments.length && (
+                <div className="px-6 py-10 text-muted">No hay citas.</div>
+              )}
+            </div>
+          </div>
+        </section>
+      ) : (
+        <section className="mt-10">
+          <div className="rounded-2xl border border-theme bg-surface overflow-hidden">
+            <div className="grid grid-cols-[1.2fr_1fr_1fr_1fr] gap-4 px-6 py-4 text-sm text-muted border-b border-theme">
+              <div>Cliente</div>
+              <div>Contacto</div>
+              <div>Datos</div>
+              <div>Origen</div>
+            </div>
+            <div className="divide-y divide-[rgb(var(--border)/0.18)]">
+              {profiles.map((p) => (
+                <div
+                  key={p.id}
+                  className="grid grid-cols-[1.2fr_1fr_1fr_1fr] gap-4 px-6 py-4"
+                >
+                  <div className="min-w-0">
+                    <div className="font-medium truncate">{p.full_name || p.id}</div>
+                    <div className="text-sm text-muted">Rol: {p.role}</div>
+                  </div>
+                  <div className="text-sm">
+                    <div>{p.phone || "—"}</div>
+                    <div className="text-muted">
+                      Pref: {p.contact_preference || "—"}
+                    </div>
+                  </div>
+                  <div className="text-sm">
+                    <div>Nac: {p.birth_date || "—"}</div>
+                    <div className="text-muted">
+                      Edad: {p.age ?? "—"} · Sexo: {p.sex || "—"}
+                    </div>
+                    <div className="text-muted truncate">
+                      Dir: {p.address || "—"}
+                    </div>
+                  </div>
+                  <div className="text-sm">
+                    <div>{p.referral_source || "—"}</div>
+                    {p.referral_source === "other" && (
+                      <div className="text-muted truncate">
+                        {p.referral_source_other || "—"}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {!profiles.length && (
+                <div className="px-6 py-10 text-muted">
+                  No hay clientes cargados.
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+    </main>
+  );
+}
+

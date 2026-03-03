@@ -20,7 +20,7 @@ export default function Header() {
   const { theme } = useTheme();
   const t = useTranslations();
   const locale = useLocale();
-  const { user, loading } = useUser();
+  const { user, role, loading } = useUser();
   const router = useRouter();
 
   const currentLogo = logoMap[theme] || logoMap["nocturnal"];
@@ -84,6 +84,16 @@ export default function Header() {
                   <span className="text-sm text-muted hidden sm:inline truncate max-w-[120px]">
                     {user.email}
                   </span>
+                  {role === "admin" && (
+                    <motion.a
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      href={`/${locale}/admin`}
+                      className="text-sm font-medium hover:opacity-80 whitespace-nowrap"
+                    >
+                      Admin
+                    </motion.a>
+                  )}
                   <motion.a
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
