@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useLocale } from "next-intl";
@@ -42,7 +42,6 @@ export default function RegisterPage() {
   const [pendingEmail, setPendingEmail] = useState("");
   const [otpCode, setOtpCode] = useState("");
   const [verifying, setVerifying] = useState(false);
-  const cooldownUntil = useRef<number>(0);
 
   function computeAgeFromBirthDate(iso: string) {
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
@@ -63,10 +62,8 @@ export default function RegisterPage() {
 
   async function handleSendCode(e: React.FormEvent) {
     e.preventDefault();
-    if (Date.now() < cooldownUntil.current) return;
     setError(null);
     setLoading(true);
-    cooldownUntil.current = Date.now() + 60_000;
     const supabase = createClient();
     const { error: err } = await supabase.auth.signInWithOtp({
       email,

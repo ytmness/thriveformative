@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useLocale } from "next-intl";
@@ -23,7 +23,6 @@ export default function LoginPage() {
   const [pendingEmail, setPendingEmail] = useState("");
   const [otpCode, setOtpCode] = useState("");
   const [verifying, setVerifying] = useState(false);
-  const cooldownUntil = useRef<number>(0);
 
   useEffect(() => {
     const err = searchParams.get("error");
@@ -32,10 +31,8 @@ export default function LoginPage() {
 
   async function handleSendCode(e: React.FormEvent) {
     e.preventDefault();
-    if (Date.now() < cooldownUntil.current) return;
     setError(null);
     setLoading(true);
-    cooldownUntil.current = Date.now() + 60_000;
     const supabase = createClient();
     const { error: err } = await supabase.auth.signInWithOtp({
       email,
