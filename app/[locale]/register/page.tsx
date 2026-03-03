@@ -15,7 +15,27 @@ export default function RegisterPage() {
   const t = useTranslations("auth");
   const locale = useLocale();
   const router = useRouter();
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [birthDate, setBirthDate] = useState(""); // YYYY-MM-DD
+  const [age, setAge] = useState<string>("");
+  const [contactPreference, setContactPreference] = useState<
+    "email" | "call" | "whatsapp" | ""
+  >("");
+  const [address, setAddress] = useState("");
+  const [sex, setSex] = useState<"female" | "male" | "other" | "" >("");
+  const [referralSource, setReferralSource] = useState<
+    | "website"
+    | "doctor"
+    | "friend_family"
+    | "social_media"
+    | "ads_meta_tiktok"
+    | "ads_google"
+    | "other"
+    | ""
+  >("");
+  const [referralOther, setReferralOther] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [codeSent, setCodeSent] = useState(false);
@@ -23,6 +43,23 @@ export default function RegisterPage() {
   const [otpCode, setOtpCode] = useState("");
   const [verifying, setVerifying] = useState(false);
   const cooldownUntil = useRef<number>(0);
+
+  function computeAgeFromBirthDate(iso: string) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+    if (!m) return "";
+    const y = Number(m[1]);
+    const mo = Number(m[2]) - 1;
+    const d = Number(m[3]);
+    const dob = new Date(y, mo, d);
+    if (Number.isNaN(dob.getTime())) return "";
+    const today = new Date();
+    let years = today.getFullYear() - dob.getFullYear();
+    const hasHadBirthdayThisYear =
+      today.getMonth() > dob.getMonth() ||
+      (today.getMonth() === dob.getMonth() && today.getDate() >= dob.getDate());
+    if (!hasHadBirthdayThisYear) years -= 1;
+    return years >= 0 && years <= 130 ? String(years) : "";
+  }
 
   async function handleSendCode(e: React.FormEvent) {
     e.preventDefault();
@@ -69,6 +106,34 @@ export default function RegisterPage() {
       setError(t("invalidCode"));
       return;
     }
+
+    // Guardar datos extra del registro en profiles
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user?.id) {
+      const parsedAge = age.trim() ? Number(age) : null;
+      const safeAge =
+        parsedAge !== null && Number.isFinite(parsedAge) ? parsedAge : null;
+      await supabase.from("profiles").upsert(
+        {
+          id: user.id,
+          full_name: fullName.trim() || null,
+          phone: phone.trim() || null,
+          birth_date: birthDate || null,
+          age: safeAge,
+          contact_preference: contactPreference || null,
+          address: address.trim() || null,
+          sex: sex || null,
+          referral_source: referralSource || null,
+          referral_source_other:
+            referralSource === "other" ? referralOther.trim() || null : null,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "id" }
+      );
+    }
+
     router.push(`/${locale}#citas`);
     router.refresh();
   }
@@ -88,6 +153,20 @@ export default function RegisterPage() {
           </div>
         )}
         <div>
+          <label htmlFor="fullName" className="block text-base font-medium text-muted mb-2">
+            {t("fullName")}
+          </label>
+          <input
+            id="fullName"
+            type="text"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            required
+            className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]"
+            placeholder={t("fullNamePlaceholder")}
+          />
+        </div>
+        <div>
           <label htmlFor="email" className="block text-base font-medium text-muted mb-2">
             {t("email")}
           </label>
@@ -101,6 +180,135 @@ export default function RegisterPage() {
             placeholder={t("emailPlaceholder")}
           />
         </div>
+        <div>
+          <label htmlFor="phone" className="block text-base font-medium text-muted mb-2">
+            {t("phone")}
+          </label>
+          <input
+            id="phone"
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]"
+            placeholder={t("phonePlaceholder")}
+          />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="birthDate" className="block text-base font-medium text-muted mb-2">
+              {t("birthDate")}
+            </label>
+            <input
+              id="birthDate"
+              type="date"
+              value={birthDate}
+              onChange={(e) => {
+                const v = e.target.value;
+                setBirthDate(v);
+                const computed = computeAgeFromBirthDate(v);
+                if (computed) setAge(computed);
+              }}
+              className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]"
+            />
+          </div>
+          <div>
+            <label htmlFor="age" className="block text-base font-medium text-muted mb-2">
+              {t("age")}
+            </label>
+            <input
+              id="age"
+              type="number"
+              min={0}
+              max={130}
+              value={age}
+              onChange={(e) => setAge(e.target.value)}
+              className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]"
+              placeholder={t("agePlaceholder")}
+            />
+          </div>
+        </div>
+        <div>
+          <label htmlFor="contactPreference" className="block text-base font-medium text-muted mb-2">
+            {t("contactPreference")}
+          </label>
+          <select
+            id="contactPreference"
+            value={contactPreference}
+            onChange={(e) => setContactPreference(e.target.value as typeof contactPreference)}
+            className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]"
+          >
+            <option value="">{t("selectOption")}</option>
+            <option value="email">{t("contactEmail")}</option>
+            <option value="call">{t("contactCall")}</option>
+            <option value="whatsapp">{t("contactWhatsapp")}</option>
+          </select>
+        </div>
+        <div>
+          <label htmlFor="address" className="block text-base font-medium text-muted mb-2">
+            {t("address")}
+          </label>
+          <input
+            id="address"
+            type="text"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]"
+            placeholder={t("addressPlaceholder")}
+          />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="sex" className="block text-base font-medium text-muted mb-2">
+              {t("sex")}
+            </label>
+            <select
+              id="sex"
+              value={sex}
+              onChange={(e) => setSex(e.target.value as typeof sex)}
+              className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]"
+            >
+              <option value="">{t("selectOption")}</option>
+              <option value="female">{t("sexFemale")}</option>
+              <option value="male">{t("sexMale")}</option>
+              <option value="other">{t("sexOther")}</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="referralSource" className="block text-base font-medium text-muted mb-2">
+              {t("referralSource")}
+            </label>
+            <select
+              id="referralSource"
+              value={referralSource}
+              onChange={(e) => setReferralSource(e.target.value as typeof referralSource)}
+              className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]"
+            >
+              <option value="">{t("selectOption")}</option>
+              <option value="website">{t("refWebsite")}</option>
+              <option value="doctor">{t("refDoctor")}</option>
+              <option value="friend_family">{t("refFriendFamily")}</option>
+              <option value="social_media">{t("refSocial")}</option>
+              <option value="ads_meta_tiktok">{t("refAdsMetaTiktok")}</option>
+              <option value="ads_google">{t("refAdsGoogle")}</option>
+              <option value="other">{t("refOther")}</option>
+            </select>
+          </div>
+        </div>
+        {referralSource === "other" && (
+          <div>
+            <label htmlFor="referralOther" className="block text-base font-medium text-muted mb-2">
+              {t("refOtherLabel")}
+            </label>
+            <input
+              id="referralOther"
+              type="text"
+              value={referralOther}
+              onChange={(e) => setReferralOther(e.target.value)}
+              className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]"
+              placeholder={t("refOtherPlaceholder")}
+            />
+          </div>
+        )}
         <button
           type="submit"
           disabled={loading}
