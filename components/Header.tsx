@@ -31,6 +31,7 @@ export default function Header() {
     { key: "tshape", href: `/${locale}#tshape` },
     { key: "plans", href: `/${locale}#planes` },
     { key: "booking", href: `/${locale}#citas` },
+    ...(role === "admin" ? [{ key: "admin", href: `/${locale}/admin`, label: "Admin" }] : []),
     { key: "about", href: `/${locale}/info#doctor` },
     { key: "faq", href: `/${locale}/info#faq` },
     { key: "contact", href: `/${locale}/info#contacto` },
@@ -70,7 +71,7 @@ export default function Header() {
               whileHover={{ color: "rgb(var(--primary))" }}
               className="hover:opacity-80 transition-all whitespace-nowrap"
             >
-              {t(`nav.${item.key}`)}
+              {"label" in item ? item.label : t(`nav.${item.key}`)}
             </motion.a>
           ))}
         </nav>

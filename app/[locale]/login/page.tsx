@@ -74,6 +74,7 @@ export default function LoginPage() {
     }
     const user = data?.user;
     if (user) {
+      await new Promise((r) => setTimeout(r, 150));
       const { data: profile } = await supabase
         .from("profiles")
         .select("role")
