@@ -72,6 +72,19 @@ export default function LoginPage() {
       setError(t("invalidCode"));
       return;
     }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (profile?.role === "admin") {
+        router.push(`/${locale}/admin`);
+        router.refresh();
+        return;
+      }
+    }
     router.push(`/${locale}#citas`);
     router.refresh();
   }
