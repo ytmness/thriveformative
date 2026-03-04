@@ -61,7 +61,7 @@ export default function LoginPage() {
       typeof window !== "undefined"
         ? `${window.location.origin}/${locale}`
         : undefined;
-    const { error: err } = await supabase.auth.verifyOtp({
+    const { data, error: err } = await supabase.auth.verifyOtp({
       email: pendingEmail,
       token: otpCode.trim(),
       type: "email",
@@ -72,7 +72,7 @@ export default function LoginPage() {
       setError(t("invalidCode"));
       return;
     }
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = data?.user;
     if (user) {
       const { data: profile } = await supabase
         .from("profiles")
