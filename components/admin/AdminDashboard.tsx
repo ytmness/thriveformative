@@ -176,6 +176,44 @@ export default function AdminDashboard({ locale }: { locale: string }) {
     setAppointments((prev) =>
       prev.map((a) => (a.id === id ? { ...a, status } : a))
     );
+
+    if (status === "confirmed" || status === "cancelled") {
+      const appt = appointments.find((a) => a.id === id);
+      const profile = appt ? profileById.get(appt.user_id) : null;
+      if (appt?.user_id && profile) {
+        const isConfirmed = status === "confirmed";
+        const title = isConfirmed
+          ? "Cita confirmada"
+          : "Cita cancelada";
+        const body = isConfirmed
+          ? `Tu cita del ${appt.appointment_date} a las ${appt.time_slot} ha sido confirmada.`
+          : `Tu cita del ${appt.appointment_date} a las ${appt.time_slot} ha sido cancelada.`;
+        await supabase.from("notifications").insert({
+          user_id: appt.user_id,
+          type: isConfirmed ? "appointment_confirmed" : "appointment_cancelled",
+          title,
+          body,
+          reference_id: appt.id,
+        });
+        if (profile.email?.trim()) {
+          try {
+            await fetch("/api/notify-appointment", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                toEmail: profile.email.trim(),
+                userName: profile.full_name?.trim() || "Cliente",
+                appointmentDate: appt.appointment_date,
+                timeSlot: appt.time_slot,
+                status,
+              }),
+            });
+          } catch {
+            /* email opcional */
+          }
+        }
+      }
+    }
   }
 
   async function updateAppointmentNotes(id: string, notes: string) {
