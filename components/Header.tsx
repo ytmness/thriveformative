@@ -6,6 +6,7 @@ import { useTranslations, useLocale } from "next-intl";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useUser, signOut } from "@/lib/useUser";
 import { useRouter } from "next/navigation";
+import NotificationBell from "@/components/NotificationBell";
 
 const WHATSAPP_LINK = "https://google.com";
 
@@ -110,6 +111,7 @@ export default function Header() {
                   >
                     {t("auth.signOut")}
                   </button>
+                  <NotificationBell />
                 </div>
               ) : (
                 <>

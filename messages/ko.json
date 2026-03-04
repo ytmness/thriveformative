@@ -249,6 +249,21 @@
     "locationDesc": "나중에 지도를 삽입합니다. 지금은 자리 표시자입니다.",
     "mapPlaceholder": "Google 지도 삽입 / 주소"
   },
+  "contactForm": {
+    "title": "메시지 보내기",
+    "name": "이름",
+    "namePlaceholder": "이름",
+    "email": "이메일",
+    "emailPlaceholder": "you@email.com",
+    "subject": "제목",
+    "subjectPlaceholder": "예: 일반 문의",
+    "message": "메시지",
+    "messagePlaceholder": "메시지를 입력하세요…",
+    "submit": "보내기",
+    "sending": "전송 중…",
+    "success": "메시지가 전송되었습니다",
+    "successDesc": "가능한 한 빨리 답변 드리겠습니다."
+  },
   "info": {
     "pageTitle": "소개",
     "pageSubtitle": "의사를 만나고 궁금한 점을 해결하고 연락하세요."

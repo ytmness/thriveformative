@@ -252,6 +252,21 @@
     "locationDesc": "Consultorio en San Pedro Garza García, Nuevo León",
     "mapPlaceholder": "Mapa embebido / dirección"
   },
+  "contactForm": {
+    "title": "Envíanos un mensaje",
+    "name": "Nombre",
+    "namePlaceholder": "Tu nombre",
+    "email": "Correo",
+    "emailPlaceholder": "tu@email.com",
+    "subject": "Asunto",
+    "subjectPlaceholder": "Ej. Consulta general",
+    "message": "Mensaje",
+    "messagePlaceholder": "Escribe tu mensaje…",
+    "submit": "Enviar",
+    "sending": "Enviando…",
+    "success": "Mensaje enviado",
+    "successDesc": "Te responderemos lo antes posible."
+  },
   "info": {
     "pageTitle": "Conócenos",
     "pageSubtitle": "Conoce al doctor, resuelve tus dudas y ponte en contacto con nosotros."

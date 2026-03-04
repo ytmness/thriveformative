@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AnimatedSection from "@/components/AnimatedSection";
 import WaveDivider from "@/components/WaveDivider";
+import ContactForm from "@/components/ContactForm";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 
@@ -378,6 +379,15 @@ function InfoContent() {
                   </motion.div>
                 </motion.div>
               </div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+                className="mt-8 max-w-2xl"
+              >
+                <ContactForm />
+              </motion.div>
             </section>
           </div>
         </AnimatedSection>

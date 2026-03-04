@@ -31,6 +31,16 @@ type ProfileRow = {
   updated_at: string | null;
 };
 
+type ContactRequestRow = {
+  id: string;
+  name: string;
+  email: string;
+  subject: string | null;
+  message: string;
+  read_at: string | null;
+  created_at: string;
+};
+
 const CONTACT_PREFERENCE_LABELS: Record<string, string> = {
   email: "Email",
   call: "Llamada",
@@ -54,12 +64,13 @@ const SEX_LABELS: Record<string, string> = {
 };
 
 export default function AdminDashboard({ locale }: { locale: string }) {
-  const [tab, setTab] = useState<"appointments" | "clients">("appointments");
+  const [tab, setTab] = useState<"appointments" | "clients" | "contact">("appointments");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [appointments, setAppointments] = useState<AppointmentRow[]>([]);
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
+  const [contactRequests, setContactRequests] = useState<ContactRequestRow[]>([]);
 
   const profileById = useMemo(() => {
     const map = new Map<string, ProfileRow>();
@@ -84,6 +95,14 @@ export default function AdminDashboard({ locale }: { locale: string }) {
     const pending = appointments.filter((a) => a.status === "pending").length;
     const confirmed = appointments.filter((a) => a.status === "confirmed").length;
     const cancelled = appointments.filter((a) => a.status === "cancelled").length;
+    const byReferral: Record<string, number> = {};
+    clients.forEach((p) => {
+      const key = p.referral_source?.trim() || "no_indicated";
+      byReferral[key] = (byReferral[key] ?? 0) + 1;
+    });
+    const referralBreakdown = Object.entries(byReferral)
+      .map(([key, count]) => ({ source: key, count }))
+      .sort((a, b) => b.count - a.count);
     return {
       totalClients: clients.length,
       totalAppointments: appointments.length,
@@ -92,6 +111,7 @@ export default function AdminDashboard({ locale }: { locale: string }) {
       confirmed,
       cancelled,
       newClientsLast7Days,
+      referralBreakdown,
     };
   }, [profiles, appointments]);
 
@@ -127,8 +147,14 @@ export default function AdminDashboard({ locale }: { locale: string }) {
       return;
     }
 
+    const { data: contacts } = await supabase
+      .from("contact_requests")
+      .select("id,name,email,subject,message,read_at,created_at")
+      .order("created_at", { ascending: false });
+
     setAppointments((appts ?? []) as AppointmentRow[]);
     setProfiles((profs ?? []) as ProfileRow[]);
+    setContactRequests((contacts ?? []) as ContactRequestRow[]);
     setLoading(false);
   }
 
@@ -167,6 +193,19 @@ export default function AdminDashboard({ locale }: { locale: string }) {
     );
   }
 
+  async function markContactRequestRead(id: string) {
+    const supabase = createClient();
+    const { error: upErr } = await supabase
+      .from("contact_requests")
+      .update({ read_at: new Date().toISOString() })
+      .eq("id", id);
+    if (!upErr) {
+      setContactRequests((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, read_at: new Date().toISOString() } : c))
+      );
+    }
+  }
+
   return (
     <main className="max-w-7xl mx-auto px-6 py-12">
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
@@ -201,6 +240,17 @@ export default function AdminDashboard({ locale }: { locale: string }) {
             }`}
           >
             Clientes
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab("contact")}
+            className={`rounded-xl px-4 py-2 text-sm font-medium border ${
+              tab === "contact"
+                ? "bg-[rgb(var(--primary)/0.14)] border-[rgb(var(--primary)/0.35)]"
+                : "bg-surface border-theme hover:bg-[rgb(var(--primary)/0.06)]"
+            }`}
+          >
+            Solicitudes contacto
           </button>
           <button
             type="button"
@@ -247,6 +297,25 @@ export default function AdminDashboard({ locale }: { locale: string }) {
           <div className="rounded-xl border border-theme bg-surface px-4 py-3">
             <div className="text-2xl font-semibold tabular-nums">{metrics.newClientsLast7Days}</div>
             <div className="text-sm text-muted">Nuevos (7 días)</div>
+          </div>
+        </section>
+      )}
+
+      {!loading && metrics.referralBreakdown.length > 0 && (
+        <section className="mt-6" aria-label="De dónde nos conocen">
+          <h2 className="text-lg font-semibold text-muted mb-3">De dónde nos conocen</h2>
+          <div className="rounded-xl border border-theme bg-surface p-4 flex flex-wrap gap-3">
+            {metrics.referralBreakdown.map(({ source, count }) => (
+              <div
+                key={source}
+                className="flex items-center gap-2 rounded-lg bg-[rgb(var(--bg)/0.5)] px-3 py-2 border border-theme"
+              >
+                <span className="font-medium tabular-nums">{count}</span>
+                <span className="text-muted text-sm">
+                  {REFERRAL_SOURCE_LABELS[source] ?? (source === "no_indicated" ? "No indicado" : source)}
+                </span>
+              </div>
+            ))}
           </div>
         </section>
       )}
@@ -334,6 +403,51 @@ export default function AdminDashboard({ locale }: { locale: string }) {
 
               {!appointments.length && (
                 <div className="px-6 py-10 text-muted">No hay citas.</div>
+              )}
+            </div>
+          </div>
+        </section>
+      ) : tab === "contact" ? (
+        <section className="mt-10">
+          <div className="rounded-2xl border border-theme bg-surface overflow-hidden">
+            <div className="grid grid-cols-[1fr_1.2fr_1.5fr_0.6fr] gap-4 px-6 py-4 text-sm text-muted border-b border-theme">
+              <div>Nombre / Email</div>
+              <div>Asunto</div>
+              <div>Mensaje</div>
+              <div>Estado</div>
+            </div>
+            <div className="divide-y divide-[rgb(var(--border)/0.18)]">
+              {contactRequests.map((c) => (
+                <div
+                  key={c.id}
+                  className={`grid grid-cols-[1fr_1.2fr_1.5fr_0.6fr] gap-4 px-6 py-4 ${!c.read_at ? "bg-[rgb(var(--primary)/0.06)]" : ""}`}
+                >
+                  <div className="min-w-0">
+                    <div className="font-medium truncate">{c.name}</div>
+                    <div className="text-sm text-muted truncate">{c.email}</div>
+                    <div className="text-xs text-muted mt-1">
+                      {new Date(c.created_at).toLocaleString(locale)}
+                    </div>
+                  </div>
+                  <div className="text-sm truncate">{c.subject || "—"}</div>
+                  <div className="text-sm text-muted whitespace-pre-wrap break-words">{c.message}</div>
+                  <div className="flex flex-col gap-2">
+                    {!c.read_at ? (
+                      <button
+                        type="button"
+                        onClick={() => markContactRequestRead(c.id)}
+                        className="rounded-lg px-3 py-1.5 text-xs font-medium border border-theme bg-[rgb(var(--primary)/0.10)] hover:bg-[rgb(var(--primary)/0.16)]"
+                      >
+                        Marcar leído
+                      </button>
+                    ) : (
+                      <span className="text-xs text-muted">Leído</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {!contactRequests.length && (
+                <div className="px-6 py-10 text-muted">No hay solicitudes de contacto.</div>
               )}
             </div>
           </div>
