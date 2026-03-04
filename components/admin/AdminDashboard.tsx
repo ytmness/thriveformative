@@ -276,7 +276,7 @@ export default function AdminDashboard({ locale }: { locale: string }) {
                         {p?.full_name?.trim() || p?.email || "Cliente (sin nombre)"}
                       </div>
                       <div className="text-sm text-muted truncate">
-                        {p?.phone || "—"}
+                        {p?.phone?.trim() || "No indicado"}
                       </div>
                     </div>
                     <div>
@@ -362,29 +362,29 @@ export default function AdminDashboard({ locale }: { locale: string }) {
                     </div>
                   </div>
                   <div className="text-sm">
-                    <div>{p.phone || "—"}</div>
+                    <div>{p.phone?.trim() || "No indicado"}</div>
                     <div className="text-muted">
-                      Pref: {p.contact_preference ? (CONTACT_PREFERENCE_LABELS[p.contact_preference] ?? p.contact_preference) : "—"}
+                      Pref: {p.contact_preference ? (CONTACT_PREFERENCE_LABELS[p.contact_preference] ?? p.contact_preference) : "No indicado"}
                     </div>
                   </div>
                   <div className="text-sm">
-                    <div>Nac: {p.birth_date || "—"}</div>
+                    <div>Nac: {p.birth_date || "No indicado"}</div>
                     <div className="text-muted">
-                      Edad: {p.age ?? "—"} · Sexo: {p.sex ? (SEX_LABELS[p.sex] ?? p.sex) : "—"}
+                      Edad: {p.age != null ? p.age : "No indicado"} · Sexo: {p.sex ? (SEX_LABELS[p.sex] ?? p.sex) : "No indicado"}
                     </div>
                     <div className="text-muted truncate">
-                      Dir: {p.address || "—"}
+                      Dir: {p.address?.trim() || "No indicado"}
                     </div>
                   </div>
                   <div className="text-sm">
                     <div>
                       {p.referral_source
                         ? (REFERRAL_SOURCE_LABELS[p.referral_source] ?? p.referral_source)
-                        : "—"}
+                        : "No indicado"}
                     </div>
                     {p.referral_source === "other" && (
                       <div className="text-muted truncate">
-                        {p.referral_source_other || "—"}
+                        {p.referral_source_other?.trim() || "No indicado"}
                       </div>
                     )}
                   </div>

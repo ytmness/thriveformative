@@ -80,6 +80,27 @@ export default function RegisterPage() {
     }
     setPendingEmail(email);
     setCodeSent(true);
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem(
+          "thrive_pending_profile",
+          JSON.stringify({
+            email: email.trim(),
+            fullName: fullName.trim() || null,
+            phone: phone.trim() || null,
+            birthDate: birthDate || null,
+            age: age.trim() || null,
+            contactPreference: contactPreference || null,
+            address: address.trim() || null,
+            sex: sex || null,
+            referralSource: referralSource || null,
+            referralSourceOther: referralSource === "other" ? referralOther.trim() || null : null,
+          })
+        );
+      } catch {
+        /* ignore */
+      }
+    }
   }
 
   async function handleVerifyCode(e: React.FormEvent) {
@@ -112,7 +133,7 @@ export default function RegisterPage() {
       const parsedAge = age.trim() ? Number(age) : null;
       const safeAge =
         parsedAge !== null && Number.isFinite(parsedAge) ? parsedAge : null;
-      await supabase.from("profiles").upsert(
+      const { error: upsertErr } = await supabase.from("profiles").upsert(
         {
           id: user.id,
           full_name: fullName.trim() || null,
@@ -130,6 +151,15 @@ export default function RegisterPage() {
         },
         { onConflict: "id" }
       );
+      if (upsertErr) {
+        setError("No se pudieron guardar los datos del perfil. Intenta de nuevo.");
+        return;
+      }
+      try {
+        if (typeof window !== "undefined") sessionStorage.removeItem("thrive_pending_profile");
+      } catch {
+        /* ignore */
+      }
     }
 
     router.push(`/${locale}#citas`);

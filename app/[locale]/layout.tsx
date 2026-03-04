@@ -7,10 +7,11 @@ import "../styles/animations.css";
 import "../styles/cursor.css";
 import "../styles/scroll.css";
 import type { Metadata } from "next";
-import {  Poppins } from "next/font/google";
-import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
-import { locales } from '@/i18n/config';
+import { Poppins } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages } from "next-intl/server";
+import { locales } from "@/i18n/config";
+import PendingProfileSync from "@/components/PendingProfileSync";
 
 const poppins = Poppins({ subsets: ["latin"], weight: ["300","400","500","600","700"], variable: "--font-body" });
 
@@ -37,6 +38,7 @@ export default async function LocaleLayout({
     <html lang={locale} className={`${poppins.variable}`}>
       <body>
         <NextIntlClientProvider messages={messages}>
+          <PendingProfileSync />
           {children}
         </NextIntlClientProvider>
       </body>
