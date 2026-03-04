@@ -18,6 +18,7 @@ type ProfileRow = {
   id: string;
   role: string;
   full_name: string | null;
+  email: string | null;
   phone: string | null;
   birth_date: string | null;
   age: number | null;
@@ -28,6 +29,28 @@ type ProfileRow = {
   referral_source_other: string | null;
   created_at: string | null;
   updated_at: string | null;
+};
+
+const CONTACT_PREFERENCE_LABELS: Record<string, string> = {
+  email: "Email",
+  call: "Llamada",
+  whatsapp: "WhatsApp",
+};
+
+const REFERRAL_SOURCE_LABELS: Record<string, string> = {
+  website: "Web",
+  doctor: "Médico",
+  friend_family: "Amigo/familia",
+  social_media: "Redes sociales",
+  ads_meta_tiktok: "Anuncios Meta/TikTok",
+  ads_google: "Anuncios Google",
+  other: "Otro",
+};
+
+const SEX_LABELS: Record<string, string> = {
+  female: "Femenino",
+  male: "Masculino",
+  other: "Otro",
 };
 
 export default function AdminDashboard({ locale }: { locale: string }) {
@@ -43,6 +66,34 @@ export default function AdminDashboard({ locale }: { locale: string }) {
     profiles.forEach((p) => map.set(p.id, p));
     return map;
   }, [profiles]);
+
+  const metrics = useMemo(() => {
+    const clients = profiles.filter((p) => p.role === "client");
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const sevenDaysAgo = new Date(now);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const newClientsLast7Days = clients.filter((p) => {
+      const created = p.created_at ? new Date(p.created_at) : null;
+      return created && created >= sevenDaysAgo;
+    }).length;
+    const appointmentsThisMonth = appointments.filter((a) => {
+      const d = new Date(a.appointment_date);
+      return d >= startOfMonth;
+    }).length;
+    const pending = appointments.filter((a) => a.status === "pending").length;
+    const confirmed = appointments.filter((a) => a.status === "confirmed").length;
+    const cancelled = appointments.filter((a) => a.status === "cancelled").length;
+    return {
+      totalClients: clients.length,
+      totalAppointments: appointments.length,
+      appointmentsThisMonth,
+      pending,
+      confirmed,
+      cancelled,
+      newClientsLast7Days,
+    };
+  }, [profiles, appointments]);
 
   async function loadAll() {
     setLoading(true);
@@ -63,14 +114,12 @@ export default function AdminDashboard({ locale }: { locale: string }) {
       return;
     }
 
-    const userIds = Array.from(new Set((appts ?? []).map((a) => a.user_id)));
-
     const { data: profs, error: profErr } = await supabase
       .from("profiles")
       .select(
-        "id,role,full_name,phone,birth_date,age,contact_preference,address,sex,referral_source,referral_source_other,created_at,updated_at"
+        "id,role,full_name,email,phone,birth_date,age,contact_preference,address,sex,referral_source,referral_source_other,created_at,updated_at"
       )
-      .in("id", userIds.length ? userIds : ["00000000-0000-0000-0000-000000000000"]);
+      .order("created_at", { ascending: false });
 
     if (profErr) {
       setError(profErr.message);
@@ -169,6 +218,39 @@ export default function AdminDashboard({ locale }: { locale: string }) {
         </div>
       )}
 
+      {!loading && (
+        <section className="mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-7 gap-4" aria-label="Métricas">
+          <div className="rounded-xl border border-theme bg-surface px-4 py-3">
+            <div className="text-2xl font-semibold tabular-nums">{metrics.totalClients}</div>
+            <div className="text-sm text-muted">Clientes</div>
+          </div>
+          <div className="rounded-xl border border-theme bg-surface px-4 py-3">
+            <div className="text-2xl font-semibold tabular-nums">{metrics.totalAppointments}</div>
+            <div className="text-sm text-muted">Citas totales</div>
+          </div>
+          <div className="rounded-xl border border-theme bg-surface px-4 py-3">
+            <div className="text-2xl font-semibold tabular-nums">{metrics.appointmentsThisMonth}</div>
+            <div className="text-sm text-muted">Citas este mes</div>
+          </div>
+          <div className="rounded-xl border border-theme bg-surface px-4 py-3">
+            <div className="text-2xl font-semibold tabular-nums text-amber-600">{metrics.pending}</div>
+            <div className="text-sm text-muted">Pendientes</div>
+          </div>
+          <div className="rounded-xl border border-theme bg-surface px-4 py-3">
+            <div className="text-2xl font-semibold tabular-nums text-green-600">{metrics.confirmed}</div>
+            <div className="text-sm text-muted">Confirmadas</div>
+          </div>
+          <div className="rounded-xl border border-theme bg-surface px-4 py-3">
+            <div className="text-2xl font-semibold tabular-nums text-red-600">{metrics.cancelled}</div>
+            <div className="text-sm text-muted">Canceladas</div>
+          </div>
+          <div className="rounded-xl border border-theme bg-surface px-4 py-3">
+            <div className="text-2xl font-semibold tabular-nums">{metrics.newClientsLast7Days}</div>
+            <div className="text-sm text-muted">Nuevos (7 días)</div>
+          </div>
+        </section>
+      )}
+
       {loading ? (
         <div className="mt-10 animate-pulse h-64 bg-surface rounded-2xl border border-theme" />
       ) : tab === "appointments" ? (
@@ -191,7 +273,7 @@ export default function AdminDashboard({ locale }: { locale: string }) {
                   >
                     <div className="min-w-0">
                       <div className="font-medium truncate">
-                        {p?.full_name || a.user_id}
+                        {p?.full_name?.trim() || p?.email || "Cliente (sin nombre)"}
                       </div>
                       <div className="text-sm text-muted truncate">
                         {p?.phone || "—"}
@@ -272,26 +354,34 @@ export default function AdminDashboard({ locale }: { locale: string }) {
                   className="grid grid-cols-[1.2fr_1fr_1fr_1fr] gap-4 px-6 py-4"
                 >
                   <div className="min-w-0">
-                    <div className="font-medium truncate">{p.full_name || p.id}</div>
-                    <div className="text-sm text-muted">Rol: {p.role}</div>
+                    <div className="font-medium truncate">
+                      {p.full_name?.trim() || p.email || "Sin nombre"}
+                    </div>
+                    <div className="text-sm text-muted truncate">
+                      {p.full_name?.trim() && p.email ? `${p.email} · ` : ""}Rol: {p.role}
+                    </div>
                   </div>
                   <div className="text-sm">
                     <div>{p.phone || "—"}</div>
                     <div className="text-muted">
-                      Pref: {p.contact_preference || "—"}
+                      Pref: {p.contact_preference ? (CONTACT_PREFERENCE_LABELS[p.contact_preference] ?? p.contact_preference) : "—"}
                     </div>
                   </div>
                   <div className="text-sm">
                     <div>Nac: {p.birth_date || "—"}</div>
                     <div className="text-muted">
-                      Edad: {p.age ?? "—"} · Sexo: {p.sex || "—"}
+                      Edad: {p.age ?? "—"} · Sexo: {p.sex ? (SEX_LABELS[p.sex] ?? p.sex) : "—"}
                     </div>
                     <div className="text-muted truncate">
                       Dir: {p.address || "—"}
                     </div>
                   </div>
                   <div className="text-sm">
-                    <div>{p.referral_source || "—"}</div>
+                    <div>
+                      {p.referral_source
+                        ? (REFERRAL_SOURCE_LABELS[p.referral_source] ?? p.referral_source)
+                        : "—"}
+                    </div>
                     {p.referral_source === "other" && (
                       <div className="text-muted truncate">
                         {p.referral_source_other || "—"}

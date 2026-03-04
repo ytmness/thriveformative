@@ -116,6 +116,7 @@ export default function RegisterPage() {
         {
           id: user.id,
           full_name: fullName.trim() || null,
+          email: pendingEmail.trim() || user.email || null,
           phone: phone.trim() || null,
           birth_date: birthDate || null,
           age: safeAge,
