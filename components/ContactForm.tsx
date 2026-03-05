@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase";
-import { sendContactFormEmails } from "@/app/actions/sendEmail";
 
 export default function ContactForm() {
   const t = useTranslations("contactForm");
@@ -32,12 +31,28 @@ export default function ContactForm() {
       return;
     }
     try {
-      await sendContactFormEmails({
-        name: name.trim(),
-        email: email.trim(),
-        subject: subject.trim() || null,
-        message: message.trim(),
+      const res1 = await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kind: "contact_confirmation",
+          to: email.trim(),
+          name: name.trim(),
+        }),
       });
+      if (res1.ok) {
+        await fetch("/api/send-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            kind: "contact_notify_admin",
+            name: name.trim(),
+            email: email.trim(),
+            subject: subject.trim() || null,
+            message: message.trim(),
+          }),
+        });
+      }
     } catch {
       // El mensaje ya se guardó; el correo es opcional
     }

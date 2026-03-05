@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase";
-import { sendEmail } from "@/app/actions/sendEmail";
 
 type AppointmentRow = {
   id: string;
@@ -197,11 +196,16 @@ export default function AdminDashboard({ locale }: { locale: string }) {
           reference_id: appt.id,
         });
         if (profile.email) {
-          await sendEmail(
-            isConfirmed
-              ? { kind: "appointment_confirmed", to: profile.email, date: appt.appointment_date, timeSlot: appt.time_slot }
-              : { kind: "appointment_cancelled", to: profile.email, date: appt.appointment_date, timeSlot: appt.time_slot }
-          );
+          await fetch("/api/send-email", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              kind: isConfirmed ? "appointment_confirmed" : "appointment_cancelled",
+              to: profile.email,
+              date: appt.appointment_date,
+              timeSlot: appt.time_slot,
+            }),
+          });
         }
       }
     }

@@ -1,6 +1,6 @@
 # Correos desde la app (Postfix / nodemailer)
 
-La app envía correos con **nodemailer** usando el servidor de correo del mismo host (Postfix). El remitente es `Thrive Formative <info@thriveformative.com>`.
+La app envía correos con **nodemailer** usando el servidor de correo del mismo host (Postfix). El remitente es `Thrive Formative <info@thriveformative.com>`. El cliente llama a la ruta **POST /api/send-email** (no usa Server Actions) para evitar el error "Failed to find Server Action" tras un deploy.
 
 ## Cuándo se envían
 
@@ -14,13 +14,37 @@ La app envía correos con **nodemailer** usando el servidor de correo del mismo 
 
 ## Variables de entorno
 
-En el servidor donde corre la app (junto a Postfix):
+En el servidor, la app **debe** tener las variables disponibles. Con el script `deploy-ubuntu.sh`, el servicio systemd carga:
 
-- **NOTIFY_EMAIL**: email donde recibir avisos de nuevas solicitudes de contacto (ej. `info@thriveformative.com`).
-- Opcional, si Postfix no está en localhost o usa otro puerto/auth:
-  - **SMTP_HOST**, **SMTP_PORT**, **SMTP_SECURE**, **SMTP_USER**, **SMTP_PASS**.
+**Archivo:** `/var/www/thriveformative/.env` (crear a mano en el servidor; no está en git)
+
+Contenido mínimo recomendado:
+
+```bash
+NOTIFY_EMAIL=info@thriveformative.com
+```
+
+Opcional, si Postfix no está en localhost o usa otro puerto/auth:
+
+```bash
+SMTP_HOST=localhost
+SMTP_PORT=25
+# SMTP_USER=  SMTP_PASS=  solo si el relay exige autenticación
+```
+
+Después de crear o editar `.env`, reiniciar el servicio:
+
+```bash
+sudo systemctl restart thriveformative
+```
 
 Por defecto la app usa `localhost:25` (Postfix local). Si Postfix está configurado como relay (p. ej. GoDaddy), los correos salen por ese relay.
+
+### Si no llegan correos
+
+1. Comprobar que existe `/var/www/thriveformative/.env` y que el servicio se reinició.
+2. Ver logs del servicio: `journalctl -u thriveformative -n 50 --no-pager`. Si falla el envío, aparecerá `[sendEmail] ... → <mensaje de error>`.
+3. Probar Postfix a mano: `echo "test" | mail -s "Test" tu@email.com` (desde el servidor).
 
 ## Relación con la Edge Function de Supabase
 

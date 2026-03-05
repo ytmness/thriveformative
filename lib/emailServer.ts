@@ -1,5 +1,3 @@
-"use server";
-
 import nodemailer from "nodemailer";
 
 const FROM = "Thrive Formative <info@thriveformative.com>";
@@ -23,6 +21,15 @@ function isValidEmail(s: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s || "");
 }
 
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export type EmailKind =
   | { kind: "appointment_pending"; to: string; date: string; timeSlot: string }
   | { kind: "appointment_confirmed"; to: string; date: string; timeSlot: string }
@@ -30,7 +37,7 @@ export type EmailKind =
   | { kind: "contact_confirmation"; to: string; name: string }
   | { kind: "contact_notify_admin"; to: string; name: string; email: string; subject: string | null; message: string };
 
-export async function sendEmail(payload: EmailKind): Promise<{ ok: boolean; error?: string }> {
+export async function sendEmailPayload(payload: EmailKind): Promise<{ ok: boolean; error?: string }> {
   try {
     let to: string;
     let subject: string;
@@ -87,40 +94,7 @@ export async function sendEmail(payload: EmailKind): Promise<{ ok: boolean; erro
     return { ok: true };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
+    console.error("[sendEmail]", (payload as EmailKind).kind, "→", message);
     return { ok: false, error: message };
   }
-}
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
-/** Envía confirmación al usuario y aviso al admin (NOTIFY_EMAIL). */
-export async function sendContactFormEmails(params: {
-  name: string;
-  email: string;
-  subject: string | null;
-  message: string;
-}): Promise<{ ok: boolean; error?: string }> {
-  const { name, email, subject, message } = params;
-  const adminTo = process.env.NOTIFY_EMAIL;
-  const r1 = await sendEmail({ kind: "contact_confirmation", to: email, name: name.trim() });
-  if (!r1.ok) return r1;
-  if (adminTo) {
-    const r2 = await sendEmail({
-      kind: "contact_notify_admin",
-      to: adminTo,
-      name: name.trim(),
-      email: email.trim(),
-      subject: subject?.trim() || null,
-      message: message.trim(),
-    });
-    if (!r2.ok) return r2;
-  }
-  return { ok: true };
 }

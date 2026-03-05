@@ -10,7 +10,6 @@ import { useScrollDirection } from "@/lib/useScrollDirection";
 import { LATERAL } from "@/lib/lateralAnimation";
 import { useUser } from "@/lib/useUser";
 import { createClient } from "@/lib/supabase";
-import { sendEmail } from "@/app/actions/sendEmail";
 
 const WHATSAPP_LINK = "https://google.com";
 
@@ -113,9 +112,17 @@ export default function BookingSection() {
       return;
     }
     setAppointments((prev) => [...prev, { appointment_date: selectedDateKey, time_slot: timeSlot }]);
-    const to = user.email ?? undefined;
-    if (to) {
-      sendEmail({ kind: "appointment_pending", to, date: selectedDateKey, timeSlot }).catch(() => {});
+    if (user.email) {
+      fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kind: "appointment_pending",
+          to: user.email,
+          date: selectedDateKey,
+          timeSlot,
+        }),
+      }).catch(() => {});
     }
   }
 

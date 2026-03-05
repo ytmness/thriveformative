@@ -68,6 +68,8 @@ Restart=on-failure
 RestartSec=5
 Environment=NODE_ENV=production
 Environment=PORT=3001
+# Cargar NOTIFY_EMAIL y SMTP_* desde /var/www/thriveformative/.env (crear ese archivo en el servidor)
+EnvironmentFile=-/var/www/thriveformative/.env
 
 [Install]
 WantedBy=multi-user.target
@@ -140,8 +142,13 @@ nginx -t && systemctl reload nginx
 echo ""
 echo "==> Despliegue completado."
 echo "    Si al visitar $DOMAIN ves otra web, ejecuta: sudo bash scripts/nginx-audit.sh"
-echo "    App: http://127.0.0.1:3000"
+echo "    App: http://127.0.0.1:3001 (proxy Nginx)"
 echo "    Nginx escuchando en puerto 80 para $DOMAIN y www.$DOMAIN"
+echo ""
+echo "Para que lleguen los correos (citas, contacto), crea en el servidor:"
+echo "    $APP_DIR/.env"
+echo "    con NOTIFY_EMAIL=tu@email.com (y opcional SMTP_HOST, SMTP_PORT si no usas Postfix local)."
+echo "    Luego: systemctl restart thriveformative"
 echo ""
 echo "En GoDaddy DNS, asegúrate de que el registro A de @ apunte a la IP de este servidor."
 echo "Para HTTPS (recomendado): sudo apt install certbot python3-certbot-nginx && sudo certbot --nginx -d $DOMAIN -d www.$DOMAIN"
