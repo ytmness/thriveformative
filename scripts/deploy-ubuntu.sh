@@ -14,16 +14,23 @@ echo "==> Instalando dependencias del sistema..."
 apt-get update
 apt-get install -y curl git
 
-# Node.js 20 LTS si no está instalado
+# Node.js 20 LTS (recomendado por Supabase; evita avisos EBADENGINE)
+NEED_NODE20=
 if ! command -v node &> /dev/null; then
-  echo "==> Instalando Node.js 20..."
+  NEED_NODE20=1
+else
+  NODE_VER=$(node -v | sed 's/^v//' | cut -d. -f1)
+  [ "${NODE_VER:-0}" -lt 20 ] && NEED_NODE20=1
+fi
+if [ -n "$NEED_NODE20" ]; then
+  echo "==> Instalando Node.js 20 LTS..."
   curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
   apt-get install -y nodejs
 fi
 
 echo "==> Node: $(node -v) | npm: $(npm -v)"
 
-# Crear directorio y clonar/actualizar
+# Crear directorio y clonar/actualizar (reset --hard evita conflictos con package-lock.json u otros cambios locales)
 mkdir -p "$(dirname "$APP_DIR")"
 if [ -d "$APP_DIR/.git" ]; then
   echo "==> Actualizando repositorio..."
