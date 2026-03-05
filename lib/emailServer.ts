@@ -13,6 +13,8 @@ function getTransport() {
     host,
     port,
     secure,
+    // Aceptar certificado del relay (p. ej. GoDaddy) aunque sea self-signed o la cadena no esté en el sistema
+    tls: { rejectUnauthorized: false },
     ...(user && pass ? { auth: { user, pass } } : {}),
   });
 }
@@ -91,6 +93,7 @@ export async function sendEmailPayload(payload: EmailKind): Promise<{ ok: boolea
       text,
       html,
     });
+    console.log("[sendEmail]", (payload as EmailKind).kind, "→ enviado OK a", to);
     return { ok: true };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

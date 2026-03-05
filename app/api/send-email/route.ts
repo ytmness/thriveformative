@@ -6,8 +6,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     if (!body || typeof body.kind !== "string") {
+      console.warn("[send-email] Payload inválido:", body ? "kind missing" : "body empty");
       return NextResponse.json({ ok: false, error: "Payload inválido" }, { status: 400 });
     }
+
+    console.log("[send-email] Request:", body.kind, "to:", body.to ?? "(admin)");
 
     let payload: EmailKind;
 
@@ -29,6 +32,7 @@ export async function POST(request: NextRequest) {
       case "contact_notify_admin": {
         const adminTo = process.env.NOTIFY_EMAIL;
         if (!adminTo) {
+          console.error("[send-email] NOTIFY_EMAIL no configurado en el servidor. Crea /var/www/thriveformative/.env con NOTIFY_EMAIL=tu@email.com");
           return NextResponse.json({ ok: false, error: "NOTIFY_EMAIL no configurado" }, { status: 500 });
         }
         if (typeof body.name !== "string" || typeof body.email !== "string" || typeof body.message !== "string") {

@@ -42,9 +42,24 @@ Por defecto la app usa `localhost:25` (Postfix local). Si Postfix está configur
 
 ### Si no llegan correos
 
-1. Comprobar que existe `/var/www/thriveformative/.env` y que el servicio se reinició.
-2. Ver logs del servicio: `journalctl -u thriveformative -n 50 --no-pager`. Si falla el envío, aparecerá `[sendEmail] ... → <mensaje de error>`.
-3. Probar Postfix a mano: `echo "test" | mail -s "Test" tu@email.com` (desde el servidor).
+1. **Comprobar que existe** `/var/www/thriveformative/.env` y que el servicio se reinició.
+2. **Revisar logs en el servidor** (ejecuta en SSH):
+
+   ```bash
+   # Últimas 100 líneas del servicio (app + correos)
+   sudo journalctl -u thriveformative -n 100 --no-pager
+
+   # En tiempo real mientras pruebas (formulario de contacto, cita, etc.)
+   sudo journalctl -u thriveformative -f
+   ```
+
+   Busca:
+   - `[send-email] Request: contact_confirmation to: xxx@...` → la petición llegó a la API.
+   - `[sendEmail] contact_confirmation → enviado OK a xxx@...` → nodemailer envió sin error.
+   - `[sendEmail] ... → ECONNREFUSED` → la app no puede conectar a Postfix (revisa que Postfix escuche en 127.0.0.1:25).
+   - `[send-email] NOTIFY_EMAIL no configurado` → crea o edita `/var/www/thriveformative/.env` con `NOTIFY_EMAIL=tu@email.com` y reinicia.
+
+3. **Probar Postfix a mano** (desde el servidor): `echo "test" | mail -s "Test" tu@email.com`. Si no llega, el fallo está en Postfix/relay, no en la app.
 
 ## Relación con la Edge Function de Supabase
 
