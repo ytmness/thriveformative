@@ -14,17 +14,17 @@
   width: 100%;
   max-width: 36rem;
   text-align: center;
-  margin-left: 12%;
-}
-
-@media (min-width: 768px) {
-  .coming-soon-page__inner {
-    margin-left: 18%;
-  }
 }
 
 .coming-soon-page__logo-wrap {
   margin-bottom: 2.5rem;
+  margin-left: 12%;
+}
+
+@media (min-width: 768px) {
+  .coming-soon-page__logo-wrap {
+    margin-left: 18%;
+  }
 }
 
 .coming-soon-page__logo {
