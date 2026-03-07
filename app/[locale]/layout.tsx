@@ -21,6 +21,10 @@ const poppins = Poppins({ subsets: ["latin"], weight: ["300","400","500","600","
 export const metadata: Metadata = {
   title: "Thrive Formative — Wellness from Within",
   description: "Medicina familiar y funcional, atención personalizada basada en evidencia.",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/favicon.png",
+  },
 };
 
 export function generateStaticParams() {
