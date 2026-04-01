@@ -7,6 +7,7 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useUser, signOut } from "@/lib/useUser";
 import { useRouter } from "next/navigation";
 import NotificationBell from "@/components/NotificationBell";
+import { useEffect, useState } from "react";
 
 const WHATSAPP_LINK = "https://google.com";
 
@@ -23,6 +24,7 @@ export default function Header() {
   const locale = useLocale();
   const { user, role, loading } = useUser();
   const router = useRouter();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const currentLogo = logoMap[theme] || logoMap["nocturnal"];
 
@@ -38,6 +40,15 @@ export default function Header() {
     { key: "contact", href: `/${locale}/info#contacto` },
   ];
 
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, [mobileMenuOpen]);
+
   return (
     <motion.header
       initial={{ y: -100 }}
@@ -45,18 +56,18 @@ export default function Header() {
       transition={{ duration: 0.6, ease: "easeOut" }}
       className="sticky top-0 z-40 backdrop-blur-md bg-[rgb(var(--bg)/0.85)] border-b border-theme"
     >
-      <div className="w-full px-8 lg:px-12 py-3 md:py-4 min-h-[3.5rem] flex items-center">
+      <div className="w-full px-4 md:px-6 lg:px-12 py-3 md:py-4 min-h-[3.5rem] flex items-center justify-between">
         {/* Logo — links to home */}
         <motion.a
           href={`/${locale}`}
           whileHover={{ scale: 1.02 }}
           transition={{ duration: 0.2 }}
-          className="flex-shrink-0 mr-10 flex items-center"
+          className="flex-shrink-0 lg:mr-10 flex items-center"
         >
           <img
             src={currentLogo}
             alt="Thrive Formative"
-            className="h-12 sm:h-14 md:h-16 w-auto object-contain max-h-[4.5rem]"
+            className="h-10 sm:h-12 md:h-14 lg:h-16 w-auto object-contain max-h-[4.5rem]"
           />
         </motion.a>
 
@@ -78,7 +89,7 @@ export default function Header() {
         </nav>
 
         {/* Right side — Auth + CTA + Language */}
-        <div className="flex items-center gap-4 flex-shrink-0 ml-10">
+        <div className="hidden lg:flex items-center gap-4 flex-shrink-0 ml-10">
           {!loading && (
             <>
               {user ? (
@@ -147,7 +158,108 @@ export default function Header() {
           </motion.a>
           <LanguageSwitcher />
         </div>
+
+        {/* Mobile right side — language + hamburger */}
+        <div className="flex lg:hidden items-center gap-2">
+          <LanguageSwitcher />
+          <button
+            type="button"
+            aria-label={mobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
+            aria-expanded={mobileMenuOpen}
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
+            className="inline-flex items-center justify-center w-11 h-11 rounded-xl border border-theme bg-[rgb(var(--surface)/0.8)]"
+          >
+            <span className="text-xl leading-none">{mobileMenuOpen ? "×" : "☰"}</span>
+          </button>
+        </div>
       </div>
+
+      {/* Mobile menu panel */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden border-t border-theme bg-[rgb(var(--bg)/0.98)] backdrop-blur-md">
+          <nav className="px-4 py-4 flex flex-col gap-3">
+            {navItems.map((item) => (
+              <a
+                key={item.key}
+                href={item.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-base font-medium py-2 border-b border-[rgb(var(--border)/0.15)]"
+              >
+                {"label" in item ? item.label : t(`nav.${item.key}`)}
+              </a>
+            ))}
+          </nav>
+
+          <div className="px-4 pb-5 flex flex-col gap-3">
+            {!loading && (
+              <>
+                {user ? (
+                  <>
+                    <span className="text-sm text-muted truncate">{user.email}</span>
+                    {role === "admin" && (
+                      <a
+                        href={`/${locale}/admin`}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="text-sm font-medium"
+                      >
+                        Admin
+                      </a>
+                    )}
+                    <a
+                      href={`/${locale}#citas`}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="text-sm font-medium text-[rgb(var(--primary))]"
+                    >
+                      {t("nav.booking")}
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        signOut();
+                        router.refresh();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="text-sm text-left text-muted"
+                    >
+                      {t("auth.signOut")}
+                    </button>
+                    <div className="pt-1">
+                      <NotificationBell />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <a
+                      href={`/${locale}/login`}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="text-sm font-medium"
+                    >
+                      {t("auth.loginTitle")}
+                    </a>
+                    <a
+                      href={`/${locale}/register`}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="btn-outline rounded-xl px-4 py-2 text-sm font-medium text-center"
+                    >
+                      {t("auth.registerLink")}
+                    </a>
+                  </>
+                )}
+              </>
+            )}
+
+            <a
+              className="btn-primary rounded-xl px-5 py-3 text-base font-medium shadow-lg text-center"
+              href={WHATSAPP_LINK}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              {t("nav.schedule")}
+            </a>
+          </div>
+        </div>
+      )}
     </motion.header>
   );
 }
