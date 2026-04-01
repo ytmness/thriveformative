@@ -86,7 +86,7 @@ export default function GiantScrollCard({
       className={`giant-card scroll-snap-section ${className}`}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: false, amount: 0.15, margin: "-50px" }}
+      viewport={{ once: true, amount: 0.15, margin: "-50px" }}
       transition={{
         duration: LATERAL.durationFlower,
         ease: LATERAL.ease,

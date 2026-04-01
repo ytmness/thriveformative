@@ -20,7 +20,7 @@ export default function AnimatedSection({
   direction = "up" 
 }: AnimatedSectionProps) {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: false, margin: "-100px", amount: 0.02 });
+  const isInView = useInView(ref, { once: true, margin: "-100px", amount: 0.02 });
   const scrollDirection = useScrollDirection();
   const fromY = scrollDirection === "down" ? LATERAL.fromY : -LATERAL.fromY;
 
