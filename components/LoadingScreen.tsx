@@ -36,7 +36,7 @@ export default function LoadingScreen() {
           transition={{ duration: 0.5 }}
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-[rgb(var(--bg))]"
         >
-          <div className="relative">
+          <div className="relative w-full max-w-sm px-4 flex flex-col items-center">
             {/* Logo con animación de fade y scale */}
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
@@ -49,7 +49,7 @@ export default function LoadingScreen() {
               <motion.img
                 src={currentLogo}
                 alt="Thrive Formative"
-                className="w-48 h-48 object-contain -translate-x-1 sm:translate-x-0"
+                className="w-48 h-48 object-contain"
                 initial={{ x: 0 }}
                 animate={{
                   y: [0, -10, 0],
