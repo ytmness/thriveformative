@@ -75,7 +75,7 @@ function PageContent() {
       <Header />
 
       {/* ─── HERO ─── */}
-      <section id="inicio" className="scroll-snap-section relative flex flex-col h-[calc(100vh-5rem)] overflow-hidden">
+      <section id="inicio" className="scroll-snap-section relative flex flex-col min-h-[calc(100vh-5rem)] md:h-[calc(100vh-5rem)] overflow-visible md:overflow-hidden">
         {/* Olas en capas absolutas — traspasan el contenido, sin hitbox */}
         <div className="absolute top-0 left-0 right-0 z-[5] pointer-events-none wave-hero-top">
           <WaveDivider variant="accent" className="wave-hero-top" flip />
@@ -158,7 +158,7 @@ function PageContent() {
 
             {/* CTA button */}
             <motion.div
-              className="mt-5"
+              className="mt-5 flex justify-center md:justify-start"
               initial={{ opacity: 0, y: LATERAL.fromY }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: LATERAL.durationFlower, delay: 0.7, ease: LATERAL.ease }}
@@ -169,7 +169,7 @@ function PageContent() {
                 href={WHATSAPP_LINK}
                 target="_blank"
                 rel="noreferrer"
-                className="btn-cta inline-block rounded-xl px-10 py-5 text-base md:text-lg tracking-wide shadow-lg"
+                className="btn-cta inline-flex items-center justify-center text-center rounded-xl px-8 md:px-10 py-4 md:py-5 text-base md:text-lg tracking-wide shadow-lg leading-tight"
               >
                 {t("hero.scheduleBtn")}
               </motion.a>
