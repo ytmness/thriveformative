@@ -4,6 +4,7 @@ import { motion, useReducedMotion, Variants } from "framer-motion";
 import FloralSideOrnaments from "./FloralSideOrnaments";
 import { useScrollDirection } from "@/lib/useScrollDirection";
 import { LATERAL } from "@/lib/lateralAnimation";
+import { useEffect, useState } from "react";
 
 type CardVariant =
   | "slideUp"
@@ -68,6 +69,7 @@ export default function GiantScrollCard({
   noFade = false,
 }: GiantScrollCardProps) {
   const shouldReduceMotion = useReducedMotion();
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
   const scrollDirection = useScrollDirection();
   const fromY = scrollDirection === "down" ? LATERAL.fromY : -LATERAL.fromY;
   const variants = buildVariants(fromY);
@@ -80,12 +82,22 @@ export default function GiantScrollCard({
 
   const effectiveVariants: Variants = noFade ? noFadeVariants : (shouldReduceMotion ? reducedVariants : v);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(max-width: 1024px), (pointer: coarse)");
+    const update = () => setIsTouchDevice(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+
   return (
     <motion.article
       id={id}
       className={`giant-card scroll-snap-section ${className}`}
-      initial="hidden"
-      whileInView="visible"
+      initial={isTouchDevice ? false : "hidden"}
+      animate={isTouchDevice ? "visible" : undefined}
+      whileInView={isTouchDevice ? undefined : "visible"}
       viewport={{ once: true, amount: 0.15, margin: "-50px" }}
       transition={{
         duration: LATERAL.durationFlower,

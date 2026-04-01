@@ -49,8 +49,8 @@ export default function LoadingScreen() {
               <motion.img
                 src={currentLogo}
                 alt="Thrive Formative"
-                className="w-48 h-48 object-contain"
-                initial={{ x: 50 }}
+                className="w-48 h-48 object-contain -translate-x-1 sm:translate-x-0"
+                initial={{ x: 0 }}
                 animate={{
                   y: [0, -10, 0],
                 }}
