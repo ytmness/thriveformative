@@ -40,6 +40,17 @@ html {
   scroll-snap-stop: always;
 }
 
+/* Mobile/touch: snap menos agresivo para scroll natural */
+@media (max-width: 1024px) {
+  html {
+    scroll-snap-type: y proximity;
+  }
+
+  .scroll-snap-section {
+    scroll-snap-stop: normal;
+  }
+}
+
 /* Custom scrollbar (dark theme friendly) */
 ::-webkit-scrollbar {
   width: 6px;
