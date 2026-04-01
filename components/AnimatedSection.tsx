@@ -2,9 +2,10 @@
 
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import { useScrollDirection } from "@/lib/useScrollDirection";
 import { LATERAL } from "@/lib/lateralAnimation";
+import { useIsTouchDevice } from "@/lib/useIsTouchDevice";
 
 interface AnimatedSectionProps {
   children: React.ReactNode;
@@ -20,19 +21,10 @@ export default function AnimatedSection({
   direction = "up" 
 }: AnimatedSectionProps) {
   const ref = useRef(null);
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const isTouchDevice = useIsTouchDevice();
   const isInView = useInView(ref, { once: true, margin: "-100px", amount: 0.02 });
   const scrollDirection = useScrollDirection();
   const fromY = scrollDirection === "down" ? LATERAL.fromY : -LATERAL.fromY;
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const media = window.matchMedia("(max-width: 1024px), (pointer: coarse)");
-    const update = () => setIsTouchDevice(media.matches);
-    update();
-    media.addEventListener("change", update);
-    return () => media.removeEventListener("change", update);
-  }, []);
 
   const variants = {
     up: {

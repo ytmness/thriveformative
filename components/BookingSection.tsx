@@ -10,6 +10,7 @@ import { useScrollDirection } from "@/lib/useScrollDirection";
 import { LATERAL } from "@/lib/lateralAnimation";
 import { useUser } from "@/lib/useUser";
 import { createClient } from "@/lib/supabase";
+import { useIsTouchDevice } from "@/lib/useIsTouchDevice";
 
 const WHATSAPP_LINK = "https://google.com";
 
@@ -29,6 +30,7 @@ export default function BookingSection() {
   const t = useTranslations("booking");
   const tAuth = useTranslations("auth");
   const locale = useLocale();
+  const isTouchDevice = useIsTouchDevice();
   const scrollDirection = useScrollDirection();
   const fromY = scrollDirection === "down" ? LATERAL.fromY : -LATERAL.fromY;
   const { user, loading } = useUser();
@@ -141,8 +143,9 @@ export default function BookingSection() {
       <AnimatedSection>
         <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
           <motion.div
-            initial={{ opacity: 0, y: fromY }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={isTouchDevice ? false : { opacity: 0, y: fromY }}
+            animate={isTouchDevice ? { opacity: 1, y: 0 } : undefined}
+            whileInView={isTouchDevice ? undefined : { opacity: 1, y: 0 }}
             viewport={{ once: false, amount: 0.02 }}
             transition={{ duration: LATERAL.durationFlower, ease: LATERAL.ease }}
             className="mb-4"
@@ -155,8 +158,9 @@ export default function BookingSection() {
             </p>
           </motion.div>
           <motion.div
-            initial={{ opacity: 0, y: fromY }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={isTouchDevice ? false : { opacity: 0, y: fromY }}
+            animate={isTouchDevice ? { opacity: 1, y: 0 } : undefined}
+            whileInView={isTouchDevice ? undefined : { opacity: 1, y: 0 }}
             viewport={{ once: false, amount: 0.02 }}
             transition={{ duration: LATERAL.durationBranch, delay: 0.1, ease: LATERAL.ease }}
             className="mt-10 max-w-xl mx-auto"
@@ -218,8 +222,9 @@ export default function BookingSection() {
     <AnimatedSection>
       <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
         <motion.div
-          initial={{ opacity: 0, y: fromY }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={isTouchDevice ? false : { opacity: 0, y: fromY }}
+          animate={isTouchDevice ? { opacity: 1, y: 0 } : undefined}
+          whileInView={isTouchDevice ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: false, amount: 0.02 }}
           transition={{ duration: LATERAL.durationFlower, ease: LATERAL.ease }}
           className="mb-4"
@@ -235,8 +240,9 @@ export default function BookingSection() {
         <div className="mt-10 grid md:grid-cols-[1fr_1.2fr] gap-10 items-start">
           {/* Calendario */}
           <motion.div
-            initial={{ opacity: 0, x: -LATERAL.fromY }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={isTouchDevice ? false : { opacity: 0, x: -LATERAL.fromY }}
+            animate={isTouchDevice ? { opacity: 1, x: 0 } : undefined}
+            whileInView={isTouchDevice ? undefined : { opacity: 1, x: 0 }}
             viewport={{ once: false, amount: 0.02 }}
             transition={{ duration: LATERAL.durationBranch, ease: LATERAL.ease }}
             className="bg-surface border border-theme rounded-2xl shadow-soft p-6"
@@ -299,8 +305,9 @@ export default function BookingSection() {
 
           {/* Horarios */}
           <motion.div
-            initial={{ opacity: 0, x: LATERAL.fromY }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={isTouchDevice ? false : { opacity: 0, x: LATERAL.fromY }}
+            animate={isTouchDevice ? { opacity: 1, x: 0 } : undefined}
+            whileInView={isTouchDevice ? undefined : { opacity: 1, x: 0 }}
             viewport={{ once: false, amount: 0.02 }}
             transition={{ duration: LATERAL.durationBranch, ease: LATERAL.ease }}
           >
@@ -356,8 +363,9 @@ export default function BookingSection() {
         </div>
 
         <motion.div
-          initial={{ opacity: 0, y: fromY }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={isTouchDevice ? false : { opacity: 0, y: fromY }}
+          animate={isTouchDevice ? { opacity: 1, y: 0 } : undefined}
+          whileInView={isTouchDevice ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: false, amount: 0.02 }}
           transition={{ duration: LATERAL.durationBranch, delay: 0.2, ease: LATERAL.ease }}
           className="mt-10 text-center"

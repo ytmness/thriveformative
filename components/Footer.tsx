@@ -5,6 +5,7 @@ import { useTheme } from "@/components/theme/ThemeProvider";
 import { useTranslations, useLocale } from "next-intl";
 import { useScrollDirection } from "@/lib/useScrollDirection";
 import { LATERAL } from "@/lib/lateralAnimation";
+import { useIsTouchDevice } from "@/lib/useIsTouchDevice";
 
 const WHATSAPP_LINK = "https://google.com";
 
@@ -19,6 +20,7 @@ export default function Footer() {
   const { theme } = useTheme();
   const t = useTranslations();
   const locale = useLocale();
+  const isTouchDevice = useIsTouchDevice();
   const scrollDirection = useScrollDirection();
   const fromY = scrollDirection === "down" ? LATERAL.fromY : -LATERAL.fromY;
 
@@ -34,8 +36,9 @@ export default function Footer() {
 
   return (
     <motion.footer
-      initial={{ opacity: 0, y: fromY }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={isTouchDevice ? false : { opacity: 0, y: fromY }}
+      animate={isTouchDevice ? { opacity: 1, y: 0 } : undefined}
+      whileInView={isTouchDevice ? undefined : { opacity: 1, y: 0 }}
       viewport={{ once: false, amount: 0.02 }}
       transition={{ duration: LATERAL.durationFlower, ease: LATERAL.ease }}
       className="py-16 md:py-20 border-t border-theme"

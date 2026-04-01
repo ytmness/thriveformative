@@ -4,6 +4,7 @@ import { useMemo, useRef } from "react";
 import { motion, useReducedMotion, useInView } from "framer-motion";
 import { useScrollDirection } from "@/lib/useScrollDirection";
 import { LATERAL } from "@/lib/lateralAnimation";
+import { useIsTouchDevice } from "@/lib/useIsTouchDevice";
 
 /* ───────────────────────────────────────────
    Camino entre ramas + flores por encima
@@ -118,9 +119,11 @@ function generateOrnaments(): OrnamentDef[] {
 
 export default function FloralSideOrnaments() {
   const shouldReduceMotion = useReducedMotion();
+  const isTouchDevice = useIsTouchDevice();
   const ornaments = useMemo(() => generateOrnaments(), []);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(wrapperRef, { once: false, amount: 0.02 });
+  const shouldShow = isTouchDevice || isInView;
   const scrollDirection = useScrollDirection();
   const fromY = scrollDirection === "down" ? LATERAL.fromY : -LATERAL.fromY;
 
@@ -149,10 +152,10 @@ export default function FloralSideOrnaments() {
               zIndex: item.zIndex,
             }}
             initial={hiddenState}
-            animate={isInView ? visibleState : hiddenState}
+            animate={shouldShow ? visibleState : hiddenState}
             transition={{
               duration: shouldReduceMotion ? 0.3 : isFlower ? LATERAL.durationFlower : LATERAL.durationBranch + (i % 3) * 0.05,
-              delay: isInView ? (shouldReduceMotion ? 0 : staggerDelay) : 0,
+              delay: shouldShow ? (shouldReduceMotion ? 0 : staggerDelay) : 0,
               ease: LATERAL.ease,
             }}
           >

@@ -17,6 +17,7 @@ import TypewriterText from "@/components/TypewriterText";
 import { useTranslations } from "next-intl";
 import { useScrollDirection } from "@/lib/useScrollDirection";
 import { LATERAL } from "@/lib/lateralAnimation";
+import { useIsTouchDevice } from "@/lib/useIsTouchDevice";
 
 const WHATSAPP_LINK = "https://google.com";
 
@@ -63,6 +64,7 @@ function OrganicPattern({ className = "" }: { className?: string }) {
    ─────────────────────────────────────────── */
 function PageContent() {
   const t = useTranslations();
+  const isTouchDevice = useIsTouchDevice();
   const scrollDirection = useScrollDirection();
   const fromY = scrollDirection === "down" ? LATERAL.fromY : -LATERAL.fromY;
 
@@ -249,8 +251,9 @@ function PageContent() {
             <div className="mt-10 grid md:grid-cols-[1fr_1.4fr] gap-10 items-start">
                 {/* Left — Machine image + FDA badge overlay */}
                 <motion.div
-                  initial={{ opacity: 0, x: -LATERAL.fromY }}
-                  whileInView={{ opacity: 1, x: 0 }}
+                  initial={isTouchDevice ? false : { opacity: 0, x: -LATERAL.fromY }}
+                  animate={isTouchDevice ? { opacity: 1, x: 0 } : undefined}
+                  whileInView={isTouchDevice ? undefined : { opacity: 1, x: 0 }}
                   viewport={{ once: false, amount: 0.02 }}
                   transition={{ duration: LATERAL.durationBranch, ease: LATERAL.ease }}
                   className="relative"
@@ -267,8 +270,9 @@ function PageContent() {
                   </motion.div>
                   {/* FDA seal — positioned as stamp on top-right */}
                   <motion.div
-                    initial={{ opacity: 0, scale: LATERAL.scaleFlower, rotate: -15 }}
-                    whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
+                    initial={isTouchDevice ? false : { opacity: 0, scale: LATERAL.scaleFlower, rotate: -15 }}
+                    animate={isTouchDevice ? { opacity: 1, scale: 1, rotate: 0 } : undefined}
+                    whileInView={isTouchDevice ? undefined : { opacity: 1, scale: 1, rotate: 0 }}
                     viewport={{ once: false, amount: 0.02 }}
                     transition={{ duration: LATERAL.durationFlower, delay: 0.25, ease: LATERAL.ease }}
                     className="absolute -top-8 -right-8 w-32 h-32 md:w-40 md:h-40"
@@ -284,8 +288,9 @@ function PageContent() {
 
                 {/* Right — FDA info + indications */}
                 <motion.div
-                  initial={{ opacity: 0, x: LATERAL.fromY }}
-                  whileInView={{ opacity: 1, x: 0 }}
+                  initial={isTouchDevice ? false : { opacity: 0, x: LATERAL.fromY }}
+                  animate={isTouchDevice ? { opacity: 1, x: 0 } : undefined}
+                  whileInView={isTouchDevice ? undefined : { opacity: 1, x: 0 }}
                   viewport={{ once: false, amount: 0.02 }}
                   transition={{ duration: LATERAL.durationBranch, delay: 0.1, ease: LATERAL.ease }}
                   className="bg-surface border border-theme rounded-2xl shadow-soft p-6"
@@ -310,8 +315,9 @@ function PageContent() {
                 {[1, 2, 3].map((i) => (
                   <motion.div
                     key={i}
-                    initial={{ opacity: 0, y: fromY }}
-                    whileInView={{ opacity: 1, y: 0 }}
+                    initial={isTouchDevice ? false : { opacity: 0, y: fromY }}
+                    animate={isTouchDevice ? { opacity: 1, y: 0 } : undefined}
+                    whileInView={isTouchDevice ? undefined : { opacity: 1, y: 0 }}
                     viewport={{ once: false, amount: 0.02 }}
                     transition={{ duration: LATERAL.durationBranch, delay: i * LATERAL.staggerBase, ease: LATERAL.ease }}
                     whileHover={{ y: -5, boxShadow: "0 20px 50px rgba(0,0,0,0.18)" }}
@@ -457,10 +463,12 @@ function FullscreenCard({ title, titleA, titleB, children, large }: { title?: st
 }
 
 function Stat({ label, value, delay = 0, fromY = LATERAL.fromY }: { label: string; value: string; delay?: number; fromY?: number }) {
+  const isTouchDevice = useIsTouchDevice();
   return (
     <motion.div
-      initial={{ opacity: 0, y: fromY }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={isTouchDevice ? false : { opacity: 0, y: fromY }}
+      animate={isTouchDevice ? { opacity: 1, y: 0 } : undefined}
+      whileInView={isTouchDevice ? undefined : { opacity: 1, y: 0 }}
       viewport={{ once: false, amount: 0.02 }}
       transition={{ duration: LATERAL.durationBranch, delay, ease: LATERAL.ease }}
       whileHover={{ y: -4, boxShadow: "0 10px 30px rgba(0,0,0,0.12)" }}
@@ -474,10 +482,12 @@ function Stat({ label, value, delay = 0, fromY = LATERAL.fromY }: { label: strin
 
 
 function SectionTitle({ title, subtitle, fromY = LATERAL.fromY }: { title: string; subtitle: string; fromY?: number }) {
+  const isTouchDevice = useIsTouchDevice();
   return (
     <motion.div
-      initial={{ opacity: 0, y: fromY }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={isTouchDevice ? false : { opacity: 0, y: fromY }}
+      animate={isTouchDevice ? { opacity: 1, y: 0 } : undefined}
+      whileInView={isTouchDevice ? undefined : { opacity: 1, y: 0 }}
       viewport={{ once: false, amount: 0.02 }}
       transition={{ duration: LATERAL.durationBranch, ease: LATERAL.ease }}
       className="mb-4"
@@ -489,10 +499,12 @@ function SectionTitle({ title, subtitle, fromY = LATERAL.fromY }: { title: strin
 }
 
 function Service({ name, desc, delay = 0 }: { name: string; desc: string; delay?: number }) {
+  const isTouchDevice = useIsTouchDevice();
   return (
     <motion.div
-      initial={{ opacity: 0, scale: LATERAL.scaleBranch }}
-      whileInView={{ opacity: 1, scale: 1 }}
+      initial={isTouchDevice ? false : { opacity: 0, scale: LATERAL.scaleBranch }}
+      animate={isTouchDevice ? { opacity: 1, scale: 1 } : undefined}
+      whileInView={isTouchDevice ? undefined : { opacity: 1, scale: 1 }}
       viewport={{ once: false, amount: 0.02 }}
       transition={{ duration: LATERAL.durationBranch, delay, ease: LATERAL.ease }}
       whileHover={{ y: -6, boxShadow: "0 20px 50px rgba(0,0,0,0.18)" }}
@@ -506,10 +518,12 @@ function Service({ name, desc, delay = 0 }: { name: string; desc: string; delay?
 
 function Plan({ name, items, featured, delay = 0, fromY = LATERAL.fromY }: { name: string; items: string[]; featured?: boolean; delay?: number; fromY?: number }) {
   const t = useTranslations();
+  const isTouchDevice = useIsTouchDevice();
   return (
     <motion.div
-      initial={{ opacity: 0, y: fromY }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={isTouchDevice ? false : { opacity: 0, y: fromY }}
+      animate={isTouchDevice ? { opacity: 1, y: 0 } : undefined}
+      whileInView={isTouchDevice ? undefined : { opacity: 1, y: 0 }}
       viewport={{ once: false, amount: 0.02 }}
       transition={{ duration: LATERAL.durationBranch, delay, ease: LATERAL.ease }}
       whileHover={{
