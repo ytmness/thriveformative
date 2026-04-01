@@ -40,13 +40,15 @@ html {
   scroll-snap-stop: always;
 }
 
-/* Mobile/touch: snap menos agresivo para scroll natural */
+/* Mobile/touch: scroll completamente libre */
 @media (max-width: 1024px) {
   html {
-    scroll-snap-type: y proximity;
+    scroll-snap-type: none;
+    scroll-behavior: auto;
   }
 
   .scroll-snap-section {
+    scroll-snap-align: none;
     scroll-snap-stop: normal;
   }
 }
