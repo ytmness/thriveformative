@@ -404,6 +404,21 @@
   }
 }
 
+@media (max-width: 1024px) {
+  .scroll-cards-stack .giant-card {
+    min-height: auto;
+    padding: 0.75rem 0;
+    align-items: stretch;
+    justify-content: flex-start;
+  }
+
+  .giant-card-inner {
+    min-height: auto;
+    padding: 4rem 1rem 3rem;
+    justify-content: flex-start;
+  }
+}
+
 /* =========================
    Convergence Scroll v2
    Stage fijo tipo cámara — la info viene hacia ti
