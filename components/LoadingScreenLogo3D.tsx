@@ -17,7 +17,7 @@ function RotatingLogo({ paused }: { paused: boolean }) {
 
   useFrame((_, delta) => {
     if (paused || !groupRef.current) return;
-    groupRef.current.rotation.y += delta * 0.65;
+    groupRef.current.rotation.y += delta * 1.05;
   });
 
   return (

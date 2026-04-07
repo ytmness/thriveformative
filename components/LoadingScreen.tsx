@@ -4,6 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 
+/** Tiempo visible del overlay antes del fade-out (ms). */
+const LOADING_DURATION_MS = 4300;
+
 const LoadingScreenLogo3D = dynamic(() => import("./LoadingScreenLogo3D"), {
   ssr: false,
   loading: () => (
@@ -20,7 +23,7 @@ export default function LoadingScreen() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 2500);
+    }, LOADING_DURATION_MS);
 
     return () => clearTimeout(timer);
   }, []);
@@ -43,7 +46,7 @@ export default function LoadingScreen() {
                 ease: "easeOut",
               }}
             >
-              <div className="relative isolate min-h-[192px]" aria-hidden>
+              <div className="relative isolate min-h-[192px] translate-x-2 sm:translate-x-4" aria-hidden>
                 <LoadingScreenLogo3D />
               </div>
             </motion.div>
@@ -70,7 +73,7 @@ export default function LoadingScreen() {
                 initial={{ width: "0%" }}
                 animate={{ width: "100%" }}
                 transition={{
-                  duration: 2,
+                  duration: 3.4,
                   ease: "easeInOut",
                 }}
                 className="h-full bg-[rgb(var(--primary))]"
