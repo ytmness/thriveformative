@@ -46,7 +46,7 @@ export default function LoadingScreen() {
                 ease: "easeOut",
               }}
             >
-              <div className="relative isolate min-h-[192px] translate-x-2 sm:translate-x-4" aria-hidden>
+              <div className="relative isolate min-h-[192px] translate-x-1 sm:translate-x-2" aria-hidden>
                 <LoadingScreenLogo3D />
               </div>
             </motion.div>
