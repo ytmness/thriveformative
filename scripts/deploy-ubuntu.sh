@@ -47,10 +47,18 @@ echo "==> Instalando dependencias y construyendo..."
 npm install
 npm run build
 
-# Copiar archivos estáticos para standalone
+# Copiar archivos estáticos para standalone (obligatorio o /_next/static y /logos dan 404)
 if [ -d ".next/standalone" ]; then
-  cp -r public .next/standalone/
+  mkdir -p .next/standalone/.next
+  rm -rf .next/standalone/.next/static
   cp -r .next/static .next/standalone/.next/
+  rm -rf .next/standalone/public
+  cp -r public .next/standalone/
+  echo "==> Estáticos copiados a .next/standalone (.next/static + public)"
+  if ! find .next/standalone/.next/static/chunks -name "*.js" 2>/dev/null | grep -q .; then
+    echo "ERROR: no hay chunks en .next/standalone/.next/static — revisa el build."
+    exit 1
+  fi
 fi
 
 echo "==> Configurando servicio systemd..."
