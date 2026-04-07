@@ -6,7 +6,8 @@ import { useScrollDirection } from "@/lib/useScrollDirection";
 import { LATERAL } from "@/lib/lateralAnimation";
 import { useIsTouchDevice } from "@/lib/useIsTouchDevice";
 
-const SIDE_LOOP_IMAGE = "/floral/guias3.png";
+const LEFT_SIDE_LOOP_IMAGE = "/floral/guialadoizquierdo.png";
+const RIGHT_SIDE_LOOP_IMAGE = "/floral/guialadoderecho.png";
 
 export default function FloralSideOrnaments() {
   const shouldReduceMotion = useReducedMotion();
@@ -23,8 +24,19 @@ export default function FloralSideOrnaments() {
   return (
     <div ref={wrapperRef} className="floral-arbor-wrapper floral-arbor-wrapper--extended" aria-hidden>
       <motion.div
-        className="floral-side-loop"
-        style={{ backgroundImage: `url(${SIDE_LOOP_IMAGE})` }}
+        className="floral-side-loop floral-side-loop--left"
+        style={{ backgroundImage: `url(${LEFT_SIDE_LOOP_IMAGE})` }}
+        initial={hiddenState}
+        animate={shouldShow ? visibleState : hiddenState}
+        transition={{
+          duration: shouldReduceMotion ? 0.3 : LATERAL.durationBranch,
+          delay: 0,
+          ease: LATERAL.ease,
+        }}
+      />
+      <motion.div
+        className="floral-side-loop floral-side-loop--right"
+        style={{ backgroundImage: `url(${RIGHT_SIDE_LOOP_IMAGE})` }}
         initial={hiddenState}
         animate={shouldShow ? visibleState : hiddenState}
         transition={{
