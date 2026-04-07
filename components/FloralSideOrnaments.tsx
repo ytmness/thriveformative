@@ -6,7 +6,7 @@ import { useScrollDirection } from "@/lib/useScrollDirection";
 import { LATERAL } from "@/lib/lateralAnimation";
 import { useIsTouchDevice } from "@/lib/useIsTouchDevice";
 
-const SIDE_LOOP_IMAGE = "/floral/guias2.png";
+const SIDE_LOOP_IMAGE = "/floral/guias3.png";
 
 export default function FloralSideOrnaments() {
   const shouldReduceMotion = useReducedMotion();
