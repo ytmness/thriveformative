@@ -1,12 +1,21 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import { useTheme } from "./theme/ThemeProvider";
+
+const LoadingScreenLogo3D = dynamic(() => import("./LoadingScreenLogo3D"), {
+  ssr: false,
+  loading: () => (
+    <div
+      className="h-48 w-48 max-w-[192px] mx-auto rounded-lg bg-[rgb(var(--surface)/0.35)] animate-pulse"
+      aria-hidden
+    />
+  ),
+});
 
 export default function LoadingScreen() {
   const [isLoading, setIsLoading] = useState(true);
-  const { theme } = useTheme();
 
   useEffect(() => {
     // Simular carga inicial
@@ -16,16 +25,6 @@ export default function LoadingScreen() {
 
     return () => clearTimeout(timer);
   }, []);
-
-  // Mapeo de logos según el tema
-  const logoMap: Record<string, string> = {
-    "golden-sand": "/logos/Recurso-1-2x.png",
-    "nocturnal": "/logos/Recurso-2-2x.png",
-    "metals": "/logos/Recurso-3-2x.png",
-    "earth-modern": "/logos/Recurso-4-5x.png",
-  };
-
-  const currentLogo = logoMap[theme] || logoMap["nocturnal"];
 
   return (
     <AnimatePresence>
@@ -46,20 +45,9 @@ export default function LoadingScreen() {
                 ease: "easeOut",
               }}
             >
-              <motion.img
-                src={currentLogo}
-                alt="Thrive Formative"
-                className="w-48 h-48 object-contain"
-                initial={{ x: 0 }}
-                animate={{
-                  y: [0, -10, 0],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
+              <div className="relative" aria-hidden>
+                <LoadingScreenLogo3D />
+              </div>
             </motion.div>
 
             {/* Texto animado */}
