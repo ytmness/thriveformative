@@ -1,24 +1,15 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 
-const LoadingScreenLogo3D = dynamic(() => import("./LoadingScreenLogo3D"), {
-  ssr: false,
-  loading: () => (
-    <div
-      className="h-48 w-48 max-w-[192px] mx-auto rounded-lg bg-[rgb(var(--surface)/0.35)] animate-pulse"
-      aria-hidden
-    />
-  ),
-});
+/** Logo 2D estable (evita WebGL/R3F en el primer paint — suele causar pantalla en blanco si falla el canvas). */
+const LOADING_LOGO_SRC = "/logos/Logo-Golden-Sand-color-06.png";
 
 export default function LoadingScreen() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simular carga inicial
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 2500);
@@ -36,7 +27,6 @@ export default function LoadingScreen() {
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-[rgb(var(--bg))]"
         >
           <div className="relative w-full max-w-sm px-4 flex flex-col items-center">
-            {/* Logo con animación de fade y scale */}
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -45,12 +35,21 @@ export default function LoadingScreen() {
                 ease: "easeOut",
               }}
             >
-              <div className="relative" aria-hidden>
-                <LoadingScreenLogo3D />
+              <div className="relative h-48 w-48 max-w-[192px] mx-auto flex items-center justify-center" aria-hidden>
+                <motion.img
+                  src={LOADING_LOGO_SRC}
+                  alt=""
+                  className="h-full w-full object-contain"
+                  animate={{ rotate: 360 }}
+                  transition={{
+                    duration: 14,
+                    repeat: Infinity,
+                    ease: "linear",
+                  }}
+                />
               </div>
             </motion.div>
 
-            {/* Texto animado */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -68,10 +67,7 @@ export default function LoadingScreen() {
               </p>
             </motion.div>
 
-            {/* Barra de progreso */}
-            <motion.div
-              className="mt-8 w-64 h-0.5 bg-[rgb(var(--surface))] rounded-full overflow-hidden mx-auto"
-            >
+            <motion.div className="mt-8 w-64 h-0.5 bg-[rgb(var(--surface))] rounded-full overflow-hidden mx-auto">
               <motion.div
                 initial={{ width: "0%" }}
                 animate={{ width: "100%" }}
@@ -83,7 +79,6 @@ export default function LoadingScreen() {
               />
             </motion.div>
 
-            {/* Puntos de carga animados */}
             <motion.div className="flex justify-center gap-2 mt-6">
               {[0, 1, 2].map((i) => (
                 <motion.div
