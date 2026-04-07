@@ -3,9 +3,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import ClientErrorBoundary from "@/components/ClientErrorBoundary";
-
-const LOADING_LOGO_2D_SRC = "/logos/Logo-Golden-Sand-color-06.png";
 
 const LoadingScreenLogo3D = dynamic(() => import("./LoadingScreenLogo3D"), {
   ssr: false,
@@ -16,24 +13,6 @@ const LoadingScreenLogo3D = dynamic(() => import("./LoadingScreenLogo3D"), {
     />
   ),
 });
-
-function LoadingLogo2DFallback() {
-  return (
-    <div className="relative h-48 w-48 max-w-[192px] mx-auto flex items-center justify-center" aria-hidden>
-      <motion.img
-        src={LOADING_LOGO_2D_SRC}
-        alt=""
-        className="h-full w-full object-contain"
-        animate={{ rotate: 360 }}
-        transition={{
-          duration: 14,
-          repeat: Infinity,
-          ease: "linear",
-        }}
-      />
-    </div>
-  );
-}
 
 export default function LoadingScreen() {
   const [isLoading, setIsLoading] = useState(true);
@@ -56,10 +35,6 @@ export default function LoadingScreen() {
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-[rgb(var(--bg))]"
         >
           <div className="relative w-full max-w-sm px-4 flex flex-col items-center">
-            {/*
-              No usar scale en el padre del Canvas WebGL: en muchos navegadores rompe el
-              contexto GL y el modelo 3D no se pinta (solo ves fallback o texto).
-            */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -69,9 +44,7 @@ export default function LoadingScreen() {
               }}
             >
               <div className="relative isolate min-h-[192px]" aria-hidden>
-                <ClientErrorBoundary fallback={<LoadingLogo2DFallback />}>
-                  <LoadingScreenLogo3D />
-                </ClientErrorBoundary>
+                <LoadingScreenLogo3D />
               </div>
             </motion.div>
 

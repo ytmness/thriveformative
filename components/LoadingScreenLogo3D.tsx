@@ -2,7 +2,7 @@
 
 import { Suspense, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Bounds, Center, Environment, useGLTF } from "@react-three/drei";
+import { Bounds, Center, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { useReducedMotion } from "framer-motion";
 
@@ -49,16 +49,22 @@ export default function LoadingScreenLogo3D() {
         onCreated={({ gl }) => {
           gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
           gl.toneMapping = THREE.ACESFilmicToneMapping;
-          gl.toneMappingExposure = 1.05;
+          gl.toneMappingExposure = 1.25;
+          if ("outputColorSpace" in gl) {
+            (gl as THREE.WebGLRenderer).outputColorSpace = THREE.SRGBColorSpace;
+          }
         }}
       >
-        <ambientLight intensity={0.55} />
-        <hemisphereLight intensity={0.45} groundColor="#1a1510" color="#fff8e8" />
-        <directionalLight position={[6, 8, 7]} intensity={1.35} />
-        <directionalLight position={[-5, 3, -4]} intensity={0.45} />
-        <spotLight position={[0, 6, 2]} angle={0.55} penumbra={0.6} intensity={0.55} />
-        {/* Oro / PBR: sin entorno el metal se ve negro o plano */}
-        <Environment preset="studio" environmentIntensity={0.85} />
+        <ambientLight intensity={0.9} />
+        <hemisphereLight intensity={0.65} groundColor="#2a2218" color="#fff5e0" />
+        <directionalLight position={[6, 8, 7]} intensity={1.8} />
+        <directionalLight position={[-5, 3, -4]} intensity={0.75} />
+        <spotLight position={[0, 6, 2]} angle={0.55} penumbra={0.6} intensity={0.85} />
+        {/*
+          Sin <Environment>: en producción el preset suele descargar HDR remoto y puede fallar
+          (bloqueos, red), lanzar error y antes activaba el fallback PNG equivocado.
+          Luces fuertes + tone mapping bastan para ver el GLB dorado.
+        */}
         <Suspense fallback={null}>
           <RotatingLogo paused={!!paused} />
         </Suspense>
