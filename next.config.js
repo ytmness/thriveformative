@@ -6,6 +6,7 @@ const withNextIntl = require('next-intl/plugin')(
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone', // para despliegue en servidor (Node)
+  transpilePackages: ['three', '@react-three/fiber', '@react-three/drei'],
 }
 
 module.exports = withNextIntl(nextConfig);
