@@ -92,28 +92,17 @@ STANDALONE="$APP_DIR/.next/standalone"
 NGINX_CONF="/etc/nginx/sites-available/thriveformative"
 if [ -f "$NGINX_CONF" ]; then
   echo "==> Nginx: config ya existe, no se sobrescribe (se conserva SSL de Certbot)"
+  echo "    Si ves 404 en JS/CSS/fuentes o /logos: sudo bash $APP_DIR/scripts/apply-nginx-proxy-only.sh"
 else
+  # Proxy puro: Next standalone ya sirve /_next/static y archivos de public/.
+  # Evita 404 por alias mal alineados (chunks con hash, fuentes .woff2, CSS, /logos/).
   cat > "$NGINX_CONF" << EOF
-# Thrive Formative — solo para $DOMAIN y www.$DOMAIN
+# Thrive Formative — proxy a Node (standalone)
 server {
     listen 80;
+    listen [::]:80;
     server_name $DOMAIN www.$DOMAIN;
-    root $STANDALONE;
 
-    # Archivos estáticos de Next.js (_next/static) — servidos por Nginx
-    location /_next/static/ {
-        alias $STANDALONE/.next/static/;
-    }
-
-    # Logos e imágenes públicas (PNG + logo3ddorado.glb, etc.)
-    location /logos/ {
-        alias $STANDALONE/public/logos/;
-    }
-    location /floral/ {
-        alias $STANDALONE/public/floral/;
-    }
-
-    # Resto: proxy a Node
     location / {
         proxy_pass http://127.0.0.1:3001;
         proxy_http_version 1.1;
@@ -127,7 +116,7 @@ server {
     }
 }
 EOF
-  echo "==> Nginx: config creada. Para HTTPS ejecuta: sudo certbot --nginx -d $DOMAIN -d www.$DOMAIN"
+  echo "==> Nginx: config creada (solo proxy). Para HTTPS: sudo certbot --nginx -d $DOMAIN -d www.$DOMAIN"
 fi
 
 ln -sf "$NGINX_CONF" /etc/nginx/sites-enabled/thriveformative
