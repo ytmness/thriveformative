@@ -2,16 +2,17 @@
 
 import { Suspense, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Bounds, Center, useGLTF } from "@react-three/drei";
+import { Bounds, Center, Environment, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { useReducedMotion } from "framer-motion";
 
-const MODEL_URL = "/logos/logo3ddorado.glb";
+/** Ruta bajo `public/logos/` — Nginx debe servir `/logos/*.glb`. */
+const MODEL_PATH = "/logos/logo3ddorado.glb";
 
-useGLTF.preload(MODEL_URL);
+useGLTF.preload(MODEL_PATH);
 
 function RotatingLogo({ paused }: { paused: boolean }) {
-  const { scene } = useGLTF(MODEL_URL);
+  const { scene } = useGLTF(MODEL_PATH);
   const groupRef = useRef<THREE.Group>(null);
 
   useFrame((_, delta) => {
@@ -20,7 +21,7 @@ function RotatingLogo({ paused }: { paused: boolean }) {
   });
 
   return (
-    <Bounds fit clip margin={1.15}>
+    <Bounds fit clip={false} margin={1.2}>
       <Center>
         <group ref={groupRef}>
           <primitive object={scene} />
@@ -34,10 +35,10 @@ export default function LoadingScreenLogo3D() {
   const paused = useReducedMotion();
 
   return (
-    <div className="h-48 w-48 max-w-[192px] mx-auto [&_canvas]:block">
+    <div className="h-48 w-48 max-w-[192px] mx-auto [&_canvas]:block [&_canvas]:max-h-[192px]">
       <Canvas
         camera={{ position: [0, 0, 5], fov: 42 }}
-        dpr={[1, 1.75]}
+        dpr={[1, 2]}
         gl={{
           alpha: true,
           antialias: true,
@@ -47,11 +48,17 @@ export default function LoadingScreenLogo3D() {
         className="h-full w-full touch-none"
         onCreated={({ gl }) => {
           gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+          gl.toneMapping = THREE.ACESFilmicToneMapping;
+          gl.toneMappingExposure = 1.05;
         }}
       >
-        <ambientLight intensity={0.78} />
-        <directionalLight position={[5, 8, 6]} intensity={1.12} />
-        <directionalLight position={[-4, 2, -3]} intensity={0.38} />
+        <ambientLight intensity={0.55} />
+        <hemisphereLight intensity={0.45} groundColor="#1a1510" color="#fff8e8" />
+        <directionalLight position={[6, 8, 7]} intensity={1.35} />
+        <directionalLight position={[-5, 3, -4]} intensity={0.45} />
+        <spotLight position={[0, 6, 2]} angle={0.55} penumbra={0.6} intensity={0.55} />
+        {/* Oro / PBR: sin entorno el metal se ve negro o plano */}
+        <Environment preset="studio" environmentIntensity={0.85} />
         <Suspense fallback={null}>
           <RotatingLogo paused={!!paused} />
         </Suspense>

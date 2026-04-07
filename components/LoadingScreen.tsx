@@ -56,15 +56,19 @@ export default function LoadingScreen() {
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-[rgb(var(--bg))]"
         >
           <div className="relative w-full max-w-sm px-4 flex flex-col items-center">
+            {/*
+              No usar scale en el padre del Canvas WebGL: en muchos navegadores rompe el
+              contexto GL y el modelo 3D no se pinta (solo ves fallback o texto).
+            */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{
-                duration: 0.6,
+                duration: 0.55,
                 ease: "easeOut",
               }}
             >
-              <div className="relative" aria-hidden>
+              <div className="relative isolate min-h-[192px]" aria-hidden>
                 <ClientErrorBoundary fallback={<LoadingLogo2DFallback />}>
                   <LoadingScreenLogo3D />
                 </ClientErrorBoundary>

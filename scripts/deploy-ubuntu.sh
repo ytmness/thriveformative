@@ -105,7 +105,7 @@ server {
         alias $STANDALONE/.next/static/;
     }
 
-    # Logos e imágenes públicas
+    # Logos e imágenes públicas (PNG + logo3ddorado.glb, etc.)
     location /logos/ {
         alias $STANDALONE/public/logos/;
     }
