@@ -14,29 +14,40 @@
 
 .coming-soon-page__inner {
   width: 100%;
-  max-width: 36rem;
+  max-width: 40rem;
   text-align: center;
 }
 
 .coming-soon-page__logo-wrap {
-  margin-bottom: 2.5rem;
-  margin-left: 5%;
-}
-
-@media (min-width: 768px) {
-  .coming-soon-page__logo-wrap {
-    margin-left: 8%;
-  }
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto 2.5rem;
 }
 
 /* Logo 3D (R3F) — misma idea que la pantalla de carga, GLB metálico */
 .coming-soon-page__logo-3d {
   width: 100%;
-  max-width: 22rem;
-  height: clamp(10.5rem, 36vw, 14rem);
+  max-width: min(92vw, 30rem);
+  height: clamp(13rem, 42vw, 20rem);
   margin-left: auto;
   margin-right: auto;
-  filter: drop-shadow(0 10px 28px rgba(0, 0, 0, 0.18));
+  filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.2));
+}
+
+@media (min-width: 768px) {
+  .coming-soon-page__logo-3d {
+    max-width: min(90vw, 34rem);
+    height: clamp(15rem, 38vw, 22rem);
+  }
+}
+
+@media (min-width: 1024px) {
+  .coming-soon-page__logo-3d {
+    max-width: 36rem;
+    height: clamp(16rem, 32vh, 24rem);
+  }
 }
 
 .coming-soon-page__logo-3d canvas {
@@ -151,12 +162,11 @@
 
   .coming-soon-page__logo-wrap {
     margin-bottom: 1.5rem;
-    margin-left: 8%;
   }
 
   .coming-soon-page__logo-3d {
-    max-width: min(90vw, 20rem);
-    height: clamp(9.5rem, 42vw, 12rem);
+    max-width: min(94vw, 26rem);
+    height: clamp(11.5rem, 52vw, 16rem);
   }
 
   .coming-soon-page__title {
