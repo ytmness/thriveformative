@@ -1,11 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { useTranslations, useLocale } from "next-intl";
-import { useScrollDirection } from "@/lib/useScrollDirection";
-import { LATERAL } from "@/lib/lateralAnimation";
-import { useIsTouchDevice } from "@/lib/useIsTouchDevice";
 
 const WHATSAPP_LINK = "https://google.com";
 
@@ -20,9 +16,6 @@ export default function Footer() {
   const { theme } = useTheme();
   const t = useTranslations();
   const locale = useLocale();
-  const isTouchDevice = useIsTouchDevice();
-  const scrollDirection = useScrollDirection();
-  const fromY = scrollDirection === "down" ? LATERAL.fromY : -LATERAL.fromY;
 
   const currentLogo = logoMap[theme] || logoMap["nocturnal"];
 
@@ -35,24 +28,16 @@ export default function Footer() {
   ];
 
   return (
-    <motion.footer
-      initial={isTouchDevice ? false : { opacity: 0, y: fromY }}
-      animate={isTouchDevice ? { opacity: 1, y: 0 } : undefined}
-      whileInView={isTouchDevice ? undefined : { opacity: 1, y: 0 }}
-      viewport={{ once: false, amount: 0.02 }}
-      transition={{ duration: LATERAL.durationFlower, ease: LATERAL.ease }}
-      className="py-16 md:py-20 border-t border-theme"
-    >
+    <footer className="py-16 md:py-20 border-t border-theme">
       <div className="max-w-7xl mx-auto px-6">
         {/* Footer grid */}
         <div className="grid md:grid-cols-3 gap-12 md:gap-16">
           {/* Brand column */}
           <div className="space-y-4">
-            <motion.img
-              whileHover={{ scale: 1.02 }}
+            <img
               src={currentLogo}
               alt="Thrive Formative"
-              className="h-14 md:h-16 w-auto object-contain"
+              className="h-14 md:h-16 w-auto object-contain transition-transform duration-200 hover:scale-[1.02]"
             />
             <p className="text-sm text-muted leading-relaxed max-w-xs">
               {t("footer.tagline")}
@@ -69,14 +54,13 @@ export default function Footer() {
             </h4>
             <nav className="space-y-3">
               {quickLinks.map((link) => (
-                <motion.a
+                <a
                   key={link.href}
                   href={link.href}
-                  whileHover={{ x: 4, color: "rgb(var(--primary))" }}
-                  className="block text-sm text-muted hover:opacity-80 transition-all"
+                  className="block text-sm text-muted hover:opacity-80 transition-all hover:translate-x-1 hover:text-[rgb(var(--primary))]"
                 >
                   {link.label}
-                </motion.a>
+                </a>
               ))}
             </nav>
           </div>
@@ -91,16 +75,14 @@ export default function Footer() {
               <div>{t("contact.phonePlaceholder")}</div>
               <div>{t("contact.locationDesc")}</div>
             </div>
-            <motion.a
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
+            <a
               href={WHATSAPP_LINK}
               target="_blank"
               rel="noreferrer"
-              className="mt-5 inline-block btn-primary rounded-xl px-6 py-3 text-sm font-medium shadow-lg"
+              className="mt-5 inline-block btn-primary rounded-xl px-6 py-3 text-sm font-medium shadow-lg transition-transform hover:scale-[1.03] active:scale-[0.97]"
             >
               {t("contact.scheduleBtn")}
-            </motion.a>
+            </a>
           </div>
         </div>
 
@@ -114,6 +96,6 @@ export default function Footer() {
           </div>
         </div>
       </div>
-    </motion.footer>
+    </footer>
   );
 }

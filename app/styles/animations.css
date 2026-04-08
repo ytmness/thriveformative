@@ -167,12 +167,12 @@
 }
 
 .scroll-cards-stack .giant-card {
-  min-height: 100vh;
+  min-height: auto;
   scroll-margin-top: 5rem;
   padding: var(--card-gap) 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
+  justify-content: flex-start;
 }
 
 /* Path: solapa con cards para que no haya separación visible entre slides y ramas */
@@ -184,11 +184,11 @@
 .giant-card-inner {
   position: relative;
   width: 100%;
-  min-height: 100vh;
+  min-height: auto;
   padding: 5rem 1.5rem 4rem;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: stretch;
   border-radius: 0;
   border: none;

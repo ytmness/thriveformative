@@ -3,14 +3,10 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useLocale } from "next-intl";
-import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import AnimatedSection from "@/components/AnimatedSection";
-import { useScrollDirection } from "@/lib/useScrollDirection";
-import { LATERAL } from "@/lib/lateralAnimation";
 import { useUser } from "@/lib/useUser";
 import { createClient } from "@/lib/supabase";
-import { useIsTouchDevice } from "@/lib/useIsTouchDevice";
 
 const WHATSAPP_LINK = "https://google.com";
 
@@ -30,9 +26,6 @@ export default function BookingSection() {
   const t = useTranslations("booking");
   const tAuth = useTranslations("auth");
   const locale = useLocale();
-  const isTouchDevice = useIsTouchDevice();
-  const scrollDirection = useScrollDirection();
-  const fromY = scrollDirection === "down" ? LATERAL.fromY : -LATERAL.fromY;
   const { user, loading } = useUser();
 
   const [currentMonth, setCurrentMonth] = useState(() => {
@@ -41,7 +34,6 @@ export default function BookingSection() {
   });
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [appointments, setAppointments] = useState<{ appointment_date: string; time_slot: string }[]>([]);
-  const [loadingSlots, setLoadingSlots] = useState(false);
   const [bookingSlot, setBookingSlot] = useState<string | null>(null);
   const [bookingError, setBookingError] = useState<string | null>(null);
 
@@ -52,7 +44,6 @@ export default function BookingSection() {
       setAppointments([]);
       return;
     }
-    setLoadingSlots(true);
     const supabase = createClient();
     supabase
       .from("appointments")
@@ -61,7 +52,6 @@ export default function BookingSection() {
       .neq("status", "cancelled")
       .then(({ data }) => {
         setAppointments(data ?? []);
-        setLoadingSlots(false);
       });
   }, [user, selectedDateKey]);
 
@@ -142,29 +132,15 @@ export default function BookingSection() {
     return (
       <AnimatedSection>
         <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
-          <motion.div
-            initial={isTouchDevice ? false : { opacity: 0, y: fromY }}
-            animate={isTouchDevice ? { opacity: 1, y: 0 } : undefined}
-            whileInView={isTouchDevice ? undefined : { opacity: 1, y: 0 }}
-            viewport={{ once: false, amount: 0.02 }}
-            transition={{ duration: LATERAL.durationFlower, ease: LATERAL.ease }}
-            className="mb-4"
-          >
+          <div className="mb-4">
             <h2 className="font-display text-4xl md:text-5xl lg:text-6xl tracking-wide">
               {t("title")}
             </h2>
             <p className="text-lg md:text-xl text-muted mt-3 max-w-2xl leading-relaxed">
               {t("subtitle")}
             </p>
-          </motion.div>
-          <motion.div
-            initial={isTouchDevice ? false : { opacity: 0, y: fromY }}
-            animate={isTouchDevice ? { opacity: 1, y: 0 } : undefined}
-            whileInView={isTouchDevice ? undefined : { opacity: 1, y: 0 }}
-            viewport={{ once: false, amount: 0.02 }}
-            transition={{ duration: LATERAL.durationBranch, delay: 0.1, ease: LATERAL.ease }}
-            className="mt-10 max-w-xl mx-auto"
-          >
+          </div>
+          <div className="mt-10 max-w-xl mx-auto">
             <div className="rounded-2xl border border-theme bg-surface shadow-soft overflow-hidden">
               <div className="border-l-4 border-[rgb(var(--primary))] p-8 md:p-10">
                 <div className="flex items-center gap-3 mb-6">
@@ -212,7 +188,7 @@ export default function BookingSection() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         </section>
       </AnimatedSection>
     );
@@ -221,32 +197,18 @@ export default function BookingSection() {
   return (
     <AnimatedSection>
       <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
-        <motion.div
-          initial={isTouchDevice ? false : { opacity: 0, y: fromY }}
-          animate={isTouchDevice ? { opacity: 1, y: 0 } : undefined}
-          whileInView={isTouchDevice ? undefined : { opacity: 1, y: 0 }}
-          viewport={{ once: false, amount: 0.02 }}
-          transition={{ duration: LATERAL.durationFlower, ease: LATERAL.ease }}
-          className="mb-4"
-        >
+        <div className="mb-4">
           <h2 className="font-display text-4xl md:text-5xl lg:text-6xl tracking-wide">
             {t("title")}
           </h2>
           <p className="text-lg md:text-xl text-muted mt-3 max-w-2xl leading-relaxed">
             Elige fecha y horario disponible para tu consulta.
           </p>
-        </motion.div>
+        </div>
 
         <div className="mt-10 grid md:grid-cols-[1fr_1.2fr] gap-10 items-start">
           {/* Calendario */}
-          <motion.div
-            initial={isTouchDevice ? false : { opacity: 0, x: -LATERAL.fromY }}
-            animate={isTouchDevice ? { opacity: 1, x: 0 } : undefined}
-            whileInView={isTouchDevice ? undefined : { opacity: 1, x: 0 }}
-            viewport={{ once: false, amount: 0.02 }}
-            transition={{ duration: LATERAL.durationBranch, ease: LATERAL.ease }}
-            className="bg-surface border border-theme rounded-2xl shadow-soft p-6"
-          >
+          <div className="bg-surface border border-theme rounded-2xl shadow-soft p-6">
             <div className="text-base text-muted tracking-[0.22em] mb-4">
               {t("dateLabel")}
             </div>
@@ -301,16 +263,10 @@ export default function BookingSection() {
                 );
               })}
             </div>
-          </motion.div>
+          </div>
 
           {/* Horarios */}
-          <motion.div
-            initial={isTouchDevice ? false : { opacity: 0, x: LATERAL.fromY }}
-            animate={isTouchDevice ? { opacity: 1, x: 0 } : undefined}
-            whileInView={isTouchDevice ? undefined : { opacity: 1, x: 0 }}
-            viewport={{ once: false, amount: 0.02 }}
-            transition={{ duration: LATERAL.durationBranch, ease: LATERAL.ease }}
-          >
+          <div>
             <div className="text-base text-muted tracking-[0.22em] mb-4">
               {t("slotsLabel")}
             </div>
@@ -328,7 +284,7 @@ export default function BookingSection() {
                     const occupied = occupiedSet.has(timeSlot);
                     const isBooking = bookingSlot === timeSlot;
                     return (
-                      <motion.button
+                      <button
                         key={timeSlot}
                         type="button"
                         disabled={occupied || isBooking}
@@ -350,7 +306,7 @@ export default function BookingSection() {
                             Reservando…
                           </span>
                         )}
-                      </motion.button>
+                      </button>
                     );
                   })}
                 </div>
@@ -359,17 +315,10 @@ export default function BookingSection() {
                 </p>
               </>
             )}
-          </motion.div>
+          </div>
         </div>
 
-        <motion.div
-          initial={isTouchDevice ? false : { opacity: 0, y: fromY }}
-          animate={isTouchDevice ? { opacity: 1, y: 0 } : undefined}
-          whileInView={isTouchDevice ? undefined : { opacity: 1, y: 0 }}
-          viewport={{ once: false, amount: 0.02 }}
-          transition={{ duration: LATERAL.durationBranch, delay: 0.2, ease: LATERAL.ease }}
-          className="mt-10 text-center"
-        >
+        <div className="mt-10 text-center">
           <p className="text-muted text-base mb-3">{t("ctaHint")}</p>
           <a
             href={WHATSAPP_LINK}
@@ -379,7 +328,7 @@ export default function BookingSection() {
           >
             {t("ctaButton")}
           </a>
-        </motion.div>
+        </div>
       </section>
     </AnimatedSection>
   );

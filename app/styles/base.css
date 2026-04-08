@@ -31,26 +31,9 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Scroll snap: avance por secciones completas */
-html {
-  scroll-snap-type: y mandatory;
-}
+/* Scroll continuo (sin snap por secciones) */
 .scroll-snap-section {
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
-}
-
-/* Mobile/touch: scroll completamente libre */
-@media (max-width: 1024px) {
-  html {
-    scroll-snap-type: none;
-    scroll-behavior: auto;
-  }
-
-  .scroll-snap-section {
-    scroll-snap-align: none;
-    scroll-snap-stop: normal;
-  }
+  scroll-margin-top: 5rem;
 }
 
 /* Custom scrollbar (dark theme friendly) */

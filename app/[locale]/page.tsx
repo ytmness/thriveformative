@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import ThemeProvider from "@/components/theme/ThemeProvider";
 import ThemeSwitcher from "@/components/theme/ThemeSwitcher";
 import Header from "@/components/Header";
@@ -11,13 +12,7 @@ import ScrollProgress from "@/components/ScrollProgress";
 import WaveDivider from "@/components/WaveDivider";
 import BookingSection from "@/components/BookingSection";
 import GiantScrollCard from "@/components/GiantScrollCard";
-import { motion } from "framer-motion";
-import { useState } from "react";
-import TypewriterText from "@/components/TypewriterText";
 import { useTranslations } from "next-intl";
-import { useScrollDirection } from "@/lib/useScrollDirection";
-import { LATERAL } from "@/lib/lateralAnimation";
-import { useIsTouchDevice } from "@/lib/useIsTouchDevice";
 
 const WHATSAPP_LINK = "https://google.com";
 
@@ -64,9 +59,6 @@ function OrganicPattern({ className = "" }: { className?: string }) {
    ─────────────────────────────────────────── */
 function PageContent() {
   const t = useTranslations();
-  const isTouchDevice = useIsTouchDevice();
-  const scrollDirection = useScrollDirection();
-  const fromY = scrollDirection === "down" ? LATERAL.fromY : -LATERAL.fromY;
 
   return (
     <>
@@ -102,12 +94,7 @@ function PageContent() {
                 <div className="hero-circle-glow absolute inset-0 rounded-full bg-[rgb(var(--primary)/0.12)] blur-3xl scale-110 pointer-events-none" />
 
                 {/* Main circle */}
-                <motion.div
-                  initial={{ opacity: 0, scale: LATERAL.scaleBranch }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: LATERAL.durationFlower, delay: 0.3, ease: LATERAL.ease }}
-                  className="relative w-56 h-56 sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full border border-[rgb(var(--primary)/0.25)] overflow-hidden flex items-center justify-center bg-[rgb(var(--surface)/0.3)] backdrop-blur-sm"
-                >
+                <div className="relative w-56 h-56 sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full border border-[rgb(var(--primary)/0.25)] overflow-hidden flex items-center justify-center bg-[rgb(var(--surface)/0.3)] backdrop-blur-sm">
                   {/* Inner ring */}
                   <div className="absolute inset-2 rounded-full border border-[rgb(var(--primary)/0.12)]" />
 
@@ -116,38 +103,21 @@ function PageContent() {
                     alt="Thrive Formative"
                     className="w-3/4 h-3/4 object-contain relative z-10 logo-glow"
                   />
-                </motion.div>
+                </div>
               </div>
             </div>
           </AnimatedSection>
 
           {/* RIGHT — Text content */}
           <div>
-            <motion.h1
-              className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-tight tracking-wide"
-              initial={{ opacity: 0, y: LATERAL.fromY }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: LATERAL.durationFlower, delay: 0.2, ease: LATERAL.ease }}
-            >
+            <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-tight tracking-wide">
               {t("hero.title")}
-            </motion.h1>
+            </h1>
 
-            <motion.p
-              className="mt-4 text-muted text-lg md:text-xl leading-relaxed"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: LATERAL.durationFlower, delay: 0.4, ease: LATERAL.ease }}
-            >
-              {t("hero.subtitle")}
-            </motion.p>
+            <p className="mt-4 text-muted text-lg md:text-xl leading-relaxed">{t("hero.subtitle")}</p>
 
             {/* Benefits grid — 2×2 like reference */}
-            <motion.div
-              className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3"
-              initial={{ opacity: 0, y: LATERAL.fromY }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: LATERAL.durationFlower, delay: 0.55, ease: LATERAL.ease }}
-            >
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="flex items-start gap-2">
                   <div className="benefit-dot relative mt-1 w-3.5 h-3.5 rounded-full bg-[rgb(var(--primary)/0.2)] flex items-center justify-center flex-shrink-0">
@@ -156,38 +126,30 @@ function PageContent() {
                   <span className="text-base md:text-lg leading-snug">{t(`hero.benefit${i}`)}</span>
                 </div>
               ))}
-            </motion.div>
+            </div>
 
             {/* CTA button */}
-            <motion.div
-              className="mt-5 flex justify-center md:justify-start"
-              initial={{ opacity: 0, y: LATERAL.fromY }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: LATERAL.durationFlower, delay: 0.7, ease: LATERAL.ease }}
-            >
-              <motion.a
-                whileHover={{ scale: 1.03, y: -2 }}
-                whileTap={{ scale: 0.97 }}
+            <div className="mt-5 flex justify-center md:justify-start">
+              <a
                 href={WHATSAPP_LINK}
                 target="_blank"
                 rel="noreferrer"
-                className="btn-cta inline-flex items-center justify-center text-center rounded-xl px-8 md:px-10 py-4 md:py-5 text-base md:text-lg tracking-wide shadow-lg leading-tight"
+                className="btn-cta inline-flex items-center justify-center text-center rounded-xl px-8 md:px-10 py-4 md:py-5 text-base md:text-lg tracking-wide shadow-lg leading-tight transition-transform hover:scale-[1.03] active:scale-[0.97]"
               >
                 {t("hero.scheduleBtn")}
-              </motion.a>
-            </motion.div>
+              </a>
+            </div>
           </div>
         </div>
-
       </section>
 
       {/* ─── STATS BAR ─── */}
       <AnimatedSection className="scroll-snap-section">
         <div className="max-w-7xl mx-auto px-6 py-16 min-h-[50vh] flex flex-col justify-center">
           <div className="grid grid-cols-3 gap-6">
-            <Stat label={t("hero.stat1Label")} value={t("hero.stat1Value")} delay={0} fromY={fromY} />
-            <Stat label={t("hero.stat2Label")} value={t("hero.stat2Value")} delay={0.1} fromY={fromY} />
-            <Stat label={t("hero.stat3Label")} value={t("hero.stat3Value")} delay={0.2} fromY={fromY} />
+            <Stat label={t("hero.stat1Label")} value={t("hero.stat1Value")} />
+            <Stat label={t("hero.stat2Label")} value={t("hero.stat2Value")} />
+            <Stat label={t("hero.stat3Label")} value={t("hero.stat3Value")} />
           </div>
         </div>
       </AnimatedSection>
@@ -195,11 +157,7 @@ function PageContent() {
       {/* ─── FLOW CARD ─── */}
       <AnimatedSection delay={0.1} className="scroll-snap-section">
         <div className="max-w-7xl mx-auto px-6 pb-14 min-h-[50vh] flex flex-col justify-center">
-          <motion.div
-            whileHover={{ y: -4, boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}
-            transition={{ duration: 0.3 }}
-            className="bg-surface border border-theme rounded-2xl shadow-soft p-8"
-          >
+          <div className="bg-surface border border-theme rounded-2xl shadow-soft p-8 transition-shadow duration-300 hover:-translate-y-1 hover:shadow-[0_20px_60px_rgba(0,0,0,0.2)]">
             <div className="text-base text-muted tracking-[0.22em]">{t("flow.title")}</div>
             <ul className="mt-4 space-y-3 text-lg leading-relaxed">
               <li>{t("flow.newPatient")}</li>
@@ -210,136 +168,122 @@ function PageContent() {
               <div className="text-base text-muted">{t("flow.script")}</div>
               <p className="text-lg mt-2">&ldquo;{t("flow.scriptText")}&rdquo;</p>
             </div>
-          </motion.div>
+          </div>
         </div>
       </AnimatedSection>
 
-      {/* ─── MAIN CONTENT — Tarjetas con animación al entrar ─── */}
+      {/* ─── MAIN CONTENT — bloques continuos ─── */}
       <main className="scroll-cards-stack">
         <GiantScrollCard variant="slideUp" id="approach" noFade>
           <div className="fullscreen-content fullscreen-content--expanded">
-            <FullscreenCard titleA={t("approach.title1a")} titleB={t("approach.title1b")} large>{t("approach.desc1")}</FullscreenCard>
+            <FullscreenCard titleA={t("approach.title1a")} titleB={t("approach.title1b")} large>
+              {t("approach.desc1")}
+            </FullscreenCard>
           </div>
         </GiantScrollCard>
         <GiantScrollCard variant="slideUp" id="approach-2" noFade>
           <div className="fullscreen-content fullscreen-content--expanded">
-            <FullscreenCard titleA={t("approach.title2a")} titleB={t("approach.title2b")} large>{t("approach.desc2")}</FullscreenCard>
+            <FullscreenCard titleA={t("approach.title2a")} titleB={t("approach.title2b")} large>
+              {t("approach.desc2")}
+            </FullscreenCard>
           </div>
         </GiantScrollCard>
         <GiantScrollCard variant="slideUp" id="approach-3" noFade>
           <div className="fullscreen-content fullscreen-content--expanded">
-            <FullscreenCard titleA={t("approach.title3")} large>{t("approach.desc3")}</FullscreenCard>
+            <FullscreenCard titleA={t("approach.title3")} large>
+              {t("approach.desc3")}
+            </FullscreenCard>
           </div>
         </GiantScrollCard>
         <GiantScrollCard variant="slideUp" id="servicios">
           <div className="max-w-7xl mx-auto px-6 py-16 md:py-24">
-            <SectionTitle title={t("services.title")} subtitle={t("services.subtitle")} fromY={fromY} />
+            <SectionTitle title={t("services.title")} subtitle={t("services.subtitle")} />
             <div className="mt-12 grid md:grid-cols-2 gap-8 md:gap-10">
-              <Service name={t("services.service1")} desc={t("services.desc1")} delay={0} />
-              <Service name={t("services.service2")} desc={t("services.desc2")} delay={0.1} />
-              <Service name={t("services.service3")} desc={t("services.desc3")} delay={0.2} />
-              <Service name={t("services.service4")} desc={t("services.desc4")} delay={0.3} />
-              <Service name={t("services.service5")} desc={t("services.desc5")} delay={0.4} />
-              <Service name={t("services.service6")} desc={t("services.desc6")} delay={0.5} />
+              <Service name={t("services.service1")} desc={t("services.desc1")} />
+              <Service name={t("services.service2")} desc={t("services.desc2")} />
+              <Service name={t("services.service3")} desc={t("services.desc3")} />
+              <Service name={t("services.service4")} desc={t("services.desc4")} />
+              <Service name={t("services.service5")} desc={t("services.desc5")} />
+              <Service name={t("services.service6")} desc={t("services.desc6")} />
             </div>
           </div>
         </GiantScrollCard>
         <GiantScrollCard variant="slideUp" id="tshape">
           <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
-            <SectionTitle title={t("tshape.title")} subtitle={t("tshape.subtitle")} fromY={fromY} />
+            <SectionTitle title={t("tshape.title")} subtitle={t("tshape.subtitle")} />
 
             <div className="mt-10 grid md:grid-cols-[1fr_1.4fr] gap-10 items-start">
-                {/* Left — Machine image + FDA badge overlay */}
-                <motion.div
-                  initial={isTouchDevice ? false : { opacity: 0, x: -LATERAL.fromY }}
-                  animate={isTouchDevice ? { opacity: 1, x: 0 } : undefined}
-                  whileInView={isTouchDevice ? undefined : { opacity: 1, x: 0 }}
-                  viewport={{ once: false, amount: 0.02 }}
-                  transition={{ duration: LATERAL.durationBranch, ease: LATERAL.ease }}
-                  className="relative"
-                >
-                  <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    className="bg-surface border border-theme rounded-2xl shadow-soft p-6 flex items-center justify-center"
-                  >
-                    <img
-                      src="/logos/t-shape-2-1.png"
-                      alt="T-Shape 2"
-                      className="w-full max-w-[280px] h-auto object-contain"
-                    />
-                  </motion.div>
-                  {/* FDA seal — positioned as stamp on top-right */}
-                  <motion.div
-                    initial={isTouchDevice ? false : { opacity: 0, scale: LATERAL.scaleFlower, rotate: -15 }}
-                    animate={isTouchDevice ? { opacity: 1, scale: 1, rotate: 0 } : undefined}
-                    whileInView={isTouchDevice ? undefined : { opacity: 1, scale: 1, rotate: 0 }}
-                    viewport={{ once: false, amount: 0.02 }}
-                    transition={{ duration: LATERAL.durationFlower, delay: 0.25, ease: LATERAL.ease }}
-                    className="absolute -top-8 -right-8 w-32 h-32 md:w-40 md:h-40"
-                  >
-                    <img
-                      src="/logos/fda-approved.png"
-                      alt={t("tshape.fdaBadge")}
-                      className="w-full h-full object-contain drop-shadow-lg"
-                      style={{ filter: "invert(1) sepia(0.3) saturate(2.5) hue-rotate(345deg) brightness(0.82)" }}
-                    />
-                  </motion.div>
-                </motion.div>
-
-                {/* Right — FDA info + indications */}
-                <motion.div
-                  initial={isTouchDevice ? false : { opacity: 0, x: LATERAL.fromY }}
-                  animate={isTouchDevice ? { opacity: 1, x: 0 } : undefined}
-                  whileInView={isTouchDevice ? undefined : { opacity: 1, x: 0 }}
-                  viewport={{ once: false, amount: 0.02 }}
-                  transition={{ duration: LATERAL.durationBranch, delay: 0.1, ease: LATERAL.ease }}
-                  className="bg-surface border border-theme rounded-2xl shadow-soft p-6"
-                >
-                  <p className="text-lg leading-relaxed">{t("tshape.fdaDesc")}</p>
-                  <ul className="mt-5 space-y-3">
-                    {[1, 2, 3, 4].map((i) => (
-                      <li key={i} className="flex items-center gap-3 text-lg">
-                        <span className="w-2 h-2 rounded-full bg-[rgb(var(--primary))] flex-shrink-0" />
-                        {t(`tshape.fdaItem${i}`)}
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="mt-6 text-base text-muted leading-relaxed border-t border-theme pt-5">
-                    {t("tshape.fdaNote")}
-                  </p>
-                </motion.div>
+              {/* Left — Machine image + FDA badge overlay */}
+              <div className="relative">
+                <div className="bg-surface border border-theme rounded-2xl shadow-soft p-6 flex items-center justify-center transition-transform duration-300 hover:scale-[1.02]">
+                  <img
+                    src="/logos/t-shape-2-1.png"
+                    alt="T-Shape 2"
+                    className="w-full max-w-[280px] h-auto object-contain"
+                  />
+                </div>
+                {/* FDA seal — positioned as stamp on top-right */}
+                <div className="absolute -top-8 -right-8 w-32 h-32 md:w-40 md:h-40">
+                  <img
+                    src="/logos/fda-approved.png"
+                    alt={t("tshape.fdaBadge")}
+                    className="w-full h-full object-contain drop-shadow-lg"
+                    style={{ filter: "invert(1) sepia(0.3) saturate(2.5) hue-rotate(345deg) brightness(0.82)" }}
+                  />
+                </div>
               </div>
 
-              {/* Technologies — 3 cards */}
-              <div className="mt-10 grid md:grid-cols-3 gap-8">
-                {[1, 2, 3].map((i) => (
-                  <motion.div
-                    key={i}
-                    initial={isTouchDevice ? false : { opacity: 0, y: fromY }}
-                    animate={isTouchDevice ? { opacity: 1, y: 0 } : undefined}
-                    whileInView={isTouchDevice ? undefined : { opacity: 1, y: 0 }}
-                    viewport={{ once: false, amount: 0.02 }}
-                    transition={{ duration: LATERAL.durationBranch, delay: i * LATERAL.staggerBase, ease: LATERAL.ease }}
-                    whileHover={{ y: -5, boxShadow: "0 20px 50px rgba(0,0,0,0.18)" }}
-                    className="bg-surface border border-theme rounded-2xl shadow-soft p-8"
-                  >
-                    <div className="w-12 h-12 rounded-full bg-[rgb(var(--primary)/0.1)] flex items-center justify-center mb-5">
-                      <div className="w-5 h-5 rounded-full bg-[rgb(var(--primary)/0.4)]" />
-                    </div>
-                    <h4 className="font-display text-lg tracking-wide">{t(`tshape.tech${i}Title`)}</h4>
-                    <p className="mt-3 text-base text-muted leading-relaxed">{t(`tshape.tech${i}Desc`)}</p>
-                  </motion.div>
-                ))}
+              {/* Right — FDA info + indications */}
+              <div className="bg-surface border border-theme rounded-2xl shadow-soft p-6">
+                <p className="text-lg leading-relaxed">{t("tshape.fdaDesc")}</p>
+                <ul className="mt-5 space-y-3">
+                  {[1, 2, 3, 4].map((i) => (
+                    <li key={i} className="flex items-center gap-3 text-lg">
+                      <span className="w-2 h-2 rounded-full bg-[rgb(var(--primary))] flex-shrink-0" />
+                      {t(`tshape.fdaItem${i}`)}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-6 text-base text-muted leading-relaxed border-t border-theme pt-5">
+                  {t("tshape.fdaNote")}
+                </p>
               </div>
-            </section>
+            </div>
+
+            {/* Technologies — 3 cards */}
+            <div className="mt-10 grid md:grid-cols-3 gap-8">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="bg-surface border border-theme rounded-2xl shadow-soft p-8 transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(0,0,0,0.18)]"
+                >
+                  <div className="w-12 h-12 rounded-full bg-[rgb(var(--primary)/0.1)] flex items-center justify-center mb-5">
+                    <div className="w-5 h-5 rounded-full bg-[rgb(var(--primary)/0.4)]" />
+                  </div>
+                  <h4 className="font-display text-lg tracking-wide">{t(`tshape.tech${i}Title`)}</h4>
+                  <p className="mt-3 text-base text-muted leading-relaxed">{t(`tshape.tech${i}Desc`)}</p>
+                </div>
+              ))}
+            </div>
+          </section>
         </GiantScrollCard>
         <GiantScrollCard variant="slideUp" id="planes">
           <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
-            <SectionTitle title={t("plans.title")} subtitle={t("plans.subtitle")} fromY={fromY} />
+            <SectionTitle title={t("plans.title")} subtitle={t("plans.subtitle")} />
             <div className="mt-10 grid md:grid-cols-3 gap-8 items-center">
-              <Plan name={t("plans.plan1")} items={[t("plans.plan1Item1"), t("plans.plan1Item2"), t("plans.plan1Item3")]} delay={0} fromY={fromY} />
-              <Plan featured name={t("plans.plan2")} items={[t("plans.plan2Item1"), t("plans.plan2Item2"), t("plans.plan2Item3")]} delay={0.1} fromY={fromY} />
-              <Plan name={t("plans.plan3")} items={[t("plans.plan3Item1"), t("plans.plan3Item2"), t("plans.plan3Item3")]} delay={0.2} fromY={fromY} />
+              <Plan
+                name={t("plans.plan1")}
+                items={[t("plans.plan1Item1"), t("plans.plan1Item2"), t("plans.plan1Item3")]}
+              />
+              <Plan
+                featured
+                name={t("plans.plan2")}
+                items={[t("plans.plan2Item1"), t("plans.plan2Item2"), t("plans.plan2Item3")]}
+              />
+              <Plan
+                name={t("plans.plan3")}
+                items={[t("plans.plan3Item1"), t("plans.plan3Item2"), t("plans.plan3Item3")]}
+              />
             </div>
           </section>
         </GiantScrollCard>
@@ -349,11 +293,7 @@ function PageContent() {
         <GiantScrollCard variant="slideUp" id="cta" noFade>
           <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--primary)/0.08)] via-transparent to-[rgb(var(--primary)/0.05)] pointer-events-none" />
           <div className="relative z-10 max-w-4xl mx-auto px-6 py-24 md:py-32 text-center">
-            <CTASection
-              title={t("cta.title")}
-              subtitle={t("cta.subtitle")}
-              buttonText={t("cta.button")}
-            />
+            <CTASection title={t("cta.title")} subtitle={t("cta.subtitle")} buttonText={t("cta.button")} />
           </div>
         </GiantScrollCard>
       </main>
@@ -380,72 +320,59 @@ export default function Page() {
    ═══════════════════════════════════════════ */
 
 function CTASection({ title, subtitle, buttonText }: { title: string; subtitle: string; buttonText: string }) {
-  const [titleDone, setTitleDone] = useState(false);
-
   return (
     <>
-      <TypewriterText
-        text={title}
-        speed={35}
-        as="h2"
-        className="font-display text-4xl md:text-5xl lg:text-6xl tracking-wide block"
-        onComplete={() => setTitleDone(true)}
-        center
-      />
-      <TypewriterText
-        text={subtitle}
-        speed={18}
-        delay={150}
-        active={titleDone}
-        as="p"
-        className="mt-5 text-xl md:text-2xl text-muted leading-relaxed block"
-        center
-      />
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.5 }}
-        className="mt-10"
-      >
-        <motion.a
-          whileHover={{ scale: 1.04, y: -3 }}
-          whileTap={{ scale: 0.97 }}
+      <h2 className="font-display text-4xl md:text-5xl lg:text-6xl tracking-wide block text-center mx-auto max-w-4xl">
+        {title}
+      </h2>
+      <p className="mt-5 text-xl md:text-2xl text-muted leading-relaxed block text-center mx-auto max-w-3xl">
+        {subtitle}
+      </p>
+      <div className="mt-10">
+        <a
           href={WHATSAPP_LINK}
           target="_blank"
           rel="noreferrer"
-          className="btn-cta inline-block rounded-xl px-12 py-5 text-lg tracking-wide shadow-xl"
+          className="btn-cta inline-block rounded-xl px-12 py-5 text-lg tracking-wide shadow-xl transition-transform hover:scale-[1.04] active:scale-[0.97]"
         >
           {buttonText}
-        </motion.a>
-      </motion.div>
+        </a>
+      </div>
     </>
   );
 }
 
-function FullscreenCard({ title, titleA, titleB, children, large }: { title?: string; titleA?: string; titleB?: string; children: React.ReactNode; large?: boolean }) {
-  const [titleDone, setTitleDone] = useState(false);
-
+function FullscreenCard({
+  title,
+  titleA,
+  titleB,
+  children,
+  large,
+}: {
+  title?: string;
+  titleA?: string;
+  titleB?: string;
+  children: ReactNode;
+  large?: boolean;
+}) {
   if (large && titleA != null) {
-    const titleText = titleB ? `${titleA} ${titleB}` : titleA;
     const descText = typeof children === "string" ? children : String(children);
 
     return (
       <div className="py-10 md:py-14 px-2 md:px-6">
-        <TypewriterText
-          text={titleText}
-          speed={38}
-          as="h2"
-          className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl tracking-wide leading-tight"
-          onComplete={() => setTitleDone(true)}
-        />
-        <TypewriterText
-          text={descText}
-          speed={18}
-          delay={150}
-          active={titleDone}
-          as="p"
-          className="mt-8 md:mt-12 text-xl md:text-2xl lg:text-3xl xl:text-4xl text-muted leading-loose max-w-none tracking-wide"
-        />
+        <h2 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl tracking-wide leading-tight">
+          {titleB != null && titleB !== "" ? (
+            <>
+              {titleA}{" "}
+              <span className="whitespace-nowrap">{titleB}</span>
+            </>
+          ) : (
+            titleA
+          )}
+        </h2>
+        <p className="mt-8 md:mt-12 text-xl md:text-2xl lg:text-3xl xl:text-4xl text-muted leading-loose max-w-none tracking-wide">
+          {descText}
+        </p>
       </div>
     );
   }
@@ -455,85 +382,54 @@ function FullscreenCard({ title, titleA, titleB, children, large }: { title?: st
       <h2 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl tracking-wide leading-tight">
         {title ?? `${titleA ?? ""} ${titleB ?? ""}`.trim()}
       </h2>
-      <p className="mt-6 md:mt-8 text-lg md:text-xl lg:text-2xl text-muted leading-relaxed max-w-3xl">
-        {children}
-      </p>
+      <p className="mt-6 md:mt-8 text-lg md:text-xl lg:text-2xl text-muted leading-relaxed max-w-3xl">{children}</p>
     </div>
   );
 }
 
-function Stat({ label, value, delay = 0, fromY = LATERAL.fromY }: { label: string; value: string; delay?: number; fromY?: number }) {
-  const isTouchDevice = useIsTouchDevice();
+function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <motion.div
-      initial={isTouchDevice ? false : { opacity: 0, y: fromY }}
-      animate={isTouchDevice ? { opacity: 1, y: 0 } : undefined}
-      whileInView={isTouchDevice ? undefined : { opacity: 1, y: 0 }}
-      viewport={{ once: false, amount: 0.02 }}
-      transition={{ duration: LATERAL.durationBranch, delay, ease: LATERAL.ease }}
-      whileHover={{ y: -4, boxShadow: "0 10px 30px rgba(0,0,0,0.12)" }}
-      className="bg-surface border border-theme rounded-2xl p-6 md:p-8 cursor-default text-center"
-    >
+    <div className="bg-surface border border-theme rounded-2xl p-6 md:p-8 cursor-default text-center transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(0,0,0,0.12)]">
       <div className="text-base text-muted">{label}</div>
-      <div className="text-3xl md:text-4xl font-display font-bold mt-2" style={{ color: "rgb(var(--primary))" }}>{value}</div>
-    </motion.div>
+      <div className="text-3xl md:text-4xl font-display font-bold mt-2 text-[rgb(var(--primary))]">{value}</div>
+    </div>
   );
 }
 
-
-function SectionTitle({ title, subtitle, fromY = LATERAL.fromY }: { title: string; subtitle: string; fromY?: number }) {
-  const isTouchDevice = useIsTouchDevice();
+function SectionTitle({ title, subtitle }: { title: string; subtitle: string }) {
   return (
-    <motion.div
-      initial={isTouchDevice ? false : { opacity: 0, y: fromY }}
-      animate={isTouchDevice ? { opacity: 1, y: 0 } : undefined}
-      whileInView={isTouchDevice ? undefined : { opacity: 1, y: 0 }}
-      viewport={{ once: false, amount: 0.02 }}
-      transition={{ duration: LATERAL.durationBranch, ease: LATERAL.ease }}
-      className="mb-4"
-    >
+    <div className="mb-4">
       <h2 className="font-display text-4xl md:text-5xl lg:text-6xl tracking-wide">{title}</h2>
       <p className="text-lg md:text-xl text-muted mt-3 max-w-2xl leading-relaxed">{subtitle}</p>
-    </motion.div>
+    </div>
   );
 }
 
-function Service({ name, desc, delay = 0 }: { name: string; desc: string; delay?: number }) {
-  const isTouchDevice = useIsTouchDevice();
+function Service({ name, desc }: { name: string; desc: string }) {
   return (
-    <motion.div
-      initial={isTouchDevice ? false : { opacity: 0, scale: LATERAL.scaleBranch }}
-      animate={isTouchDevice ? { opacity: 1, scale: 1 } : undefined}
-      whileInView={isTouchDevice ? undefined : { opacity: 1, scale: 1 }}
-      viewport={{ once: false, amount: 0.02 }}
-      transition={{ duration: LATERAL.durationBranch, delay, ease: LATERAL.ease }}
-      whileHover={{ y: -6, boxShadow: "0 20px 50px rgba(0,0,0,0.18)" }}
-      className="bg-surface border border-theme rounded-2xl shadow-soft p-8 md:p-10"
-    >
+    <div className="bg-surface border border-theme rounded-2xl shadow-soft p-8 md:p-10 transition-[transform,box-shadow] duration-300 hover:-translate-y-1.5 hover:shadow-[0_20px_50px_rgba(0,0,0,0.18)]">
       <div className="font-display text-2xl md:text-3xl font-semibold">{name}</div>
       <p className="text-lg md:text-xl text-muted mt-4 leading-relaxed">{desc}</p>
-    </motion.div>
+    </div>
   );
 }
 
-function Plan({ name, items, featured, delay = 0, fromY = LATERAL.fromY }: { name: string; items: string[]; featured?: boolean; delay?: number; fromY?: number }) {
+function Plan({
+  name,
+  items,
+  featured,
+}: {
+  name: string;
+  items: string[];
+  featured?: boolean;
+}) {
   const t = useTranslations();
-  const isTouchDevice = useIsTouchDevice();
   return (
-    <motion.div
-      initial={isTouchDevice ? false : { opacity: 0, y: fromY }}
-      animate={isTouchDevice ? { opacity: 1, y: 0 } : undefined}
-      whileInView={isTouchDevice ? undefined : { opacity: 1, y: 0 }}
-      viewport={{ once: false, amount: 0.02 }}
-      transition={{ duration: LATERAL.durationBranch, delay, ease: LATERAL.ease }}
-      whileHover={{
-        y: -8,
-        boxShadow: featured
-          ? "0 25px 60px rgba(var(--primary), 0.15)"
-          : "0 20px 50px rgba(0,0,0,0.18)",
-      }}
-      className={`bg-surface border rounded-2xl shadow-soft p-8 md:p-10 lg:p-12 ${
-        featured ? "border-[rgb(var(--primary)/0.4)] ring-1 ring-[rgb(var(--primary)/0.2)] scale-[1.03]" : "border-theme"
+    <div
+      className={`bg-surface border rounded-2xl shadow-soft p-8 md:p-10 lg:p-12 transition-[transform,box-shadow] duration-300 hover:-translate-y-2 ${
+        featured
+          ? "border-[rgb(var(--primary)/0.4)] ring-1 ring-[rgb(var(--primary)/0.2)] scale-[1.03] hover:shadow-[0_25px_60px_rgba(var(--primary),0.15)]"
+          : "border-theme hover:shadow-[0_20px_50px_rgba(0,0,0,0.18)]"
       }`}
     >
       <div className="font-display text-3xl md:text-4xl tracking-wide">{name}</div>
@@ -545,15 +441,14 @@ function Plan({ name, items, featured, delay = 0, fromY = LATERAL.fromY }: { nam
           </li>
         ))}
       </ul>
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className={`mt-6 w-full rounded-xl px-5 py-4 text-lg font-semibold ${
+      <button
+        type="button"
+        className={`mt-6 w-full rounded-xl px-5 py-4 text-lg font-semibold transition-transform hover:scale-[1.05] active:scale-[0.95] ${
           featured ? "btn-primary shadow-lg" : "btn-outline"
         }`}
       >
         {t("plans.chooseBtn")}
-      </motion.button>
-    </motion.div>
+      </button>
+    </div>
   );
 }
