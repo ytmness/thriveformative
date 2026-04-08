@@ -26,26 +26,46 @@
   margin: 0 auto 2.5rem;
 }
 
+/*
+  Logo 3D (R3F): no usar filter en el mismo nodo que envuelve el <canvas>.
+  filter en un ancestro del canvas suele vaciar el WebGL en Chrome.
+*/
+.coming-soon-page__logo-3d-shell {
+  width: 100%;
+  max-width: min(94vw, 34rem);
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0.5rem;
+  border-radius: 1rem;
+  /* Sombra sin filter — compatible con WebGL */
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+}
+
 /* Logo 3D (R3F) — misma idea que la pantalla de carga, GLB metálico */
 .coming-soon-page__logo-3d {
   width: 100%;
-  max-width: min(94vw, 34rem);
+  max-width: 100%;
   height: clamp(14.5rem, 46vw, 22rem);
   margin-left: auto;
   margin-right: auto;
-  filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.2));
 }
 
 @media (min-width: 768px) {
-  .coming-soon-page__logo-3d {
+  .coming-soon-page__logo-3d-shell {
     max-width: min(92vw, 38rem);
+  }
+
+  .coming-soon-page__logo-3d {
     height: clamp(17rem, 40vw, 25rem);
   }
 }
 
 @media (min-width: 1024px) {
-  .coming-soon-page__logo-3d {
+  .coming-soon-page__logo-3d-shell {
     max-width: 40rem;
+  }
+
+  .coming-soon-page__logo-3d {
     height: clamp(18rem, 36vh, 27rem);
   }
 }
@@ -164,8 +184,11 @@
     margin-bottom: 1.5rem;
   }
 
-  .coming-soon-page__logo-3d {
+  .coming-soon-page__logo-3d-shell {
     max-width: min(96vw, 29rem);
+  }
+
+  .coming-soon-page__logo-3d {
     height: clamp(13rem, 56vw, 17.5rem);
   }
 
