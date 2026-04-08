@@ -47,6 +47,17 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} className={`${poppins.variable}`}>
+      <head>
+        {!unlocked && (
+          <link
+            rel="preload"
+            href="/logos/logometal.glb"
+            as="fetch"
+            crossOrigin="anonymous"
+            fetchPriority="high"
+          />
+        )}
+      </head>
       <body>
         <NextIntlClientProvider messages={messages}>
           <PendingProfileSync />

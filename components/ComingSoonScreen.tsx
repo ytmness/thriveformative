@@ -1,18 +1,8 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
-const ComingSoonLogo3D = dynamic(() => import("./ComingSoonLogo3D"), {
-  ssr: false,
-  loading: () => (
-    <div
-      className="coming-soon-page__logo-3d coming-soon-page__logo-3d--skeleton"
-      aria-hidden
-    />
-  ),
-});
+import ComingSoonLogo3D from "./ComingSoonLogo3D";
 
 export default function ComingSoonScreen() {
   const [password, setPassword] = useState("");
