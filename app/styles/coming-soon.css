@@ -29,12 +29,36 @@
   }
 }
 
-.coming-soon-page__logo {
+/* Logo 3D (R3F) — misma idea que la pantalla de carga, GLB metálico */
+.coming-soon-page__logo-3d {
   width: 100%;
-  max-width: 28rem;
-  height: auto;
-  object-fit: contain;
-  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.15));
+  max-width: 22rem;
+  height: clamp(10.5rem, 36vw, 14rem);
+  margin-left: auto;
+  margin-right: auto;
+  filter: drop-shadow(0 10px 28px rgba(0, 0, 0, 0.18));
+}
+
+.coming-soon-page__logo-3d canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.coming-soon-page__logo-3d--skeleton {
+  border-radius: 0.75rem;
+  background: rgb(var(--surface) / 0.45);
+  animation: coming-soon-logo-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes coming-soon-logo-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
 }
 
 .coming-soon-page__title {
@@ -130,8 +154,9 @@
     margin-left: 8%;
   }
 
-  .coming-soon-page__logo {
-    max-width: min(82vw, 20rem);
+  .coming-soon-page__logo-3d {
+    max-width: min(90vw, 20rem);
+    height: clamp(9.5rem, 42vw, 12rem);
   }
 
   .coming-soon-page__title {

@@ -1,7 +1,18 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+
+const ComingSoonLogo3D = dynamic(() => import("./ComingSoonLogo3D"), {
+  ssr: false,
+  loading: () => (
+    <div
+      className="coming-soon-page__logo-3d coming-soon-page__logo-3d--skeleton"
+      aria-hidden
+    />
+  ),
+});
 
 export default function ComingSoonScreen() {
   const [password, setPassword] = useState("");
@@ -36,11 +47,7 @@ export default function ComingSoonScreen() {
     <div className="coming-soon-page">
       <div className="coming-soon-page__inner">
         <div className="coming-soon-page__logo-wrap">
-          <img
-            src="/logos/Black-Gradient-Logo-02.png"
-            alt="Thrive Formative"
-            className="coming-soon-page__logo"
-          />
+          <ComingSoonLogo3D />
         </div>
         <h1 className="coming-soon-page__title">Próximamente</h1>
         <p className="coming-soon-page__subtitle">
