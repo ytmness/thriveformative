@@ -1,7 +1,5 @@
 "use client";
 
-import FloralSideOrnaments from "./FloralSideOrnaments";
-
 type CardVariant =
   | "slideUp"
   | "slideLeft"
@@ -29,7 +27,6 @@ export default function GiantScrollCard({
     <article id={id} className={`giant-card ${className}`}>
       <div className="giant-card-inner">
         {children}
-        <FloralSideOrnaments />
       </div>
     </article>
   );

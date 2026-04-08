@@ -1,5 +1,5 @@
 /**
- * Configuración compartida para animaciones al estilo de FloralSideOrnaments
+ * Configuración compartida para animaciones laterales / scroll
  * (laterales de Functional Medicine) — todo el sitio usa el mismo patrón
  */
 
