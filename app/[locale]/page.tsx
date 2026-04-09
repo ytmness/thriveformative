@@ -360,11 +360,11 @@ function ApproachPillar({
       id={id}
       className="bg-surface border border-theme rounded-2xl p-5 md:p-6 flex flex-col h-full text-center transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(0,0,0,0.12)]"
     >
-      <h3 className="text-sm md:text-base text-muted tracking-wide">{title}</h3>
-      <p className="mt-2 text-xl sm:text-2xl md:text-3xl font-display font-semibold text-[rgb(var(--primary))] leading-tight text-balance">
+      <h3 className="text-sm md:text-base font-semibold text-[rgb(var(--text))] tracking-wide">{title}</h3>
+      <p className="mt-2 text-xl sm:text-2xl md:text-3xl font-display font-bold text-[rgb(var(--primary))] leading-tight text-balance">
         {highlight}
       </p>
-      <p className="mt-4 text-sm text-muted leading-relaxed text-left md:text-center grow">{description}</p>
+      <p className="mt-4 text-sm font-medium text-muted leading-relaxed text-left md:text-center grow">{description}</p>
     </article>
   );
 }
@@ -372,7 +372,7 @@ function ApproachPillar({
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-surface border border-theme rounded-2xl p-6 md:p-8 cursor-default text-center transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(0,0,0,0.12)]">
-      <div className="text-base text-muted">{label}</div>
+      <div className="text-base font-semibold text-[rgb(var(--text))]">{label}</div>
       <div className="text-3xl md:text-4xl font-display font-bold mt-2 text-[rgb(var(--primary))]">{value}</div>
     </div>
   );
