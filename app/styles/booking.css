@@ -23,12 +23,12 @@
   max-width: 72rem;
   margin-left: auto;
   margin-right: auto;
-  align-items: start;
+  align-items: stretch;
 }
 
 @media (min-width: 1024px) {
   .booking-section__layout {
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 2rem;
   }
 }
@@ -36,10 +36,17 @@
 .booking-cal-wrap {
   width: 100%;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .booking-cal {
   width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .booking-cal__label {
@@ -63,6 +70,10 @@
   background: rgb(var(--surface));
   border: 1px solid rgb(var(--border) / 0.45);
   box-shadow: 0 4px 24px rgb(0 0 0 / 0.06);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 @media (min-width: 768px) {
@@ -154,11 +165,22 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 0.4rem;
+  flex: 1;
+  min-height: 0;
+  grid-auto-rows: minmax(2.75rem, 1fr);
+  align-content: stretch;
 }
 
 @media (min-width: 768px) {
   .booking-cal__grid {
     gap: 0.5rem;
+    grid-auto-rows: minmax(3.25rem, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .booking-cal__grid {
+    grid-auto-rows: minmax(3.5rem, 1fr);
   }
 }
 
@@ -203,15 +225,32 @@
   box-shadow: 0 4px 16px rgb(var(--primary) / 0.3);
 }
 
-.booking-cal__day:disabled {
+/* Huecos del mes anterior/siguiente */
+.booking-cal__day--pad:disabled {
   visibility: hidden;
   pointer-events: none;
+}
+
+/* Hoy y días pasados: no se puede citar el mismo día */
+.booking-cal__day--blocked {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: rgb(var(--bg) / 0.2);
+  color: rgb(var(--muted));
+}
+
+.booking-cal__day--blocked:hover {
+  background: rgb(var(--bg) / 0.2);
+  border-color: transparent;
 }
 
 /* Panel horarios — misma familia visual que el calendario */
 .booking-slots {
   width: 100%;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .booking-slots__shell {
@@ -220,7 +259,10 @@
   background: rgb(var(--surface));
   border: 1px solid rgb(var(--border) / 0.45);
   box-shadow: 0 4px 24px rgb(0 0 0 / 0.06);
-  height: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 @media (min-width: 768px) {
@@ -254,6 +296,10 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 0.5rem;
+  flex: 1;
+  min-height: 0;
+  grid-auto-rows: minmax(3rem, 1fr);
+  align-content: stretch;
 }
 
 @media (min-width: 640px) {
@@ -266,6 +312,7 @@
   .booking-slots__grid {
     grid-template-columns: repeat(3, 1fr);
     gap: 0.65rem;
+    grid-auto-rows: minmax(3.25rem, 1fr);
   }
 }
 
@@ -312,13 +359,14 @@
 }
 
 .booking-slots__hint {
-  margin-top: 1.25rem;
+  margin-top: auto;
   padding-top: 1.25rem;
   border-top: 1px solid rgb(var(--border) / 0.45);
   font-size: 0.875rem;
   color: rgb(var(--muted));
   line-height: 1.55;
   text-align: left;
+  flex-shrink: 0;
 }
 
 .booking-section__cta {

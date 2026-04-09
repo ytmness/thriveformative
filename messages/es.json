@@ -133,7 +133,8 @@
     "loginPrompt": "Inicia sesión o regístrate para elegir fecha y horario.",
     "loginCardLabel": "Agenda en línea",
     "pickDateFirst": "Elige primero una fecha en el calendario.",
-    "bookingInProgress": "Reservando…"
+    "bookingInProgress": "Reservando…",
+    "sameDayNotAllowed": "No se pueden agendar citas para el mismo día. Elige una fecha a partir de mañana."
   },
   "auth": {
     "loginTitle": "Iniciar sesión",

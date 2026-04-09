@@ -133,7 +133,8 @@
     "loginPrompt": "Sign in or register to choose date and time.",
     "loginCardLabel": "Online scheduling",
     "pickDateFirst": "Pick a date in the calendar first.",
-    "bookingInProgress": "Booking…"
+    "bookingInProgress": "Booking…",
+    "sameDayNotAllowed": "Same-day appointments are not available. Please choose a date starting tomorrow."
   },
   "auth": {
     "loginTitle": "Sign in",

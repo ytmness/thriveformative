@@ -24,6 +24,24 @@ function formatDateKey(d: Date) {
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 }
 
+/** Inicio del día local (00:00). */
+function startOfLocalDay(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+/** Primer día permitido para cita: mañana (no el mismo día). */
+function getMinBookableDate(): Date {
+  const t = new Date();
+  t.setHours(0, 0, 0, 0);
+  t.setDate(t.getDate() + 1);
+  return t;
+}
+
+function isBookableCalendarDay(year: number, month: number, day: number): boolean {
+  const cell = startOfLocalDay(new Date(year, month, day));
+  return cell.getTime() >= getMinBookableDate().getTime();
+}
+
 export default function BookingSection() {
   const t = useTranslations("booking");
   const tAuth = useTranslations("auth");
@@ -31,18 +49,18 @@ export default function BookingSection() {
   const { user, loading } = useUser();
 
   const [currentMonth, setCurrentMonth] = useState(() => {
-    const n = new Date();
-    return { year: n.getFullYear(), month: n.getMonth() };
+    const min = getMinBookableDate();
+    return { year: min.getFullYear(), month: min.getMonth() };
   });
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>(() => getMinBookableDate());
   const [appointments, setAppointments] = useState<{ appointment_date: string; time_slot: string }[]>([]);
   const [bookingSlot, setBookingSlot] = useState<string | null>(null);
   const [bookingError, setBookingError] = useState<string | null>(null);
 
-  const selectedDateKey = selectedDate ? formatDateKey(selectedDate) : null;
+  const selectedDateKey = formatDateKey(selectedDate);
 
   useEffect(() => {
-    if (!user || !selectedDateKey) {
+    if (!user) {
       setAppointments([]);
       return;
     }
@@ -85,11 +103,17 @@ export default function BookingSection() {
 
   function selectDay(day: number | null) {
     if (day === null) return;
+    if (!isBookableCalendarDay(currentMonth.year, currentMonth.month, day)) return;
     setSelectedDate(new Date(currentMonth.year, currentMonth.month, day));
   }
 
   async function bookSlot(timeSlot: string) {
-    if (!user || !selectedDateKey) return;
+    if (!user) return;
+    const minKey = formatDateKey(getMinBookableDate());
+    if (selectedDateKey < minKey) {
+      setBookingError(t("sameDayNotAllowed"));
+      return;
+    }
     setBookingError(null);
     setBookingSlot(timeSlot);
     const supabase = createClient();
@@ -241,9 +265,11 @@ export default function BookingSection() {
                 </div>
                 <div className="booking-cal__grid" role="grid">
                   {calendarDays.map((day, i) => {
+                    const isPad = day === null;
+                    const bookable =
+                      !isPad && isBookableCalendarDay(currentMonth.year, currentMonth.month, day);
                     const isSelected =
-                      selectedDate &&
-                      day !== null &&
+                      !isPad &&
                       selectedDate.getDate() === day &&
                       selectedDate.getMonth() === currentMonth.month &&
                       selectedDate.getFullYear() === currentMonth.year;
@@ -252,8 +278,8 @@ export default function BookingSection() {
                         key={i}
                         type="button"
                         onClick={() => selectDay(day)}
-                        disabled={day === null}
-                        className={`booking-cal__day${isSelected ? " booking-cal__day--selected" : ""}`}
+                        disabled={isPad || !bookable}
+                        className={`booking-cal__day${isPad ? " booking-cal__day--pad" : ""}${!isPad && !bookable ? " booking-cal__day--blocked" : ""}${isSelected ? " booking-cal__day--selected" : ""}`}
                       >
                         {day ?? ""}
                       </button>
@@ -267,42 +293,36 @@ export default function BookingSection() {
           <div className="booking-slots">
             <div className="booking-slots__shell">
               <p className="booking-slots__label">{t("slotsLabel")}</p>
-              {!selectedDate ? (
-                <p className="booking-slots__empty">{t("pickDateFirst")}</p>
-              ) : (
-                <>
-                  {bookingError && (
-                    <div className="booking-error" role="alert">
-                      {bookingError}
-                    </div>
-                  )}
-                  <div className="booking-slots__grid">
-                    {TIME_SLOTS.map((timeSlot) => {
-                      const occupied = occupiedSet.has(timeSlot);
-                      const isBooking = bookingSlot === timeSlot;
-                      const busy = occupied || isBooking;
-                      return (
-                        <button
-                          key={timeSlot}
-                          type="button"
-                          disabled={busy}
-                          onClick={() => bookSlot(timeSlot)}
-                          className={`booking-slot${busy ? " booking-slot--busy" : ""}`}
-                        >
-                          <span className="booking-slot__time">{timeSlot}</span>
-                          {occupied && (
-                            <span className="booking-slot__sub">{t("occupied")}</span>
-                          )}
-                          {isBooking && !occupied && (
-                            <span className="booking-slot__sub">{t("bookingInProgress")}</span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <p className="booking-slots__hint">{t("occupiedHint")}</p>
-                </>
+              {bookingError && (
+                <div className="booking-error" role="alert">
+                  {bookingError}
+                </div>
               )}
+              <div className="booking-slots__grid">
+                {TIME_SLOTS.map((timeSlot) => {
+                  const occupied = occupiedSet.has(timeSlot);
+                  const isBooking = bookingSlot === timeSlot;
+                  const busy = occupied || isBooking;
+                  return (
+                    <button
+                      key={timeSlot}
+                      type="button"
+                      disabled={busy}
+                      onClick={() => bookSlot(timeSlot)}
+                      className={`booking-slot${busy ? " booking-slot--busy" : ""}`}
+                    >
+                      <span className="booking-slot__time">{timeSlot}</span>
+                      {occupied && (
+                        <span className="booking-slot__sub">{t("occupied")}</span>
+                      )}
+                      {isBooking && !occupied && (
+                        <span className="booking-slot__sub">{t("bookingInProgress")}</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="booking-slots__hint">{t("occupiedHint")}</p>
             </div>
           </div>
         </div>
