@@ -109,11 +109,11 @@ function PageContent() {
 
           {/* RIGHT — Text content */}
           <div>
-            <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-tight tracking-wide">
+            <h1 className="type-hero">
               {t("hero.title")}
             </h1>
 
-            <p className="mt-4 text-muted text-lg md:text-xl leading-relaxed">{t("hero.subtitle")}</p>
+            <p className="type-hero-sub mt-4">{t("hero.subtitle")}</p>
 
             {/* Benefits grid — 2×2 like reference */}
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
@@ -122,7 +122,7 @@ function PageContent() {
                   <div className="benefit-dot relative mt-1 w-3.5 h-3.5 rounded-full bg-[rgb(var(--primary)/0.2)] flex items-center justify-center flex-shrink-0">
                     <div className="w-1 h-1 rounded-full bg-[rgb(var(--primary))]" />
                   </div>
-                  <span className="text-base md:text-lg leading-snug">{t(`hero.benefit${i}`)}</span>
+                  <span className="type-body leading-snug">{t(`hero.benefit${i}`)}</span>
                 </div>
               ))}
             </div>
@@ -133,7 +133,7 @@ function PageContent() {
                 href={WHATSAPP_LINK}
                 target="_blank"
                 rel="noreferrer"
-                className="btn-cta inline-flex items-center justify-center text-center rounded-xl px-8 md:px-10 py-4 md:py-5 text-base md:text-lg tracking-wide shadow-lg leading-tight transition-transform hover:scale-[1.03] active:scale-[0.97]"
+                className="btn-cta type-btn inline-flex items-center justify-center text-center rounded-xl px-8 md:px-10 py-4 md:py-5 shadow-lg leading-tight transition-transform hover:scale-[1.03] active:scale-[0.97]"
               >
                 {t("hero.scheduleBtn")}
               </a>
@@ -157,15 +157,15 @@ function PageContent() {
       <AnimatedSection delay={0.1} className="scroll-snap-section">
         <div className="max-w-7xl mx-auto px-6 pb-14 min-h-[50vh] flex flex-col justify-center">
           <div className="bg-surface border border-theme rounded-2xl shadow-soft p-8 transition-shadow duration-300 hover:-translate-y-1 hover:shadow-[0_20px_60px_rgba(0,0,0,0.2)]">
-            <div className="text-base text-muted tracking-[0.22em]">{t("flow.title")}</div>
-            <ul className="mt-4 space-y-3 text-lg leading-relaxed">
+            <div className="type-overline">{t("flow.title")}</div>
+            <ul className="type-prose mt-4 space-y-3">
               <li>{t("flow.newPatient")}</li>
               <li>{t("flow.followUp")}</li>
               <li>{t("flow.policies")}</li>
             </ul>
             <div className="mt-6 p-5 rounded-xl border border-theme bg-[rgb(var(--bg)/0.6)]">
-              <div className="text-base text-muted">{t("flow.script")}</div>
-              <p className="text-lg mt-2">&ldquo;{t("flow.scriptText")}&rdquo;</p>
+              <div className="type-body-muted">{t("flow.script")}</div>
+              <p className="type-prose mt-2">&ldquo;{t("flow.scriptText")}&rdquo;</p>
             </div>
           </div>
         </div>
@@ -237,16 +237,16 @@ function PageContent() {
 
               {/* Right — FDA info + indications */}
               <div className="bg-surface border border-theme rounded-2xl shadow-soft p-6">
-                <p className="text-lg leading-relaxed">{t("tshape.fdaDesc")}</p>
-                <ul className="mt-5 space-y-3">
+                <p className="type-prose">{t("tshape.fdaDesc")}</p>
+                <ul className="type-prose mt-5 space-y-3">
                   {[1, 2, 3, 4].map((i) => (
-                    <li key={i} className="flex items-center gap-3 text-lg">
+                    <li key={i} className="flex items-center gap-3">
                       <span className="w-2 h-2 rounded-full bg-[rgb(var(--primary))] flex-shrink-0" />
                       {t(`tshape.fdaItem${i}`)}
                     </li>
                   ))}
                 </ul>
-                <p className="mt-6 text-base text-muted leading-relaxed border-t border-theme pt-5">
+                <p className="type-body-muted mt-6 border-t border-theme pt-5">
                   {t("tshape.fdaNote")}
                 </p>
               </div>
@@ -262,8 +262,8 @@ function PageContent() {
                   <div className="w-12 h-12 rounded-full bg-[rgb(var(--primary)/0.1)] flex items-center justify-center mb-5">
                     <div className="w-5 h-5 rounded-full bg-[rgb(var(--primary)/0.4)]" />
                   </div>
-                  <h4 className="font-display text-lg tracking-wide">{t(`tshape.tech${i}Title`)}</h4>
-                  <p className="mt-3 text-base text-muted leading-relaxed">{t(`tshape.tech${i}Desc`)}</p>
+                  <h4 className="type-tech-title tracking-wide">{t(`tshape.tech${i}Title`)}</h4>
+                  <p className="type-body-muted mt-3">{t(`tshape.tech${i}Desc`)}</p>
                 </div>
               ))}
             </div>
@@ -323,10 +323,10 @@ export default function Page() {
 function CTASection({ title, subtitle, buttonText }: { title: string; subtitle: string; buttonText: string }) {
   return (
     <>
-      <h2 className="font-display text-4xl md:text-5xl lg:text-6xl tracking-wide block text-center mx-auto max-w-4xl">
+      <h2 className="type-cta-title block text-center mx-auto max-w-4xl">
         {title}
       </h2>
-      <p className="mt-5 text-xl md:text-2xl text-muted leading-relaxed block text-center mx-auto max-w-3xl">
+      <p className="type-cta-sub mt-5 block text-center mx-auto max-w-3xl">
         {subtitle}
       </p>
       <div className="mt-10">
@@ -334,7 +334,7 @@ function CTASection({ title, subtitle, buttonText }: { title: string; subtitle: 
           href={WHATSAPP_LINK}
           target="_blank"
           rel="noreferrer"
-          className="btn-cta inline-block rounded-xl px-12 py-5 text-lg tracking-wide shadow-xl transition-transform hover:scale-[1.04] active:scale-[0.97]"
+          className="btn-cta type-btn inline-block rounded-xl px-12 py-5 shadow-xl transition-transform hover:scale-[1.04] active:scale-[0.97]"
         >
           {buttonText}
         </a>
@@ -360,11 +360,11 @@ function ApproachPillar({
       id={id}
       className="bg-surface border border-theme rounded-2xl p-5 md:p-6 flex flex-col h-full text-center transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(0,0,0,0.12)]"
     >
-      <h3 className="text-sm md:text-base font-semibold text-[rgb(var(--text))] tracking-wide">{title}</h3>
-      <p className="mt-2 text-xl sm:text-2xl md:text-3xl font-display font-bold text-[rgb(var(--primary))] leading-tight text-balance">
+      <h3 className="type-pillar-title tracking-wide">{title}</h3>
+      <p className="type-pillar-highlight mt-2 text-balance">
         {highlight}
       </p>
-      <p className="mt-4 text-sm font-medium text-muted leading-relaxed text-left md:text-center grow">{description}</p>
+      <p className="type-pillar-desc mt-4 text-left md:text-center grow">{description}</p>
     </article>
   );
 }
@@ -372,8 +372,8 @@ function ApproachPillar({
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-surface border border-theme rounded-2xl p-6 md:p-8 cursor-default text-center transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(0,0,0,0.12)]">
-      <div className="text-base font-semibold text-[rgb(var(--text))]">{label}</div>
-      <div className="text-3xl md:text-4xl font-display font-bold mt-2 text-[rgb(var(--primary))]">{value}</div>
+      <div className="type-stat-label">{label}</div>
+      <div className="type-stat-value mt-2">{value}</div>
     </div>
   );
 }
@@ -381,8 +381,8 @@ function Stat({ label, value }: { label: string; value: string }) {
 function SectionTitle({ title, subtitle }: { title: string; subtitle: string }) {
   return (
     <div className="mb-4">
-      <h2 className="font-display text-4xl md:text-5xl lg:text-6xl tracking-wide">{title}</h2>
-      <p className="text-lg md:text-xl text-muted mt-3 max-w-2xl leading-relaxed">{subtitle}</p>
+      <h2 className="type-section-title tracking-wide">{title}</h2>
+      <p className="type-section-sub mt-3 max-w-2xl">{subtitle}</p>
     </div>
   );
 }
@@ -390,8 +390,8 @@ function SectionTitle({ title, subtitle }: { title: string; subtitle: string }) 
 function Service({ name, desc }: { name: string; desc: string }) {
   return (
     <div className="bg-surface border border-theme rounded-2xl shadow-soft p-8 md:p-10 transition-[transform,box-shadow] duration-300 hover:-translate-y-1.5 hover:shadow-[0_20px_50px_rgba(0,0,0,0.18)]">
-      <div className="font-display text-2xl md:text-3xl font-semibold">{name}</div>
-      <p className="text-lg md:text-xl text-muted mt-4 leading-relaxed">{desc}</p>
+      <div className="type-card-name">{name}</div>
+      <p className="type-prose-muted mt-4">{desc}</p>
     </div>
   );
 }
@@ -414,8 +414,8 @@ function Plan({
           : "border-theme hover:shadow-[0_20px_50px_rgba(0,0,0,0.18)]"
       }`}
     >
-      <div className="font-display text-3xl md:text-4xl tracking-wide">{name}</div>
-      <ul className="mt-4 space-y-3 text-lg text-muted">
+      <div className="type-card-name-lg tracking-wide">{name}</div>
+      <ul className="type-prose-muted mt-4 space-y-3">
         {items.map((x) => (
           <li key={x} className="flex items-start gap-2">
             <span className="mt-1.5 w-2 h-2 rounded-full bg-[rgb(var(--primary)/0.4)] flex-shrink-0" />
@@ -425,7 +425,7 @@ function Plan({
       </ul>
       <button
         type="button"
-        className={`mt-6 w-full rounded-xl px-5 py-4 text-lg font-semibold transition-transform hover:scale-[1.05] active:scale-[0.95] ${
+        className={`type-btn mt-6 w-full rounded-xl px-5 py-4 transition-transform hover:scale-[1.05] active:scale-[0.95] ${
           featured ? "btn-primary shadow-lg" : "btn-outline"
         }`}
       >

@@ -72,7 +72,7 @@ export default function Header() {
         </motion.a>
 
         {/* Nav links — centered, spread out */}
-        <nav className="hidden lg:flex items-center gap-10 xl:gap-12 text-base font-medium flex-1 justify-center">
+        <nav className="hidden lg:flex items-center gap-10 xl:gap-12 type-nav flex-1 justify-center">
           {navItems.map((item, i) => (
             <motion.a
               key={item.key}
@@ -94,7 +94,7 @@ export default function Header() {
             <>
               {user ? (
                 <div className="flex items-center gap-3">
-                  <span className="text-sm text-muted hidden sm:inline truncate max-w-[120px]">
+                  <span className="type-ui-muted hidden sm:inline truncate max-w-[120px]">
                     {user.email}
                   </span>
                   {role === "admin" && (
@@ -102,7 +102,7 @@ export default function Header() {
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.97 }}
                       href={`/${locale}/admin`}
-                      className="text-sm font-medium hover:opacity-80 whitespace-nowrap"
+                      className="type-ui font-medium hover:opacity-80 whitespace-nowrap"
                     >
                       Admin
                     </motion.a>
@@ -111,14 +111,14 @@ export default function Header() {
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
                     href={`/${locale}#citas`}
-                    className="text-sm font-medium text-[rgb(var(--primary))] hover:opacity-80"
+                    className="type-ui font-medium text-[rgb(var(--primary))] hover:opacity-80"
                   >
                     {t("nav.booking")}
                   </motion.a>
                   <button
                     type="button"
                     onClick={() => { signOut(); router.refresh(); }}
-                    className="text-sm text-muted hover:opacity-80"
+                    className="type-ui-muted hover:opacity-80"
                   >
                     {t("auth.signOut")}
                   </button>
@@ -130,7 +130,7 @@ export default function Header() {
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
                     href={`/${locale}/login`}
-                    className="text-sm font-medium hover:opacity-80"
+                    className="type-ui font-medium hover:opacity-80"
                   >
                     {t("auth.loginTitle")}
                   </motion.a>
@@ -138,7 +138,7 @@ export default function Header() {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     href={`/${locale}/register`}
-                    className="btn-outline rounded-xl px-4 py-2 text-sm font-medium"
+                    className="btn-outline type-ui font-medium rounded-xl px-4 py-2"
                   >
                     {t("auth.registerLink")}
                   </motion.a>
@@ -149,7 +149,7 @@ export default function Header() {
           <motion.a
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="btn-primary rounded-xl px-5 py-2.5 text-base font-medium shadow-lg hover:shadow-xl transition-shadow whitespace-nowrap"
+            className="btn-primary type-btn rounded-xl px-5 py-2.5 shadow-lg hover:shadow-xl transition-shadow whitespace-nowrap"
             href={WHATSAPP_LINK}
             target="_blank"
             rel="noreferrer"
@@ -183,7 +183,7 @@ export default function Header() {
                 key={item.key}
                 href={item.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-base font-medium py-2 border-b border-[rgb(var(--border)/0.15)]"
+                className="type-nav py-2 border-b border-[rgb(var(--border)/0.15)]"
               >
                 {"label" in item ? item.label : t(`nav.${item.key}`)}
               </a>
@@ -195,12 +195,12 @@ export default function Header() {
               <>
                 {user ? (
                   <>
-                    <span className="text-sm text-muted truncate">{user.email}</span>
+                    <span className="type-ui-muted truncate">{user.email}</span>
                     {role === "admin" && (
                       <a
                         href={`/${locale}/admin`}
                         onClick={() => setMobileMenuOpen(false)}
-                        className="text-sm font-medium"
+                        className="type-ui font-medium"
                       >
                         Admin
                       </a>
@@ -208,7 +208,7 @@ export default function Header() {
                     <a
                       href={`/${locale}#citas`}
                       onClick={() => setMobileMenuOpen(false)}
-                      className="text-sm font-medium text-[rgb(var(--primary))]"
+                      className="type-ui font-medium text-[rgb(var(--primary))]"
                     >
                       {t("nav.booking")}
                     </a>
@@ -219,7 +219,7 @@ export default function Header() {
                         router.refresh();
                         setMobileMenuOpen(false);
                       }}
-                      className="text-sm text-left text-muted"
+                      className="type-ui-muted text-left"
                     >
                       {t("auth.signOut")}
                     </button>
@@ -232,14 +232,14 @@ export default function Header() {
                     <a
                       href={`/${locale}/login`}
                       onClick={() => setMobileMenuOpen(false)}
-                      className="text-sm font-medium"
+                      className="type-ui font-medium"
                     >
                       {t("auth.loginTitle")}
                     </a>
                     <a
                       href={`/${locale}/register`}
                       onClick={() => setMobileMenuOpen(false)}
-                      className="btn-outline rounded-xl px-4 py-2 text-sm font-medium text-center"
+                      className="btn-outline type-ui font-medium rounded-xl px-4 py-2 text-center"
                     >
                       {t("auth.registerLink")}
                     </a>
@@ -249,7 +249,7 @@ export default function Header() {
             )}
 
             <a
-              className="btn-primary rounded-xl px-5 py-3 text-base font-medium shadow-lg text-center"
+              className="btn-primary type-btn rounded-xl px-5 py-3 shadow-lg text-center"
               href={WHATSAPP_LINK}
               target="_blank"
               rel="noreferrer"

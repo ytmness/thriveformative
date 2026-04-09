@@ -39,17 +39,17 @@ export default function Footer() {
               alt="Thrive Formative"
               className="h-14 md:h-16 w-auto object-contain transition-transform duration-200 hover:scale-[1.02]"
             />
-            <p className="text-sm text-muted leading-relaxed max-w-xs">
+            <p className="type-ui-muted leading-relaxed max-w-xs">
               {t("footer.tagline")}
             </p>
-            <div className="text-xs tracking-[0.18em] text-muted pt-2">
+            <div className="type-caption tracking-[0.18em] pt-2">
               {t("footer.brand")}
             </div>
           </div>
 
           {/* Quick links */}
           <div>
-            <h4 className="font-display text-sm tracking-[0.15em] uppercase mb-5">
+            <h4 className="font-display type-overline-tight mb-5">
               {t("footer.quickLinks")}
             </h4>
             <nav className="space-y-3">
@@ -57,7 +57,7 @@ export default function Footer() {
                 <a
                   key={link.href}
                   href={link.href}
-                  className="block text-sm text-muted hover:opacity-80 transition-all hover:translate-x-1 hover:text-[rgb(var(--primary))]"
+                  className="block type-ui-muted hover:opacity-80 transition-all hover:translate-x-1 hover:text-[rgb(var(--primary))]"
                 >
                   {link.label}
                 </a>
@@ -67,10 +67,10 @@ export default function Footer() {
 
           {/* Contact column */}
           <div>
-            <h4 className="font-display text-sm tracking-[0.15em] uppercase mb-5">
+            <h4 className="font-display type-overline-tight mb-5">
               {t("footer.contactTitle")}
             </h4>
-            <div className="space-y-3 text-sm text-muted">
+            <div className="space-y-3 type-ui-muted">
               <div>{t("contact.emailPlaceholder")}</div>
               <div>{t("contact.phonePlaceholder")}</div>
               <div>{t("contact.locationDesc")}</div>
@@ -79,7 +79,7 @@ export default function Footer() {
               href={WHATSAPP_LINK}
               target="_blank"
               rel="noreferrer"
-              className="mt-5 inline-block btn-primary rounded-xl px-6 py-3 text-sm font-medium shadow-lg transition-transform hover:scale-[1.03] active:scale-[0.97]"
+              className="mt-5 inline-block btn-primary type-btn rounded-xl px-6 py-3 shadow-lg transition-transform hover:scale-[1.03] active:scale-[0.97]"
             >
               {t("contact.scheduleBtn")}
             </a>
@@ -88,10 +88,10 @@ export default function Footer() {
 
         {/* Bottom bar */}
         <div className="mt-14 pt-6 border-t border-theme flex flex-col md:flex-row items-center justify-between gap-3">
-          <div className="text-xs text-muted">
+          <div className="type-caption">
             © {new Date().getFullYear()} Thrive Formative. {t("footer.rights")}
           </div>
-          <div className="text-xs text-muted tracking-wide">
+          <div className="type-caption tracking-wide">
             Designed with care
           </div>
         </div>

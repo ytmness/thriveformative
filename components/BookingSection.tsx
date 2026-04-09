@@ -159,10 +159,10 @@ export default function BookingSection() {
       <AnimatedSection>
         <section className="booking-section max-w-screen-2xl mx-auto px-4 sm:px-6 py-20 md:py-28">
           <header className="booking-section__header">
-            <h2 className="font-display text-4xl md:text-5xl lg:text-6xl tracking-wide">
+            <h2 className="type-section-title tracking-wide">
               {t("title")}
             </h2>
-            <p className="text-lg md:text-xl text-muted mt-3 leading-relaxed">
+            <p className="type-section-sub mt-3">
               {t("subtitle")}
             </p>
           </header>
@@ -178,36 +178,36 @@ export default function BookingSection() {
                       <line x1="3" y1="10" x2="21" y2="10"/>
                     </svg>
                   </span>
-                  <span className="text-sm font-semibold tracking-[0.2em] uppercase text-muted">
+                  <span className="type-overline-tight font-semibold tracking-[0.2em]">
                     {t("loginCardLabel")}
                   </span>
                 </div>
-                <p className="text-lg text-muted leading-relaxed mb-8 text-center sm:text-left">
+                <p className="type-prose-muted mb-8 text-center sm:text-left">
                   {t("loginPrompt")}
                 </p>
                 <div className="flex flex-wrap gap-4 justify-center">
                   <Link
                     href={`/${locale}/login`}
-                    className="btn-primary rounded-xl px-8 py-4 text-base font-medium min-w-[10rem] text-center"
+                    className="btn-primary type-btn rounded-xl px-8 py-4 min-w-[10rem] text-center"
                   >
                     {tAuth("submitLogin")}
                   </Link>
                   <Link
                     href={`/${locale}/register`}
-                    className="btn-outline rounded-xl px-8 py-4 text-base font-medium min-w-[10rem] text-center border-theme hover:bg-[rgb(var(--primary)/0.08)]"
+                    className="btn-outline type-btn rounded-xl px-8 py-4 min-w-[10rem] text-center border-theme hover:bg-[rgb(var(--primary)/0.08)]"
                   >
                     {tAuth("submitRegister")}
                   </Link>
                 </div>
                 <div className="mt-8 pt-8 border-t border-theme text-center">
-                  <p className="text-muted text-sm mb-3">
+                  <p className="type-ui-muted mb-3">
                     {t("ctaHint")}
                   </p>
                   <a
                     href={WHATSAPP_LINK}
                     target="_blank"
                     rel="noreferrer"
-                    className="btn-cta inline-block rounded-xl px-8 py-4 text-base font-medium"
+                    className="btn-cta type-btn inline-block rounded-xl px-8 py-4"
                   >
                     {t("ctaButton")}
                   </a>
@@ -224,10 +224,10 @@ export default function BookingSection() {
     <AnimatedSection>
       <section className="booking-section max-w-screen-2xl mx-auto px-4 sm:px-6 py-20 md:py-28">
         <header className="booking-section__header">
-          <h2 className="font-display text-4xl md:text-5xl lg:text-6xl tracking-wide">
+          <h2 className="type-section-title tracking-wide">
             {t("title")}
           </h2>
-          <p className="text-lg md:text-xl text-muted mt-3 leading-relaxed">
+          <p className="type-section-sub mt-3">
             {t("subtitle")}
           </p>
         </header>
@@ -329,12 +329,12 @@ export default function BookingSection() {
         </div>
 
         <div className="booking-section__cta">
-          <p className="text-muted text-base mb-3">{t("ctaHint")}</p>
+          <p className="type-body-muted mb-3">{t("ctaHint")}</p>
           <a
             href={WHATSAPP_LINK}
             target="_blank"
             rel="noreferrer"
-            className="btn-cta inline-block rounded-xl px-10 py-5 text-lg tracking-wide shadow-lg"
+            className="btn-cta type-btn inline-block rounded-xl px-10 py-5 shadow-lg"
           >
             {t("ctaButton")}
           </a>

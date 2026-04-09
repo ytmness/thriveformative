@@ -90,3 +90,230 @@
   display: flex;
   align-items: flex-end;
 }
+
+/* ========== Escala tipográfica unificada ==========
+   Pocos niveles: hero → sección → bloque → cuerpo → UI/caption.
+   Evita mezclar text-xs … text-7xl sueltos en cada componente. */
+
+.type-hero {
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.15;
+  font-size: clamp(1.75rem, 2.8vw + 1rem, 4rem);
+}
+
+.type-hero-sub {
+  font-size: clamp(1.0625rem, 0.8vw + 0.9rem, 1.25rem);
+  line-height: 1.65;
+  color: rgb(var(--muted));
+}
+
+.type-section-title {
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.15;
+  font-size: clamp(2rem, 2.2vw + 1.25rem, 3.5rem);
+}
+
+.type-section-sub {
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  color: rgb(var(--muted));
+}
+
+@media (min-width: 768px) {
+  .type-section-sub {
+    font-size: 1.125rem;
+  }
+}
+
+.type-page-title {
+  font-family: var(--font-body), system-ui, sans-serif;
+  letter-spacing: 0.02em;
+  line-height: 1.15;
+  font-size: clamp(1.875rem, 2vw + 1.1rem, 3rem);
+}
+
+.type-page-lead {
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  color: rgb(var(--muted));
+}
+
+@media (min-width: 768px) {
+  .type-page-lead {
+    font-size: 1.125rem;
+  }
+}
+
+.type-overline {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: rgb(var(--muted));
+}
+
+.type-overline-tight {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgb(var(--muted));
+}
+
+.type-body {
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.type-body-muted {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: rgb(var(--muted));
+}
+
+.type-prose {
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+@media (min-width: 768px) {
+  .type-prose {
+    font-size: 1.0625rem;
+  }
+}
+
+.type-prose-muted {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: rgb(var(--muted));
+}
+
+@media (min-width: 768px) {
+  .type-prose-muted {
+    font-size: 1.0625rem;
+  }
+}
+
+.type-card-name {
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-weight: 600;
+  font-size: clamp(1.375rem, 1.2vw + 1.05rem, 1.75rem);
+  line-height: 1.25;
+}
+
+.type-card-name-lg {
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  font-size: clamp(1.5rem, 1.5vw + 1rem, 2.125rem);
+  line-height: 1.2;
+}
+
+.type-pillar-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: rgb(var(--text));
+}
+
+@media (min-width: 768px) {
+  .type-pillar-title {
+    font-size: 1rem;
+  }
+}
+
+.type-pillar-highlight {
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.25rem, 1.5vw + 0.85rem, 1.875rem);
+  line-height: 1.2;
+  color: rgb(var(--primary));
+}
+
+.type-pillar-desc {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.65;
+  color: rgb(var(--muted));
+}
+
+.type-stat-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgb(var(--text));
+}
+
+.type-stat-value {
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.75rem, 2vw + 0.75rem, 2.25rem);
+  line-height: 1.15;
+  color: rgb(var(--primary));
+}
+
+.type-tech-title {
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.type-cta-title {
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: clamp(2rem, 2.5vw + 1rem, 3.25rem);
+  letter-spacing: 0.02em;
+  line-height: 1.15;
+}
+
+.type-cta-sub {
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  color: rgb(var(--muted));
+}
+
+@media (min-width: 768px) {
+  .type-cta-sub {
+    font-size: 1.125rem;
+  }
+}
+
+/* Chrome UI: navegación desktop */
+.type-nav {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+/* Chrome UI: secundario (móvil, email, footer links) */
+.type-ui {
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.type-ui-muted {
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: rgb(var(--muted));
+}
+
+/* Legal / notas mínimas */
+.type-caption {
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: rgb(var(--muted));
+}
+
+/* Botones de texto principal */
+.type-btn {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.type-faq-q {
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
