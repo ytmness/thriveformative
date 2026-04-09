@@ -265,48 +265,45 @@ export default function BookingSection() {
           </div>
 
           <div className="booking-slots">
-            <p className="booking-slots__label">{t("slotsLabel")}</p>
-            {!selectedDate ? (
-              <p className="booking-slots__empty">{t("pickDateFirst")}</p>
-            ) : (
-              <>
-                {bookingError && (
-                  <div className="booking-error" role="alert">
-                    {bookingError}
+            <div className="booking-slots__shell">
+              <p className="booking-slots__label">{t("slotsLabel")}</p>
+              {!selectedDate ? (
+                <p className="booking-slots__empty">{t("pickDateFirst")}</p>
+              ) : (
+                <>
+                  {bookingError && (
+                    <div className="booking-error" role="alert">
+                      {bookingError}
+                    </div>
+                  )}
+                  <div className="booking-slots__grid">
+                    {TIME_SLOTS.map((timeSlot) => {
+                      const occupied = occupiedSet.has(timeSlot);
+                      const isBooking = bookingSlot === timeSlot;
+                      const busy = occupied || isBooking;
+                      return (
+                        <button
+                          key={timeSlot}
+                          type="button"
+                          disabled={busy}
+                          onClick={() => bookSlot(timeSlot)}
+                          className={`booking-slot${busy ? " booking-slot--busy" : ""}`}
+                        >
+                          <span className="booking-slot__time">{timeSlot}</span>
+                          {occupied && (
+                            <span className="booking-slot__sub">{t("occupied")}</span>
+                          )}
+                          {isBooking && !occupied && (
+                            <span className="booking-slot__sub">{t("bookingInProgress")}</span>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
-                )}
-                <div className="booking-slots__grid">
-                  {TIME_SLOTS.map((timeSlot) => {
-                    const occupied = occupiedSet.has(timeSlot);
-                    const isBooking = bookingSlot === timeSlot;
-                    return (
-                      <button
-                        key={timeSlot}
-                        type="button"
-                        disabled={occupied || isBooking}
-                        onClick={() => bookSlot(timeSlot)}
-                        className={`booking-slot${occupied || isBooking ? " booking-slot--busy" : ""}`}
-                      >
-                        <span className="block">{timeSlot}</span>
-                        {occupied && (
-                          <span className="block text-xs font-medium mt-0.5 opacity-90">
-                            {t("occupied")}
-                          </span>
-                        )}
-                        {isBooking && (
-                          <span className="block text-xs font-medium mt-0.5 opacity-90">
-                            {t("bookingInProgress")}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-                <p className="booking-slots__hint">
-                  {t("occupiedHint")}
-                </p>
-              </>
-            )}
+                  <p className="booking-slots__hint">{t("occupiedHint")}</p>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
