@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useRef } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Bounds, Center, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
@@ -47,6 +47,32 @@ const PRESETS: Record<
   },
 };
 
+/** Tope de DPR: menos píxeles en móvil sin perder sensación 3D. */
+function useAdaptiveDprCap(): number {
+  const [cap, setCap] = useState(2);
+  useEffect(() => {
+    const narrow = window.matchMedia("(max-width: 768px)");
+    const short = window.matchMedia("(max-height: 480px)");
+    const coarse = window.matchMedia("(pointer: coarse)");
+    const update = () => {
+      let next = 1.85;
+      if (narrow.matches || short.matches) next = 1.65;
+      if (coarse.matches && narrow.matches) next = 1.5;
+      setCap(next);
+    };
+    update();
+    narrow.addEventListener("change", update);
+    short.addEventListener("change", update);
+    coarse.addEventListener("change", update);
+    return () => {
+      narrow.removeEventListener("change", update);
+      short.removeEventListener("change", update);
+      coarse.removeEventListener("change", update);
+    };
+  }, []);
+  return cap;
+}
+
 function RotatingLogo({
   modelPath,
   paused,
@@ -56,7 +82,7 @@ function RotatingLogo({
   paused: boolean;
   preset: Logo3DPreset;
 }) {
-  const { scene } = useGLTF(modelPath);
+  const { scene } = useGLTF(modelPath, true, true);
   const groupRef = useRef<THREE.Group>(null);
   const speed = PRESETS[preset].rotationSpeed;
   const margin = PRESETS[preset].boundsMargin;
@@ -110,21 +136,21 @@ export default function Logo3DCanvas({
 }: Logo3DCanvasProps) {
   const paused = useReducedMotion();
   const exposure = PRESETS[preset].exposure;
+  const dprCap = useAdaptiveDprCap();
 
   return (
     <div className={className}>
       <Canvas
         camera={{ position: [0, 0, 5], fov: 42 }}
-        dpr={[1, 2]}
+        dpr={[1, dprCap]}
         gl={{
           alpha: true,
           antialias: true,
-          powerPreference: "default",
+          powerPreference: "high-performance",
           failIfMajorPerformanceCaveat: false,
         }}
         className="h-full w-full touch-none"
         onCreated={({ gl }) => {
-          gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
           gl.toneMapping = THREE.ACESFilmicToneMapping;
           gl.toneMappingExposure = exposure;
           if ("outputColorSpace" in gl) {
@@ -140,6 +166,3 @@ export default function Logo3DCanvas({
     </div>
   );
 }
-
-useGLTF.preload("/logos/logo3ddorado.glb");
-useGLTF.preload("/logos/logometal.glb");

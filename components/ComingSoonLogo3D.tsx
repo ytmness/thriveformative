@@ -1,6 +1,9 @@
 "use client";
 
+import { useGLTF } from "@react-three/drei";
 import Logo3DCanvas from "./Logo3DCanvas";
+
+useGLTF.preload("/logos/logometal.glb", true, true);
 
 /** Logo metálico 3D para la pantalla «Próximamente» (misma base que la carga). */
 export default function ComingSoonLogo3D() {

@@ -4,8 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 
-/** Tiempo visible del overlay antes del fade-out (ms). */
-const LOADING_DURATION_MS = 4300;
+/** Tiempo visible del overlay antes del fade-out (ms). GLB optimizado → intro más breve. */
+const LOADING_DURATION_MS = 3000;
 
 const LoadingScreenLogo3D = dynamic(() => import("./LoadingScreenLogo3D"), {
   ssr: false,
@@ -73,7 +73,7 @@ export default function LoadingScreen() {
                 initial={{ width: "0%" }}
                 animate={{ width: "100%" }}
                 transition={{
-                  duration: 3.4,
+                  duration: 2.35,
                   ease: "easeInOut",
                 }}
                 className="h-full bg-[rgb(var(--primary))]"
