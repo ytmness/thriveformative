@@ -174,22 +174,22 @@ function PageContent() {
 
       {/* ─── MAIN CONTENT — bloques continuos ─── */}
       <main className="scroll-cards-stack">
-        <GiantScrollCard variant="slideUp" id="approach" noFade>
-          <div className="fullscreen-content fullscreen-content--expanded">
+        <GiantScrollCard variant="slideUp" id="approach" noFade compact>
+          <div className="fullscreen-content fullscreen-content--approach">
             <FullscreenCard titleA={t("approach.title1a")} titleB={t("approach.title1b")} large>
               {t("approach.desc1")}
             </FullscreenCard>
           </div>
         </GiantScrollCard>
-        <GiantScrollCard variant="slideUp" id="approach-2" noFade>
-          <div className="fullscreen-content fullscreen-content--expanded">
+        <GiantScrollCard variant="slideUp" id="approach-2" noFade compact>
+          <div className="fullscreen-content fullscreen-content--approach">
             <FullscreenCard titleA={t("approach.title2a")} titleB={t("approach.title2b")} large>
               {t("approach.desc2")}
             </FullscreenCard>
           </div>
         </GiantScrollCard>
-        <GiantScrollCard variant="slideUp" id="approach-3" noFade>
-          <div className="fullscreen-content fullscreen-content--expanded">
+        <GiantScrollCard variant="slideUp" id="approach-3" noFade compact>
+          <div className="fullscreen-content fullscreen-content--approach">
             <FullscreenCard titleA={t("approach.title3")} large>
               {t("approach.desc3")}
             </FullscreenCard>
@@ -358,8 +358,8 @@ function FullscreenCard({
     const descText = typeof children === "string" ? children : String(children);
 
     return (
-      <div className="py-10 md:py-14 px-2 md:px-6">
-        <h2 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl tracking-wide leading-tight">
+      <div className="py-1 md:py-2">
+        <h2 className="font-display text-3xl sm:text-4xl md:text-[2.125rem] lg:text-5xl tracking-wide leading-snug text-balance">
           {titleB != null && titleB !== "" ? (
             <>
               {titleA}{" "}
@@ -369,7 +369,7 @@ function FullscreenCard({
             titleA
           )}
         </h2>
-        <p className="mt-8 md:mt-12 text-xl md:text-2xl lg:text-3xl xl:text-4xl text-muted leading-loose max-w-none tracking-wide">
+        <p className="mt-3 md:mt-4 text-base md:text-lg text-muted leading-relaxed max-w-none">
           {descText}
         </p>
       </div>

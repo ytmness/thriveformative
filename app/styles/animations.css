@@ -213,6 +213,27 @@
   padding: 0 1rem;
 }
 
+/* Enfoque clínico: columna más estrecha, estilo editorial compacto */
+.giant-card-inner .fullscreen-content--approach {
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 1rem;
+}
+
+/* Bloques Medicina funcional / familiar / Acompañamiento — menos aire vertical */
+.scroll-cards-stack .giant-card--compact .giant-card-inner {
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .scroll-cards-stack .giant-card--compact .giant-card-inner {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+}
+
 /* Área de contenido: crece y centra su contenido según el espacio disponible */
 .giant-card-inner > .wave-divider--inside-section + * {
   flex: 1;
@@ -438,6 +459,10 @@
     min-height: auto;
     padding: 3rem 1rem 3rem;
     justify-content: flex-start;
+  }
+
+  .scroll-cards-stack .giant-card--compact .giant-card-inner {
+    padding: 1.25rem 1rem;
   }
 }
 

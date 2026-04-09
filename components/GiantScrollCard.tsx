@@ -16,15 +16,18 @@ interface GiantScrollCardProps {
   className?: string;
   id?: string;
   noFade?: boolean;
+  /** Menos padding vertical (p. ej. bloques Medicina / Acompañamiento). */
+  compact?: boolean;
 }
 
 export default function GiantScrollCard({
   children,
   className = "",
   id,
+  compact = false,
 }: GiantScrollCardProps) {
   return (
-    <article id={id} className={`giant-card ${className}`}>
+    <article id={id} className={`giant-card${compact ? " giant-card--compact" : ""} ${className}`.trim()}>
       <div className="giant-card-inner">
         {children}
       </div>
