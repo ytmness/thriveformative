@@ -45,11 +45,14 @@
   "approach": {
     "title1a": "Medicina",
     "title1b": "funcional",
+    "highlight1": "Causas raíz, laboratorios y plan personalizado",
     "desc1": "Enfoque en causas raíz, biomarcadores y planes personalizados. Analizamos tu bioquímica única para entender qué desencadena tus síntomas. Combinamos nutrición terapéutica, optimización hormonal, suplementación basada en evidencia y ajustes de estilo de vida para restaurar el equilibrio de tu organismo.",
     "title2a": "Medicina",
     "title2b": "familiar",
+    "highlight2": "Historia integral y continuidad de atención",
     "desc2": "Visión integral que considera tu historial completo, contexto familiar, factores psicosociales y objetivos de vida. Tomamos decisiones informadas considerando no solo tu biología, sino también tu estilo de vida, creencias y preferencias. Continuidad de atención con seguimiento personalizado.",
     "title3": "Acompañamiento",
+    "highlight3": "Metas, expediente digital y comunicación directa",
     "desc3": "Metas claras y alcanzables con revisión mensual o quincenal. Documentación clínica segura en expediente digital. Ajustes progresivos según tu evolución, sin protocolos rígidos. Comunicación directa para resolver dudas. Te acompañamos en cada paso hacia tu mejor versión."
   },
   "services": {

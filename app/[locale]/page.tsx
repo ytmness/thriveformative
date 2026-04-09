@@ -1,6 +1,5 @@
 "use client";
 
-import type { ReactNode } from "react";
 import ThemeProvider from "@/components/theme/ThemeProvider";
 import ThemeSwitcher from "@/components/theme/ThemeSwitcher";
 import Header from "@/components/Header";
@@ -175,24 +174,27 @@ function PageContent() {
       {/* ─── MAIN CONTENT — bloques continuos ─── */}
       <main className="scroll-cards-stack">
         <GiantScrollCard variant="slideUp" id="approach" noFade compact>
-          <div className="fullscreen-content fullscreen-content--approach">
-            <FullscreenCard titleA={t("approach.title1a")} titleB={t("approach.title1b")} large>
-              {t("approach.desc1")}
-            </FullscreenCard>
-          </div>
-        </GiantScrollCard>
-        <GiantScrollCard variant="slideUp" id="approach-2" noFade compact>
-          <div className="fullscreen-content fullscreen-content--approach">
-            <FullscreenCard titleA={t("approach.title2a")} titleB={t("approach.title2b")} large>
-              {t("approach.desc2")}
-            </FullscreenCard>
-          </div>
-        </GiantScrollCard>
-        <GiantScrollCard variant="slideUp" id="approach-3" noFade compact>
-          <div className="fullscreen-content fullscreen-content--approach">
-            <FullscreenCard titleA={t("approach.title3")} large>
-              {t("approach.desc3")}
-            </FullscreenCard>
+          <div className="max-w-7xl mx-auto px-6 w-full">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 items-stretch">
+              <ApproachPillar
+                id="approach-funcional"
+                title={`${t("approach.title1a")} ${t("approach.title1b")}`}
+                highlight={t("approach.highlight1")}
+                description={t("approach.desc1")}
+              />
+              <ApproachPillar
+                id="approach-familiar"
+                title={`${t("approach.title2a")} ${t("approach.title2b")}`}
+                highlight={t("approach.highlight2")}
+                description={t("approach.desc2")}
+              />
+              <ApproachPillar
+                id="approach-acompanamiento"
+                title={t("approach.title3")}
+                highlight={t("approach.highlight3")}
+                description={t("approach.desc3")}
+              />
+            </div>
           </div>
         </GiantScrollCard>
         <GiantScrollCard variant="slideUp" id="servicios">
@@ -341,48 +343,29 @@ function CTASection({ title, subtitle, buttonText }: { title: string; subtitle: 
   );
 }
 
-function FullscreenCard({
+/** Tres pilares en fila, mismo ritmo visual que las stats del hero. */
+function ApproachPillar({
+  id,
   title,
-  titleA,
-  titleB,
-  children,
-  large,
+  highlight,
+  description,
 }: {
-  title?: string;
-  titleA?: string;
-  titleB?: string;
-  children: ReactNode;
-  large?: boolean;
+  id: string;
+  title: string;
+  highlight: string;
+  description: string;
 }) {
-  if (large && titleA != null) {
-    const descText = typeof children === "string" ? children : String(children);
-
-    return (
-      <div className="py-1 md:py-2">
-        <h2 className="font-display text-3xl sm:text-4xl md:text-[2.125rem] lg:text-5xl tracking-wide leading-snug text-balance">
-          {titleB != null && titleB !== "" ? (
-            <>
-              {titleA}{" "}
-              <span className="whitespace-nowrap">{titleB}</span>
-            </>
-          ) : (
-            titleA
-          )}
-        </h2>
-        <p className="mt-3 md:mt-4 text-base md:text-lg text-muted leading-relaxed max-w-none">
-          {descText}
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <div className="py-8 md:py-12">
-      <h2 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl tracking-wide leading-tight">
-        {title ?? `${titleA ?? ""} ${titleB ?? ""}`.trim()}
-      </h2>
-      <p className="mt-6 md:mt-8 text-lg md:text-xl lg:text-2xl text-muted leading-relaxed max-w-3xl">{children}</p>
-    </div>
+    <article
+      id={id}
+      className="bg-surface border border-theme rounded-2xl p-5 md:p-6 flex flex-col h-full text-center transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(0,0,0,0.12)]"
+    >
+      <h3 className="text-sm md:text-base text-muted tracking-wide">{title}</h3>
+      <p className="mt-2 text-xl sm:text-2xl md:text-3xl font-display font-semibold text-[rgb(var(--primary))] leading-tight text-balance">
+        {highlight}
+      </p>
+      <p className="mt-4 text-sm text-muted leading-relaxed text-left md:text-center grow">{description}</p>
+    </article>
   );
 }
 

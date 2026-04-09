@@ -213,14 +213,6 @@
   padding: 0 1rem;
 }
 
-/* Enfoque clínico: columna más estrecha, estilo editorial compacto */
-.giant-card-inner .fullscreen-content--approach {
-  max-width: 42rem;
-  margin-left: auto;
-  margin-right: auto;
-  padding: 0 1rem;
-}
-
 /* Bloques Medicina funcional / familiar / Acompañamiento — menos aire vertical */
 .scroll-cards-stack .giant-card--compact .giant-card-inner {
   padding-top: 1.5rem;
