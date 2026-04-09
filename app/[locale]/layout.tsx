@@ -7,6 +7,7 @@ import "../styles/animations.css";
 import "../styles/cursor.css";
 import "../styles/scroll.css";
 import "../styles/coming-soon.css";
+import "../styles/booking.css";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { Poppins } from "next/font/google";

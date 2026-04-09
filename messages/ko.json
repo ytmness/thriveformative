@@ -110,6 +110,15 @@
     "subtitle": "상담 날짜와 가능한 시간을 선택하세요. 예약 시스템이 어떻게 보일지 예시입니다.",
     "demoNote": "데모 보기 — 예약됨으로 표시된 슬롯은 이미 예약된 시간의 표시 방식을 보여줍니다.",
     "dateLabel": "날짜",
+    "weekday": {
+      "mon": "월",
+      "tue": "화",
+      "wed": "수",
+      "thu": "목",
+      "fri": "금",
+      "sat": "토",
+      "sun": "일"
+    },
     "sampleDate": "2025년 2월",
     "prevMonth": "이전 달",
     "nextMonth": "다음 달",
@@ -119,7 +128,9 @@
     "ctaHint": "WhatsApp으로 예약하시겠습니까?",
     "ctaButton": "WhatsApp으로 예약",
     "loginPrompt": "날짜와 시간을 선택하려면 로그인하거나 회원가입하세요.",
-    "loginCardLabel": "온라인 예약"
+    "loginCardLabel": "온라인 예약",
+    "pickDateFirst": "먼저 달력에서 날짜를 선택하세요.",
+    "bookingInProgress": "예약 중…"
   },
   "auth": {
     "loginTitle": "로그인",

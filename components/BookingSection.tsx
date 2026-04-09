@@ -18,6 +18,8 @@ const TIME_SLOTS = [
 
 const MONTHS_ES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
+const WEEKDAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
+
 function formatDateKey(d: Date) {
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 }
@@ -121,8 +123,8 @@ export default function BookingSection() {
   if (loading) {
     return (
       <AnimatedSection>
-        <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
-          <div className="animate-pulse h-64 bg-surface rounded-2xl border border-theme" />
+        <section className="booking-section max-w-7xl mx-auto px-6 py-20 md:py-28">
+          <div className="animate-pulse h-64 max-w-md mx-auto bg-surface rounded-2xl border border-theme" />
         </section>
       </AnimatedSection>
     );
@@ -131,19 +133,19 @@ export default function BookingSection() {
   if (!user) {
     return (
       <AnimatedSection>
-        <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
-          <div className="mb-4">
+        <section className="booking-section max-w-7xl mx-auto px-6 py-20 md:py-28">
+          <header className="booking-section__header">
             <h2 className="font-display text-4xl md:text-5xl lg:text-6xl tracking-wide">
               {t("title")}
             </h2>
-            <p className="text-lg md:text-xl text-muted mt-3 max-w-2xl leading-relaxed">
+            <p className="text-lg md:text-xl text-muted mt-3 leading-relaxed">
               {t("subtitle")}
             </p>
-          </div>
-          <div className="mt-10 max-w-xl mx-auto">
+          </header>
+          <div className="mt-10 max-w-xl mx-auto w-full">
             <div className="rounded-2xl border border-theme bg-surface shadow-soft overflow-hidden">
               <div className="border-l-4 border-[rgb(var(--primary))] p-8 md:p-10">
-                <div className="flex items-center gap-3 mb-6">
+                <div className="flex items-center justify-center sm:justify-start gap-3 mb-6">
                   <span className="flex items-center justify-center w-12 h-12 rounded-xl bg-[rgb(var(--primary)/0.12)] text-[rgb(var(--primary))]" aria-hidden>
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
@@ -152,14 +154,14 @@ export default function BookingSection() {
                       <line x1="3" y1="10" x2="21" y2="10"/>
                     </svg>
                   </span>
-                  <span className="text-sm font-medium tracking-[0.2em] uppercase text-muted">
+                  <span className="text-sm font-semibold tracking-[0.2em] uppercase text-muted">
                     {t("loginCardLabel")}
                   </span>
                 </div>
-                <p className="text-lg text-muted leading-relaxed mb-8">
+                <p className="text-lg text-muted leading-relaxed mb-8 text-center sm:text-left">
                   {t("loginPrompt")}
                 </p>
-                <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
+                <div className="flex flex-wrap gap-4 justify-center">
                   <Link
                     href={`/${locale}/login`}
                     className="btn-primary rounded-xl px-8 py-4 text-base font-medium min-w-[10rem] text-center"
@@ -173,7 +175,7 @@ export default function BookingSection() {
                     {tAuth("submitRegister")}
                   </Link>
                 </div>
-                <div className="mt-8 pt-8 border-t border-theme">
+                <div className="mt-8 pt-8 border-t border-theme text-center">
                   <p className="text-muted text-sm mb-3">
                     {t("ctaHint")}
                   </p>
@@ -196,90 +198,84 @@ export default function BookingSection() {
 
   return (
     <AnimatedSection>
-      <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
-        <div className="mb-4">
+      <section className="booking-section max-w-7xl mx-auto px-6 py-20 md:py-28">
+        <header className="booking-section__header">
           <h2 className="font-display text-4xl md:text-5xl lg:text-6xl tracking-wide">
             {t("title")}
           </h2>
-          <p className="text-lg md:text-xl text-muted mt-3 max-w-2xl leading-relaxed">
-            Elige fecha y horario disponible para tu consulta.
+          <p className="text-lg md:text-xl text-muted mt-3 leading-relaxed">
+            {t("subtitle")}
           </p>
-        </div>
+        </header>
 
-        <div className="mt-10 grid md:grid-cols-[1fr_1.2fr] gap-10 items-start">
-          {/* Calendario */}
-          <div className="bg-surface border border-theme rounded-2xl shadow-soft p-6">
-            <div className="text-base text-muted tracking-[0.22em] mb-4">
-              {t("dateLabel")}
-            </div>
-            <div className="flex items-center justify-between mb-6">
-              <button
-                type="button"
-                onClick={prevMonth}
-                className="w-11 h-11 rounded-xl border border-theme flex items-center justify-center text-muted hover:bg-[rgb(var(--primary)/0.08)] transition-colors text-lg"
-                aria-label={t("prevMonth")}
-              >
-                ‹
-              </button>
-              <span className="font-display text-xl tracking-wide">
-                {monthLabel}
-              </span>
-              <button
-                type="button"
-                onClick={nextMonth}
-                className="w-11 h-11 rounded-xl border border-theme flex items-center justify-center text-muted hover:bg-[rgb(var(--primary)/0.08)] transition-colors text-lg"
-                aria-label={t("nextMonth")}
-              >
-                ›
-              </button>
-            </div>
-            <div className="grid grid-cols-7 gap-1 text-center text-base text-muted">
-              {["L", "M", "X", "J", "V", "S", "D"].map((d) => (
-                <div key={d} className="py-1">{d}</div>
-              ))}
-              {calendarDays.map((day, i) => {
-                const isSelected =
-                  selectedDate &&
-                  day !== null &&
-                  selectedDate.getDate() === day &&
-                  selectedDate.getMonth() === currentMonth.month &&
-                  selectedDate.getFullYear() === currentMonth.year;
-                return (
+        <div className="booking-section__layout">
+          <div className="booking-cal-wrap">
+            <div className="booking-cal">
+              <p className="booking-cal__label">{t("dateLabel")}</p>
+              <div className="booking-cal__shell">
+                <div className="booking-cal__nav">
                   <button
-                    key={i}
                     type="button"
-                    onClick={() => selectDay(day)}
-                    disabled={day === null}
-                    className={`py-2 rounded-lg text-base ${
-                      isSelected
-                        ? "bg-[rgb(var(--primary)/0.2)] text-[rgb(var(--primary))] font-medium"
-                        : day === null
-                          ? "opacity-0 cursor-default"
-                          : "hover:bg-[rgb(var(--primary)/0.08)] cursor-pointer"
-                    }`}
+                    onClick={prevMonth}
+                    className="booking-cal__nav-btn"
+                    aria-label={t("prevMonth")}
                   >
-                    {day ?? ""}
+                    ‹
                   </button>
-                );
-              })}
+                  <span className="booking-cal__month">{monthLabel}</span>
+                  <button
+                    type="button"
+                    onClick={nextMonth}
+                    className="booking-cal__nav-btn"
+                    aria-label={t("nextMonth")}
+                  >
+                    ›
+                  </button>
+                </div>
+                <div className="booking-cal__dow" role="row">
+                  {WEEKDAY_KEYS.map((key) => (
+                    <div key={key} className="booking-cal__dow-cell" role="columnheader">
+                      {t(`weekday.${key}`)}
+                    </div>
+                  ))}
+                </div>
+                <div className="booking-cal__grid" role="grid">
+                  {calendarDays.map((day, i) => {
+                    const isSelected =
+                      selectedDate &&
+                      day !== null &&
+                      selectedDate.getDate() === day &&
+                      selectedDate.getMonth() === currentMonth.month &&
+                      selectedDate.getFullYear() === currentMonth.year;
+                    return (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => selectDay(day)}
+                        disabled={day === null}
+                        className={`booking-cal__day${isSelected ? " booking-cal__day--selected" : ""}`}
+                      >
+                        {day ?? ""}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Horarios */}
-          <div>
-            <div className="text-base text-muted tracking-[0.22em] mb-4">
-              {t("slotsLabel")}
-            </div>
+          <div className="booking-slots">
+            <p className="booking-slots__label">{t("slotsLabel")}</p>
             {!selectedDate ? (
-              <p className="text-muted">Elige una fecha en el calendario.</p>
+              <p className="booking-slots__empty">{t("pickDateFirst")}</p>
             ) : (
               <>
                 {bookingError && (
-                  <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 text-sm">
+                  <div className="booking-error" role="alert">
                     {bookingError}
                   </div>
                 )}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div className="booking-slots__grid">
                   {TIME_SLOTS.map((timeSlot) => {
                     const occupied = occupiedSet.has(timeSlot);
                     const isBooking = bookingSlot === timeSlot;
@@ -289,28 +285,24 @@ export default function BookingSection() {
                         type="button"
                         disabled={occupied || isBooking}
                         onClick={() => bookSlot(timeSlot)}
-                        className={`rounded-xl px-4 py-3 text-base font-medium text-left transition-all ${
-                          occupied || isBooking
-                            ? "bg-[rgb(var(--bg)/0.6)] border border-theme text-muted cursor-not-allowed opacity-70 line-through"
-                            : "bg-surface border border-theme hover:border-[rgb(var(--primary)/0.4)] hover:bg-[rgb(var(--primary)/0.06)] cursor-pointer"
-                        }`}
+                        className={`booking-slot${occupied || isBooking ? " booking-slot--busy" : ""}`}
                       >
                         <span className="block">{timeSlot}</span>
                         {occupied && (
-                          <span className="block text-sm mt-0.5 opacity-80">
+                          <span className="block text-xs font-medium mt-0.5 opacity-90">
                             {t("occupied")}
                           </span>
                         )}
                         {isBooking && (
-                          <span className="block text-sm mt-0.5 opacity-80">
-                            Reservando…
+                          <span className="block text-xs font-medium mt-0.5 opacity-90">
+                            {t("bookingInProgress")}
                           </span>
                         )}
                       </button>
                     );
                   })}
                 </div>
-                <p className="mt-4 text-base text-muted leading-relaxed border-t border-theme pt-4">
+                <p className="booking-slots__hint">
                   {t("occupiedHint")}
                 </p>
               </>
@@ -318,7 +310,7 @@ export default function BookingSection() {
           </div>
         </div>
 
-        <div className="mt-10 text-center">
+        <div className="booking-section__cta">
           <p className="text-muted text-base mb-3">{t("ctaHint")}</p>
           <a
             href={WHATSAPP_LINK}

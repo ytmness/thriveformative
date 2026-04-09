@@ -113,6 +113,15 @@
     "subtitle": "Elige fecha y horario disponible para tu consulta. Este es un ejemplo de cómo se verá el sistema de agendamiento.",
     "demoNote": "Vista demo — los horarios marcados como ocupados muestran cómo se verían cuando un espacio ya está reservado.",
     "dateLabel": "FECHA",
+    "weekday": {
+      "mon": "L",
+      "tue": "M",
+      "wed": "X",
+      "thu": "J",
+      "fri": "V",
+      "sat": "S",
+      "sun": "D"
+    },
     "sampleDate": "Febrero 2025",
     "prevMonth": "Mes anterior",
     "nextMonth": "Mes siguiente",
@@ -122,7 +131,9 @@
     "ctaHint": "¿Prefieres agendar por WhatsApp?",
     "ctaButton": "Agendar por WhatsApp",
     "loginPrompt": "Inicia sesión o regístrate para elegir fecha y horario.",
-    "loginCardLabel": "Agenda en línea"
+    "loginCardLabel": "Agenda en línea",
+    "pickDateFirst": "Elige primero una fecha en el calendario.",
+    "bookingInProgress": "Reservando…"
   },
   "auth": {
     "loginTitle": "Iniciar sesión",

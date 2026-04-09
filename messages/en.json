@@ -113,6 +113,15 @@
     "subtitle": "Choose date and available time for your consultation. This is an example of how the booking system will look.",
     "demoNote": "Demo view — slots marked as occupied show how they would appear when a time is already reserved.",
     "dateLabel": "DATE",
+    "weekday": {
+      "mon": "Mo",
+      "tue": "Tu",
+      "wed": "We",
+      "thu": "Th",
+      "fri": "Fr",
+      "sat": "Sa",
+      "sun": "Su"
+    },
     "sampleDate": "February 2025",
     "prevMonth": "Previous month",
     "nextMonth": "Next month",
@@ -122,7 +131,9 @@
     "ctaHint": "Prefer to schedule via WhatsApp?",
     "ctaButton": "Schedule via WhatsApp",
     "loginPrompt": "Sign in or register to choose date and time.",
-    "loginCardLabel": "Online scheduling"
+    "loginCardLabel": "Online scheduling",
+    "pickDateFirst": "Pick a date in the calendar first.",
+    "bookingInProgress": "Booking…"
   },
   "auth": {
     "loginTitle": "Sign in",
