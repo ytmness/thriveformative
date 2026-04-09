@@ -147,7 +147,7 @@ export default function BookingSection() {
   if (loading) {
     return (
       <AnimatedSection>
-        <section className="booking-section max-w-7xl mx-auto px-6 py-20 md:py-28">
+        <section className="booking-section max-w-screen-2xl mx-auto px-4 sm:px-6 py-20 md:py-28">
           <div className="animate-pulse h-64 max-w-md mx-auto bg-surface rounded-2xl border border-theme" />
         </section>
       </AnimatedSection>
@@ -157,7 +157,7 @@ export default function BookingSection() {
   if (!user) {
     return (
       <AnimatedSection>
-        <section className="booking-section max-w-7xl mx-auto px-6 py-20 md:py-28">
+        <section className="booking-section max-w-screen-2xl mx-auto px-4 sm:px-6 py-20 md:py-28">
           <header className="booking-section__header">
             <h2 className="font-display text-4xl md:text-5xl lg:text-6xl tracking-wide">
               {t("title")}
@@ -222,7 +222,7 @@ export default function BookingSection() {
 
   return (
     <AnimatedSection>
-      <section className="booking-section max-w-7xl mx-auto px-6 py-20 md:py-28">
+      <section className="booking-section max-w-screen-2xl mx-auto px-4 sm:px-6 py-20 md:py-28">
         <header className="booking-section__header">
           <h2 className="font-display text-4xl md:text-5xl lg:text-6xl tracking-wide">
             {t("title")}
@@ -235,8 +235,8 @@ export default function BookingSection() {
         <div className="booking-section__layout">
           <div className="booking-cal-wrap">
             <div className="booking-cal">
-              <p className="booking-cal__label">{t("dateLabel")}</p>
               <div className="booking-cal__shell">
+                <p className="booking-cal__label">{t("dateLabel")}</p>
                 <div className="booking-cal__nav">
                   <button
                     type="button"
@@ -312,12 +312,13 @@ export default function BookingSection() {
                       className={`booking-slot${busy ? " booking-slot--busy" : ""}`}
                     >
                       <span className="booking-slot__time">{timeSlot}</span>
-                      {occupied && (
-                        <span className="booking-slot__sub">{t("occupied")}</span>
-                      )}
-                      {isBooking && !occupied && (
-                        <span className="booking-slot__sub">{t("bookingInProgress")}</span>
-                      )}
+                      <span className="booking-slot__sub">
+                        {occupied
+                          ? t("occupied")
+                          : isBooking && !occupied
+                            ? t("bookingInProgress")
+                            : ""}
+                      </span>
                     </button>
                   );
                 })}
