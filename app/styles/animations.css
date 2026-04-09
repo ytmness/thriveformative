@@ -157,22 +157,24 @@
    Secciones como tarjetas gigantes
    ========================= */
 
-/* Espaciado entre cards: --card-gap (padding de cada card) + --path-height (camino floral) */
+/* Flujo continuo: mismo fondo que la página, sin bandas tipo slide */
 .scroll-cards-stack {
-  --card-gap: 0.75rem;   /* padding top/bottom de cada giant-card */
-  --path-height: 4.5rem; /* 50% del original (9rem) */
-  --tile-w: 2.5rem;     /* ~30 ramas por mitad (laterales tienen 16 por lado) */
-  --path-overlap: 1.25rem; /* 50% del original */
-  padding: var(--card-gap) 0;
+  --card-gap: 0;
+  --path-height: 4.5rem;
+  --tile-w: 2.5rem;
+  --path-overlap: 1.25rem;
+  padding: 0;
+  background: rgb(var(--bg));
 }
 
 .scroll-cards-stack .giant-card {
   min-height: auto;
   scroll-margin-top: 5rem;
-  padding: var(--card-gap) 0;
+  padding: 0;
   display: flex;
   align-items: stretch;
   justify-content: flex-start;
+  background: transparent;
 }
 
 /* Path: solapa con cards para que no haya separación visible entre slides y ramas */
@@ -185,18 +187,17 @@
   position: relative;
   width: 100%;
   min-height: auto;
-  padding: 5rem 1.5rem 4rem;
+  padding: 3.5rem 1.5rem 3.5rem;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: stretch;
   border-radius: 0;
   border: none;
-  /* Sin bordes: no cortan el diseño floral vertical */
-  background: rgb(var(--surface) / 0.5);
-  backdrop-filter: blur(16px);
-  box-shadow: 0 0 60px rgb(0 0 0 / 0.15);
-  overflow: visible; /* permite que flores/ramas se superpongan sin cortarse */
+  background: transparent;
+  backdrop-filter: none;
+  box-shadow: none;
+  overflow: visible;
 }
 
 /* Tarjetas full-screen con contenido centrado */
@@ -421,21 +422,21 @@
 
 @media (min-width: 768px) {
   .giant-card-inner {
-    padding: 6rem 2.5rem 5rem;
+    padding: 4rem 2.5rem 4rem;
   }
 }
 
 @media (max-width: 1024px) {
   .scroll-cards-stack .giant-card {
     min-height: auto;
-    padding: 0.75rem 0;
+    padding: 0;
     align-items: stretch;
     justify-content: flex-start;
   }
 
   .giant-card-inner {
     min-height: auto;
-    padding: 4rem 1rem 3rem;
+    padding: 3rem 1rem 3rem;
     justify-content: flex-start;
   }
 }

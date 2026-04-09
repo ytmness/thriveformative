@@ -291,8 +291,7 @@ function PageContent() {
           <BookingSection />
         </GiantScrollCard>
         <GiantScrollCard variant="slideUp" id="cta" noFade>
-          <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--primary)/0.08)] via-transparent to-[rgb(var(--primary)/0.05)] pointer-events-none" />
-          <div className="relative z-10 max-w-4xl mx-auto px-6 py-24 md:py-32 text-center">
+          <div className="max-w-4xl mx-auto px-6 py-24 md:py-32 text-center">
             <CTASection title={t("cta.title")} subtitle={t("cta.subtitle")} buttonText={t("cta.button")} />
           </div>
         </GiantScrollCard>
