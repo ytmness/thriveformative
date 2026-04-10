@@ -179,19 +179,16 @@ function PageContent() {
               <ApproachPillar
                 id="approach-funcional"
                 title={`${t("approach.title1a")} ${t("approach.title1b")}`}
-                highlight={t("approach.highlight1")}
                 description={t("approach.desc1")}
               />
               <ApproachPillar
                 id="approach-familiar"
                 title={`${t("approach.title2a")} ${t("approach.title2b")}`}
-                highlight={t("approach.highlight2")}
                 description={t("approach.desc2")}
               />
               <ApproachPillar
                 id="approach-acompanamiento"
                 title={t("approach.title3")}
-                highlight={t("approach.highlight3")}
                 description={t("approach.desc3")}
               />
             </div>
@@ -343,16 +340,14 @@ function CTASection({ title, subtitle, buttonText }: { title: string; subtitle: 
   );
 }
 
-/** Tres pilares en fila, mismo ritmo visual que las stats del hero. */
+/** Tres pilares en fila: título grande + párrafo (sin línea intermedia en color primario). */
 function ApproachPillar({
   id,
   title,
-  highlight,
   description,
 }: {
   id: string;
   title: string;
-  highlight: string;
   description: string;
 }) {
   return (
@@ -360,11 +355,8 @@ function ApproachPillar({
       id={id}
       className="bg-surface border border-theme rounded-2xl p-5 md:p-6 flex flex-col h-full text-center transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(0,0,0,0.12)]"
     >
-      <h3 className="type-pillar-title tracking-wide">{title}</h3>
-      <p className="type-pillar-highlight mt-2 text-balance">
-        {highlight}
-      </p>
-      <p className="type-pillar-desc mt-4 text-left md:text-center grow">{description}</p>
+      <h3 className="type-pillar-main-title text-balance">{title}</h3>
+      <p className="type-pillar-desc mt-5 text-left md:text-center grow">{description}</p>
     </article>
   );
 }

@@ -212,32 +212,27 @@
   line-height: 1.2;
 }
 
-.type-pillar-title {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: rgb(var(--text));
-}
-
-@media (min-width: 768px) {
-  .type-pillar-title {
-    font-size: 1rem;
-  }
-}
-
-.type-pillar-highlight {
+/* Título principal de cada pilar (Medicina funcional, familiar, Acompañamiento) */
+.type-pillar-main-title {
   font-family: var(--font-body), system-ui, sans-serif;
-  font-weight: 700;
-  font-size: clamp(1.25rem, 1.5vw + 0.85rem, 1.875rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
   line-height: 1.2;
-  color: rgb(var(--primary));
+  color: rgb(var(--text));
+  font-size: clamp(1.5rem, 2.2vw + 0.85rem, 2.35rem);
 }
 
 .type-pillar-desc {
-  font-size: 0.9375rem;
-  font-weight: 500;
+  font-size: 1rem;
+  font-weight: 400;
   line-height: 1.65;
   color: rgb(var(--muted));
+}
+
+@media (min-width: 768px) {
+  .type-pillar-desc {
+    font-size: 1.0625rem;
+  }
 }
 
 .type-stat-label {
