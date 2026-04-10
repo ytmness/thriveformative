@@ -1,0 +1,20 @@
+/* Editorial “noticias” — líneas finas y máscaras orgánicas (tema vía rgb(var(--*))) */
+
+.news-editorial {
+  --news-line: rgb(var(--border) / 0.22);
+}
+
+.news-editorial__visual-main {
+  clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+}
+
+.news-editorial__visual-sub {
+  clip-path: polygon(15% 10%, 85% 5%, 95% 45%, 75% 95%, 25% 100%, 5% 55%);
+}
+
+@media (max-width: 1023px) {
+  .news-editorial__visual-main,
+  .news-editorial__visual-sub {
+    clip-path: inset(0 round 1.5rem);
+  }
+}

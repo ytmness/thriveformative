@@ -2,6 +2,7 @@
   "nav": {
     "home": "Home",
     "services": "Services",
+    "news": "News",
     "booking": "Book appointment",
     "tshape": "T-Shape 2",
     "plans": "Plans",
@@ -285,6 +286,36 @@
   "info": {
     "pageTitle": "About Us",
     "pageSubtitle": "Meet the doctor, get your questions answered, and get in touch with us."
+  },
+  "news": {
+    "label": "Health & wellness",
+    "searchLabel": "Search articles",
+    "searchPlaceholder": "Search by topic or title…",
+    "titlePrefix": "Our",
+    "titleWord": "articles",
+    "empty": "No articles match your search.",
+    "items": {
+      "a1": {
+        "category": "Nutrition",
+        "title": "A guide to balanced eating"
+      },
+      "a2": {
+        "category": "Exercise",
+        "title": "Effective routines for every age"
+      },
+      "a3": {
+        "category": "Mental health",
+        "title": "Techniques to reduce stress"
+      },
+      "a4": {
+        "category": "Prevention",
+        "title": "Essential medical checkups"
+      },
+      "a5": {
+        "category": "General wellness",
+        "title": "Healthy habits for everyday life"
+      }
+    }
   },
   "cta": {
     "title": "Ready to transform your health?",

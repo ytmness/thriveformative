@@ -11,6 +11,7 @@ import ScrollProgress from "@/components/ScrollProgress";
 import WaveDivider from "@/components/WaveDivider";
 import BookingSection from "@/components/BookingSection";
 import GiantScrollCard from "@/components/GiantScrollCard";
+import NewsSection from "@/components/NewsSection";
 import { useTranslations } from "next-intl";
 
 const WHATSAPP_LINK = "https://google.com";
@@ -202,6 +203,9 @@ function PageContent() {
               <Service name={t("services.service6")} desc={t("services.desc6")} />
             </div>
           </div>
+        </GiantScrollCard>
+        <GiantScrollCard variant="slideUp" id="noticias">
+          <NewsSection />
         </GiantScrollCard>
         <GiantScrollCard variant="slideUp" id="tshape">
           <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">

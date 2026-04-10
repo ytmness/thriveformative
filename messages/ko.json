@@ -2,6 +2,7 @@
   "nav": {
     "home": "홈",
     "services": "서비스",
+    "news": "소식",
     "booking": "예약하기",
     "tshape": "T-Shape 2",
     "plans": "플랜",
@@ -282,6 +283,36 @@
   "info": {
     "pageTitle": "소개",
     "pageSubtitle": "의사를 만나고 궁금한 점을 해결하고 연락하세요."
+  },
+  "news": {
+    "label": "건강과 웰빙",
+    "searchLabel": "글 검색",
+    "searchPlaceholder": "주제나 제목으로 검색…",
+    "titlePrefix": "추천",
+    "titleWord": "글",
+    "empty": "검색과 일치하는 글이 없습니다.",
+    "items": {
+      "a1": {
+        "category": "영양",
+        "title": "균형 잡힌 식사 가이드"
+      },
+      "a2": {
+        "category": "운동",
+        "title": "연령별 효과적인 루틴"
+      },
+      "a3": {
+        "category": "정신 건강",
+        "title": "스트레스를 줄이는 기법"
+      },
+      "a4": {
+        "category": "예방",
+        "title": "꼭 받아야 할 건강 검진"
+      },
+      "a5": {
+        "category": "일상 웰빙",
+        "title": "매일 실천하는 건강 습관"
+      }
+    }
   },
   "cta": {
     "title": "건강을 변화시킬 준비가 되셨나요?",

@@ -2,6 +2,7 @@
   "nav": {
     "home": "Inicio",
     "services": "Servicios",
+    "news": "Noticias",
     "booking": "Agendar",
     "tshape": "T-Shape 2",
     "plans": "Planes",
@@ -285,6 +286,36 @@
   "info": {
     "pageTitle": "Conócenos",
     "pageSubtitle": "Conoce al doctor, resuelve tus dudas y ponte en contacto con nosotros."
+  },
+  "news": {
+    "label": "Salud y bienestar",
+    "searchLabel": "Buscar en artículos",
+    "searchPlaceholder": "Buscar por tema o título…",
+    "titlePrefix": "Nuestros",
+    "titleWord": "artículos",
+    "empty": "No hay artículos que coincidan con tu búsqueda.",
+    "items": {
+      "a1": {
+        "category": "Nutrición",
+        "title": "Guía para una alimentación equilibrada"
+      },
+      "a2": {
+        "category": "Ejercicio",
+        "title": "Rutinas efectivas para cada edad"
+      },
+      "a3": {
+        "category": "Salud mental",
+        "title": "Técnicas para reducir el estrés"
+      },
+      "a4": {
+        "category": "Prevención",
+        "title": "Chequeos médicos esenciales"
+      },
+      "a5": {
+        "category": "Bienestar general",
+        "title": "Hábitos saludables del día a día"
+      }
+    }
   },
   "cta": {
     "title": "¿Listo para transformar tu salud?",

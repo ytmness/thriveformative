@@ -11,7 +11,7 @@ import "../styles/coming-soon.css";
 import "../styles/booking.css";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import { Poppins } from "next/font/google";
+import { Poppins, Playfair_Display } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { locales } from "@/i18n/config";
@@ -19,6 +19,7 @@ import PendingProfileSync from "@/components/PendingProfileSync";
 import ComingSoonScreen from "@/components/ComingSoonScreen";
 
 const poppins = Poppins({ subsets: ["latin"], weight: ["300","400","500","600","700"], variable: "--font-body" });
+const playfair = Playfair_Display({ subsets: ["latin"], weight: ["400", "600", "700"], variable: "--font-serif" });
 
 export const metadata: Metadata = {
   title: "Thrive Formative — Wellness from Within",
@@ -48,7 +49,7 @@ export default async function LocaleLayout({
   const unlocked = hasCookie || !gateEnabled;
 
   return (
-    <html lang={locale} className={`${poppins.variable}`}>
+    <html lang={locale} className={`${poppins.variable} ${playfair.variable}`}>
       <head>
         {!unlocked && (
           <link
