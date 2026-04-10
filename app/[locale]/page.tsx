@@ -144,12 +144,8 @@ function PageContent() {
 
       {/* ─── STATS BAR ─── */}
       <AnimatedSection className="scroll-snap-section">
-        <div className="max-w-7xl mx-auto px-6 py-16 min-h-[50vh] flex flex-col justify-center">
-          <div className="grid grid-cols-3 gap-6">
-            <Stat label={t("hero.stat1Label")} value={t("hero.stat1Value")} />
-            <Stat label={t("hero.stat2Label")} value={t("hero.stat2Value")} />
-            <Stat label={t("hero.stat3Label")} value={t("hero.stat3Value")} />
-          </div>
+        <div className="max-w-7xl mx-auto px-6 py-12 md:py-16 md:min-h-[50vh] flex flex-col justify-center">
+          <HeroStats />
         </div>
       </AnimatedSection>
 
@@ -367,6 +363,33 @@ function Stat({ label, value }: { label: string; value: string }) {
       <div className="type-stat-label">{label}</div>
       <div className="type-stat-value mt-2">{value}</div>
     </div>
+  );
+}
+
+/** Móvil: una tarjeta con filas (tiempo arriba, nombre debajo). Desktop: tres tarjetas. */
+function HeroStats() {
+  const t = useTranslations();
+  const rows = [
+    { label: t("hero.stat1Label"), value: t("hero.stat1Value") },
+    { label: t("hero.stat2Label"), value: t("hero.stat2Value") },
+    { label: t("hero.stat3Label"), value: t("hero.stat3Value") },
+  ];
+  return (
+    <>
+      <div className="hero-stats-mobile md:hidden w-full max-w-md mx-auto" role="list">
+        {rows.map((row) => (
+          <div key={row.label} className="hero-stats-mobile__row" role="listitem">
+            <div className="hero-stats-mobile__value">{row.value}</div>
+            <div className="hero-stats-mobile__label">{row.label}</div>
+          </div>
+        ))}
+      </div>
+      <div className="hidden md:grid md:grid-cols-3 gap-6 w-full">
+        {rows.map((row) => (
+          <Stat key={row.label} label={row.label} value={row.value} />
+        ))}
+      </div>
+    </>
   );
 }
 
