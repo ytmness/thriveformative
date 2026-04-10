@@ -31,7 +31,9 @@ export default function Header() {
   const navItems = [
     { key: "home", href: `/${locale}#inicio` },
     { key: "services", href: `/${locale}#servicios` },
-    { key: "news", href: `/${locale}#noticias` },
+    ...(role === "doctor" || role === "admin"
+      ? ([{ key: "news", href: `/${locale}/noticias` }] as const)
+      : []),
     { key: "tshape", href: `/${locale}#tshape` },
     { key: "plans", href: `/${locale}#planes` },
     { key: "booking", href: `/${locale}#citas` },

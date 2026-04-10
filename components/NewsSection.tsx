@@ -33,13 +33,13 @@ export default function NewsSection() {
 
   return (
     <section
-      className="news-editorial max-w-7xl mx-auto px-6 py-16 md:py-24 lg:py-28"
+      className="news-editorial flex flex-col flex-1 min-h-0 w-full h-full"
       aria-labelledby="news-heading"
     >
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] gap-0 lg:gap-0 border border-[var(--news-line)] rounded-2xl overflow-hidden bg-[rgb(var(--surface)/0.35)]">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] grid-rows-1 gap-0 flex-1 min-h-0 h-full w-full border border-[var(--news-line)] rounded-2xl overflow-hidden bg-[rgb(var(--surface)/0.35)]">
         {/* Columna contenido */}
-        <div className="flex flex-col min-h-0 border-b lg:border-b-0 lg:border-r border-[var(--news-line)]">
-          <div className="flex items-center justify-between gap-4 px-5 py-4 md:px-8 md:py-5 border-b border-[var(--news-line)]">
+        <div className="flex flex-col min-h-0 h-full max-h-full border-b lg:border-b-0 lg:border-r border-[var(--news-line)]">
+          <div className="shrink-0 flex items-center justify-between gap-4 px-5 py-4 md:px-8 md:py-4 border-b border-[var(--news-line)]">
             <span className="text-[0.65rem] md:text-xs uppercase tracking-[0.2em] text-[rgb(var(--muted))]">
               {t("label")}
             </span>
@@ -48,7 +48,7 @@ export default function NewsSection() {
             </span>
           </div>
 
-          <div className="px-5 py-4 md:px-8 md:py-5 border-b border-[var(--news-line)]">
+          <div className="shrink-0 px-5 py-3 md:px-8 md:py-4 border-b border-[var(--news-line)]">
             <label className="sr-only" htmlFor="news-search">
               {t("searchLabel")}
             </label>
@@ -79,26 +79,26 @@ export default function NewsSection() {
             </div>
           </div>
 
-          <div className="px-5 pt-8 pb-6 md:px-8 md:pt-10 md:pb-8 border-b border-[var(--news-line)]">
+          <div className="shrink-0 px-5 pt-6 pb-4 md:px-8 md:pt-8 md:pb-5 border-b border-[var(--news-line)]">
             <p className="text-[0.7rem] md:text-xs uppercase tracking-[0.28em] text-[rgb(var(--muted))]">
               {t("titlePrefix")}
             </p>
             <h2
               id="news-heading"
-              className="mt-2 font-serif text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight text-[rgb(var(--text))] leading-[1.05]"
+              className="mt-2 font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight text-[rgb(var(--text))] leading-[1.05]"
             >
               {t("titleWord")}
             </h2>
           </div>
 
-          <ul className="flex flex-col flex-1" role="list">
+          <ul className="flex flex-col flex-1 min-h-0 overflow-y-auto overscroll-y-contain" role="list">
             {rows.length === 0 ? (
               <li className="px-5 py-10 md:px-8 text-sm text-[rgb(var(--muted))]">{t("empty")}</li>
             ) : (
               rows.map((row) => (
                 <li
                   key={row.num}
-                  className={`grid grid-cols-[auto_1fr] gap-x-4 md:gap-x-6 items-start px-5 py-5 md:px-8 md:py-6 border-b border-[var(--news-line)] last:border-b-0 transition-colors hover:bg-[rgb(var(--bg)/0.25)]`}
+                  className="grid grid-cols-[auto_1fr] gap-x-4 md:gap-x-6 items-start px-5 py-4 md:px-8 md:py-5 border-b border-[var(--news-line)] last:border-b-0 transition-colors hover:bg-[rgb(var(--bg)/0.25)] shrink-0"
                 >
                   <span className="font-serif text-xl md:text-2xl text-[rgb(var(--text)/0.85)] tabular-nums pt-0.5">
                     {row.num}
@@ -118,8 +118,8 @@ export default function NewsSection() {
         </div>
 
         {/* Columna visuales */}
-        <div className="flex flex-col gap-0 bg-[rgb(var(--bg)/0.25)] p-5 md:p-8 lg:p-10 min-h-[280px] lg:min-h-[520px]">
-          <div className="relative flex-1 min-h-[200px] lg:min-h-0">
+        <div className="flex flex-col min-h-[min(40vh,320px)] lg:min-h-0 lg:h-full lg:max-h-full bg-[rgb(var(--bg)/0.25)] p-4 sm:p-6 md:p-8 lg:p-10">
+          <div className="relative flex-1 min-h-[160px] lg:min-h-0">
             <div className="news-editorial__visual-main absolute inset-0 overflow-hidden bg-[rgb(var(--surface))]">
               <img
                 src={IMG_MAIN}
@@ -130,7 +130,7 @@ export default function NewsSection() {
               />
             </div>
           </div>
-          <div className="mt-5 md:mt-8 h-36 md:h-44 relative shrink-0">
+          <div className="mt-4 md:mt-6 h-28 sm:h-32 md:h-40 relative shrink-0">
             <div className="news-editorial__visual-sub absolute inset-0 overflow-hidden bg-[rgb(var(--surface))] opacity-95">
               <img
                 src={IMG_SUB}

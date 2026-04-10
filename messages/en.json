@@ -288,6 +288,7 @@
     "pageSubtitle": "Meet the doctor, get your questions answered, and get in touch with us."
   },
   "news": {
+    "backHome": "Back to home",
     "label": "Health & wellness",
     "searchLabel": "Search articles",
     "searchPlaceholder": "Search by topic or title…",

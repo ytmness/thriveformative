@@ -285,6 +285,7 @@
     "pageSubtitle": "의사를 만나고 궁금한 점을 해결하고 연락하세요."
   },
   "news": {
+    "backHome": "홈으로",
     "label": "건강과 웰빙",
     "searchLabel": "글 검색",
     "searchPlaceholder": "주제나 제목으로 검색…",

@@ -288,6 +288,7 @@
     "pageSubtitle": "Conoce al doctor, resuelve tus dudas y ponte en contacto con nosotros."
   },
   "news": {
+    "backHome": "Volver al inicio",
     "label": "Salud y bienestar",
     "searchLabel": "Buscar en artículos",
     "searchPlaceholder": "Buscar por tema o título…",
