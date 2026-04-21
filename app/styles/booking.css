@@ -14,6 +14,33 @@
   margin-bottom: 2.5rem;
 }
 
+.booking-section__title {
+  margin: 0;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(2.35rem, 4.4vw, 4.2rem);
+  font-weight: 600;
+  line-height: 1.02;
+  letter-spacing: -0.015em;
+  color: rgb(var(--text));
+  text-wrap: balance;
+}
+
+.booking-section__subtitle {
+  max-width: 40rem;
+  margin: 1.35rem auto 0;
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.62;
+  color: rgb(var(--muted));
+}
+
+@media (min-width: 768px) {
+  .booking-section__subtitle {
+    margin-top: 1.6rem;
+    font-size: 1.0625rem;
+  }
+}
+
 /* Calendario grande + panel horarios en rejilla estable */
 .booking-section__layout {
   display: grid;
@@ -377,6 +404,23 @@
 .booking-section__cta {
   margin-top: 2.5rem;
   text-align: center;
+}
+
+.booking-section__cta-hint {
+  margin: 0 0 0.8rem;
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: rgb(var(--muted));
+}
+
+.booking-section__cta-hint--inline {
+  margin-bottom: 0.95rem;
+}
+
+.booking-section__whatsapp-btn {
+  min-width: 16.5rem;
+  padding: 0.92rem 1.7rem;
 }
 
 .booking-error {

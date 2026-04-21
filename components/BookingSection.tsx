@@ -159,12 +159,8 @@ export default function BookingSection() {
       <AnimatedSection>
         <section className="booking-section max-w-screen-2xl mx-auto px-4 sm:px-6 py-20 md:py-28">
           <header className="booking-section__header">
-            <h2 className="type-section-title tracking-wide">
-              {t("title")}
-            </h2>
-            <p className="type-section-sub mt-3">
-              {t("subtitle")}
-            </p>
+            <h2 className="booking-section__title">{t("title")}</h2>
+            <p className="booking-section__subtitle">{t("subtitle")}</p>
           </header>
           <div className="mt-10 max-w-xl mx-auto w-full">
             <div className="rounded-2xl border border-theme bg-surface shadow-soft overflow-hidden">
@@ -200,14 +196,14 @@ export default function BookingSection() {
                   </Link>
                 </div>
                 <div className="mt-8 pt-8 border-t border-theme text-center">
-                  <p className="type-ui-muted mb-3">
+                  <p className="booking-section__cta-hint booking-section__cta-hint--inline">
                     {t("ctaHint")}
                   </p>
                   <a
                     href={WHATSAPP_LINK}
                     target="_blank"
                     rel="noreferrer"
-                    className="btn-cta type-btn inline-block rounded-xl px-8 py-4"
+                    className="plan-card-plan__btn plan-card-plan__btn--featured booking-section__whatsapp-btn"
                   >
                     {t("ctaButton")}
                   </a>
@@ -224,12 +220,8 @@ export default function BookingSection() {
     <AnimatedSection>
       <section className="booking-section max-w-screen-2xl mx-auto px-4 sm:px-6 py-20 md:py-28">
         <header className="booking-section__header">
-          <h2 className="type-section-title tracking-wide">
-            {t("title")}
-          </h2>
-          <p className="type-section-sub mt-3">
-            {t("subtitle")}
-          </p>
+          <h2 className="booking-section__title">{t("title")}</h2>
+          <p className="booking-section__subtitle">{t("subtitle")}</p>
         </header>
 
         <div className="booking-section__layout">
@@ -329,12 +321,12 @@ export default function BookingSection() {
         </div>
 
         <div className="booking-section__cta">
-          <p className="type-body-muted mb-3">{t("ctaHint")}</p>
+          <p className="booking-section__cta-hint">{t("ctaHint")}</p>
           <a
             href={WHATSAPP_LINK}
             target="_blank"
             rel="noreferrer"
-            className="btn-cta type-btn inline-block rounded-xl px-10 py-5 shadow-lg"
+            className="plan-card-plan__btn plan-card-plan__btn--featured booking-section__whatsapp-btn"
           >
             {t("ctaButton")}
           </a>

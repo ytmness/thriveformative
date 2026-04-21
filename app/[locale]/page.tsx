@@ -187,8 +187,8 @@ function PageContent() {
       {/* ─── MAIN CONTENT — bloques continuos ─── */}
       <main className="scroll-cards-stack">
         <GiantScrollCard variant="slideUp" id="approach" noFade compact>
-          <div className="max-w-7xl mx-auto px-6 w-full">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 items-stretch">
+          <div className="approach-section">
+            <div className="approach-section__grid">
               <ApproachPillar
                 id="approach-funcional"
                 title={`${t("approach.title1a")} ${t("approach.title1b")}`}
@@ -208,9 +208,12 @@ function PageContent() {
           </div>
         </GiantScrollCard>
         <GiantScrollCard variant="slideUp" id="servicios">
-          <div className="max-w-7xl mx-auto px-6 py-16 md:py-24">
-            <SectionTitle title={t("services.title")} subtitle={t("services.subtitle")} />
-            <div className="mt-12 grid md:grid-cols-2 gap-8 md:gap-10">
+          <section className="services-editorial-section">
+            <header className="services-editorial-section__head">
+              <h2 className="services-editorial-section__title">{t("services.title")}</h2>
+              <p className="services-editorial-section__subtitle">{t("services.subtitle")}</p>
+            </header>
+            <div className="services-editorial-section__grid">
               <Service name={t("services.service1")} desc={t("services.desc1")} />
               <Service name={t("services.service2")} desc={t("services.desc2")} />
               <Service name={t("services.service3")} desc={t("services.desc3")} />
@@ -218,7 +221,7 @@ function PageContent() {
               <Service name={t("services.service5")} desc={t("services.desc5")} />
               <Service name={t("services.service6")} desc={t("services.desc6")} />
             </div>
-          </div>
+          </section>
         </GiantScrollCard>
         <GiantScrollCard variant="slideUp" id="tshape">
           <section className="tshape-section">
@@ -370,10 +373,10 @@ function ApproachPillar({
   return (
     <article
       id={id}
-      className="bg-surface border border-theme rounded-2xl p-5 md:p-6 flex flex-col h-full text-center transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(0,0,0,0.12)]"
+      className="approach-card"
     >
-      <h3 className="type-pillar-main-title text-balance">{title}</h3>
-      <p className="type-pillar-desc mt-5 text-left md:text-center grow">{description}</p>
+      <h3 className="approach-card__title">{title}</h3>
+      <p className="approach-card__desc">{description}</p>
     </article>
   );
 }
@@ -414,21 +417,12 @@ function HeroStats() {
   );
 }
 
-function SectionTitle({ title, subtitle }: { title: string; subtitle: string }) {
-  return (
-    <div className="mb-4">
-      <h2 className="type-section-title tracking-wide">{title}</h2>
-      <p className="type-section-sub mt-3 max-w-2xl">{subtitle}</p>
-    </div>
-  );
-}
-
 function Service({ name, desc }: { name: string; desc: string }) {
   return (
-    <div className="bg-surface border border-theme rounded-2xl shadow-soft p-8 md:p-10 transition-[transform,box-shadow] duration-300 hover:-translate-y-1.5 hover:shadow-[0_20px_50px_rgba(0,0,0,0.18)]">
-      <div className="type-card-name">{name}</div>
-      <p className="type-prose-muted mt-4">{desc}</p>
-    </div>
+    <article className="service-editorial-card">
+      <h3 className="service-editorial-card__title">{name}</h3>
+      <p className="service-editorial-card__desc">{desc}</p>
+    </article>
   );
 }
 
