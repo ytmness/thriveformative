@@ -73,6 +73,8 @@
     "desc6": "VIP continuous support with priority attention. Direct WhatsApp access for quick consultations. Metric tracking and progress monitoring with monthly report. Discounts at partner laboratories. Prescription renewals without additional consultation."
   },
   "tshape": {
+    "eyebrow": "Innovation",
+    "heroTitle": "T-Shape 2 technology",
     "title": "T-Shape 2",
     "subtitle": "Cutting-edge FDA-approved technology for advanced body treatments.",
     "fdaBadge": "FDA APPROVED",
@@ -92,6 +94,7 @@
   "plans": {
     "title": "Plans",
     "subtitle": "Choose the plan that best fits your health needs and goals.",
+    "recommendedBadge": "Recommended",
     "plan1": "Base",
     "plan1Item1": "Complete initial consultation",
     "plan1Item2": "Comprehensive written plan",

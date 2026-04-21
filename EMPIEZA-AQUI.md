@@ -11,6 +11,7 @@ Este documento es tu **punto de partida**. Te guiará exactamente por dónde com
 ## 📋 ¿Qué hay en esta carpeta?
 
 ### Código del Sitio Web ✅
+
 ```
 app/                  → Páginas y estilos
 components/           → Componentes reutilizables (sistema de temas)
@@ -19,6 +20,7 @@ package.json          → Dependencias del proyecto
 ```
 
 ### Documentación Completa ✅
+
 ```
 README.md                          → Guía principal
 RESUMEN-EJECUTIVO.md              → Visión completa del proyecto
@@ -37,14 +39,16 @@ CONTRATO-CONSENTIMIENTO.md        → Plantilla de contrato médico
 ### 🆕 **Si es tu primera vez con este proyecto:**
 
 #### Paso 1: Ver el sitio funcionando
+
 👉 Lee: `INSTRUCCIONES-INSTALACION.md`
 
 **Resumen rápido:**
-1. Instala Node.js desde https://nodejs.org/
+
+1. Instala Node.js desde [https://nodejs.org/](https://nodejs.org/)
 2. Abre terminal en esta carpeta
 3. Ejecuta: `npm install`
 4. Ejecuta: `npm run dev`
-5. Abre: http://localhost:3000
+5. Abre: [http://localhost:3000](http://localhost:3000)
 6. ¡Prueba el botón "Cambiar vista" (esquina inferior derecha)!
 
 ---
@@ -54,6 +58,7 @@ CONTRATO-CONSENTIMIENTO.md        → Plantilla de contrato médico
 👉 Lee: `CONFIGURACION-PERSONALIZADA.md`
 
 **Personalizaciones más comunes:**
+
 - ✅ Cambiar número de WhatsApp
 - ✅ Agregar nombre y foto del doctor
 - ✅ Actualizar contacto (correo, teléfono, dirección)
@@ -71,12 +76,14 @@ CONTRATO-CONSENTIMIENTO.md        → Plantilla de contrato médico
 👉 Lee: `DOCUMENTACION-TECNICA.md` → Sección "Sistema de Temas"
 
 **Los 4 temas disponibles:**
+
 1. **Golden Sand** — Cálido, premium (default)
 2. **Nocturnal** — Dark mode elegante
 3. **Metallics** — Metálico boutique
 4. **Earth Modern** — Tierra contemporánea
 
 **Cómo cambiar tema por defecto:**
+
 - Edita `components/theme/ThemeProvider.tsx` línea 17
 
 ---
@@ -86,6 +93,7 @@ CONTRATO-CONSENTIMIENTO.md        → Plantilla de contrato médico
 👉 Lee: `MANUAL-OPERACION.md`
 
 **Incluye:**
+
 - Misión, visión, valores
 - Flujo de atención (paciente nuevo + seguimiento)
 - Políticas operativas
@@ -100,6 +108,7 @@ CONTRATO-CONSENTIMIENTO.md        → Plantilla de contrato médico
 👉 Lee: `PLAN-MARKETING.md`
 
 **Incluye:**
+
 - Estrategia de Instagram (canal principal)
 - Google My Business
 - Alianzas estratégicas
@@ -118,6 +127,7 @@ CONTRATO-CONSENTIMIENTO.md        → Plantilla de contrato médico
 **⚠️ IMPORTANTE:** Esta es una **plantilla** que **DEBE** ser revisada por un abogado especializado en derecho sanitario antes de usarla.
 
 **Incluye:**
+
 - Contrato de prestación de servicios
 - Consentimiento informado
 - Alcance y limitaciones
@@ -131,6 +141,7 @@ CONTRATO-CONSENTIMIENTO.md        → Plantilla de contrato médico
 👉 Lee: `DOCUMENTACION-TECNICA.md` → Sección "Build y Deploy"
 
 **Opción recomendada: Vercel (gratis)**
+
 1. Crea cuenta en [vercel.com](https://vercel.com)
 2. Conecta tu repositorio de GitHub
 3. Click "Deploy"
@@ -143,6 +154,7 @@ CONTRATO-CONSENTIMIENTO.md        → Plantilla de contrato médico
 👉 Lee: `RESUMEN-EJECUTIVO.md`
 
 **Perfecto para:**
+
 - Entender qué se construyó
 - Ver el stack tecnológico
 - Revisar costos estimados
@@ -155,6 +167,7 @@ CONTRATO-CONSENTIMIENTO.md        → Plantilla de contrato médico
 ## 🔥 Ruta Rápida (Inicio a Producción)
 
 ### Semana 1: Instalación y Prueba
+
 ```
 Día 1: Instalar Node.js
 Día 2: Correr npm install y npm run dev
@@ -164,6 +177,7 @@ Día 5: Leer documentación de personalización
 ```
 
 ### Semana 2: Personalización
+
 ```
 Día 1: Cambiar WhatsApp y contacto
 Día 2: Agregar nombre y bio del doctor
@@ -173,6 +187,7 @@ Día 5: Agregar logo y Google Maps
 ```
 
 ### Semana 3: Legal y Operación
+
 ```
 Día 1-2: Revisar contrato con abogado
 Día 3: Configurar expediente médico digital
@@ -181,6 +196,7 @@ Día 5: Capacitar al equipo en el flujo
 ```
 
 ### Semana 4: Marketing Pre-lanzamiento
+
 ```
 Día 1: Crear perfiles de redes sociales
 Día 2: Configurar Google My Business
@@ -190,6 +206,7 @@ Día 5: Solicitar primeras reseñas
 ```
 
 ### Semana 5: Deploy
+
 ```
 Día 1: Comprar dominio
 Día 2: Desplegar en Vercel
@@ -199,6 +216,7 @@ Día 5: Pruebas finales
 ```
 
 ### Semana 6: Lanzamiento
+
 ```
 Día 1: Anuncio en redes sociales personales
 Día 2: Email a contactos cercanos
@@ -212,24 +230,31 @@ Día 5: Monitorear métricas
 ## 📞 ¿Tienes Dudas?
 
 ### Sobre instalación
+
 👉 `INSTRUCCIONES-INSTALACION.md`
 
 ### Sobre personalización
+
 👉 `CONFIGURACION-PERSONALIZADA.md`
 
 ### Sobre el código
+
 👉 `DOCUMENTACION-TECNICA.md`
 
 ### Sobre la operación
+
 👉 `MANUAL-OPERACION.md`
 
 ### Sobre marketing
+
 👉 `PLAN-MARKETING.md`
 
 ### Sobre legal
+
 👉 `CONTRATO-CONSENTIMIENTO.md`
 
 ### Visión general
+
 👉 `RESUMEN-EJECUTIVO.md`
 
 ---
@@ -239,34 +264,37 @@ Día 5: Monitorear métricas
 Marca cada paso conforme lo completes:
 
 ### Inmediato (Hoy)
-- [ ] Leer este archivo completo (EMPIEZA-AQUI.md)
-- [ ] Leer INSTRUCCIONES-INSTALACION.md
-- [ ] Instalar Node.js
-- [ ] Abrir terminal en esta carpeta
-- [ ] Ejecutar `npm install`
-- [ ] Ejecutar `npm run dev`
-- [ ] Ver el sitio en http://localhost:3000
-- [ ] Probar el cambio de temas (botón flotante)
+
+- Leer este archivo completo (EMPIEZA-AQUI.md)
+- Leer INSTRUCCIONES-INSTALACION.md
+- Instalar Node.js
+- Abrir terminal en esta carpeta
+- Ejecutar `npm install`
+- Ejecutar `npm run dev`
+- Ver el sitio en [http://localhost:3000](http://localhost:3000)
+- Probar el cambio de temas (botón flotante)
 
 ### Esta Semana
-- [ ] Leer CONFIGURACION-PERSONALIZADA.md
-- [ ] Cambiar número de WhatsApp
-- [ ] Agregar información del doctor
-- [ ] Actualizar datos de contacto
-- [ ] Decidir qué tema usar por defecto
-- [ ] Leer MANUAL-OPERACION.md
-- [ ] Leer PLAN-MARKETING.md
+
+- Leer CONFIGURACION-PERSONALIZADA.md
+- Cambiar número de WhatsApp
+- Agregar información del doctor
+- Actualizar datos de contacto
+- Decidir qué tema usar por defecto
+- Leer MANUAL-OPERACION.md
+- Leer PLAN-MARKETING.md
 
 ### Este Mes
-- [ ] Personalizar todo el contenido
-- [ ] Agregar fotos/logo reales
-- [ ] Definir precios de planes
-- [ ] Recopilar testimonios (con autorización)
-- [ ] Revisar contrato con abogado
-- [ ] Configurar expediente médico digital
-- [ ] Crear perfiles de redes sociales
-- [ ] Preparar contenido para Instagram
-- [ ] Desplegar a producción (Vercel)
+
+- Personalizar todo el contenido
+- Agregar fotos/logo reales
+- Definir precios de planes
+- Recopilar testimonios (con autorización)
+- Revisar contrato con abogado
+- Configurar expediente médico digital
+- Crear perfiles de redes sociales
+- Preparar contenido para Instagram
+- Desplegar a producción (Vercel)
 
 ---
 
@@ -278,7 +306,7 @@ Marca cada paso conforme lo completes:
 2. Sigue los pasos para instalar Node.js
 3. Ejecuta `npm install` en esta carpeta
 4. Ejecuta `npm run dev`
-5. Abre http://localhost:3000
+5. Abre [http://localhost:3000](http://localhost:3000)
 6. ¡Disfruta viendo tu sitio funcionando! 🎉
 
 ---

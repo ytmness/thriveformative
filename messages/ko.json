@@ -73,6 +73,8 @@
     "desc6": "우선 순위 지정 및 메트릭을 통한 지속적인 동반."
   },
   "tshape": {
+    "eyebrow": "첨단",
+    "heroTitle": "T-Shape 2 기술",
     "title": "T-Shape 2",
     "subtitle": "첨단 바디 트리트먼트를 위한 FDA 승인 최첨단 기술.",
     "fdaBadge": "FDA 승인",
@@ -92,6 +94,7 @@
   "plans": {
     "title": "플랜",
     "subtitle": "건강 목표에 가장 적합한 플랜을 선택하세요.",
+    "recommendedBadge": "추천",
     "plan1": "기본",
     "plan1Item1": "초기 상담",
     "plan1Item2": "서면 계획",
@@ -100,10 +103,13 @@
     "plan2Item1": "모든 기본 플랜",
     "plan2Item2": "격주 후속 조치",
     "plan2Item3": "검사 해석",
+    "plan2Item4": "맞춤 영양 가이드",
     "plan3": "프리미엄",
     "plan3Item1": "모든 프로 플랜",
     "plan3Item2": "지속적인 동반",
     "plan3Item3": "우선 진료",
+    "plan3Item4": "WhatsApp 직접 연락",
+    "plan3Item5": "월간 진행 보고서",
     "chooseBtn": "선택"
   },
   "booking": {

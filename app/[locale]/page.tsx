@@ -19,6 +19,23 @@ const WHATSAPP_LINK = "https://google.com";
    Decorative SVG – organic line-art pattern
    behind the hero circle (mandala-esque)
    ─────────────────────────────────────────── */
+function TShapeCheckIcon() {
+  return (
+    <span className="tshape-hero__check" aria-hidden>
+      <svg className="tshape-hero__check-svg" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="10" cy="10" r="8.5" stroke="currentColor" strokeWidth="1.1" opacity="0.9" />
+        <path
+          d="M6 10.2 8.6 12.8 14.2 7.2"
+          stroke="currentColor"
+          strokeWidth="1.35"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </span>
+  );
+}
+
 function OrganicPattern({ className = "" }: { className?: string }) {
   return (
     <svg
@@ -204,68 +221,63 @@ function PageContent() {
           </div>
         </GiantScrollCard>
         <GiantScrollCard variant="slideUp" id="tshape">
-          <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
-            <SectionTitle title={t("tshape.title")} subtitle={t("tshape.subtitle")} />
-
-            <div className="mt-10 grid md:grid-cols-[1fr_1.4fr] gap-10 items-start">
-              {/* Left — Machine image + FDA badge overlay */}
-              <div className="relative">
-                <div className="bg-surface border border-theme rounded-2xl shadow-soft p-6 flex items-center justify-center transition-transform duration-300 hover:scale-[1.02]">
-                  <img
-                    src="/logos/t-shape-2-1.png"
-                    alt="T-Shape 2"
-                    className="w-full max-w-[280px] h-auto object-contain"
-                  />
+          <section className="tshape-section">
+            <div className="tshape-section__contain">
+              <div className="tshape-hero">
+                <div className="tshape-hero__copy">
+                  <p className="tshape-hero__eyebrow">{t("tshape.eyebrow")}</p>
+                  <h2 className="tshape-hero__title">{t("tshape.heroTitle")}</h2>
+                  <p className="tshape-hero__lead">{t("tshape.subtitle")}</p>
+                  <p className="tshape-hero__fda-intro">{t("tshape.fdaDesc")}</p>
+                  <ul className="tshape-hero__list">
+                    {[1, 2, 3, 4].map((i) => (
+                      <li key={i} className="tshape-hero__item">
+                        <TShapeCheckIcon />
+                        <span className="tshape-hero__item-text">{t(`tshape.fdaItem${i}`)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="tshape-hero__note">{t("tshape.fdaNote")}</p>
                 </div>
-                {/* FDA seal — positioned as stamp on top-right */}
-                <div className="absolute -top-8 -right-8 w-32 h-32 md:w-40 md:h-40">
-                  <img
-                    src="/logos/fda-approved.png"
-                    alt={t("tshape.fdaBadge")}
-                    className="w-full h-full object-contain drop-shadow-lg"
-                    style={{ filter: "invert(1) sepia(0.3) saturate(2.5) hue-rotate(345deg) brightness(0.82)" }}
-                  />
-                </div>
-              </div>
-
-              {/* Right — FDA info + indications */}
-              <div className="bg-surface border border-theme rounded-2xl shadow-soft p-6">
-                <p className="type-prose">{t("tshape.fdaDesc")}</p>
-                <ul className="type-prose mt-5 space-y-3">
-                  {[1, 2, 3, 4].map((i) => (
-                    <li key={i} className="flex items-center gap-3">
-                      <span className="w-2 h-2 rounded-full bg-[rgb(var(--primary))] flex-shrink-0" />
-                      {t(`tshape.fdaItem${i}`)}
-                    </li>
-                  ))}
-                </ul>
-                <p className="type-body-muted mt-6 border-t border-theme pt-5">
-                  {t("tshape.fdaNote")}
-                </p>
-              </div>
-            </div>
-
-            {/* Technologies — 3 cards */}
-            <div className="mt-10 grid md:grid-cols-3 gap-8">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="bg-surface border border-theme rounded-2xl shadow-soft p-8 transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(0,0,0,0.18)]"
-                >
-                  <div className="w-12 h-12 rounded-full bg-[rgb(var(--primary)/0.1)] flex items-center justify-center mb-5">
-                    <div className="w-5 h-5 rounded-full bg-[rgb(var(--primary)/0.4)]" />
+                <div className="tshape-hero__visual">
+                  <div className="tshape-hero__frame">
+                    <img
+                      src="/logos/t-shape-2-1.png"
+                      alt={t("tshape.title")}
+                      className="tshape-hero__img"
+                    />
                   </div>
-                  <h4 className="type-tech-title tracking-wide">{t(`tshape.tech${i}Title`)}</h4>
-                  <p className="type-body-muted mt-3">{t(`tshape.tech${i}Desc`)}</p>
+                  <div className="tshape-hero__fda-badge">
+                    <img
+                      src="/logos/fda-approved.png"
+                      alt={t("tshape.fdaBadge")}
+                      className="tshape-hero__fda-img"
+                    />
+                  </div>
                 </div>
-              ))}
+              </div>
+
+              <div className="tshape-tech">
+                {[1, 2, 3].map((i) => (
+                  <article key={i} className="tshape-tech-card">
+                    <div className="tshape-tech-card__icon" aria-hidden>
+                      <span className="tshape-tech-card__dot" />
+                    </div>
+                    <h3 className="tshape-tech-card__title">{t(`tshape.tech${i}Title`)}</h3>
+                    <p className="tshape-tech-card__desc">{t(`tshape.tech${i}Desc`)}</p>
+                  </article>
+                ))}
+              </div>
             </div>
           </section>
         </GiantScrollCard>
         <GiantScrollCard variant="slideUp" id="planes">
-          <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
-            <SectionTitle title={t("plans.title")} subtitle={t("plans.subtitle")} />
-            <div className="mt-10 grid md:grid-cols-3 gap-8 items-center">
+          <section className="plans-section">
+            <div className="plans-section__intro">
+              <h2 className="plans-section__title">{t("plans.title")}</h2>
+              <p className="plans-section__subtitle">{t("plans.subtitle")}</p>
+            </div>
+            <div className="plans-section__grid">
               <Plan
                 name={t("plans.plan1")}
                 items={[t("plans.plan1Item1"), t("plans.plan1Item2"), t("plans.plan1Item3")]}
@@ -273,11 +285,22 @@ function PageContent() {
               <Plan
                 featured
                 name={t("plans.plan2")}
-                items={[t("plans.plan2Item1"), t("plans.plan2Item2"), t("plans.plan2Item3")]}
+                items={[
+                  t("plans.plan2Item1"),
+                  t("plans.plan2Item2"),
+                  t("plans.plan2Item3"),
+                  t("plans.plan2Item4"),
+                ]}
               />
               <Plan
                 name={t("plans.plan3")}
-                items={[t("plans.plan3Item1"), t("plans.plan3Item2"), t("plans.plan3Item3")]}
+                items={[
+                  t("plans.plan3Item1"),
+                  t("plans.plan3Item2"),
+                  t("plans.plan3Item3"),
+                  t("plans.plan3Item4"),
+                  t("plans.plan3Item5"),
+                ]}
               />
             </div>
           </section>
@@ -423,29 +446,28 @@ function Plan({
   const t = useTranslations();
   return (
     <div
-      className={`bg-surface border rounded-2xl shadow-soft p-8 md:p-10 lg:p-12 transition-[transform,box-shadow] duration-300 hover:-translate-y-2 ${
-        featured
-          ? "border-[rgb(var(--primary)/0.4)] ring-1 ring-[rgb(var(--primary)/0.2)] scale-[1.03] hover:shadow-[0_25px_60px_rgba(var(--primary),0.15)]"
-          : "border-theme hover:shadow-[0_20px_50px_rgba(0,0,0,0.18)]"
-      }`}
+      className={`plan-card-plan ${featured ? "plan-card-plan--featured" : "plan-card-plan--side"}`}
     >
-      <div className="type-card-name-lg tracking-wide">{name}</div>
-      <ul className="type-prose-muted mt-4 space-y-3">
-        {items.map((x) => (
-          <li key={x} className="flex items-start gap-2">
-            <span className="mt-1.5 w-2 h-2 rounded-full bg-[rgb(var(--primary)/0.4)] flex-shrink-0" />
-            {x}
-          </li>
-        ))}
-      </ul>
-      <button
-        type="button"
-        className={`type-btn mt-6 w-full rounded-xl px-5 py-4 transition-transform hover:scale-[1.05] active:scale-[0.95] ${
-          featured ? "btn-primary shadow-lg" : "btn-outline"
-        }`}
-      >
-        {t("plans.chooseBtn")}
-      </button>
+      {featured ? (
+        <span className="plan-card-plan__badge">{t("plans.recommendedBadge")}</span>
+      ) : null}
+      <div className="plan-card-plan__inner">
+        <h3 className="plan-card-plan__title">{name}</h3>
+        <ul className="plan-card-plan__list">
+          {items.map((x) => (
+            <li key={x} className="plan-card-plan__item">
+              <span className="plan-card-plan__bullet" aria-hidden />
+              <span className="plan-card-plan__item-text">{x}</span>
+            </li>
+          ))}
+        </ul>
+        <button
+          type="button"
+          className={`plan-card-plan__btn ${featured ? "plan-card-plan__btn--featured" : "plan-card-plan__btn--outline"}`}
+        >
+          {t("plans.chooseBtn")}
+        </button>
+      </div>
     </div>
   );
 }

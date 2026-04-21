@@ -58,9 +58,11 @@ thrive-formative/
 ### 🔹 `app/` — Aplicación Principal
 
 #### `globals.css`
+
 **Propósito:** Estilos globales y sistema de temas
 
 **Contenido:**
+
 - Importación de Tailwind (`@tailwind base`, `@tailwind components`, `@tailwind utilities`)
 - Variables CSS para 4 temas:
   - `[data-theme="golden-sand"]`
@@ -78,14 +80,17 @@ thrive-formative/
 ---
 
 #### `layout.tsx`
+
 **Propósito:** Layout raíz de la aplicación
 
 **Contenido:**
+
 - Configuración de fuentes (Montserrat + Poppins)
 - Metadata (título, descripción para SEO)
 - Estructura `<html>` y `<body>`
 
 **Cuándo editar:**
+
 - Cambiar fuentes
 - Actualizar metadata (título, descripción)
 - Agregar Google Analytics
@@ -94,9 +99,11 @@ thrive-formative/
 ---
 
 #### `page.tsx`
+
 **Propósito:** Landing page completa (página principal)
 
 **Contenido:**
+
 - Header con navegación
 - Sección Hero (título + CTAs)
 - Sección "Qué hacemos"
@@ -109,6 +116,7 @@ thrive-formative/
 - Footer
 
 **Cuándo editar:**
+
 - Cambiar textos
 - Actualizar WhatsApp
 - Agregar información del doctor
@@ -116,6 +124,7 @@ thrive-formative/
 - Actualizar testimonios
 
 **Componentes internos:**
+
 ```tsx
 <Stat />         // Mini card con estadística
 <Card />         // Card genérico
@@ -132,28 +141,34 @@ thrive-formative/
 ### 🔹 `components/theme/` — Sistema de Temas
 
 #### `ThemeProvider.tsx`
+
 **Propósito:** Context provider para gestión de temas
 
 **Funcionalidad:**
+
 - Mantiene estado del tema actual
 - Actualiza atributo `data-theme` en `<html>`
 - Provee `theme` y `setTheme` a toda la app
 
 **Cuándo editar:**
+
 - Cambiar tema por defecto (línea 17)
 - Agregar nuevo tema
 
 ---
 
 #### `ThemeSwitcher.tsx`
+
 **Propósito:** Botón flotante para cambiar temas
 
 **Funcionalidad:**
+
 - Muestra panel con 4 opciones de temas
 - Animaciones con Framer Motion
 - Botón "Siguiente" para ciclar temas
 
 **Cuándo editar:**
+
 - Cambiar posición del botón (esquina)
 - Modificar estilos del panel
 - Agregar/quitar temas del selector
@@ -183,11 +198,13 @@ thrive-formative/
 ## 📄 Detalle de Documentos
 
 ### 📘 `EMPIEZA-AQUI.md`
+
 **👈 COMIENZA AQUÍ**
 
 **Para quién:** Cualquier persona que abra el proyecto por primera vez
 
 **Contenido:**
+
 - Guía de inicio rápido
 - "Elige tu camino" según objetivo
 - Ruta rápida (semana por semana)
@@ -198,11 +215,13 @@ thrive-formative/
 ---
 
 ### 📘 `README.md`
+
 **Guía principal del proyecto**
 
 **Para quién:** Desarrolladores y usuarios técnicos
 
 **Contenido:**
+
 - Características del sitio
 - Requisitos (Node.js)
 - Instrucciones de instalación
@@ -217,11 +236,13 @@ thrive-formative/
 ---
 
 ### 📘 `RESUMEN-EJECUTIVO.md`
+
 **Visión 360° del proyecto**
 
 **Para quién:** Toma de decisiones, gerencia, overview completo
 
 **Contenido:**
+
 - Qué se ha construido
 - Stack tecnológico
 - Archivos del proyecto
@@ -239,11 +260,13 @@ thrive-formative/
 ---
 
 ### 🛠️ `INSTRUCCIONES-INSTALACION.md`
+
 **Cómo instalar y correr el proyecto**
 
 **Para quién:** Usuarios sin Node.js instalado, primera instalación
 
 **Contenido:**
+
 - Qué es Node.js y por qué se necesita
 - Cómo instalar Node.js paso a paso
 - Cómo verificar la instalación
@@ -256,11 +279,13 @@ thrive-formative/
 ---
 
 ### 🛠️ `DOCUMENTACION-TECNICA.md`
+
 **Arquitectura y personalización avanzada**
 
 **Para quién:** Desarrolladores, usuarios técnicos
 
 **Contenido:**
+
 - Stack tecnológico (¿por qué Next.js, TypeScript, Tailwind?)
 - Sistema de temas (cómo funciona con CSS variables)
 - Estructura de archivos detallada
@@ -277,11 +302,13 @@ thrive-formative/
 ---
 
 ### 🛠️ `CONFIGURACION-PERSONALIZADA.md`
+
 **Guía rápida de personalización**
 
 **Para quién:** Usuarios no técnicos que quieren personalizar contenido
 
 **Contenido:**
+
 - Cómo cambiar WhatsApp
 - Cómo agregar información del doctor
 - Cómo actualizar contacto (correo, teléfono, dirección)
@@ -297,11 +324,13 @@ thrive-formative/
 ---
 
 ### 🏥 `MANUAL-OPERACION.md`
+
 **Manual operativo de la clínica**
 
 **Para quién:** Staff de la clínica, médico, asistente
 
 **Contenido:**
+
 - Misión, visión, valores
 - Flujo de atención (paciente nuevo + seguimiento)
 - Expediente médico
@@ -315,11 +344,13 @@ thrive-formative/
 ---
 
 ### 🏥 `CONTRATO-CONSENTIMIENTO.md`
+
 **Plantilla de contrato médico**
 
 **Para quién:** Médico, abogado, administrador
 
 **Contenido:**
+
 - Contrato de prestación de servicios médicos
 - Datos del médico y paciente
 - Objeto del contrato
@@ -338,11 +369,13 @@ thrive-formative/
 ---
 
 ### 📈 `PLAN-MARKETING.md`
+
 **Estrategia completa de marketing**
 
 **Para quién:** Marketing, redes sociales, médico
 
 **Contenido:**
+
 - Objetivo y público objetivo
 - Canales principales (Instagram, GMB, Facebook, LinkedIn)
 - Tipos de contenido
@@ -362,27 +395,31 @@ thrive-formative/
 
 ## 🎯 ¿Qué Archivo Leer Según Tu Objetivo?
 
-| Tu objetivo es... | Lee este archivo |
-|-------------------|------------------|
-| Ver el sitio funcionando | `INSTRUCCIONES-INSTALACION.md` |
+
+| Tu objetivo es...        | Lee este archivo                 |
+| ------------------------ | -------------------------------- |
+| Ver el sitio funcionando | `INSTRUCCIONES-INSTALACION.md`   |
 | Cambiar textos/contenido | `CONFIGURACION-PERSONALIZADA.md` |
-| Entender el código | `DOCUMENTACION-TECNICA.md` |
-| Configurar la operación | `MANUAL-OPERACION.md` |
-| Planear el marketing | `PLAN-MARKETING.md` |
-| Preparar contrato | `CONTRATO-CONSENTIMIENTO.md` |
-| Visión completa | `RESUMEN-EJECUTIVO.md` |
-| **Primera vez** | **`EMPIEZA-AQUI.md`** 👈 |
+| Entender el código       | `DOCUMENTACION-TECNICA.md`       |
+| Configurar la operación  | `MANUAL-OPERACION.md`            |
+| Planear el marketing     | `PLAN-MARKETING.md`              |
+| Preparar contrato        | `CONTRATO-CONSENTIMIENTO.md`     |
+| Visión completa          | `RESUMEN-EJECUTIVO.md`           |
+| **Primera vez**          | `**EMPIEZA-AQUI.md`** 👈         |
+
 
 ---
 
 ## 📊 Tamaño del Proyecto
 
-| Tipo | Cantidad | Detalle |
-|------|----------|---------|
-| **Archivos de código** | 9 | TypeScript, JavaScript, CSS |
-| **Archivos de config** | 6 | JSON, JS (configuración) |
-| **Documentos** | 9 | Markdown (.md) |
-| **Total** | 24 archivos | + carpetas |
+
+| Tipo                   | Cantidad    | Detalle                     |
+| ---------------------- | ----------- | --------------------------- |
+| **Archivos de código** | 9           | TypeScript, JavaScript, CSS |
+| **Archivos de config** | 6           | JSON, JS (configuración)    |
+| **Documentos**         | 9           | Markdown (.md)              |
+| **Total**              | 24 archivos | + carpetas                  |
+
 
 **Líneas de código (aprox):** ~1,200 líneas  
 **Palabras en documentación:** ~30,000 palabras  
@@ -393,6 +430,7 @@ thrive-formative/
 ## 🔄 Flujo de Trabajo Recomendado
 
 ### 1️⃣ Primera vez (Día 1)
+
 ```
 EMPIEZA-AQUI.md
     ↓
@@ -408,6 +446,7 @@ Ver sitio en http://localhost:3000
 ```
 
 ### 2️⃣ Personalización (Días 2–5)
+
 ```
 CONFIGURACION-PERSONALIZADA.md
     ↓
@@ -421,6 +460,7 @@ Probar cambios en localhost
 ```
 
 ### 3️⃣ Operación (Semana 2)
+
 ```
 MANUAL-OPERACION.md
     ↓
@@ -434,6 +474,7 @@ Capacitar al equipo
 ```
 
 ### 4️⃣ Marketing (Semana 3–4)
+
 ```
 PLAN-MARKETING.md
     ↓
@@ -447,6 +488,7 @@ Iniciar publicaciones
 ```
 
 ### 5️⃣ Deploy (Semana 5)
+
 ```
 DOCUMENTACION-TECNICA.md (sección Deploy)
     ↓
@@ -464,6 +506,7 @@ Instalar Analytics
 ## ✅ Archivos Críticos (No Eliminar)
 
 ### ⚠️ Obligatorios para que funcione:
+
 - `app/globals.css`
 - `app/layout.tsx`
 - `app/page.tsx`
@@ -475,11 +518,13 @@ Instalar Analytics
 - `next.config.js`
 
 ### ℹ️ Importantes (recomendado):
+
 - Todos los archivos `.md` (documentación)
 - `.eslintrc.json`
 - `.gitignore`
 
 ### ✏️ Opcionales (puedes editar/eliminar):
+
 - `README.md` (si tienes tu propia documentación)
 - Archivos `.md` que no uses
 
@@ -488,13 +533,16 @@ Instalar Analytics
 ## 🎨 Archivos por Personalizar
 
 ### 🔧 Obligatorio personalizar:
+
 - `app/page.tsx` → WhatsApp, doctor, contacto, precios
 
 ### 🎨 Recomendado personalizar:
+
 - `app/layout.tsx` → Metadata (SEO)
 - `components/theme/ThemeProvider.tsx` → Tema por defecto
 
 ### 📁 Archivos a crear:
+
 - `public/logo.svg` → Logo de la clínica
 - `public/doctor.jpg` → Foto del doctor
 - `app/favicon.ico` → Ícono del sitio

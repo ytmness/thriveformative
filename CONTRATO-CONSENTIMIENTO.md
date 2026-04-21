@@ -19,7 +19,7 @@
 ## DATOS DEL PACIENTE
 
 **Nombre completo:** ________________________________  
-**Fecha de nacimiento:** ___/___/_____  
+**Fecha de nacimiento:** ***/***/_____  
 **Edad:** _____ años  
 **Sexo:** ☐ M ☐ F ☐ Otro: _______  
 **Dirección:** ________________________________  
@@ -98,26 +98,31 @@ El paciente se compromete a:
 ## V. POLÍTICAS DE AGENDAMIENTO, CANCELACIÓN Y PAGOS
 
 ### Agendamiento
+
 - Las citas se agendan vía WhatsApp, teléfono o formulario web
 - La confirmación es por escrito (WhatsApp/SMS/correo)
 
 ### Puntualidad
+
 - El paciente debe llegar **10 minutos antes** de su cita
 - Retraso de 1–10 minutos: se atiende completo
 - Retraso de 11–15 minutos: la consulta se acorta proporcionalmente
 - Retraso mayor a 15 minutos: se considera falta y debe reagendar
 
 ### Cancelación y Reprogramación
+
 - **Permitida** con más de **12 horas** de anticipación
 - **Menos de 12 horas**: se cobra 50% del costo de la consulta
 - **No presentarse sin avisar**: se cobra 100% del costo de la consulta
 
 ### Pagos
+
 - **Pago anticipado** (transferencia bancaria, efectivo o tarjeta)
 - **No se aceptan pagos diferidos** salvo planes premium prepagados
 - **No hay reembolsos**, solo crédito para consulta futura en caso de emergencia médica comprobada del paciente
 
 ### Recetas
+
 - **No se envían recetas sin consulta previa** (responsabilidad médica y legal)
 - Dudas menores por WhatsApp se responden sin costo en 24 hrs
 - Dudas mayores requieren agendar seguimiento
@@ -162,6 +167,7 @@ De acuerdo con la **Ley Federal de Protección de Datos Personales en Posesión 
 ☐ Autorizo el uso de mi testimonio con mi nombre real con fines de marketing: ☐ SÍ ☐ NO
 
 **Datos que se recopilan:**
+
 - Datos personales (nombre, edad, contacto)
 - Historial médico
 - Resultados de laboratorios
@@ -171,6 +177,7 @@ De acuerdo con la **Ley Federal de Protección de Datos Personales en Posesión 
 
 **Derechos del paciente (ARCO):**
 El paciente tiene derecho a:
+
 - **Acceder** a su información
 - **Rectificar** datos incorrectos
 - **Cancelar** (revocar) su consentimiento
@@ -184,14 +191,16 @@ Para ejercer estos derechos, contactar a: [email de contacto]
 
 (Los precios son referenciales y pueden cambiar. Se confirmará costo exacto al agendar.)
 
-| Servicio | Costo aproximado |
-|----------|------------------|
-| Consulta inicial (60–90 min) | $______ MXN |
-| Seguimiento mensual | $______ MXN |
-| Seguimiento quincenal | $______ MXN |
-| Interpretación de labs (sin consulta) | $______ MXN |
-| Teleconsulta | $______ MXN |
-| Plan Premium (3 meses prepagado) | $______ MXN |
+
+| Servicio                              | Costo aproximado |
+| ------------------------------------- | ---------------- |
+| Consulta inicial (60–90 min)          | $______ MXN      |
+| Seguimiento mensual                   | $______ MXN      |
+| Seguimiento quincenal                 | $______ MXN      |
+| Interpretación de labs (sin consulta) | $______ MXN      |
+| Teleconsulta                          | $______ MXN      |
+| Plan Premium (3 meses prepagado)      | $______ MXN      |
+
 
 ---
 
@@ -210,6 +219,7 @@ En caso de controversia o discrepancia, ambas partes acuerdan:
 Este contrato tiene vigencia a partir de la firma y permanece vigente mientras se mantenga la relación médico-paciente.
 
 Cualquiera de las partes puede **terminar el contrato** en cualquier momento:
+
 - **Paciente**: Notificando por escrito con 24 hrs de anticipación
 - **Médico**: Notificando con 72 hrs de anticipación y asegurando continuidad de atención (referencia a otro médico)
 
@@ -218,6 +228,7 @@ Cualquiera de las partes puede **terminar el contrato** en cualquier momento:
 ## XII. FIRMAS
 
 **Yo, el paciente, declaro que:**
+
 - He leído y comprendido completamente este documento
 - He tenido oportunidad de hacer preguntas
 - Acepto los términos y condiciones establecidos
@@ -226,24 +237,30 @@ Cualquiera de las partes puede **terminar el contrato** en cualquier momento:
 ---
 
 **Firma del Paciente:**  
-________________________________  
+
+---
+
 Nombre: ________________________________  
-Fecha: ___/___/_____
+Fecha: ***/***/_____
 
 ---
 
 **Firma del Médico:**  
-________________________________  
+
+---
+
 Dr. [Nombre completo]  
 Cédula profesional: [Número]  
-Fecha: ___/___/_____
+Fecha: ***/***/_____
 
 ---
 
 **Testigo 1:**  
-________________________________  
+
+---
+
 Nombre: ________________________________  
-Fecha: ___/___/_____
+Fecha: ***/***/_____
 
 ---
 
@@ -264,6 +281,7 @@ Este documento es una **plantilla de referencia** y debe ser revisado y adaptado
 - Regulaciones estatales aplicables
 
 Se recomienda consultar con:
+
 - Abogado especialista en salud
 - Colegio Médico local
 - Comisión de Arbitraje Médico
