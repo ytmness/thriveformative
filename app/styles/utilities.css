@@ -275,6 +275,93 @@
   }
 }
 
+/* CTA final (sección "¿Listo para transformar tu salud?") */
+.cta-final-section {
+  width: 100%;
+  padding: 4.5rem 1.5rem 5rem;
+}
+
+@media (min-width: 768px) {
+  .cta-final-section {
+    padding-top: 6rem;
+    padding-bottom: 7rem;
+  }
+}
+
+.cta-final-shell {
+  max-width: 42rem;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.cta-final-title {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(2.55rem, 4.8vw, 5rem);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 0.98;
+  color: rgb(var(--text));
+  text-wrap: balance;
+}
+
+.cta-final-sub {
+  max-width: 34rem;
+  margin: 1.5rem auto 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: rgb(var(--muted));
+}
+
+@media (min-width: 768px) {
+  .cta-final-sub {
+    margin-top: 1.75rem;
+    font-size: 1.0625rem;
+  }
+}
+
+.cta-final-actions {
+  margin-top: 2rem;
+}
+
+@media (min-width: 768px) {
+  .cta-final-actions {
+    margin-top: 2.5rem;
+  }
+}
+
+.cta-final-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 15.5rem;
+  border-radius: 0.68rem;
+  border: 1px solid rgb(var(--primary) / 0.18);
+  padding: 0.92rem 1.65rem;
+  background: linear-gradient(
+    90deg,
+    rgb(var(--primary) / 0.86),
+    rgb(var(--secondary) / 0.95)
+  );
+  color: #f7f4ef;
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 0.67rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.14);
+  transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cta-final-button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.04);
+  box-shadow: 0 16px 28px rgba(0, 0, 0, 0.17);
+}
+
+.cta-final-button:active {
+  transform: scale(0.98);
+}
+
 /* Chrome UI: navegación desktop */
 .type-nav {
   font-size: 1rem;

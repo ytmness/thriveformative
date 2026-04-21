@@ -309,9 +309,11 @@ function PageContent() {
           <BookingSection />
         </GiantScrollCard>
         <GiantScrollCard variant="slideUp" id="cta" noFade>
-          <div className="max-w-4xl mx-auto px-6 py-24 md:py-32 text-center">
-            <CTASection title={t("cta.title")} subtitle={t("cta.subtitle")} buttonText={t("cta.button")} />
-          </div>
+          <section className="cta-final-section">
+            <div className="cta-final-shell">
+              <CTASection title={t("cta.title")} subtitle={t("cta.subtitle")} buttonText={t("cta.button")} />
+            </div>
+          </section>
         </GiantScrollCard>
       </main>
 
@@ -339,18 +341,14 @@ export default function Page() {
 function CTASection({ title, subtitle, buttonText }: { title: string; subtitle: string; buttonText: string }) {
   return (
     <>
-      <h2 className="type-cta-title block text-center mx-auto max-w-4xl">
-        {title}
-      </h2>
-      <p className="type-cta-sub mt-5 block text-center mx-auto max-w-3xl">
-        {subtitle}
-      </p>
-      <div className="mt-10">
+      <h2 className="cta-final-title">{title}</h2>
+      <p className="cta-final-sub">{subtitle}</p>
+      <div className="cta-final-actions">
         <a
           href={WHATSAPP_LINK}
           target="_blank"
           rel="noreferrer"
-          className="btn-cta type-btn inline-block rounded-xl px-12 py-5 shadow-xl transition-transform hover:scale-[1.04] active:scale-[0.97]"
+          className="cta-final-button"
         >
           {buttonText}
         </a>
