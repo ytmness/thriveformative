@@ -3,7 +3,6 @@
     "home": "홈",
     "services": "서비스",
     "doctor": "의사",
-    "brand": "THRIVE FORMATIVE",
     "news": "소식",
     "booking": "예약하기",
     "tshape": "T-Shape 2",
@@ -206,6 +205,7 @@
     "refOtherPlaceholder": "어떻게 알게 되셨나요?"
   },
   "doctor": {
+    "photoPlaceholder": "의사 사진 (플레이스홀더)",
     "title": "의사 소개",
     "subtitle": "경험, 지식, 그리고 당신에게 집중하는 인간 중심 접근.",
     "name": "Dr. Roel Maldonado",
@@ -337,6 +337,7 @@
     "linkPlans": "플랜",
     "linkDoctor": "의사 소개",
     "linkFaq": "자주 묻는 질문",
+    "linkContact": "연락처",
     "contactTitle": "연락처",
     "tagline": "기능적이고 인간 중심적인 맞춤형 건강 관리. 예방, 지원, 그리고 실제 결과."
   }

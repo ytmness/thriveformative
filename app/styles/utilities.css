@@ -1218,3 +1218,21 @@
     font-size: 0.9375rem;
   }
 }
+
+/* ─── Página Info / Conócenos ─── */
+.info-page-hero .type-page-title {
+  font-family: var(--font-serif), ui-serif, Georgia, serif;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.info-doctor-photo {
+  min-height: 16rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(
+    155deg,
+    rgb(var(--surface) / 0.85),
+    rgb(var(--bg) / 0.95)
+  );
+  border: 1px dashed rgb(var(--border) / 0.35);
+}

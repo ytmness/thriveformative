@@ -114,7 +114,6 @@ export default function Header() {
             alt="Thrive Formative"
             className="h-10 sm:h-12 md:h-14 lg:h-14 w-auto object-contain max-h-[4rem]"
           />
-          <span className="site-nav__brand-text">{t("nav.brand")}</span>
         </motion.a>
 
         <nav className="site-nav__links" aria-label="Principal">

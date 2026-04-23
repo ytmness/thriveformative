@@ -3,7 +3,6 @@
     "home": "Inicio",
     "services": "Servicios",
     "doctor": "Doctor",
-    "brand": "THRIVE FORMATIVE",
     "news": "Noticias",
     "booking": "Agendar",
     "tshape": "T-Shape 2",
@@ -206,6 +205,7 @@
     "refOtherPlaceholder": "Cuéntanos cómo"
   },
   "doctor": {
+    "photoPlaceholder": "Foto del doctor (placeholder)",
     "title": "Sobre el Doctor",
     "subtitle": "Experiencia, conocimiento y un enfoque humano centrado en ti.",
     "name": "Dr. Roel Maldonado",
@@ -337,6 +337,7 @@
     "linkPlans": "Planes",
     "linkDoctor": "Sobre el Doctor",
     "linkFaq": "Preguntas Frecuentes",
+    "linkContact": "Contacto",
     "contactTitle": "Contacto",
     "tagline": "Salud personalizada con enfoque funcional y humano. Prevención, acompañamiento y resultados reales."
   }

@@ -24,9 +24,9 @@ function InfoContent() {
       <Header />
 
       {/* ─── PAGE BANNER ─── */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--bg))] via-[rgb(var(--bg))] to-[rgb(var(--primary)/0.06)] pointer-events-none" />
-        <div className="relative z-10 max-w-4xl mx-auto px-6 py-20 md:py-28 text-center">
+      <section className="info-page-hero relative overflow-hidden border-b border-[rgb(var(--border)/0.12)]">
+        <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--bg))] via-[rgb(var(--surface)/0.4)] to-[rgb(var(--primary)/0.05)] pointer-events-none" />
+        <div className="relative z-10 max-w-4xl mx-auto px-6 py-16 md:py-24 lg:py-28 text-center">
           <motion.h1
             className="type-page-title tracking-wide"
             initial={{ opacity: 0, y: 20 }}
@@ -65,8 +65,10 @@ function InfoContent() {
                 whileHover={{ y: -5, boxShadow: "0 20px 50px rgba(0,0,0,0.15)" }}
                 className="bg-surface border border-theme rounded-2xl shadow-soft p-6"
               >
-                <div className="h-64 rounded-xl bg-[rgb(var(--bg)/0.7)] border border-theme flex items-center justify-center type-body-muted overflow-hidden">
-                  Foto del doctor (placeholder)
+                <div className="info-doctor-photo flex items-center justify-center overflow-hidden px-5 text-center">
+                  <span className="type-caption text-[rgb(var(--muted))] tracking-[0.08em] uppercase">
+                    {t("doctor.photoPlaceholder")}
+                  </span>
                 </div>
                 <div className="mt-6 space-y-2">
                   <h3 className="type-card-name tracking-wide">{t("doctor.name")}</h3>

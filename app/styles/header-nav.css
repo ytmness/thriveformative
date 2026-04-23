@@ -56,23 +56,6 @@
   color: inherit;
 }
 
-.site-nav__brand-text {
-  display: none;
-  font-family: var(--font-serif), ui-serif, Georgia, serif;
-  font-size: clamp(0.7rem, 1.1vw, 0.85rem);
-  font-weight: 600;
-  letter-spacing: 0.22em;
-  line-height: 1.1;
-  color: var(--site-nav-fg);
-  white-space: nowrap;
-}
-
-@media (min-width: 1024px) {
-  .site-nav__brand-text {
-    display: block;
-  }
-}
-
 .site-nav__links {
   display: none;
   flex: 1;
