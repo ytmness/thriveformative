@@ -1,8 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useTheme } from "@/components/theme/ThemeProvider";
 import { useTranslations, useLocale } from "next-intl";
+import { SITE_LOGO_SRC } from "@/lib/branding";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useUser, signOut } from "@/lib/useUser";
 import { useRouter, usePathname } from "next/navigation";
@@ -10,13 +10,6 @@ import NotificationBell from "@/components/NotificationBell";
 import { useEffect, useState } from "react";
 
 const WHATSAPP_LINK = "https://google.com";
-
-const logoMap: Record<string, string> = {
-  "golden-sand": "/logos/Logo-Golden-Sand-color-06.png",
-  nocturnal: "/logos/Recurso-6-5x.png",
-  metals: "/logos/Recurso-7-5x.png",
-  "earth-modern": "/logos/Recurso-8-5x.png",
-};
 
 type NavItem = { key: string; href: string; label?: string };
 
@@ -58,7 +51,6 @@ function useLocationHash() {
 }
 
 export default function Header() {
-  const { theme } = useTheme();
   const t = useTranslations();
   const locale = useLocale();
   const pathname = usePathname();
@@ -66,8 +58,6 @@ export default function Header() {
   const { user, role, loading } = useUser();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const currentLogo = logoMap[theme] || logoMap["nocturnal"];
 
   const primaryNavItems: NavItem[] = [
     { key: "home", href: `/${locale}#inicio` },
@@ -110,7 +100,7 @@ export default function Header() {
           className="site-nav__brand"
         >
           <img
-            src={currentLogo}
+            src={SITE_LOGO_SRC}
             alt="Thrive Formative"
             className="h-10 sm:h-12 md:h-14 lg:h-14 w-auto object-contain max-h-[4rem]"
           />

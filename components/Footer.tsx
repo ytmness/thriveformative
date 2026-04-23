@@ -1,23 +1,13 @@
 "use client";
 
-import { useTheme } from "@/components/theme/ThemeProvider";
 import { useTranslations, useLocale } from "next-intl";
+import { SITE_LOGO_SRC } from "@/lib/branding";
 
 const WHATSAPP_LINK = "https://google.com";
 
-const logoMap: Record<string, string> = {
-  "golden-sand": "/logos/Logo-Golden-Sand-color-06.png",
-  nocturnal: "/logos/Recurso-6-5x.png",
-  metals: "/logos/Recurso-7-5x.png",
-  "earth-modern": "/logos/Recurso-8-5x.png",
-};
-
 export default function Footer() {
-  const { theme } = useTheme();
   const t = useTranslations();
   const locale = useLocale();
-
-  const currentLogo = logoMap[theme] || logoMap["nocturnal"];
 
   const quickLinks = [
     { label: t("footer.linkHome"), href: `/${locale}#inicio` },
@@ -36,7 +26,7 @@ export default function Footer() {
           {/* Brand column */}
           <div className="space-y-4">
             <img
-              src={currentLogo}
+              src={SITE_LOGO_SRC}
               alt="Thrive Formative"
               className="h-14 md:h-16 w-auto object-contain transition-transform duration-200 hover:scale-[1.02]"
             />
