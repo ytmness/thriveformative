@@ -12,7 +12,6 @@ import WaveDivider from "@/components/WaveDivider";
 import BookingSection from "@/components/BookingSection";
 import GiantScrollCard from "@/components/GiantScrollCard";
 import { useTranslations } from "next-intl";
-import { SITE_LOGO_SRC } from "@/lib/branding";
 
 const WHATSAPP_LINK = "https://google.com";
 
@@ -116,7 +115,7 @@ function PageContent() {
                   <div className="absolute inset-2 rounded-full border border-[rgb(var(--primary)/0.12)]" />
 
                   <img
-                    src={SITE_LOGO_SRC}
+                    src="/logos/Black-Gradient-Logo-02.png"
                     alt="Thrive Formative"
                     className="w-3/4 h-3/4 object-contain relative z-10 logo-glow"
                   />
