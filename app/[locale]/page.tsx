@@ -163,8 +163,16 @@ function PageContent() {
       {/* ─── MAIN CONTENT — bloques continuos ─── */}
       <main className="scroll-cards-stack">
         <GiantScrollCard variant="slideUp" id="approach" noFade compact>
-          <div className="approach-section">
-            <div className="approach-section__grid">
+          <div className="approach-editorial">
+            <header className="approach-editorial__header">
+              <div className="approach-editorial__header-copy">
+                <p className="approach-editorial__eyebrow">{t("approach.sectionEyebrow")}</p>
+                <h2 className="approach-editorial__title">{t("approach.sectionTitle")}</h2>
+              </div>
+              <p className="approach-editorial__lead">{t("approach.sectionLead")}</p>
+            </header>
+            <div className="approach-editorial__rule" aria-hidden />
+            <div className="approach-editorial__columns">
               <ApproachPillar
                 id="approach-funcional"
                 title={`${t("approach.title1a")} ${t("approach.title1b")}`}
@@ -336,7 +344,7 @@ function CTASection({ title, subtitle, buttonText }: { title: string; subtitle: 
   );
 }
 
-/** Tres pilares en fila: título grande + párrafo (sin línea intermedia en color primario). */
+/** Tres pilares — layout editorial (rejilla + serif). */
 function ApproachPillar({
   id,
   title,
@@ -347,12 +355,9 @@ function ApproachPillar({
   description: string;
 }) {
   return (
-    <article
-      id={id}
-      className="approach-card"
-    >
-      <h3 className="approach-card__title">{title}</h3>
-      <p className="approach-card__desc">{description}</p>
+    <article id={id} className="approach-editorial__column">
+      <h3 className="approach-editorial__column-title">{title}</h3>
+      <p className="approach-editorial__column-desc">{description}</p>
     </article>
   );
 }

@@ -45,17 +45,20 @@
     "scriptText": "Hello, this is from the doctor's office. Your appointment is confirmed for tomorrow. Please bring your lab results and arrive 10 minutes early."
   },
   "approach": {
+    "sectionEyebrow": "PHILOSOPHY",
+    "sectionTitle": "Our Approach",
+    "sectionLead": "We combine diagnostic precision with exceptional human warmth to transform your healthcare experience.",
     "title1a": "Functional",
     "title1b": "medicine",
     "highlight1": "Root causes, labs & tailored plans",
-    "desc1": "We analyze your biochemistry and biomarkers to identify what drives your symptoms. Your plan combines therapeutic nutrition, hormonal optimization, evidence-based supplementation, and lifestyle changes to restore balance.",
+    "desc1": "We address the root of conditions—not only symptoms—by analyzing how your biological systems interconnect.",
     "title2a": "Family",
     "title2b": "medicine",
     "highlight2": "Whole-person history & care continuity",
-    "desc2": "We integrate clinical history, family context, psychosocial factors, and personal goals. Decisions weigh biology, lifestyle, beliefs, and preferences, with continuous, personalized follow-up.",
-    "title3": "Ongoing support",
+    "desc2": "Whole-person care for every stage of life, building trust and long-term continuity.",
+    "title3": "Support & guidance",
     "highlight3": "Goals, secure records & direct communication",
-    "desc3": "Concrete goals with monthly or biweekly reviews; secure digital records; adjustments as you progress (no rigid protocols); a direct channel for questions; step-by-step support."
+    "desc3": "You are not alone in your journey. We provide steady support so every recommendation fits into your daily life."
   },
   "services": {
     "title": "Services",
