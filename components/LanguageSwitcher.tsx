@@ -6,7 +6,16 @@ import { motion } from 'framer-motion';
 import { Globe } from 'lucide-react';
 import { useState, useTransition } from 'react';
 
-export default function LanguageSwitcher() {
+type LanguageSwitcherProps = {
+  /** Solo icono globo, para la barra superior estilo editorial */
+  variant?: "default" | "minimal";
+  className?: string;
+};
+
+export default function LanguageSwitcher({
+  variant = "default",
+  className = "",
+}: LanguageSwitcherProps) {
   const locale = useLocale();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -33,17 +42,27 @@ export default function LanguageSwitcher() {
     { code: 'it', label: 'Italiano', flag: '🇮🇹' },
   ];
 
+  const isMinimal = variant === "minimal";
+
   return (
-    <div className="relative">
+    <div className={`relative ${className}`.trim()}>
       <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: isMinimal ? 1.02 : 1.05 }}
+        whileTap={{ scale: isMinimal ? 0.98 : 0.95 }}
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-theme hover:bg-[rgb(var(--surface))] transition-colors"
+        type="button"
+        aria-label="Idioma"
+        className={
+          isMinimal
+            ? "site-nav-lang-btn"
+            : "flex items-center gap-2 px-4 py-2.5 rounded-lg border border-theme hover:bg-[rgb(var(--surface))] transition-colors"
+        }
         disabled={isPending}
       >
-        <Globe size={20} />
-        <span className="text-base font-medium uppercase">{locale}</span>
+        <Globe size={isMinimal ? 18 : 20} />
+        {!isMinimal && (
+          <span className="text-base font-medium uppercase">{locale}</span>
+        )}
       </motion.button>
 
       {isOpen && (

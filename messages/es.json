@@ -2,6 +2,8 @@
   "nav": {
     "home": "Inicio",
     "services": "Servicios",
+    "doctor": "Doctor",
+    "brand": "THRIVE FORMATIVE",
     "news": "Noticias",
     "booking": "Agendar",
     "tshape": "T-Shape 2",
@@ -9,7 +11,7 @@
     "about": "El Doctor",
     "faq": "FAQ",
     "contact": "Contacto",
-    "schedule": "Por WhatsApp"
+    "schedule": "Agendar"
   },
   "hero": {
     "title": "Salud personalizada para vivir más y mejor",

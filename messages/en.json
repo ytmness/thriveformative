@@ -2,6 +2,8 @@
   "nav": {
     "home": "Home",
     "services": "Services",
+    "doctor": "Doctor",
+    "brand": "THRIVE FORMATIVE",
     "news": "News",
     "booking": "Book appointment",
     "tshape": "T-Shape 2",
@@ -9,7 +11,7 @@
     "about": "About the Doctor",
     "faq": "FAQ",
     "contact": "Contact",
-    "schedule": "Schedule via WhatsApp"
+    "schedule": "Book"
   },
   "hero": {
     "title": "Personalized healthcare for a longer, better life",

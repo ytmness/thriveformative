@@ -2,6 +2,8 @@
   "nav": {
     "home": "홈",
     "services": "서비스",
+    "doctor": "의사",
+    "brand": "THRIVE FORMATIVE",
     "news": "소식",
     "booking": "예약하기",
     "tshape": "T-Shape 2",
@@ -9,7 +11,7 @@
     "about": "의사 소개",
     "faq": "자주 묻는 질문",
     "contact": "연락처",
-    "schedule": "WhatsApp으로 예약"
+    "schedule": "예약"
   },
   "hero": {
     "title": "더 오래, 더 나은 삶을 위한 맞춤형 건강",

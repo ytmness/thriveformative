@@ -125,32 +125,26 @@ function PageContent() {
           </AnimatedSection>
 
           {/* RIGHT — Text content */}
-          <div>
-            <h1 className="type-hero">
-              {t("hero.title")}
-            </h1>
+          <div className="hero-editorial">
+            <h1 className="hero-editorial__title">{t("hero.title")}</h1>
 
-            <p className="type-hero-sub mt-4">{t("hero.subtitle")}</p>
+            <p className="hero-editorial__lead">{t("hero.subtitle")}</p>
 
-            {/* Benefits grid — 2×2 like reference */}
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
+            <ul className="hero-editorial__benefits">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="flex items-start gap-2">
-                  <div className="benefit-dot relative mt-1 w-3.5 h-3.5 rounded-full bg-[rgb(var(--primary)/0.2)] flex items-center justify-center flex-shrink-0">
-                    <div className="w-1 h-1 rounded-full bg-[rgb(var(--primary))]" />
-                  </div>
-                  <span className="type-body leading-snug">{t(`hero.benefit${i}`)}</span>
-                </div>
+                <li key={i} className="hero-editorial__benefit">
+                  <span className="hero-editorial__bullet" aria-hidden />
+                  <span className="hero-editorial__benefit-text">{t(`hero.benefit${i}`)}</span>
+                </li>
               ))}
-            </div>
+            </ul>
 
-            {/* CTA button */}
-            <div className="mt-5 flex justify-center md:justify-start">
+            <div className="hero-editorial__cta">
               <a
                 href={WHATSAPP_LINK}
                 target="_blank"
                 rel="noreferrer"
-                className="btn-cta type-btn inline-flex items-center justify-center text-center rounded-xl px-8 md:px-10 py-4 md:py-5 shadow-lg leading-tight transition-transform hover:scale-[1.03] active:scale-[0.97]"
+                className="plan-card-plan__btn plan-card-plan__btn--featured hero-editorial__cta-btn"
               >
                 {t("hero.scheduleBtn")}
               </a>
@@ -163,24 +157,6 @@ function PageContent() {
       <AnimatedSection className="scroll-snap-section">
         <div className="max-w-7xl mx-auto px-6 py-12 md:py-16 md:min-h-[50vh] flex flex-col justify-center">
           <HeroStats />
-        </div>
-      </AnimatedSection>
-
-      {/* ─── FLOW CARD ─── */}
-      <AnimatedSection delay={0.1} className="scroll-snap-section">
-        <div className="max-w-7xl mx-auto px-6 pb-14 min-h-[50vh] flex flex-col justify-center">
-          <div className="bg-surface border border-theme rounded-2xl shadow-soft p-8 transition-shadow duration-300 hover:-translate-y-1 hover:shadow-[0_20px_60px_rgba(0,0,0,0.2)]">
-            <div className="type-overline">{t("flow.title")}</div>
-            <ul className="type-prose mt-4 space-y-3">
-              <li>{t("flow.newPatient")}</li>
-              <li>{t("flow.followUp")}</li>
-              <li>{t("flow.policies")}</li>
-            </ul>
-            <div className="mt-6 p-5 rounded-xl border border-theme bg-[rgb(var(--bg)/0.6)]">
-              <div className="type-body-muted">{t("flow.script")}</div>
-              <p className="type-prose mt-2">&ldquo;{t("flow.scriptText")}&rdquo;</p>
-            </div>
-          </div>
         </div>
       </AnimatedSection>
 
