@@ -1,6 +1,8 @@
 "use client";
 
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState, useCallback, useLayoutEffect } from "react";
+import { useScroll, useMotionValueEvent, useReducedMotion } from "framer-motion";
+import "@/app/styles/shapescale-sequence.css";
 
 const FRAME_COUNT = 20;
 
@@ -14,10 +16,12 @@ type Props = {
   sequenceLabel: string;
 };
 
-/** Altura del área de scroll: más alto = scrub más lento y controlado */
-const SCROLL_SECTION_VH = 3.2;
-
 const MAX_DPR = 2;
+
+function progressToFrameIndex(progress: number) {
+  const p = Math.min(1, Math.max(0, progress));
+  return Math.min(FRAME_COUNT - 1, Math.floor(p * FRAME_COUNT));
+}
 
 export default function ShapeScaleScrollSequence({ scrollHint, sequenceLabel }: Props) {
   const sectionRef = useRef<HTMLElement>(null);
@@ -29,6 +33,13 @@ export default function ShapeScaleScrollSequence({ scrollHint, sequenceLabel }: 
   const frameIndexRef = useRef(0);
   const rafDrawRef = useRef<number | null>(null);
   const [frameIndex, setFrameIndex] = useState(0);
+
+  const reduceMotion = useReducedMotion();
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end end"],
+  });
 
   const drawFrame = useCallback((index: number) => {
     const canvas = canvasRef.current;
@@ -87,6 +98,27 @@ export default function ShapeScaleScrollSequence({ scrollHint, sequenceLabel }: 
     [drawFrame]
   );
 
+  const applyProgress = useCallback(
+    (latest: number) => {
+      const idx = reduceMotion ? 0 : progressToFrameIndex(latest);
+      frameIndexRef.current = idx;
+      setFrameIndex((prev) => (prev === idx ? prev : idx));
+      scheduleDraw(idx);
+    },
+    [reduceMotion, scheduleDraw]
+  );
+
+  const applyProgressRef = useRef(applyProgress);
+  applyProgressRef.current = applyProgress;
+  const scrollYProgressRef = useRef(scrollYProgress);
+  scrollYProgressRef.current = scrollYProgress;
+
+  useMotionValueEvent(scrollYProgress, "change", applyProgress);
+
+  useLayoutEffect(() => {
+    applyProgress(scrollYProgress.get());
+  }, [applyProgress, scrollYProgress]);
+
   useEffect(() => {
     const imgs = Array.from({ length: FRAME_COUNT }, (_, i) => {
       const im = new Image();
@@ -112,7 +144,7 @@ export default function ShapeScaleScrollSequence({ scrollHint, sequenceLabel }: 
     ).then(() => {
       if (cancelled) return;
       imagesReadyRef.current = true;
-      scheduleDraw(frameIndexRef.current);
+      applyProgressRef.current(scrollYProgressRef.current.get());
     });
 
     return () => {
@@ -135,63 +167,25 @@ export default function ShapeScaleScrollSequence({ scrollHint, sequenceLabel }: 
     return () => ro.disconnect();
   }, [scheduleDraw]);
 
-  const updateProgress = useCallback(() => {
-    const el = sectionRef.current;
-    if (!el) return;
-
-    const rect = el.getBoundingClientRect();
-    const scrollRange = Math.max(rect.height - window.innerHeight, 1);
-    let p = -rect.top / scrollRange;
-    p = Math.min(1, Math.max(0, p));
-
-    const idx = Math.min(FRAME_COUNT - 1, Math.floor(p * FRAME_COUNT));
-
-    if (idx !== frameIndexRef.current) {
-      frameIndexRef.current = idx;
-      setFrameIndex(idx);
-      scheduleDraw(idx);
-    }
-  }, [scheduleDraw]);
-
   useEffect(() => {
-    let ticking = false;
-    const onScrollOrResize = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        ticking = false;
-        updateProgress();
-      });
-    };
-
-    updateProgress();
-    window.addEventListener("scroll", onScrollOrResize, { passive: true });
-    window.addEventListener("resize", onScrollOrResize, { passive: true });
     return () => {
-      window.removeEventListener("scroll", onScrollOrResize);
-      window.removeEventListener("resize", onScrollOrResize);
       if (rafDrawRef.current != null) {
         cancelAnimationFrame(rafDrawRef.current);
       }
     };
-  }, [updateProgress]);
+  }, []);
 
   return (
     <section
       ref={sectionRef}
-      className="relative w-full"
-      style={{ minHeight: `${SCROLL_SECTION_VH * 100}vh` }}
+      className="shapescale-sequence relative w-full"
       aria-label={sequenceLabel}
     >
       <div className="sticky top-[4.5rem] flex min-h-[calc(100svh-4.5rem)] w-full flex-col items-center justify-center gap-4 px-3 pb-6 pt-4 sm:px-6">
         <div className="relative mx-auto w-full max-w-[min(100%,96rem)] flex-1">
           <div
             ref={wrapRef}
-            className="relative w-full overflow-hidden rounded-2xl border border-[rgb(var(--border)/0.18)] bg-[rgb(var(--surface)/0.35)] shadow-soft"
-            style={{
-              height: "min(82svh, calc(100dvh - 6rem))",
-              minHeight: "min(70svh, 520px)",
-            }}
+            className="shapescale-sequence__canvas-wrap relative w-full overflow-hidden rounded-2xl border border-[rgb(var(--border)/0.18)] bg-[rgb(var(--surface)/0.35)] shadow-soft"
           >
             <canvas ref={canvasRef} className="block h-full w-full" aria-hidden />
             <span className="sr-only">

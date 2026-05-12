@@ -1,0 +1,10 @@
+/* ShapeScale — secuencia con scroll (altura = “presupuesto” de scrub) */
+.shapescale-sequence {
+  --shapescale-scroll-vh: 3.2;
+  min-height: calc(var(--shapescale-scroll-vh) * 100vh);
+}
+
+.shapescale-sequence__canvas-wrap {
+  height: min(82svh, calc(100dvh - 6rem));
+  min-height: min(70svh, 520px);
+}
