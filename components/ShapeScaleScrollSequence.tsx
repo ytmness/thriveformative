@@ -1,7 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState, useMemo } from "react";
-import { useScroll, useMotionValueEvent } from "framer-motion";
+import { useRef, useEffect, useState, useCallback } from "react";
 
 const FRAME_COUNT = 20;
 
@@ -15,44 +14,91 @@ type Props = {
   sequenceLabel: string;
 };
 
+/** Altura del área de scroll = varias vistas; así el scrub va de frame 0 → último de forma clara */
+const SCROLL_SECTION_VH = 3.2;
+
 export default function ShapeScaleScrollSequence({ scrollHint, sequenceLabel }: Props) {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
   const [frameIndex, setFrameIndex] = useState(0);
+  const frameIndexRef = useRef(0);
 
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"],
-  });
+  const updateProgress = useCallback(() => {
+    const el = sectionRef.current;
+    if (!el) return;
 
-  useMotionValueEvent(scrollYProgress, "change", (latest) => {
-    const idx = Math.round(latest * (FRAME_COUNT - 1));
-    const clamped = Math.max(0, Math.min(FRAME_COUNT - 1, idx));
-    setFrameIndex((prev) => (prev === clamped ? prev : clamped));
-  });
+    const rect = el.getBoundingClientRect();
+    const vh = window.innerHeight;
+    const scrollRange = Math.max(rect.height - vh, 1);
+    let p = -rect.top / scrollRange;
+    p = Math.min(1, Math.max(0, p));
 
-  useEffect(() => {
-    for (let i = 0; i < FRAME_COUNT; i++) {
-      const img = new Image();
-      img.src = frameSrc(i);
+    const idx = Math.min(FRAME_COUNT - 1, Math.floor(p * FRAME_COUNT));
+
+    if (idx !== frameIndexRef.current) {
+      frameIndexRef.current = idx;
+      setFrameIndex(idx);
     }
   }, []);
 
-  const src = useMemo(() => frameSrc(frameIndex), [frameIndex]);
+  useEffect(() => {
+    let ticking = false;
+    const onScrollOrResize = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
+        updateProgress();
+      });
+    };
+
+    updateProgress();
+    window.addEventListener("scroll", onScrollOrResize, { passive: true });
+    window.addEventListener("resize", onScrollOrResize, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScrollOrResize);
+      window.removeEventListener("resize", onScrollOrResize);
+    };
+  }, [updateProgress]);
 
   return (
-    <div ref={containerRef} className="relative min-h-[320vh] w-full">
-      <div className="sticky top-[4.5rem] flex h-[calc(100vh-4.5rem)] max-h-[100dvh] flex-col items-center justify-center gap-6 px-4 py-8">
-        <div className="relative flex max-h-[min(72vh,640px)] w-full max-w-4xl flex-1 items-center justify-center">
-          <img
-            src={src}
-            alt={`${sequenceLabel} — ${frameIndex + 1} / ${FRAME_COUNT}`}
-            className="max-h-full max-w-full object-contain select-none"
-            draggable={false}
-            decoding="async"
-          />
+    <section
+      ref={sectionRef}
+      className="relative w-full"
+      style={{ minHeight: `${SCROLL_SECTION_VH * 100}vh` }}
+      aria-label={sequenceLabel}
+    >
+      <div className="sticky top-[4.5rem] flex min-h-[calc(100svh-4.5rem)] w-full flex-col items-center justify-center gap-4 px-3 pb-6 pt-4 sm:px-6">
+        <div className="relative mx-auto w-full max-w-[min(100%,96rem)] flex-1">
+          <div
+            className="relative w-full overflow-hidden rounded-2xl border border-[rgb(var(--border)/0.18)] bg-[rgb(var(--surface)/0.35)] shadow-soft"
+            style={{
+              height: "min(82svh, calc(100dvh - 6rem))",
+              minHeight: "min(70svh, 520px)",
+            }}
+          >
+            {Array.from({ length: FRAME_COUNT }, (_, i) => (
+              <img
+                key={i}
+                src={frameSrc(i)}
+                alt=""
+                aria-hidden={i !== frameIndex}
+                draggable={false}
+                loading="eager"
+                decoding="async"
+                className={`absolute inset-0 h-full w-full object-contain ${
+                  i === frameIndex ? "opacity-100 z-[1]" : "opacity-0 z-0 pointer-events-none"
+                }`}
+              />
+            ))}
+            <span className="sr-only">
+              {sequenceLabel}, fotograma {frameIndex + 1} de {FRAME_COUNT}
+            </span>
+          </div>
         </div>
-        <p className="type-caption max-w-md text-center text-[rgb(var(--muted))]">{scrollHint}</p>
+        <p className="type-caption max-w-lg shrink-0 px-2 text-center text-[rgb(var(--muted))]">
+          {scrollHint}
+        </p>
       </div>
-    </div>
+    </section>
   );
 }
