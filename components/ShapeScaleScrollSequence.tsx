@@ -77,7 +77,8 @@ export default function ShapeScaleScrollSequence({ scrollHint, sequenceLabel }: 
 
     const iw = img.naturalWidth;
     const ih = img.naturalHeight;
-    const scale = Math.min(cssW / iw, cssH / ih);
+    /* cover: llena todo el viewport del stage (puede recortar bordes del fotograma) */
+    const scale = Math.max(cssW / iw, cssH / ih);
     const dw = Math.round(iw * scale);
     const dh = Math.round(ih * scale);
     const dx = Math.round((cssW - dw) / 2);
@@ -217,21 +218,14 @@ export default function ShapeScaleScrollSequence({ scrollHint, sequenceLabel }: 
       className="shapescale-sequence relative w-full"
       aria-label={sequenceLabel}
     >
-      <div className="sticky top-[4.5rem] flex min-h-[calc(100svh-4.5rem)] w-full flex-col items-center justify-center gap-4 px-3 pb-6 pt-4 sm:px-6">
-        <div className="relative mx-auto w-full max-w-[min(100%,96rem)] flex-1">
-          <div
-            ref={wrapRef}
-            className="shapescale-sequence__canvas-wrap relative w-full overflow-hidden rounded-2xl border border-[rgb(var(--border)/0.18)] bg-[rgb(var(--surface)/0.35)] shadow-soft"
-          >
-            <canvas ref={canvasRef} className="block h-full w-full" aria-hidden />
-            <span className="sr-only">
-              {sequenceLabel}, fotograma {frameIndex + 1} de {FRAME_COUNT}
-            </span>
-          </div>
+      <div className="shapescale-sequence__sticky">
+        <div ref={wrapRef} className="shapescale-sequence__stage">
+          <canvas ref={canvasRef} className="shapescale-sequence__canvas" aria-hidden />
+          <span className="sr-only">
+            {sequenceLabel}, fotograma {frameIndex + 1} de {FRAME_COUNT}
+          </span>
+          <p className="type-caption shapescale-sequence__hint">{scrollHint}</p>
         </div>
-        <p className="type-caption max-w-lg shrink-0 px-2 text-center text-[rgb(var(--muted))]">
-          {scrollHint}
-        </p>
       </div>
     </section>
   );
