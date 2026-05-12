@@ -3,7 +3,8 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import "@/app/styles/shapescale-sequence.css";
 
-const FRAME_COUNT = 20;
+/** Total de JPG en `public/shapescale/frames/` (ezgif-frame-001 … ezgif-frame-300). */
+const FRAME_COUNT = 300;
 
 function frameSrc(index: number) {
   const n = String(index + 1).padStart(3, "0");
@@ -213,7 +214,7 @@ export default function ShapeScaleScrollSequence({ scrollHint, sequenceLabel }: 
   return (
     <section
       ref={sectionRef}
-      className="shapescale-sequence relative min-h-[320vh] w-full"
+      className="shapescale-sequence relative w-full"
       aria-label={sequenceLabel}
     >
       <div className="sticky top-[4.5rem] flex min-h-[calc(100svh-4.5rem)] w-full flex-col items-center justify-center gap-4 px-3 pb-6 pt-4 sm:px-6">

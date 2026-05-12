@@ -1,6 +1,6 @@
-/* ShapeScale — secuencia con scroll (altura = “presupuesto” de scrub) */
+/* ShapeScale — secuencia con scroll (altura = “presupuesto” de scrub; más alto = scrub más lento) */
 .shapescale-sequence {
-  --shapescale-scroll-vh: 3.2;
+  --shapescale-scroll-vh: 6;
   min-height: calc(var(--shapescale-scroll-vh) * 100vh);
 }
 
