@@ -1,15 +1,11 @@
-/* ShapeScale — secuencia a pantalla completa (bajo el header fijo) + scrub por scroll */
+/* ShapeScale — viewport bajo el header; duración del pin = GSAP ScrollTrigger end (+=px) */
 .shapescale-sequence {
   --shapescale-header-top: 4.5rem;
-  /* Altura total de la sección = “presupuesto” de scroll hasta el último frame */
-  --shapescale-scroll-vh: 6;
-  min-height: calc(var(--shapescale-scroll-vh) * 100vh);
 }
 
-/* Sticky: ocupa todo el viewport visible debajo del header mientras dura el scrub */
+/* Contenedor visual (GSAP aplica pin/fixed en la <section> durante el scrub) */
 .shapescale-sequence__sticky {
-  position: sticky;
-  top: var(--shapescale-header-top);
+  position: relative;
   height: calc(100dvh - var(--shapescale-header-top));
   width: 100%;
   display: flex;
@@ -18,7 +14,6 @@
   background: rgb(var(--bg));
 }
 
-/* Área del canvas: crece y rellena el sticky (sin recuadro ni max-width) */
 .shapescale-sequence__stage {
   position: relative;
   flex: 1 1 auto;
@@ -34,7 +29,6 @@
   height: 100%;
 }
 
-/* Texto de ayuda encima del borde inferior, legible sobre la imagen */
 .shapescale-sequence__hint {
   position: absolute;
   z-index: 1;

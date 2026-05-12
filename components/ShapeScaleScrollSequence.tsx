@@ -1,10 +1,15 @@
 "use client";
 
 import { useRef, useEffect, useState, useCallback } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import "@/app/styles/shapescale-sequence.css";
 
 /** Total de JPG en `public/shapescale/frames/` (ezgif-frame-001 … ezgif-frame-300). */
 const FRAME_COUNT = 300;
+
+/** Píxeles de scroll mientras la sección está pinneada (~17px/frame a 300 frames; mínimo 5000). */
+const PIN_SCROLL_PX = Math.max(5000, FRAME_COUNT * 16);
 
 function frameSrc(index: number) {
   const n = String(index + 1).padStart(3, "0");
@@ -18,12 +23,12 @@ type Props = {
 
 const MAX_DPR = 2;
 
+/** Progreso 0→1 → índice de fotograma 0…299 (último frame al completar el pin). */
 function progressToFrameIndex(progress: number) {
   const p = Math.min(1, Math.max(0, progress));
   return Math.min(FRAME_COUNT - 1, Math.floor(p * FRAME_COUNT));
 }
 
-/** Si el fotograma pedido no cargó, usa el último disponible hacia atrás (evita canvas “congelado”). */
 function pickLoadedImageIndex(imgs: HTMLImageElement[], preferred: number): number {
   const max = Math.min(FRAME_COUNT - 1, Math.max(0, preferred));
   for (let i = max; i >= 0; i--) {
@@ -43,6 +48,7 @@ export default function ShapeScaleScrollSequence({ scrollHint, sequenceLabel }: 
   const frameIndexRef = useRef(0);
   const rafDrawRef = useRef<number | null>(null);
   const [frameIndex, setFrameIndex] = useState(0);
+  const [assetsReady, setAssetsReady] = useState(false);
 
   const drawFrame = useCallback((index: number) => {
     const canvas = canvasRef.current;
@@ -77,8 +83,8 @@ export default function ShapeScaleScrollSequence({ scrollHint, sequenceLabel }: 
 
     const iw = img.naturalWidth;
     const ih = img.naturalHeight;
-    /* cover: llena todo el viewport del stage (puede recortar bordes del fotograma) */
-    const scale = Math.max(cssW / iw, cssH / ih);
+    /* contain: imagen completa visible, sin recortes (evita saltos de layout por recorte) */
+    const scale = Math.min(cssW / iw, cssH / ih);
     const dw = Math.round(iw * scale);
     const dh = Math.round(ih * scale);
     const dx = Math.round((cssW - dw) / 2);
@@ -103,25 +109,8 @@ export default function ShapeScaleScrollSequence({ scrollHint, sequenceLabel }: 
     [drawFrame]
   );
 
-  const updateFromScroll = useCallback(() => {
-    const el = sectionRef.current;
-    if (!el) return;
-
-    const rect = el.getBoundingClientRect();
-    const sectionH = rect.height;
-    const viewH = window.innerHeight;
-    const range = Math.max(sectionH - viewH, 1);
-    const raw = -rect.top / range;
-    const p = Math.min(1, Math.max(0, raw));
-    const idx = progressToFrameIndex(p);
-
-    frameIndexRef.current = idx;
-    setFrameIndex((prev) => (prev === idx ? prev : idx));
-    scheduleDraw(idx);
-  }, [scheduleDraw]);
-
-  const updateFromScrollRef = useRef(updateFromScroll);
-  updateFromScrollRef.current = updateFromScroll;
+  const scheduleDrawRef = useRef(scheduleDraw);
+  scheduleDrawRef.current = scheduleDraw;
 
   useEffect(() => {
     const imgs = Array.from({ length: FRAME_COUNT }, (_, i) => {
@@ -148,12 +137,13 @@ export default function ShapeScaleScrollSequence({ scrollHint, sequenceLabel }: 
     ).then(() => {
       if (cancelled) return;
       imagesReadyRef.current = true;
-      updateFromScrollRef.current();
+      setAssetsReady(true);
     });
 
     return () => {
       cancelled = true;
       imagesReadyRef.current = false;
+      setAssetsReady(false);
       imgs.forEach((im) => {
         im.onload = null;
         im.onerror = null;
@@ -162,47 +152,67 @@ export default function ShapeScaleScrollSequence({ scrollHint, sequenceLabel }: 
   }, []);
 
   useEffect(() => {
-    let raf = 0;
-    let ticking = false;
-    const tick = () => {
-      ticking = false;
-      updateFromScroll();
-    };
-    const onScrollOrResize = () => {
-      if (ticking) return;
-      ticking = true;
-      raf = requestAnimationFrame(tick);
+    if (!assetsReady) return;
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    const section = sectionRef.current;
+    if (!section) return;
+
+    const progressObj = { value: 0 };
+
+    const applyFrameFromProgress = (raw: number) => {
+      const idx = progressToFrameIndex(raw);
+      frameIndexRef.current = idx;
+      setFrameIndex((prev) => (prev === idx ? prev : idx));
+      scheduleDrawRef.current(idx);
     };
 
-    updateFromScroll();
-    window.addEventListener("scroll", onScrollOrResize, { passive: true });
-    window.addEventListener("resize", onScrollOrResize, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScrollOrResize);
-      window.removeEventListener("resize", onScrollOrResize);
-      if (raf) cancelAnimationFrame(raf);
-    };
-  }, [updateFromScroll]);
-
-  useEffect(() => {
-    const el = sectionRef.current;
-    if (!el || typeof ResizeObserver === "undefined") return;
-    const ro = new ResizeObserver(() => {
-      updateFromScrollRef.current();
+    const tween = gsap.to(progressObj, {
+      value: 1,
+      ease: "none",
+      scrollTrigger: {
+        trigger: section,
+        start: "top top",
+        end: `+=${PIN_SCROLL_PX}`,
+        pin: true,
+        scrub: true,
+        invalidateOnRefresh: true,
+      },
+      onUpdate: () => {
+        applyFrameFromProgress(progressObj.value);
+      },
     });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
+
+    applyFrameFromProgress(0);
+    requestAnimationFrame(() => {
+      ScrollTrigger.refresh();
+      applyFrameFromProgress(progressObj.value);
+    });
+
+    const onResize = () => {
+      ScrollTrigger.refresh();
+      scheduleDrawRef.current(frameIndexRef.current);
+    };
+    window.addEventListener("resize", onResize, { passive: true });
+
+    return () => {
+      window.removeEventListener("resize", onResize);
+      tween.scrollTrigger?.kill();
+      tween.kill();
+    };
+  }, [assetsReady]);
 
   useEffect(() => {
     const wrap = wrapRef.current;
     if (!wrap || typeof ResizeObserver === "undefined") return;
     const ro = new ResizeObserver(() => {
-      scheduleDraw(frameIndexRef.current);
+      ScrollTrigger.refresh();
+      scheduleDrawRef.current(frameIndexRef.current);
     });
     ro.observe(wrap);
     return () => ro.disconnect();
-  }, [scheduleDraw]);
+  }, [assetsReady]);
 
   useEffect(() => {
     return () => {
