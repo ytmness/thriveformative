@@ -6,11 +6,18 @@
     "news": "소식",
     "booking": "예약하기",
     "tshape": "T-Shape 2",
+    "shapescale": "ShapeScale",
     "plans": "플랜",
     "about": "의사 소개",
     "faq": "자주 묻는 질문",
     "contact": "연락처",
     "schedule": "예약"
+  },
+  "shapescale": {
+    "title": "ShapeScale",
+    "subtitle": "페이지를 스크롤하여 제품 시퀀스를 살펴보세요.",
+    "scrollHint": "아래나 위로 스크롤하여 프레임을 앞으로 또는 뒤로 탐색합니다.",
+    "sequenceLabel": "ShapeScale — 제품 시퀀스"
   },
   "hero": {
     "title": "더 오래, 더 나은 삶을 위한 맞춤형 건강",

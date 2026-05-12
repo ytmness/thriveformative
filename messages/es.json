@@ -6,11 +6,18 @@
     "news": "Noticias",
     "booking": "Agendar",
     "tshape": "T-Shape 2",
+    "shapescale": "ShapeScale",
     "plans": "Planes",
     "about": "El Doctor",
     "faq": "FAQ",
     "contact": "Contacto",
     "schedule": "Agendar"
+  },
+  "shapescale": {
+    "title": "ShapeScale",
+    "subtitle": "Explora la secuencia del producto desplazándote por la página.",
+    "scrollHint": "Desplázate hacia abajo o arriba para avanzar o retroceder en la animación.",
+    "sequenceLabel": "ShapeScale — secuencia del producto"
   },
   "hero": {
     "title": "Salud personalizada para vivir más y mejor",

@@ -6,11 +6,18 @@
     "news": "News",
     "booking": "Book appointment",
     "tshape": "T-Shape 2",
+    "shapescale": "ShapeScale",
     "plans": "Plans",
     "about": "About the Doctor",
     "faq": "FAQ",
     "contact": "Contact",
     "schedule": "Book"
+  },
+  "shapescale": {
+    "title": "ShapeScale",
+    "subtitle": "Scroll through the page to explore the product sequence.",
+    "scrollHint": "Scroll down or up to scrub forward or backward through the frames.",
+    "sequenceLabel": "ShapeScale — product sequence"
   },
   "hero": {
     "title": "Personalized healthcare for a longer, better life",
