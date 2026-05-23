@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -86,15 +86,6 @@ export default function ShapeScaleStorySection() {
   const eyebrow = t("eyebrow");
   const scrollHint = t("scrollHint");
 
-  const goToStep = useCallback((index: number) => {
-    const el = scrollRef.current;
-    if (!el || typeof window === "undefined") return;
-    const sectionTop = el.getBoundingClientRect().top + window.scrollY;
-    const totalScroll = (PIN_SCROLL_PER_STEP_VH / 100) * window.innerHeight * STEP_IDS.length;
-    const target = sectionTop + (index / STEP_IDS.length) * totalScroll + 2;
-    window.scrollTo({ top: target, behavior: "smooth" });
-  }, []);
-
   useEffect(() => {
     if (typeof window === "undefined") return;
     const mq = window.matchMedia("(min-width: 1024px)");
@@ -176,19 +167,6 @@ export default function ShapeScaleStorySection() {
                 </article>
               ))}
 
-              <div className="shapescale-story__progress" role="tablist" aria-label={t("progressLabel")}>
-                {steps.map((step, i) => (
-                  <button
-                    key={step.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={i === activeIndex}
-                    aria-label={`${i + 1} / ${steps.length}`}
-                    className={`shapescale-story__dot${i === activeIndex ? " shapescale-story__dot--active" : ""}`}
-                    onClick={() => goToStep(i)}
-                  />
-                ))}
-              </div>
             </div>
           </div>
 
