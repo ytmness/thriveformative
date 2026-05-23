@@ -13,6 +13,13 @@ import BookingSection from "@/components/BookingSection";
 import GiantScrollCard from "@/components/GiantScrollCard";
 import { useTranslations } from "next-intl";
 import { WHATSAPP_LINK } from "@/lib/branding";
+import { CmsProvider, useCmsContext } from "@/components/cms/CmsProvider";
+import CmsText from "@/components/cms/CmsText";
+import { resolveCmsText } from "@/lib/cms/fetch";
+import {
+  fallbackPlansFromTranslations,
+  fallbackServicesFromTranslations,
+} from "@/lib/cms/fallbackContent";
 
 /* ───────────────────────────────────────────
    Decorative SVG – organic line-art pattern
@@ -74,6 +81,30 @@ function OrganicPattern({ className = "" }: { className?: string }) {
    ─────────────────────────────────────────── */
 function PageContent() {
   const t = useTranslations();
+  const tServices = useTranslations("services");
+  const tPlans = useTranslations("plans");
+  const { services: cmsServices, plans: cmsPlans, textOverrides } = useCmsContext();
+
+  const displayServices =
+    cmsServices.length > 0
+      ? cmsServices.map((s) => ({ name: s.name, desc: s.description }))
+      : fallbackServicesFromTranslations(tServices).map((s) => ({
+          name: s.name,
+          desc: s.description,
+        }));
+
+  const displayPlans =
+    cmsPlans.length > 0
+      ? cmsPlans.map((p) => ({
+          name: p.name,
+          items: p.items,
+          featured: p.is_featured,
+        }))
+      : fallbackPlansFromTranslations(tPlans).map((p) => ({
+          name: p.name,
+          items: p.items,
+          featured: p.is_featured,
+        }));
 
   return (
     <>
@@ -125,15 +156,21 @@ function PageContent() {
 
           {/* RIGHT — Text content */}
           <div className="hero-editorial">
-            <h1 className="hero-editorial__title">{t("hero.title")}</h1>
+            <h1 className="hero-editorial__title">
+              <CmsText contentKey="hero.title" as="span" />
+            </h1>
 
-            <p className="hero-editorial__lead">{t("hero.subtitle")}</p>
+            <p className="hero-editorial__lead">
+              <CmsText contentKey="hero.subtitle" as="span" />
+            </p>
 
             <ul className="hero-editorial__benefits">
               {[1, 2, 3, 4].map((i) => (
                 <li key={i} className="hero-editorial__benefit">
                   <span className="hero-editorial__bullet" aria-hidden />
-                  <span className="hero-editorial__benefit-text">{t(`hero.benefit${i}`)}</span>
+                  <span className="hero-editorial__benefit-text">
+                    <CmsText contentKey={`hero.benefit${i}`} as="span" />
+                  </span>
                 </li>
               ))}
             </ul>
@@ -145,7 +182,7 @@ function PageContent() {
                 rel="noreferrer"
                 className="plan-card-plan__btn plan-card-plan__btn--featured hero-editorial__cta-btn"
               >
-                {t("hero.scheduleBtn")}
+                <CmsText contentKey="hero.scheduleBtn" as="span" />
               </a>
             </div>
           </div>
@@ -193,16 +230,17 @@ function PageContent() {
         <GiantScrollCard variant="slideUp" id="servicios">
           <section className="services-editorial-section">
             <header className="services-editorial-section__head">
-              <h2 className="services-editorial-section__title">{t("services.title")}</h2>
-              <p className="services-editorial-section__subtitle">{t("services.subtitle")}</p>
+              <h2 className="services-editorial-section__title">
+                <CmsText contentKey="services.title" as="span" />
+              </h2>
+              <p className="services-editorial-section__subtitle">
+                <CmsText contentKey="services.subtitle" as="span" />
+              </p>
             </header>
             <div className="services-editorial-section__grid">
-              <Service name={t("services.service1")} desc={t("services.desc1")} />
-              <Service name={t("services.service2")} desc={t("services.desc2")} />
-              <Service name={t("services.service3")} desc={t("services.desc3")} />
-              <Service name={t("services.service4")} desc={t("services.desc4")} />
-              <Service name={t("services.service5")} desc={t("services.desc5")} />
-              <Service name={t("services.service6")} desc={t("services.desc6")} />
+              {displayServices.map((s) => (
+                <Service key={s.name} name={s.name} desc={s.desc} />
+              ))}
             </div>
           </section>
         </GiantScrollCard>
@@ -260,34 +298,22 @@ function PageContent() {
         <GiantScrollCard variant="slideUp" id="planes">
           <section className="plans-section">
             <div className="plans-section__intro">
-              <h2 className="plans-section__title">{t("plans.title")}</h2>
-              <p className="plans-section__subtitle">{t("plans.subtitle")}</p>
+              <h2 className="plans-section__title">
+                <CmsText contentKey="plans.title" as="span" />
+              </h2>
+              <p className="plans-section__subtitle">
+                <CmsText contentKey="plans.subtitle" as="span" />
+              </p>
             </div>
             <div className="plans-section__grid">
-              <Plan
-                name={t("plans.plan1")}
-                items={[t("plans.plan1Item1"), t("plans.plan1Item2"), t("plans.plan1Item3")]}
-              />
-              <Plan
-                featured
-                name={t("plans.plan2")}
-                items={[
-                  t("plans.plan2Item1"),
-                  t("plans.plan2Item2"),
-                  t("plans.plan2Item3"),
-                  t("plans.plan2Item4"),
-                ]}
-              />
-              <Plan
-                name={t("plans.plan3")}
-                items={[
-                  t("plans.plan3Item1"),
-                  t("plans.plan3Item2"),
-                  t("plans.plan3Item3"),
-                  t("plans.plan3Item4"),
-                  t("plans.plan3Item5"),
-                ]}
-              />
+              {displayPlans.map((plan) => (
+                <Plan
+                  key={plan.name}
+                  featured={plan.featured}
+                  name={plan.name}
+                  items={plan.items}
+                />
+              ))}
             </div>
           </section>
         </GiantScrollCard>
@@ -297,7 +323,11 @@ function PageContent() {
         <GiantScrollCard variant="slideUp" id="cta" noFade>
           <section className="cta-final-section">
             <div className="cta-final-shell">
-              <CTASection title={t("cta.title")} subtitle={t("cta.subtitle")} buttonText={t("cta.button")} />
+              <CTASection
+                title={resolveCmsText(textOverrides, "cta.title", t("cta.title"))}
+                subtitle={resolveCmsText(textOverrides, "cta.subtitle", t("cta.subtitle"))}
+                buttonText={resolveCmsText(textOverrides, "cta.button", t("cta.button"))}
+              />
             </div>
           </section>
         </GiantScrollCard>
@@ -315,7 +345,9 @@ function PageContent() {
 export default function Page() {
   return (
     <ThemeProvider>
-      <PageContent />
+      <CmsProvider>
+        <PageContent />
+      </CmsProvider>
     </ThemeProvider>
   );
 }
@@ -415,13 +447,14 @@ function Plan({
   items: string[];
   featured?: boolean;
 }) {
-  const t = useTranslations();
   return (
     <div
       className={`plan-card-plan ${featured ? "plan-card-plan--featured" : "plan-card-plan--side"}`}
     >
       {featured ? (
-        <span className="plan-card-plan__badge">{t("plans.recommendedBadge")}</span>
+        <span className="plan-card-plan__badge">
+          <CmsText contentKey="plans.recommendedBadge" as="span" />
+        </span>
       ) : null}
       <div className="plan-card-plan__inner">
         <h3 className="plan-card-plan__title">{name}</h3>
@@ -437,7 +470,7 @@ function Plan({
           type="button"
           className={`plan-card-plan__btn ${featured ? "plan-card-plan__btn--featured" : "plan-card-plan__btn--outline"}`}
         >
-          {t("plans.chooseBtn")}
+          <CmsText contentKey="plans.chooseBtn" as="span" />
         </button>
       </div>
     </div>

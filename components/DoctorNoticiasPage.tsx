@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import ThemeSwitcher from "@/components/theme/ThemeSwitcher";
 import NewsSection from "@/components/NewsSection";
+import { CmsProvider } from "@/components/cms/CmsProvider";
 
 export default function DoctorNoticiasPage({ locale }: { locale: string }) {
   const t = useTranslations("news");
@@ -20,7 +21,9 @@ export default function DoctorNoticiasPage({ locale }: { locale: string }) {
         <ThemeSwitcher />
       </header>
       <main className="flex-1 min-h-0 flex flex-col p-3 sm:p-4 md:p-5 lg:p-6">
-        <NewsSection />
+        <CmsProvider>
+          <NewsSection />
+        </CmsProvider>
       </main>
     </div>
   );
