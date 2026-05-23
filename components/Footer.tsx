@@ -1,7 +1,13 @@
 "use client";
 
 import { useTranslations, useLocale } from "next-intl";
-import { SITE_LOGO_SRC, WHATSAPP_LINK } from "@/lib/branding";
+import {
+  CLINIC_ADDRESS_LINE,
+  CLINIC_PHONE_DISPLAY,
+  CLINIC_PHONE_TEL,
+  SITE_LOGO_SRC,
+  WHATSAPP_LINK,
+} from "@/lib/branding";
 
 export default function Footer() {
   const t = useTranslations();
@@ -61,8 +67,10 @@ export default function Footer() {
             </h4>
             <div className="space-y-3 type-ui-muted">
               <div>{t("contact.emailPlaceholder")}</div>
-              <div>{t("contact.phonePlaceholder")}</div>
-              <div>{t("contact.locationDesc")}</div>
+              <a href={CLINIC_PHONE_TEL} className="block hover:text-[rgb(var(--primary))] transition-colors">
+                {CLINIC_PHONE_DISPLAY}
+              </a>
+              <div>{CLINIC_ADDRESS_LINE}</div>
             </div>
             <a
               href={WHATSAPP_LINK}

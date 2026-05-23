@@ -230,7 +230,7 @@
     "name": "Dr. Roel Maldonado",
     "specialty": "가족 의학",
     "subspecialty": "일반 가족 의학",
-    "location": "텍사스주 라레도",
+    "location": "산 페드로 가르사 가르시아, 누에보레온",
     "experience": "20년 이상의 경력",
     "languages": "언어",
     "languagesList": "스페인어 & 영어",
@@ -287,9 +287,11 @@
     "email": "이메일",
     "emailPlaceholder": "correo@thriveformative.com",
     "phone": "전화",
-    "phonePlaceholder": "+52 ___ ___ ____",
+    "phonePlaceholder": "+52 81 2003 6699",
     "location": "위치",
-    "locationDesc": "나중에 지도를 삽입합니다. 지금은 자리 표시자입니다.",
+    "locationDesc": "R. de la Plata 103 Local 9, Del Valle, San Pedro Garza García, Nuevo León 66220, México",
+    "mapTitle": "진료실 위치",
+    "openInMaps": "Google 지도에서 열기",
     "mapPlaceholder": "Google 지도 삽입 / 주소"
   },
   "contactForm": {

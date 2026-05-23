@@ -9,7 +9,14 @@ import WaveDivider from "@/components/WaveDivider";
 import ContactForm from "@/components/ContactForm";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { WHATSAPP_LINK } from "@/lib/branding";
+import ContactLocationMap from "@/components/ContactLocationMap";
+import {
+  CLINIC_ADDRESS_LINE,
+  CLINIC_MAP_DIRECTIONS_URL,
+  CLINIC_PHONE_DISPLAY,
+  CLINIC_PHONE_TEL,
+  WHATSAPP_LINK,
+} from "@/lib/branding";
 
 /* ───────────────────────────────────────────
    Info page content
@@ -358,7 +365,12 @@ function InfoContent() {
                     className="mt-4 type-ui"
                   >
                     <div className="font-semibold">{t("contact.phone")}</div>
-                    <div className="text-muted">{t("contact.phonePlaceholder")}</div>
+                    <a
+                      href={CLINIC_PHONE_TEL}
+                      className="text-muted hover:text-[rgb(var(--primary))] transition-colors"
+                    >
+                      {CLINIC_PHONE_DISPLAY}
+                    </a>
                   </motion.div>
                 </motion.div>
 
@@ -371,13 +383,18 @@ function InfoContent() {
                   className="bg-surface border border-theme rounded-2xl shadow-soft p-8"
                 >
                   <div className="type-body font-semibold">{t("contact.location")}</div>
-                  <div className="text-muted type-body mt-2">{t("contact.locationDesc")}</div>
-                  <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    className="mt-4 h-64 rounded-xl bg-[rgb(var(--bg)/0.7)] border border-theme flex items-center justify-center type-ui-muted overflow-hidden"
-                  >
-                    {t("contact.mapPlaceholder")}
-                  </motion.div>
+                  <div className="text-muted type-body mt-2">{CLINIC_ADDRESS_LINE}</div>
+                  <div className="mt-4">
+                    <ContactLocationMap title={t("contact.mapTitle")} />
+                    <a
+                      href={CLINIC_MAP_DIRECTIONS_URL}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="contact-location-map__link"
+                    >
+                      {t("contact.openInMaps")}
+                    </a>
+                  </div>
                 </motion.div>
               </div>
               <motion.div

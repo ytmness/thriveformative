@@ -195,7 +195,7 @@
     "name": "Dr. Roel Maldonado",
     "specialty": "Medicina Familiare",
     "subspecialty": "Medicina Familiare Generale",
-    "location": "Laredo, Texas",
+    "location": "Del Valle, San Pedro Garza García, N.L.",
     "experience": "Oltre 20 anni di esperienza",
     "languages": "Lingue",
     "languagesList": "Spagnolo e inglese",
@@ -252,10 +252,12 @@
     "email": "Email",
     "emailPlaceholder": "email@thriveformative.com",
     "phone": "Telefono",
-    "phonePlaceholder": "+52 ___ ___ ____",
+    "phonePlaceholder": "+52 81 2003 6699",
     "location": "Ubicazione",
-    "locationDesc": "Studio a San Pedro Garza García, Nuevo León",
-    "mapPlaceholder": "Mappa / indirizzo"
+    "locationDesc": "R. de la Plata 103 Local 9, Del Valle, San Pedro Garza García, Nuevo León 66220, México",
+    "mapPlaceholder": "Mappa / indirizzo",
+    "mapTitle": "Mappa dello studio",
+    "openInMaps": "Apri in Google Maps"
   },
   "info": {
     "pageTitle": "Chi siamo",
