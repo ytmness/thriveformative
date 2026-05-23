@@ -1112,19 +1112,29 @@
 .tshape-hero__visual {
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   min-height: 0;
+  margin-top: 1rem;
+  padding-top: 1.25rem;
+}
+
+@media (min-width: 900px) {
+  .tshape-hero__visual {
+    align-self: end;
+    margin-top: 1.5rem;
+    padding-top: 2rem;
+  }
 }
 
 .tshape-hero__frame {
   position: relative;
   width: 100%;
-  max-width: 26rem;
+  max-width: min(100%, 36rem);
   margin-left: auto;
   margin-right: auto;
   border-radius: 1.25rem;
-  padding: 2rem 1.25rem 2.5rem;
+  padding: 2.5rem 1.5rem 3rem;
   background: radial-gradient(
     ellipse 95% 85% at 50% 78%,
     rgb(52 48 44) 0%,
@@ -1140,14 +1150,14 @@
 @media (min-width: 900px) {
   .tshape-hero__frame {
     max-width: none;
-    padding: 2.25rem 1.5rem 2.75rem;
+    padding: 2.75rem 2rem 3.5rem;
   }
 }
 
 .tshape-hero__img {
   display: block;
   width: 100%;
-  max-width: 17rem;
+  max-width: min(100%, 34rem);
   height: auto;
   margin-left: auto;
   margin-right: auto;
@@ -1157,17 +1167,18 @@
 
 .tshape-hero__fda-badge {
   position: absolute;
-  top: -0.5rem;
+  top: 0.25rem;
   right: 0.25rem;
-  width: clamp(5.5rem, 20vw, 8.5rem);
+  width: clamp(6.5rem, 22vw, 10rem);
   z-index: 2;
   pointer-events: none;
 }
 
 @media (min-width: 900px) {
   .tshape-hero__fda-badge {
-    right: 0;
-    top: -0.75rem;
+    right: 0.5rem;
+    top: 0.5rem;
+    width: clamp(7.5rem, 12vw, 11rem);
   }
 }
 
