@@ -2,14 +2,12 @@
 
 import { motion } from "framer-motion";
 import { useTranslations, useLocale } from "next-intl";
-import { SITE_LOGO_SRC } from "@/lib/branding";
+import { SITE_LOGO_SRC, WHATSAPP_LINK } from "@/lib/branding";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useUser, signOut } from "@/lib/useUser";
 import { useRouter, usePathname } from "next/navigation";
 import NotificationBell from "@/components/NotificationBell";
 import { useEffect, useState } from "react";
-
-const WHATSAPP_LINK = "https://google.com";
 
 type NavItem = { key: string; href: string; label?: string };
 

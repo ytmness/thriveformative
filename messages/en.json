@@ -149,7 +149,9 @@
     "loginCardLabel": "Online scheduling",
     "pickDateFirst": "Pick a date in the calendar first.",
     "bookingInProgress": "Booking…",
-    "sameDayNotAllowed": "Same-day appointments are not available. Please choose a date starting tomorrow."
+    "sameDayNotAllowed": "Same-day appointments are not available. Please choose a date starting tomorrow.",
+    "noSlotsThisDay": "No time slots are available on this day. Choose another date or contact us on WhatsApp.",
+    "slotUnavailable": "That time slot is no longer available."
   },
   "auth": {
     "loginTitle": "Sign in",

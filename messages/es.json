@@ -149,7 +149,9 @@
     "loginCardLabel": "Agenda en línea",
     "pickDateFirst": "Elige primero una fecha en el calendario.",
     "bookingInProgress": "Reservando…",
-    "sameDayNotAllowed": "No se pueden agendar citas para el mismo día. Elige una fecha a partir de mañana."
+    "sameDayNotAllowed": "No se pueden agendar citas para el mismo día. Elige una fecha a partir de mañana.",
+    "noSlotsThisDay": "No hay horarios disponibles este día. Elige otra fecha o contáctanos por WhatsApp.",
+    "slotUnavailable": "Ese horario ya no está disponible."
   },
   "auth": {
     "loginTitle": "Iniciar sesión",

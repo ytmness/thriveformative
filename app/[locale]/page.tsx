@@ -12,8 +12,7 @@ import WaveDivider from "@/components/WaveDivider";
 import BookingSection from "@/components/BookingSection";
 import GiantScrollCard from "@/components/GiantScrollCard";
 import { useTranslations } from "next-intl";
-
-const WHATSAPP_LINK = "https://google.com";
+import { WHATSAPP_LINK } from "@/lib/branding";
 
 /* ───────────────────────────────────────────
    Decorative SVG – organic line-art pattern

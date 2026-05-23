@@ -149,7 +149,9 @@
     "loginCardLabel": "온라인 예약",
     "pickDateFirst": "먼저 달력에서 날짜를 선택하세요.",
     "bookingInProgress": "예약 중…",
-    "sameDayNotAllowed": "당일 예약은 불가합니다. 내일 이후 날짜를 선택해 주세요."
+    "sameDayNotAllowed": "당일 예약은 불가합니다. 내일 이후 날짜를 선택해 주세요.",
+    "noSlotsThisDay": "이 날짜에는 예약 가능한 시간이 없습니다. 다른 날짜를 선택하거나 WhatsApp으로 문의해 주세요.",
+    "slotUnavailable": "해당 시간은 더 이상 예약할 수 없습니다."
   },
   "auth": {
     "loginTitle": "로그인",

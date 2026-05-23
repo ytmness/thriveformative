@@ -9,8 +9,7 @@ import WaveDivider from "@/components/WaveDivider";
 import ContactForm from "@/components/ContactForm";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
-
-const WHATSAPP_LINK = "https://wa.me/528120036699";
+import { WHATSAPP_LINK } from "@/lib/branding";
 
 /* ───────────────────────────────────────────
    Info page content

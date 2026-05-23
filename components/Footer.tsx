@@ -1,9 +1,7 @@
 "use client";
 
 import { useTranslations, useLocale } from "next-intl";
-import { SITE_LOGO_SRC } from "@/lib/branding";
-
-const WHATSAPP_LINK = "https://google.com";
+import { SITE_LOGO_SRC, WHATSAPP_LINK } from "@/lib/branding";
 
 export default function Footer() {
   const t = useTranslations();
