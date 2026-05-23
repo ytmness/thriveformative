@@ -6,17 +6,11 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AnimatedSection from "@/components/AnimatedSection";
 import WaveDivider from "@/components/WaveDivider";
-import ContactForm from "@/components/ContactForm";
+import ContactSection from "@/components/contact/ContactSection";
+import BrandCtaLink from "@/components/ui/BrandCtaLink";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
-import ContactLocationMap from "@/components/ContactLocationMap";
-import {
-  CLINIC_ADDRESS_LINE,
-  CLINIC_MAP_DIRECTIONS_URL,
-  CLINIC_PHONE_DISPLAY,
-  CLINIC_PHONE_TEL,
-  WHATSAPP_LINK,
-} from "@/lib/branding";
+import { WHATSAPP_LINK } from "@/lib/branding";
 
 /* ───────────────────────────────────────────
    Info page content
@@ -287,16 +281,13 @@ function InfoContent() {
                 transition={{ duration: 0.7, delay: 0.3 }}
                 className="mt-10"
               >
-                <motion.a
-                  whileHover={{ scale: 1.04, y: -3 }}
-                  whileTap={{ scale: 0.97 }}
+                <BrandCtaLink
                   href={WHATSAPP_LINK}
                   target="_blank"
                   rel="noreferrer"
-                  className="btn-cta type-btn inline-block rounded-xl px-12 py-5 shadow-xl"
                 >
                   {t("cta.button")}
-                </motion.a>
+                </BrandCtaLink>
               </motion.div>
             </AnimatedSection>
           </div>
@@ -321,92 +312,7 @@ function InfoContent() {
         {/* ─── CONTACT ─── */}
         <AnimatedSection>
           <div className="section-elevated">
-            <section id="contacto" className="max-w-7xl mx-auto px-6 py-20 md:py-28">
-              <SectionTitle title={t("contact.title")} subtitle={t("contact.subtitle")} />
-              <div className="mt-10 grid md:grid-cols-2 gap-8">
-                <motion.div
-                  initial={{ opacity: 0, x: -30 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6 }}
-                  whileHover={{ y: -5, boxShadow: "0 20px 50px rgba(0,0,0,0.15)" }}
-                  className="bg-surface border border-theme rounded-2xl shadow-soft p-8"
-                >
-                  <div className="type-body">
-                    <div className="font-semibold">{t("contact.schedule")}</div>
-                    <div className="text-muted">{t("contact.scheduleDesc")}</div>
-                  </div>
-                  <motion.a
-                    whileHover={{ scale: 1.05, boxShadow: "0 10px 30px rgba(var(--primary), 0.3)" }}
-                    whileTap={{ scale: 0.95 }}
-                    className="mt-4 inline-block btn-primary type-btn rounded-xl px-5 py-3 shadow-lg"
-                    href={WHATSAPP_LINK}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {t("contact.scheduleBtn")}
-                  </motion.a>
-
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.2 }}
-                    className="mt-6 type-ui"
-                  >
-                    <div className="font-semibold">{t("contact.email")}</div>
-                    <div className="text-muted">{t("contact.emailPlaceholder")}</div>
-                  </motion.div>
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.3 }}
-                    className="mt-4 type-ui"
-                  >
-                    <div className="font-semibold">{t("contact.phone")}</div>
-                    <a
-                      href={CLINIC_PHONE_TEL}
-                      className="text-muted hover:text-[rgb(var(--primary))] transition-colors"
-                    >
-                      {CLINIC_PHONE_DISPLAY}
-                    </a>
-                  </motion.div>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, x: 30 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: 0.1 }}
-                  whileHover={{ y: -5, boxShadow: "0 20px 50px rgba(0,0,0,0.15)" }}
-                  className="bg-surface border border-theme rounded-2xl shadow-soft p-8"
-                >
-                  <div className="type-body font-semibold">{t("contact.location")}</div>
-                  <div className="text-muted type-body mt-2">{CLINIC_ADDRESS_LINE}</div>
-                  <div className="mt-4">
-                    <ContactLocationMap title={t("contact.mapTitle")} />
-                    <a
-                      href={CLINIC_MAP_DIRECTIONS_URL}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="contact-location-map__link"
-                    >
-                      {t("contact.openInMaps")}
-                    </a>
-                  </div>
-                </motion.div>
-              </div>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-                className="mt-8 max-w-2xl"
-              >
-                <ContactForm />
-              </motion.div>
-            </section>
+            <ContactSection />
           </div>
         </AnimatedSection>
       </main>

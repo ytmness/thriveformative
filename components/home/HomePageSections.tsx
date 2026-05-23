@@ -8,6 +8,7 @@ import CmsEditableZone from "@/components/admin/cms/CmsEditableZone";
 import CmsText from "@/components/cms/CmsText";
 import { useCmsContext } from "@/components/cms/CmsProvider";
 import type { HomePageEditableConfig } from "@/components/home/homePageTypes";
+import BrandCtaLink from "@/components/ui/BrandCtaLink";
 import { WHATSAPP_LINK } from "@/lib/branding";
 import { resolveCmsText } from "@/lib/cms/fetch";
 import {
@@ -251,18 +252,13 @@ export default function HomePageSections({
               "Botón del hero",
               [{ key: "hero.scheduleBtn", label: "Texto del botón" }],
               <div className="hero-editorial__cta">
-                <a
-                  href={WHATSAPP_LINK}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="plan-card-plan__btn plan-card-plan__btn--featured hero-editorial__cta-btn"
-                >
+                <BrandCtaLink href={WHATSAPP_LINK} target="_blank" rel="noreferrer">
                   {editable ? (
                     txt("hero.scheduleBtn", "hero.scheduleBtn")
                   ) : (
                     <CmsText contentKey="hero.scheduleBtn" as="span" />
                   )}
-                </a>
+                </BrandCtaLink>
               </div>
             )}
           </div>
@@ -623,9 +619,9 @@ function CTASection({
         {preview ? (
           <span className="cta-final-button">{buttonText}</span>
         ) : (
-          <a href={WHATSAPP_LINK} target="_blank" rel="noreferrer" className="cta-final-button">
+          <BrandCtaLink href={WHATSAPP_LINK} target="_blank" rel="noreferrer">
             {buttonText}
-          </a>
+          </BrandCtaLink>
         )}
       </div>
     </>

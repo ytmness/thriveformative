@@ -1,0 +1,32 @@
+/* CTA de marca — complementa plan-card-plan__btn */
+
+.brand-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  text-align: center;
+  border: none;
+  line-height: 1.25;
+}
+
+.brand-cta span {
+  display: block;
+}
+
+.brand-cta--inline {
+  width: auto;
+  min-width: 17rem;
+  max-width: 100%;
+}
+
+.brand-cta--block {
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+.brand-cta:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}

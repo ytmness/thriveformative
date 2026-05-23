@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations, useLocale } from "next-intl";
+import BrandCtaLink from "@/components/ui/BrandCtaLink";
 import {
   CLINIC_ADDRESS_LINE,
   CLINIC_PHONE_DISPLAY,
@@ -72,14 +73,11 @@ export default function Footer() {
               </a>
               <div>{CLINIC_ADDRESS_LINE}</div>
             </div>
-            <a
-              href={WHATSAPP_LINK}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-5 inline-block btn-primary type-btn rounded-xl px-6 py-3 shadow-lg transition-transform hover:scale-[1.03] active:scale-[0.97]"
-            >
-              {t("contact.scheduleBtn")}
-            </a>
+            <div className="mt-5">
+              <BrandCtaLink href={WHATSAPP_LINK} target="_blank" rel="noreferrer">
+                {t("contact.scheduleBtn")}
+              </BrandCtaLink>
+            </div>
           </div>
         </div>
 

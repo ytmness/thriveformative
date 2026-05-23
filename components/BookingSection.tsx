@@ -20,6 +20,7 @@ import { useUser } from "@/lib/useUser";
 
 import { createClient } from "@/lib/supabase";
 
+import BrandCtaLink from "@/components/ui/BrandCtaLink";
 import { WHATSAPP_LINK } from "@/lib/branding";
 
 import { fetchBookingConfig } from "@/lib/bookingConfig";
@@ -516,21 +517,14 @@ export default function BookingSection() {
 
                   </p>
 
-                  <a
-
+                  <BrandCtaLink
                     href={WHATSAPP_LINK}
-
                     target="_blank"
-
                     rel="noreferrer"
-
-                    className="plan-card-plan__btn plan-card-plan__btn--featured booking-section__whatsapp-btn"
-
+                    className="booking-section__whatsapp-btn"
                   >
-
                     {bookingCtaButton}
-
-                  </a>
+                  </BrandCtaLink>
 
                 </div>
 
@@ -768,21 +762,14 @@ export default function BookingSection() {
 
           <p className="booking-section__cta-hint">{bookingCtaHint}</p>
 
-          <a
-
+          <BrandCtaLink
             href={WHATSAPP_LINK}
-
             target="_blank"
-
             rel="noreferrer"
-
-            className="plan-card-plan__btn plan-card-plan__btn--featured booking-section__whatsapp-btn"
-
+            className="booking-section__whatsapp-btn"
           >
-
             {bookingCtaButton}
-
-          </a>
+          </BrandCtaLink>
 
         </div>
 
