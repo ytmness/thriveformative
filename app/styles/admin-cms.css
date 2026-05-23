@@ -82,6 +82,10 @@
   font-size: 0.875rem;
 }
 
+.admin-cms__field--narrow {
+  width: 5rem;
+}
+
 .admin-cms__field textarea {
   min-height: 4.5rem;
   resize: vertical;

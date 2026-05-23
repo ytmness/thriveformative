@@ -1,0 +1,329 @@
+/* Admin — vista previa visual del CMS (WYSIWYG) */
+
+.admin-cms-visual {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.admin-cms-visual__hint {
+  font-size: 0.875rem;
+  color: rgb(var(--muted));
+  margin: 0;
+}
+
+.admin-cms-visual__frame {
+  position: relative;
+  border-radius: 1rem;
+  border: 1px solid rgb(var(--border) / 0.25);
+  background: rgb(var(--bg));
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgb(0 0 0 / 0.12);
+}
+
+.admin-cms-visual__scroll {
+  max-height: min(78vh, 920px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+.admin-cms-visual__page {
+  pointer-events: auto;
+}
+
+.admin-cms-visual__page .plan-card-plan__btn,
+.admin-cms-visual__page .cta-final-button,
+.admin-cms-visual__page a[href^="https://wa.me"] {
+  pointer-events: none;
+}
+
+/* Zonas editables */
+.cms-editable {
+  position: relative;
+  cursor: pointer;
+  border-radius: 0.35rem;
+  transition: box-shadow 0.15s ease, outline-color 0.15s ease;
+}
+
+.cms-editable::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  border: 2px dashed transparent;
+  pointer-events: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+  z-index: 2;
+}
+
+.cms-editable:hover::after,
+.cms-editable:focus-visible::after {
+  border-color: rgb(var(--primary) / 0.65);
+  background: rgb(var(--primary) / 0.06);
+}
+
+.cms-editable:focus-visible {
+  outline: none;
+}
+
+.cms-editable__badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgb(var(--primary));
+  background: rgb(var(--surface) / 0.95);
+  border: 1px solid rgb(var(--primary) / 0.35);
+  border-radius: 0.35rem;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  pointer-events: none;
+}
+
+.cms-editable:hover .cms-editable__badge,
+.cms-editable:focus-visible .cms-editable__badge {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cms-editable--block {
+  display: block;
+  width: 100%;
+}
+
+.cms-editable--unpublished {
+  opacity: 0.55;
+}
+
+.cms-editable--unpublished::before {
+  content: "Borrador";
+  position: absolute;
+  top: 0.35rem;
+  left: 0.35rem;
+  z-index: 3;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+  background: rgb(var(--muted) / 0.2);
+  color: rgb(var(--muted));
+}
+
+.admin-cms-visual__add-row {
+  display: flex;
+  justify-content: center;
+  padding: 0.75rem;
+}
+
+.admin-cms-visual__add-btn {
+  border-radius: 0.75rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: 1px dashed rgb(var(--primary) / 0.5);
+  color: rgb(var(--primary));
+  background: transparent;
+  transition: background 0.15s ease;
+}
+
+.admin-cms-visual__add-btn:hover {
+  background: rgb(var(--primary) / 0.08);
+}
+
+/* Drawer lateral */
+.cms-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgb(0 0 0 / 0.45);
+  animation: cms-drawer-fade-in 0.2s ease;
+}
+
+.cms-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 201;
+  width: min(100%, 28rem);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: rgb(var(--surface));
+  border-left: 1px solid rgb(var(--border) / 0.25);
+  box-shadow: -8px 0 32px rgb(0 0 0 / 0.2);
+  animation: cms-drawer-slide-in 0.25s ease;
+}
+
+.cms-drawer__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1.25rem 1.25rem 0.75rem;
+  border-bottom: 1px solid rgb(var(--border) / 0.2);
+}
+
+.cms-drawer__title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.cms-drawer__subtitle {
+  font-size: 0.8125rem;
+  color: rgb(var(--muted));
+  margin: 0.25rem 0 0;
+}
+
+.cms-drawer__close {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(var(--border) / 0.25);
+  background: rgb(var(--bg) / 0.5);
+  font-size: 1.25rem;
+  line-height: 1;
+  color: rgb(var(--muted));
+}
+
+.cms-drawer__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.cms-drawer__foot {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid rgb(var(--border) / 0.2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.cms-drawer__field label {
+  display: block;
+  font-size: 0.8125rem;
+  color: rgb(var(--muted));
+  margin-bottom: 0.35rem;
+}
+
+.cms-drawer__field input,
+.cms-drawer__field textarea {
+  width: 100%;
+  border-radius: 0.65rem;
+  border: 1px solid rgb(var(--border) / 0.25);
+  background: rgb(var(--bg) / 0.4);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9375rem;
+}
+
+.cms-drawer__field textarea {
+  min-height: 4.5rem;
+  resize: vertical;
+}
+
+.cms-drawer__check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+@keyframes cms-drawer-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes cms-drawer-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Vista previa noticias (compacta) */
+.admin-cms-visual__news {
+  padding: 1.5rem 1.25rem 2rem;
+  border-top: 1px solid rgb(var(--border) / 0.15);
+}
+
+.admin-cms-visual__news-list {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.admin-cms-visual__news-item {
+  display: flex;
+  gap: 0.75rem;
+  align-items: baseline;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(var(--border) / 0.15);
+  background: rgb(var(--surface) / 0.35);
+}
+
+.admin-cms-visual__news-num {
+  font-size: 0.75rem;
+  color: rgb(var(--muted));
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-cms-visual__news-cat {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgb(var(--muted));
+}
+
+.admin-cms-visual__news-title {
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.admin-cms__view-toggle {
+  display: flex;
+  gap: 0.35rem;
+  padding: 0.25rem;
+  border-radius: 0.85rem;
+  background: rgb(var(--bg) / 0.5);
+  border: 1px solid rgb(var(--border) / 0.2);
+}
+
+.admin-cms__view-btn {
+  border-radius: 0.65rem;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: rgb(var(--muted));
+}
+
+.admin-cms__view-btn--active {
+  background: rgb(var(--primary));
+  color: rgb(var(--primary-fg, 255 255 255));
+}

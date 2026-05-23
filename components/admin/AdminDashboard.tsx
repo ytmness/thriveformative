@@ -469,7 +469,7 @@ export default function AdminDashboard({ locale }: { locale: string }) {
       ) : tab === "availability" ? (
         <BookingAvailabilityPanel />
       ) : tab === "cms" ? (
-        <CmsPanel />
+        <CmsPanel siteLocale={locale} />
       ) : tab === "contact" ? (
         <section className="mt-10">
           <div className="rounded-2xl border border-theme bg-surface overflow-hidden">
