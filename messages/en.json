@@ -15,9 +15,64 @@
   },
   "shapescale": {
     "title": "ShapeScale",
-    "subtitle": "Scroll through the page to explore the product sequence.",
-    "scrollHint": "Scroll down or up to scrub forward or backward through the frames.",
-    "sequenceLabel": "ShapeScale — product sequence"
+    "subtitle": "3D body scanning that shows progress your eyes cannot see.",
+    "eyebrow": "ShapeScale",
+    "scrollHint": "Scroll to explore each part of the device",
+    "storyLabel": "ShapeScale — product story",
+    "progressLabel": "Story sections",
+    "steps": {
+      "fullPicture": {
+        "title": "The Scale that gives you the full picture",
+        "lead": "ShapeScale provides a visual representation of your progress by capturing a photorealistic 3D scan of your body.",
+        "items": [
+          "3D Scanning with millimetric precision",
+          "Photorealistic texture with 12MP color camera",
+          "Precise weight sensing",
+          "Automatic body measurements",
+          "Accurate body composition",
+          "Scores and recommendations",
+          "Body changes localized heatmaps",
+          "Augmented before and after",
+          "End to end encryption"
+        ]
+      },
+      "head": {
+        "title": "It's all in the Head",
+        "lead": "It's not enough to have muscles, ShapeScale's head is equipped with cutting-edge intelligence.",
+        "items": [
+          "Hexacore processor and GPU for speed",
+          "Audio feedback for a guided experience",
+          "Automatic user recognition",
+          "Dual tone illumination for darker rooms",
+          "Modular connector for future updates",
+          "Wifi 6 for speed, Bluetooth for easy setup"
+        ]
+      },
+      "arm": {
+        "title": "Arm ready to scan you head-to-toe",
+        "lead": "ShapeScale's robotic arm rotates and extends from 2ft (70cm) to 6 ft (180cm).",
+        "items": [
+          "Scan people up to 6'6 and more with extension",
+          "Continuous 360° rotation to capture every angle",
+          "Folding arm with fall protection for easy storage"
+        ]
+      },
+      "progress": {
+        "title": "Know how your body changes",
+        "lead": "",
+        "items": [
+          "Capture the way you look",
+          "Instantly see your progress",
+          "See changes in the areas you care about",
+          "Know what to focus on"
+        ]
+      },
+      "reinvented": {
+        "title": "The scale. Reinvented.",
+        "lead": "ShapeScale scans you in photorealistic 3D to give you a visual overview of your progress. ShapeScale allows you to see the changes that your eyes can't see. It's not just about the number of steps you take. It's about getting visible results.",
+        "items": []
+      }
+    }
   },
   "hero": {
     "title": "Personalized healthcare for a longer, better life",

@@ -15,9 +15,64 @@
   },
   "shapescale": {
     "title": "ShapeScale",
-    "subtitle": "Scorri la pagina per esplorare la sequenza del prodotto.",
-    "scrollHint": "Scorri verso il basso o verso l'alto per avanzare o tornare indietro nei fotogrammi.",
-    "sequenceLabel": "ShapeScale — sequenza prodotto"
+    "subtitle": "Scansione corporea 3D che mostra progressi che gli occhi non vedono.",
+    "eyebrow": "ShapeScale",
+    "scrollHint": "Scorri per esplorare ogni parte del dispositivo",
+    "storyLabel": "ShapeScale — storia del prodotto",
+    "progressLabel": "Sezioni",
+    "steps": {
+      "fullPicture": {
+        "title": "La bilancia che ti dà il quadro completo",
+        "lead": "ShapeScale offre una rappresentazione visiva dei tuoi progressi catturando una scansione 3D fotorealistica del corpo.",
+        "items": [
+          "Scansione 3D con precisione millimetrica",
+          "Texture fotorealistica con fotocamera a colori da 12 MP",
+          "Rilevamento preciso del peso",
+          "Misurazioni corporee automatiche",
+          "Composizione corporea accurata",
+          "Punteggi e raccomandazioni",
+          "Heatmap localizzate dei cambiamenti",
+          "Prima e dopo in realtà aumentata",
+          "Crittografia end-to-end"
+        ]
+      },
+      "head": {
+        "title": "Tutto è nella testa",
+        "lead": "Non basta avere i muscoli: la testa di ShapeScale è equipaggiata con intelligenza all'avanguardia.",
+        "items": [
+          "Processore Hexacore e GPU per la velocità",
+          "Feedback audio per un'esperienza guidata",
+          "Riconoscimento automatico dell'utente",
+          "Illuminazione a doppio tono per ambienti scuri",
+          "Connettore modulare per aggiornamenti futuri",
+          "Wi‑Fi 6 per la velocità, Bluetooth per una configurazione facile"
+        ]
+      },
+      "arm": {
+        "title": "Braccio pronto a scansionarti dalla testa ai piedi",
+        "lead": "Il braccio robotico di ShapeScale ruota e si estende da 70 cm (2 ft) a 180 cm (6 ft).",
+        "items": [
+          "Scansiona persone fino a 2 m e oltre con estensione",
+          "Rotazione continua a 360° per catturare ogni angolo",
+          "Braccio pieghevole con protezione anticaduta per un riponimento facile"
+        ]
+      },
+      "progress": {
+        "title": "Scopri come cambia il tuo corpo",
+        "lead": "",
+        "items": [
+          "Cattura il tuo aspetto",
+          "Vedi subito i tuoi progressi",
+          "Osserva i cambiamenti nelle aree che ti interessano",
+          "Scopri su cosa concentrarti"
+        ]
+      },
+      "reinvented": {
+        "title": "La bilancia. Reinventata.",
+        "lead": "ShapeScale ti scansiona in 3D fotorealistico per offrirti una panoramica visiva dei progressi. Ti permette di vedere i cambiamenti che gli occhi non percepiscono. Non si tratta solo dei passi che fai, ma di ottenere risultati visibili.",
+        "items": []
+      }
+    }
   },
   "hero": {
     "title": "Salute personalizzata per vivere più a lungo e meglio",

@@ -15,9 +15,64 @@
   },
   "shapescale": {
     "title": "ShapeScale",
-    "subtitle": "Explora la secuencia del producto desplazándote por la página.",
-    "scrollHint": "Desplázate hacia abajo o arriba para avanzar o retroceder en la animación.",
-    "sequenceLabel": "ShapeScale — secuencia del producto"
+    "subtitle": "Escaneo corporal 3D que muestra el progreso que tus ojos no alcanzan a ver.",
+    "eyebrow": "ShapeScale",
+    "scrollHint": "Desplázate para explorar cada parte del dispositivo",
+    "storyLabel": "ShapeScale — historia del producto",
+    "progressLabel": "Secciones",
+    "steps": {
+      "fullPicture": {
+        "title": "La báscula que te da la imagen completa",
+        "lead": "ShapeScale ofrece una representación visual de tu progreso capturando un escaneo 3D fotorrealista de tu cuerpo.",
+        "items": [
+          "Escaneo 3D con precisión milimétrica",
+          "Textura fotorrealista con cámara a color de 12 MP",
+          "Medición precisa del peso",
+          "Medidas corporales automáticas",
+          "Composición corporal precisa",
+          "Puntuaciones y recomendaciones",
+          "Mapas de calor localizados de los cambios",
+          "Antes y después aumentado",
+          "Cifrado de extremo a extremo"
+        ]
+      },
+      "head": {
+        "title": "Todo está en la cabeza",
+        "lead": "No basta con tener músculos: la cabeza de ShapeScale está equipada con inteligencia de vanguardia.",
+        "items": [
+          "Procesador Hexacore y GPU para mayor velocidad",
+          "Retroalimentación de audio para una experiencia guiada",
+          "Reconocimiento automático del usuario",
+          "Iluminación de doble tono para habitaciones oscuras",
+          "Conector modular para futuras actualizaciones",
+          "Wifi 6 para velocidad, Bluetooth para una configuración sencilla"
+        ]
+      },
+      "arm": {
+        "title": "Brazo listo para escanearte de pies a cabeza",
+        "lead": "El brazo robótico de ShapeScale gira y se extiende de 70 cm (2 ft) a 180 cm (6 ft).",
+        "items": [
+          "Escanea personas de hasta 2 m y más con extensión",
+          "Rotación continua de 360° para capturar cada ángulo",
+          "Brazo plegable con protección ante caídas para un almacenamiento fácil"
+        ]
+      },
+      "progress": {
+        "title": "Conoce cómo cambia tu cuerpo",
+        "lead": "",
+        "items": [
+          "Captura cómo te ves",
+          "Ve tu progreso al instante",
+          "Observa los cambios en las zonas que te importan",
+          "Sabe en qué enfocarte"
+        ]
+      },
+      "reinvented": {
+        "title": "La báscula. Reinventada.",
+        "lead": "ShapeScale te escanea en 3D fotorrealista para darte una visión general de tu progreso. Te permite ver los cambios que tus ojos no perciben. No se trata solo de los pasos que das, sino de obtener resultados visibles.",
+        "items": []
+      }
+    }
   },
   "hero": {
     "title": "Salud personalizada para vivir más y mejor",

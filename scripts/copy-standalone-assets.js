@@ -23,6 +23,8 @@ const REQUIRED_IN_PUBLIC = [
   "logos/fda-approved.png",
   "logos/logo3ddorado.glb",
   "logos/logometal.glb",
+  "shapescale/step-full.png",
+  "shapescale/step-head.png",
 ];
 
 if (!fs.existsSync(serverJs)) {
