@@ -19,6 +19,11 @@ export const CMS_TEXT_GROUPS: {
       { key: "hero.stat2Value", label: "Estadística 2 — valor" },
       { key: "hero.stat3Label", label: "Estadística 3 — etiqueta" },
       { key: "hero.stat3Value", label: "Estadística 3 — valor" },
+      { key: "heroStats.eyebrow", label: "Metodología — etiqueta" },
+      { key: "heroStats.title", label: "Metodología — título" },
+      { key: "heroStats.stat1Desc", label: "Metodología — texto tarjeta 1" },
+      { key: "heroStats.stat2Desc", label: "Metodología — texto tarjeta 2" },
+      { key: "heroStats.stat3Desc", label: "Metodología — texto tarjeta 3" },
     ],
   },
   {
@@ -88,6 +93,30 @@ export const CMS_TEXT_GROUPS: {
       { key: "booking.subtitle", label: "Subtítulo" },
       { key: "booking.ctaHint", label: "Texto antes de WhatsApp" },
       { key: "booking.ctaButton", label: "Botón WhatsApp" },
+    ],
+  },
+  {
+    group: "Doctor (página info)",
+    keys: [
+      { key: "doctor.title", label: "Título sección" },
+      { key: "doctor.subtitle", label: "Subtítulo" },
+      { key: "doctor.name", label: "Nombre" },
+      { key: "doctor.bio", label: "Biografía" },
+    ],
+  },
+  {
+    group: "FAQ (página info)",
+    keys: [
+      { key: "faq.title", label: "Título sección" },
+      { key: "faq.subtitle", label: "Subtítulo" },
+      { key: "faq.q1", label: "Pregunta 1" },
+      { key: "faq.a1", label: "Respuesta 1" },
+      { key: "faq.q2", label: "Pregunta 2" },
+      { key: "faq.a2", label: "Respuesta 2" },
+      { key: "faq.q3", label: "Pregunta 3" },
+      { key: "faq.a3", label: "Respuesta 3" },
+      { key: "faq.q4", label: "Pregunta 4" },
+      { key: "faq.a4", label: "Respuesta 4" },
     ],
   },
   {

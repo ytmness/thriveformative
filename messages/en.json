@@ -35,6 +35,13 @@
     "stat3Label": "Follow-up",
     "stat3Value": "15–30 days"
   },
+  "heroStats": {
+    "eyebrow": "METHODOLOGY",
+    "title": "The care flow",
+    "stat1Desc": "A space dedicated entirely to you, where we explore every detail of your clinical history and personal goals.",
+    "stat2Desc": "Open communication channels to resolve immediate questions and ensure your plan runs smoothly.",
+    "stat3Desc": "Strategic touchpoints to assess biological adaptations and recalibrate your protocol based on your results."
+  },
   "premiumScene": {
     "word1": "Balance",
     "word2": "results",

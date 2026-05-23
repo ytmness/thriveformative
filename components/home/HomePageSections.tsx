@@ -70,9 +70,17 @@ function OrganicPattern({ className = "" }: { className?: string }) {
 
 type Props = {
   editable?: HomePageEditableConfig;
+  /** Solo vista previa CMS: bloque doctor tras servicios */
+  previewAfterServices?: ReactNode;
+  /** Solo vista previa CMS: bloque FAQ antes del CTA */
+  previewBeforeCta?: ReactNode;
 };
 
-export default function HomePageSections({ editable }: Props) {
+export default function HomePageSections({
+  editable,
+  previewAfterServices,
+  previewBeforeCta,
+}: Props) {
   const t = useTranslations();
   const tServices = useTranslations("services");
   const tPlans = useTranslations("plans");
@@ -266,12 +274,17 @@ export default function HomePageSections({ editable }: Props) {
           {wrapText(
             "Estadísticas del hero",
             [
+              { key: "heroStats.eyebrow", label: "Metodología — etiqueta" },
+              { key: "heroStats.title", label: "Metodología — título" },
               { key: "hero.stat1Label", label: "Etiqueta estadística 1" },
               { key: "hero.stat1Value", label: "Valor estadística 1" },
+              { key: "heroStats.stat1Desc", label: "Descripción estadística 1" },
               { key: "hero.stat2Label", label: "Etiqueta estadística 2" },
               { key: "hero.stat2Value", label: "Valor estadística 2" },
+              { key: "heroStats.stat2Desc", label: "Descripción estadística 2" },
               { key: "hero.stat3Label", label: "Etiqueta estadística 3" },
               { key: "hero.stat3Value", label: "Valor estadística 3" },
+              { key: "heroStats.stat3Desc", label: "Descripción estadística 3" },
             ],
             <HeroStats editable={editable} txt={txt} />
           )}
@@ -396,6 +409,8 @@ export default function HomePageSections({ editable }: Props) {
             ) : null}
           </section>
         </GiantScrollCard>
+
+        {previewAfterServices}
 
         <GiantScrollCard variant="slideUp" id="tshape">
           <section className="tshape-section">
@@ -562,6 +577,8 @@ export default function HomePageSections({ editable }: Props) {
           )}
         </GiantScrollCard>
 
+        {previewBeforeCta}
+
         <GiantScrollCard variant="slideUp" id="cta" noFade>
           <section className="cta-final-section">
             <div className="cta-final-shell">
@@ -640,40 +657,59 @@ function HeroStats({
   txt: (key: string, fallbackKey: string) => string;
 }) {
   const t = useTranslations();
+  const tStats = useTranslations("heroStats");
+
+  const eyebrow = editable ? txt("heroStats.eyebrow", "heroStats.eyebrow") : tStats("eyebrow");
+  const sectionTitle = editable ? txt("heroStats.title", "heroStats.title") : tStats("title");
+
   const rows = [
     {
       label: editable ? txt("hero.stat1Label", "hero.stat1Label") : t("hero.stat1Label"),
       value: editable ? txt("hero.stat1Value", "hero.stat1Value") : t("hero.stat1Value"),
+      desc: editable ? txt("heroStats.stat1Desc", "heroStats.stat1Desc") : tStats("stat1Desc"),
+      num: "01",
     },
     {
       label: editable ? txt("hero.stat2Label", "hero.stat2Label") : t("hero.stat2Label"),
       value: editable ? txt("hero.stat2Value", "hero.stat2Value") : t("hero.stat2Value"),
+      desc: editable ? txt("heroStats.stat2Desc", "heroStats.stat2Desc") : tStats("stat2Desc"),
+      num: "02",
     },
     {
       label: editable ? txt("hero.stat3Label", "hero.stat3Label") : t("hero.stat3Label"),
       value: editable ? txt("hero.stat3Value", "hero.stat3Value") : t("hero.stat3Value"),
+      desc: editable ? txt("heroStats.stat3Desc", "heroStats.stat3Desc") : tStats("stat3Desc"),
+      num: "03",
     },
   ];
+
   return (
     <>
       <div className="hero-stats-mobile md:hidden w-full max-w-md mx-auto" role="list">
         {rows.map((row) => (
-          <div key={row.label} className="hero-stats-mobile__row" role="listitem">
+          <div key={row.num} className="hero-stats-mobile__row" role="listitem">
             <div className="hero-stats-mobile__value">{row.value}</div>
             <div className="hero-stats-mobile__label">{row.label}</div>
           </div>
         ))}
       </div>
-      <div className="hidden md:grid md:grid-cols-3 gap-6 w-full">
-        {rows.map((row) => (
-          <div
-            key={row.label}
-            className="bg-surface border border-theme rounded-2xl p-6 md:p-8 cursor-default text-center"
-          >
-            <div className="type-stat-label">{row.label}</div>
-            <div className="type-stat-value mt-2">{row.value}</div>
-          </div>
-        ))}
+      <div className="hero-stats-desktop hidden md:block w-full">
+        <header className="hero-stats-desktop__header">
+          <p className="hero-stats-desktop__eyebrow">{eyebrow}</p>
+          <h2 className="hero-stats-desktop__title">{sectionTitle}</h2>
+        </header>
+        <div className="hero-stats-desktop__grid" role="list">
+          {rows.map((row) => (
+            <div key={row.num} className="hero-stats-desktop__card" role="listitem">
+              <span className="hero-stats-desktop__num" aria-hidden>
+                {row.num}
+              </span>
+              <div className="type-stat-value">{row.value}</div>
+              <div className="type-stat-label">{row.label}</div>
+              <p className="hero-stats-desktop__desc">{row.desc}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </>
   );

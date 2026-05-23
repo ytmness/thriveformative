@@ -2,7 +2,8 @@
 
 import { useEffect } from "react";
 import type { CmsAdminApi } from "@/hooks/useCmsAdmin";
-import type { CmsArticle, CmsPlan, CmsService } from "@/lib/cms/types";
+import CmsImageField from "@/components/admin/cms/CmsImageField";
+import type { CmsArticle, CmsPlan, CmsService, Locale } from "@/lib/cms/types";
 
 export type CmsEditTarget =
   | {
@@ -23,6 +24,7 @@ type Props = {
 
 export default function CmsEditDrawer({ target, onClose, cms }: Props) {
   const {
+    locale,
     saving,
     textDraft,
     updateTextDraft,
@@ -138,7 +140,13 @@ export default function CmsEditDrawer({ target, onClose, cms }: Props) {
     const row = getArticleById(target.id);
     if (!row) return null;
     title = "Artículo / noticia";
-    body = <ArticleForm row={row} onChange={(patch) => updateArticle(target.id, patch)} />;
+    body = (
+      <ArticleForm
+        locale={locale}
+        row={row}
+        onChange={(patch) => updateArticle(target.id, patch)}
+      />
+    );
     onSave = () => {
       const current = getArticleById(target.id);
       if (current) void handleSaveArticle(current);
@@ -291,9 +299,11 @@ function PlanForm({
 }
 
 function ArticleForm({
+  locale,
   row,
   onChange,
 }: {
+  locale: Locale;
   row: CmsArticle;
   onChange: (patch: Partial<CmsArticle>) => void;
 }) {
@@ -314,13 +324,11 @@ function ArticleForm({
           onChange={(e) => onChange({ body: e.target.value || null })}
         />
       </div>
-      <div className="cms-drawer__field">
-        <label>URL de imagen (opcional)</label>
-        <input
-          value={row.image_url ?? ""}
-          onChange={(e) => onChange({ image_url: e.target.value || null })}
-        />
-      </div>
+      <CmsImageField
+        locale={locale}
+        value={row.image_url}
+        onChange={(image_url) => onChange({ image_url })}
+      />
       <label className="cms-drawer__check">
         <input
           type="checkbox"

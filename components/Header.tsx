@@ -74,10 +74,11 @@ export default function Header({ preview }: HeaderProps = {}) {
     ? [
         { key: "home", href: `#inicio`, hashOnly: true },
         { key: "services", href: `#servicios`, hashOnly: true },
+        { key: "doctor", href: `#doctor`, hashOnly: true },
         { key: "tshape", href: `#tshape`, hashOnly: true },
         { key: "plans", href: `#planes`, hashOnly: true },
-        { key: "booking", href: `#citas`, hashOnly: true },
         { key: "news", href: `#noticias`, hashOnly: true, label: t("nav.news") },
+        { key: "faq", href: `#faq`, hashOnly: true },
       ]
     : [
         { key: "home", href: `/${locale}#inicio` },
@@ -109,7 +110,16 @@ export default function Header({ preview }: HeaderProps = {}) {
   useEffect(() => {
     if (!preview?.scrollRef.current) return;
     const root = preview.scrollRef.current;
-    const sectionIds = ["inicio", "servicios", "tshape", "planes", "citas", "noticias"];
+    const sectionIds = [
+      "inicio",
+      "servicios",
+      "doctor",
+      "tshape",
+      "planes",
+      "citas",
+      "noticias",
+      "faq",
+    ];
 
     const syncActive = () => {
       const rootRect = root.getBoundingClientRect();

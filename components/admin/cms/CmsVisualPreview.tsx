@@ -20,7 +20,18 @@ import {
   fallbackServicesFromTranslations,
 } from "@/lib/cms/fallbackContent";
 import CmsEditDrawer, { type CmsEditTarget } from "@/components/admin/cms/CmsEditDrawer";
+import {
+  CmsPreviewDoctorSection,
+  CmsPreviewFaqSection,
+} from "@/components/admin/cms/CmsPreviewInfoSections";
+import { getNestedMessage } from "@/lib/i18n/getMessage";
+import type { Locale } from "@/lib/cms/types";
+import esMessages from "@/messages/es.json";
+import enMessages from "@/messages/en.json";
+import koMessages from "@/messages/ko.json";
+import itMessages from "@/messages/it.json";
 import "@/app/styles/utilities.css";
+import "@/app/styles/cms-preview-info.css";
 import "@/app/styles/hero-stats.css";
 import "@/app/styles/booking.css";
 import "@/app/styles/header-nav.css";
@@ -33,6 +44,13 @@ type Props = {
 };
 
 const ARTICLE_KEYS = ["a1", "a2", "a3", "a4", "a5"] as const;
+
+const MESSAGES_BY_LOCALE: Record<Locale, Record<string, unknown>> = {
+  es: esMessages as Record<string, unknown>,
+  en: enMessages as Record<string, unknown>,
+  ko: koMessages as Record<string, unknown>,
+  it: itMessages as Record<string, unknown>,
+};
 
 export default function CmsVisualPreview({ cms, siteLocale }: Props) {
   const t = useTranslations();
@@ -60,15 +78,19 @@ export default function CmsVisualPreview({ cms, siteLocale }: Props) {
     deleteArticle,
   } = cms;
 
-  const txt = (key: string, fallbackKey: string) => {
+  const txt = (key: string, fallbackKey: string = key) => {
     const v = textDraft[key];
     if (v?.trim()) return v;
+    const fromCmsLocale = getNestedMessage(MESSAGES_BY_LOCALE[locale], fallbackKey);
+    if (fromCmsLocale) return fromCmsLocale;
     try {
       return t(fallbackKey as never);
     } catch {
       return "";
     }
   };
+
+  const txtLocale = (key: string) => txt(key, key);
 
   const fallbackArticles = useMemo(
     () =>
@@ -201,7 +223,15 @@ export default function CmsVisualPreview({ cms, siteLocale }: Props) {
                   pathname: `/${siteLocale}`,
                 }}
               />
-              <HomePageSections editable={editable} />
+              <HomePageSections
+                editable={editable}
+                previewAfterServices={
+                  <CmsPreviewDoctorSection txt={txtLocale} onEdit={setEditTarget} />
+                }
+                previewBeforeCta={
+                  <CmsPreviewFaqSection txt={txtLocale} onEdit={setEditTarget} />
+                }
+              />
 
               <section className="admin-cms-visual__news-block" aria-label="Noticias">
                 <NewsSection

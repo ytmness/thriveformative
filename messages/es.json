@@ -35,6 +35,13 @@
     "stat3Label": "Seguimiento",
     "stat3Value": "15–30 días"
   },
+  "heroStats": {
+    "eyebrow": "METODOLOGÍA",
+    "title": "El flujo de atención",
+    "stat1Desc": "Un espacio dedicado exclusivamente a ti, donde exploramos cada detalle de tu historia clínica y metas personales.",
+    "stat2Desc": "Canales de comunicación abiertos para resolver dudas inmediatas y asegurar que tu plan se ejecute sin fricciones.",
+    "stat3Desc": "Puntos de contacto estratégicos para evaluar adaptaciones biológicas y recalibrar el protocolo según tus resultados."
+  },
   "premiumScene": {
     "word1": "Equilibrio",
     "word2": "resultados",

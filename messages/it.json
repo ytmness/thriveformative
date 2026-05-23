@@ -326,5 +326,12 @@
     "linkContact": "Contatto",
     "contactTitle": "Contatto",
     "tagline": "Salute personalizzata con approccio funzionale e umano. Prevenzione, supporto e risultati reali."
+  },
+  "heroStats": {
+    "eyebrow": "METODOLOGIA",
+    "title": "Il flusso di assistenza",
+    "stat1Desc": "Uno spazio dedicato esclusivamente a te, dove esploriamo ogni dettaglio della tua storia clinica e dei tuoi obiettivi personali.",
+    "stat2Desc": "Canali di comunicazione aperti per risolvere dubbi immediati e assicurare che il tuo piano proceda senza attriti.",
+    "stat3Desc": "Punti di contatto strategici per valutare gli adattamenti biologici e ricalibrare il protocollo in base ai tuoi risultati."
   }
 }

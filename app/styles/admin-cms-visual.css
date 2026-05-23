@@ -288,7 +288,7 @@
   margin-bottom: 0.35rem;
 }
 
-.cms-drawer__field input,
+.cms-drawer__field input:not([type="file"]),
 .cms-drawer__field textarea {
   width: 100%;
   border-radius: 0.65rem;

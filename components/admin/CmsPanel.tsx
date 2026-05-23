@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CMS_TEXT_GROUPS } from "@/lib/cms/textKeys";
 import { CMS_LOCALES, type Locale } from "@/lib/cms/types";
 import { useCmsAdmin } from "@/hooks/useCmsAdmin";
+import CmsImageField from "@/components/admin/cms/CmsImageField";
 import CmsVisualPreview from "@/components/admin/cms/CmsVisualPreview";
 import "@/app/styles/admin-cms.css";
 import "@/app/styles/admin-cms-visual.css";
@@ -347,19 +348,15 @@ export default function CmsPanel({ siteLocale }: Props) {
                       }
                     />
                   </div>
-                  <div className="admin-cms__field">
-                    <label>URL imagen (opcional)</label>
-                    <input
-                      value={row.image_url ?? ""}
-                      onChange={(e) =>
-                        setArticles((prev) =>
-                          prev.map((a, j) =>
-                            j === i ? { ...a, image_url: e.target.value || null } : a
-                          )
-                        )
-                      }
-                    />
-                  </div>
+                  <CmsImageField
+                    locale={locale}
+                    value={row.image_url}
+                    onChange={(image_url) =>
+                      setArticles((prev) =>
+                        prev.map((a, j) => (j === i ? { ...a, image_url } : a))
+                      )
+                    }
+                  />
                   <label className="flex items-center gap-2 text-sm">
                     <input
                       type="checkbox"

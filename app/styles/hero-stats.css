@@ -37,115 +37,93 @@
   margin-right: auto;
 }
 
-/* Desktop: estilo editorial tipo "Metodología / Flujo de Atención" */
-@media (min-width: 768px) {
-  .hidden.md\:grid.md\:grid-cols-3.gap-6.w-full {
-    position: relative;
-    gap: 1.5rem;
-    padding-top: 8.25rem;
-  }
+/* Desktop: metodología / flujo de atención (textos desde i18n, no CSS content) */
+.hero-stats-desktop__header {
+  margin-bottom: 1.5rem;
+}
 
-  .hidden.md\:grid.md\:grid-cols-3.gap-6.w-full::before {
-    content: "METODOLOGIA";
-    position: absolute;
-    top: 0;
-    left: 0;
-    font-family: var(--font-body), system-ui, sans-serif;
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.32em;
-    text-transform: uppercase;
-    color: rgb(var(--muted) / 0.9);
-  }
+.hero-stats-desktop__eyebrow {
+  margin: 0;
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgb(var(--muted) / 0.9);
+}
 
-  .hidden.md\:grid.md\:grid-cols-3.gap-6.w-full::after {
-    content: "El Flujo de Atencion";
-    position: absolute;
-    top: 1.5rem;
-    left: 0;
-    font-family: var(--font-serif), Georgia, serif;
-    font-size: clamp(2rem, 2.7vw, 3.35rem);
-    font-weight: 600;
-    line-height: 1.03;
-    letter-spacing: -0.015em;
-    color: rgb(var(--text));
-  }
+.hero-stats-desktop__title {
+  margin: 0.5rem 0 0;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(2rem, 2.7vw, 3.35rem);
+  font-weight: 600;
+  line-height: 1.03;
+  letter-spacing: -0.015em;
+  color: rgb(var(--text));
+}
 
-  .hidden.md\:grid.md\:grid-cols-3.gap-6.w-full > div {
-    position: relative;
-    border-radius: 0;
-    border: 1px solid rgb(var(--border) / 0.12);
-    border-top: 2px solid rgb(var(--primary) / 0.58);
-    box-shadow: none;
-    background: rgb(var(--surface) / 0.5);
-    text-align: left;
-    padding: 2.6rem 1.85rem 1.6rem;
-    transition: transform 0.22s ease, border-color 0.22s ease, background 0.22s ease;
-  }
+.hero-stats-desktop__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
 
-  .hidden.md\:grid.md\:grid-cols-3.gap-6.w-full > div:hover {
-    transform: translateY(-3px);
-    border-top-color: rgb(var(--primary) / 0.82);
-    background: rgb(var(--surface) / 0.72);
-  }
+.hero-stats-desktop__card {
+  position: relative;
+  border-radius: 0;
+  border: 1px solid rgb(var(--border) / 0.12);
+  border-top: 2px solid rgb(var(--primary) / 0.58);
+  box-shadow: none;
+  background: rgb(var(--surface) / 0.5);
+  text-align: left;
+  padding: 2.6rem 1.85rem 1.6rem;
+  transition: transform 0.22s ease, border-color 0.22s ease, background 0.22s ease;
+}
 
-  .hidden.md\:grid.md\:grid-cols-3.gap-6.w-full > div::before {
-    position: absolute;
-    top: -1.95rem;
-    left: 0.15rem;
-    font-family: var(--font-serif), Georgia, serif;
-    font-size: 3.5rem;
-    font-weight: 500;
-    line-height: 1;
-    letter-spacing: -0.03em;
-    color: rgb(var(--border) / 0.18);
-    pointer-events: none;
-  }
+.hero-stats-desktop__card:hover {
+  transform: translateY(-3px);
+  border-top-color: rgb(var(--primary) / 0.82);
+  background: rgb(var(--surface) / 0.72);
+}
 
-  .hidden.md\:grid.md\:grid-cols-3.gap-6.w-full > div:nth-child(1)::before { content: "01"; }
-  .hidden.md\:grid.md\:grid-cols-3.gap-6.w-full > div:nth-child(2)::before { content: "02"; }
-  .hidden.md\:grid.md\:grid-cols-3.gap-6.w-full > div:nth-child(3)::before { content: "03"; }
+.hero-stats-desktop__num {
+  position: absolute;
+  top: -1.95rem;
+  left: 0.15rem;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 3.5rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: rgb(var(--border) / 0.18);
+  pointer-events: none;
+}
 
-  .hidden.md\:grid.md\:grid-cols-3.gap-6.w-full > div::after {
-    display: block;
-    margin-top: 0.95rem;
-    font-family: var(--font-body), system-ui, sans-serif;
-    font-size: 0.97rem;
-    line-height: 1.6;
-    color: rgb(var(--muted));
-    white-space: normal;
-  }
+.hero-stats-desktop__card .type-stat-value {
+  margin-top: 0;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(2rem, 1.7vw, 2.5rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.012em;
+  color: rgb(var(--text));
+}
 
-  .hidden.md\:grid.md\:grid-cols-3.gap-6.w-full > div:nth-child(1)::after {
-    content: "Un espacio dedicado exclusivamente a ti, donde exploramos cada detalle de tu historia clínica y metas personales.";
-  }
+.hero-stats-desktop__card .type-stat-label {
+  margin-top: 0.45rem;
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 0.73rem;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(var(--muted) / 0.9);
+}
 
-  .hidden.md\:grid.md\:grid-cols-3.gap-6.w-full > div:nth-child(2)::after {
-    content: "Canales de comunicación abiertos para resolver dudas inmediatas y asegurar que tu plan se ejecute sin fricciones.";
-  }
-
-  .hidden.md\:grid.md\:grid-cols-3.gap-6.w-full > div:nth-child(3)::after {
-    content: "Puntos de contacto estratégicos para evaluar adaptaciones biológicas y recalibrar el protocolo según tus resultados.";
-  }
-
-  .hidden.md\:grid.md\:grid-cols-3.gap-6.w-full > div .type-stat-value {
-    margin-top: 0;
-    font-family: var(--font-serif), Georgia, serif;
-    font-size: clamp(2rem, 1.7vw, 2.5rem);
-    font-weight: 600;
-    line-height: 1.05;
-    letter-spacing: -0.012em;
-    color: rgb(var(--text));
-  }
-
-  .hidden.md\:grid.md\:grid-cols-3.gap-6.w-full > div .type-stat-label {
-    margin-top: 0.45rem;
-    font-family: var(--font-body), system-ui, sans-serif;
-    font-size: 0.73rem;
-    font-weight: 600;
-    line-height: 1.4;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: rgb(var(--muted) / 0.9);
-  }
+.hero-stats-desktop__desc {
+  margin: 0.95rem 0 0;
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 0.97rem;
+  line-height: 1.6;
+  color: rgb(var(--muted));
 }
