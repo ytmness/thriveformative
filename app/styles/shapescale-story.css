@@ -1,11 +1,8 @@
-/* ShapeScale — historia con scroll (imagen fija + paneles de texto) */
+/* ShapeScale — historia con scroll (paleta del tema del sitio) */
 .shapescale-story {
   --shapescale-story-header: 4.5rem;
-  --shapescale-story-accent: #e8cfa4;
-  --shapescale-story-cream: #faf7ef;
-  --shapescale-story-muted: rgba(250, 247, 239, 0.78);
-  background: #050505;
-  color: var(--shapescale-story-cream);
+  background: rgb(var(--bg));
+  color: rgb(var(--text));
 }
 
 .shapescale-story__scroll {
@@ -43,7 +40,11 @@
   justify-content: center;
   min-height: 42vh;
   padding: 1.5rem 1rem 0.5rem;
-  background: radial-gradient(ellipse 80% 60% at 50% 55%, rgba(232, 207, 164, 0.07), transparent 70%);
+  background: radial-gradient(
+    ellipse 80% 60% at 50% 55%,
+    rgb(var(--primary) / 0.1),
+    transparent 70%
+  );
 }
 
 @media (min-width: 1024px) {
@@ -58,6 +59,9 @@
   position: relative;
   width: min(100%, 28rem);
   aspect-ratio: 1 / 1;
+  border-radius: 1.25rem;
+  background: rgb(var(--surface));
+  box-shadow: 0 1rem 2.5rem rgb(var(--text) / 0.06);
 }
 
 .shapescale-story__img {
@@ -128,7 +132,7 @@
   font-weight: 600;
   letter-spacing: 0.28em;
   text-transform: uppercase;
-  color: var(--shapescale-story-accent);
+  color: rgb(var(--primary));
 }
 
 .shapescale-story__title {
@@ -137,14 +141,14 @@
   font-size: clamp(1.45rem, 3.2vw, 2rem);
   font-weight: 600;
   line-height: 1.2;
-  color: var(--shapescale-story-cream);
+  color: rgb(var(--text));
 }
 
 .shapescale-story__lead {
   margin: 0.85rem 0 0;
   font-size: 0.95rem;
   line-height: 1.65;
-  color: var(--shapescale-story-muted);
+  color: rgb(var(--muted));
   max-width: 34rem;
 }
 
@@ -164,7 +168,7 @@
   gap: 0.6rem;
   font-size: 0.88rem;
   line-height: 1.5;
-  color: rgba(250, 247, 239, 0.9);
+  color: rgb(var(--text) / 0.92);
 }
 
 .shapescale-story__bullet {
@@ -173,7 +177,7 @@
   width: 0.35rem;
   height: 0.35rem;
   border-radius: 50%;
-  background: var(--shapescale-story-accent);
+  background: rgb(var(--primary));
 }
 
 .shapescale-story__progress {
@@ -188,14 +192,14 @@
   border: none;
   padding: 0;
   border-radius: 1px;
-  background: rgba(250, 247, 239, 0.2);
+  background: rgb(var(--border) / 0.35);
   cursor: pointer;
   transition: background 0.3s ease, width 0.3s ease;
 }
 
 .shapescale-story__dot--active {
   width: 2.75rem;
-  background: var(--shapescale-story-accent);
+  background: rgb(var(--primary));
 }
 
 .shapescale-story__hint {
@@ -209,7 +213,7 @@
   font-size: 0.72rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(250, 247, 239, 0.45);
+  color: rgb(var(--muted));
   pointer-events: none;
 }
 
@@ -234,7 +238,7 @@
 
 .shapescale-story__mobile-block {
   padding: 2.5rem 1.25rem 3rem;
-  border-top: 1px solid rgba(250, 247, 239, 0.08);
+  border-top: 1px solid rgb(var(--border) / 0.15);
 }
 
 .shapescale-story__mobile-block:first-child {
@@ -247,10 +251,19 @@
   margin-bottom: 1.5rem;
 }
 
-.shapescale-story__mobile-img {
+.shapescale-story__mobile-img-wrap {
   width: min(100%, 22rem);
+  border-radius: 1rem;
+  background: rgb(var(--surface));
+  box-shadow: 0 0.75rem 2rem rgb(var(--text) / 0.06);
+  overflow: hidden;
+}
+
+.shapescale-story__mobile-img {
+  width: 100%;
   height: auto;
   object-fit: contain;
+  display: block;
 }
 
 .shapescale-story__desktop-scroll {
@@ -261,4 +274,19 @@
   .shapescale-story__desktop-scroll {
     display: block;
   }
+}
+
+/* Hero de la página ShapeScale */
+.shapescale-page-hero {
+  background: rgb(var(--bg));
+  border-bottom: 1px solid rgb(var(--border) / 0.12);
+}
+
+.shapescale-page-hero__gradient {
+  background: linear-gradient(
+    135deg,
+    rgb(var(--bg)) 0%,
+    rgb(var(--surface) / 0.55) 45%,
+    rgb(var(--primary) / 0.08) 100%
+  );
 }

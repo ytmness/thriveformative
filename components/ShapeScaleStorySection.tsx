@@ -201,14 +201,16 @@ export default function ShapeScaleStorySection() {
         {steps.map((step) => (
           <article key={step.id} className="shapescale-story__mobile-block">
             <div className="shapescale-story__mobile-visual">
-              <Image
-                src={step.image}
-                alt=""
-                width={700}
-                height={700}
-                className="shapescale-story__mobile-img"
-                sizes="90vw"
-              />
+              <div className="shapescale-story__mobile-img-wrap">
+                <Image
+                  src={step.image}
+                  alt=""
+                  width={700}
+                  height={700}
+                  className="shapescale-story__mobile-img"
+                  sizes="90vw"
+                />
+              </div>
             </div>
             <ShapeScalePanelCopy
               eyebrow={eyebrow}

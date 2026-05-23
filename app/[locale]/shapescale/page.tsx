@@ -8,6 +8,7 @@ import WaveDivider from "@/components/WaveDivider";
 import ShapeScaleStorySection from "@/components/ShapeScaleStorySection";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
+import "@/app/styles/shapescale-story.css";
 
 function ShapeScaleContent() {
   const t = useTranslations("shapescale");
@@ -17,11 +18,11 @@ function ShapeScaleContent() {
       <ThemeSwitcher />
       <Header />
 
-      <section className="relative overflow-hidden border-b border-[rgb(var(--border)/0.12)] bg-[#050505]">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#050505] to-[rgb(var(--primary)/0.06)] pointer-events-none" />
+      <section className="shapescale-page-hero relative overflow-hidden">
+        <motion.div className="shapescale-page-hero__gradient absolute inset-0 pointer-events-none" aria-hidden />
         <div className="relative z-10 mx-auto max-w-4xl px-6 py-14 text-center md:py-18">
           <motion.p
-            className="text-xs font-semibold uppercase tracking-[0.28em] text-[#e8cfa4]"
+            className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--primary))]"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -29,7 +30,7 @@ function ShapeScaleContent() {
             {t("eyebrow")}
           </motion.p>
           <motion.h1
-            className="type-page-title mt-3 tracking-wide text-[#faf7ef]"
+            className="type-page-title mt-3 tracking-wide text-[rgb(var(--text))]"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.05 }}
@@ -37,7 +38,7 @@ function ShapeScaleContent() {
             {t("title")}
           </motion.h1>
           <motion.p
-            className="type-page-lead mx-auto mt-4 max-w-2xl text-[rgba(250,247,239,0.78)]"
+            className="type-page-lead mx-auto mt-4 max-w-2xl text-[rgb(var(--muted))]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.7, delay: 0.15 }}
