@@ -1,4 +1,10 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  buildThriveEmailHtml,
+  emailParagraph,
+  emailSignOff,
+  escapeHtml,
+} from "../_shared/emailTemplate.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const RESEND_FROM = Deno.env.get("RESEND_FROM") ?? "Thrive Formative <onboarding@resend.dev>";
@@ -64,23 +70,19 @@ Deno.serve(async (req: Request) => {
     }
 
     const userName = (profile as { full_name?: string } | null)?.full_name?.trim();
+    const date = record.appointment_date ?? "—";
+    const timeSlot = record.time_slot ?? "—";
     const isConfirmed = newStatus === "confirmed";
     const subject = isConfirmed
-      ? "Tu cita ha sido confirmada — Thrive Formative"
-      : "Actualización de tu cita — Thrive Formative";
-    const intro = isConfirmed ? "Tu cita ha sido confirmada." : "Tu cita ha sido cancelada.";
-    const html = `
-<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"></head>
-<body style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 560px; margin: 0 auto; padding: 20px;">
-  <p>Hola${userName ? ` ${userName}` : ""},</p>
-  <p>${intro}</p>
-  <p><strong>Fecha:</strong> ${record.appointment_date ?? "—"}<br><strong>Hora:</strong> ${record.time_slot ?? "—"}</p>
-  ${isConfirmed ? "<p>Te esperamos. Si necesitas reprogramar, contáctanos.</p>" : "<p>Si deseas agendar una nueva cita, contáctanos.</p>"}
-  <p>Saludos,<br>Thrive Formative</p>
-</body>
-</html>`;
+      ? "Thrive Formative – Cita confirmada"
+      : "Thrive Formative – Cita cancelada";
+
+    const greeting = userName ? `Hola ${escapeHtml(userName)},` : "Hola,";
+    const bodyMessage = isConfirmed
+      ? `Tu cita del <strong>${escapeHtml(date)}</strong> a las <strong>${escapeHtml(timeSlot)}</strong> ha sido <strong>confirmada</strong>. Te esperamos. Si necesitas reprogramar, contáctanos.`
+      : `Tu cita del <strong>${escapeHtml(date)}</strong> a las <strong>${escapeHtml(timeSlot)}</strong> ha sido <strong>cancelada</strong>. Si deseas agendar una nueva cita, contáctanos.`;
+
+    const html = buildThriveEmailHtml(`${emailParagraph(greeting)}${emailParagraph(bodyMessage)}${emailSignOff()}`);
 
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
