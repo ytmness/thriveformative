@@ -1115,15 +1115,15 @@
   align-items: flex-end;
   justify-content: center;
   min-height: 0;
-  margin-top: 1rem;
-  padding-top: 1.25rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
 }
 
 @media (min-width: 900px) {
   .tshape-hero__visual {
     align-self: end;
-    margin-top: 1.5rem;
-    padding-top: 2rem;
+    margin-top: 2.75rem;
+    padding-top: 3rem;
   }
 }
 
@@ -1167,7 +1167,7 @@
 
 .tshape-hero__fda-badge {
   position: absolute;
-  top: 0.25rem;
+  top: 3.25rem;
   right: 0.25rem;
   width: clamp(6.5rem, 22vw, 10rem);
   z-index: 2;
@@ -1176,8 +1176,8 @@
 
 @media (min-width: 900px) {
   .tshape-hero__fda-badge {
-    right: 0.5rem;
-    top: 0.5rem;
+    right: 0.75rem;
+    top: 5rem;
     width: clamp(7.5rem, 12vw, 11rem);
   }
 }

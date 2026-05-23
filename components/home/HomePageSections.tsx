@@ -73,7 +73,7 @@ type Props = {
   editable?: HomePageEditableConfig;
   /** Solo vista previa CMS: bloque doctor tras servicios */
   previewAfterServices?: ReactNode;
-  /** Solo vista previa CMS: bloque FAQ antes del CTA */
+  /** Solo vista previa CMS: bloque FAQ tras citas */
   previewBeforeCta?: ReactNode;
 };
 
@@ -574,56 +574,7 @@ export default function HomePageSections({
         </GiantScrollCard>
 
         {previewBeforeCta}
-
-        <GiantScrollCard variant="slideUp" id="cta" noFade>
-          <section className="cta-final-section">
-            <div className="cta-final-shell">
-              {wrapText(
-                "CTA final",
-                [
-                  { key: "cta.title", label: "Título" },
-                  { key: "cta.subtitle", label: "Subtítulo" },
-                  { key: "cta.button", label: "Botón" },
-                ],
-                <CTASection
-                  title={txt("cta.title", "cta.title")}
-                  subtitle={txt("cta.subtitle", "cta.subtitle")}
-                  buttonText={txt("cta.button", "cta.button")}
-                  preview={!!editable}
-                />
-              )}
-            </div>
-          </section>
-        </GiantScrollCard>
       </main>
-    </>
-  );
-}
-
-function CTASection({
-  title,
-  subtitle,
-  buttonText,
-  preview,
-}: {
-  title: string;
-  subtitle: string;
-  buttonText: string;
-  preview?: boolean;
-}) {
-  return (
-    <>
-      <h2 className="cta-final-title">{title}</h2>
-      <p className="cta-final-sub">{subtitle}</p>
-      <div className="cta-final-actions">
-        {preview ? (
-          <span className="cta-final-button">{buttonText}</span>
-        ) : (
-          <BrandCtaLink href={WHATSAPP_LINK} target="_blank" rel="noreferrer">
-            {buttonText}
-          </BrandCtaLink>
-        )}
-      </div>
     </>
   );
 }
