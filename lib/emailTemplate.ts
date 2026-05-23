@@ -1,4 +1,5 @@
 const EMAIL_WIDTH = 600;
+const HEADER_SCALE = 1.35;
 
 const ASSETS = {
   header: { path: "/emails/header.png", width: 2219, height: 272 },
@@ -41,9 +42,11 @@ export function emailSignOff(): string {
 }
 
 export function buildThriveEmailHtml(bodyHtml: string): string {
-  const headerHeight = scaledHeight(ASSETS.header.width, ASSETS.header.height, EMAIL_WIDTH);
+  const headerHeight = Math.round(
+    scaledHeight(ASSETS.header.width, ASSETS.header.height, EMAIL_WIDTH) * HEADER_SCALE,
+  );
   const footerBarHeight = scaledHeight(ASSETS.footerBar.width, ASSETS.footerBar.height, EMAIL_WIDTH);
-  const footerPhoneWidth = 200;
+  const footerPhoneWidth = 220;
   const footerPhoneHeight = scaledHeight(ASSETS.footerPhone.width, ASSETS.footerPhone.height, footerPhoneWidth);
   const watermarkWidth = 380;
 
@@ -68,7 +71,7 @@ export function buildThriveEmailHtml(bodyHtml: string): string {
 
           <tr>
             <td style="padding:0;line-height:0;font-size:0;">
-              <img src="${headerSrc}" alt="Thrive Formative" width="${EMAIL_WIDTH}" height="${headerHeight}" style="display:block;width:100%;max-width:${EMAIL_WIDTH}px;height:auto;border:0;">
+              <img src="${headerSrc}" alt="Thrive Formative" width="${EMAIL_WIDTH}" height="${headerHeight}" style="display:block;width:100%;max-width:${EMAIL_WIDTH}px;height:${headerHeight}px;border:0;">
             </td>
           </tr>
 
@@ -85,31 +88,19 @@ export function buildThriveEmailHtml(bodyHtml: string): string {
           </tr>
 
           <tr>
-            <td bgcolor="#cdbba8" style="padding:20px 24px 12px;background-color:#cdbba8;">
-              <table role="presentation" cellspacing="0" cellpadding="0">
+            <td bgcolor="#cdbba8" background="${footerBarSrc}" style="padding:0;background-color:#cdbba8;background-image:url('${footerBarSrc}');background-repeat:no-repeat;background-position:right bottom;background-size:${EMAIL_WIDTH}px auto;border-radius:0 0 20px 20px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
                 <tr>
-                  <td valign="middle" style="padding-right:10px;font-weight:700;font-size:15px;color:#1a1a1a;white-space:nowrap;font-family:'Segoe UI',Arial,Helvetica,sans-serif;">Contáctanos:</td>
-                  <td valign="middle" style="padding-right:8px;">
-                    <a href="https://www.instagram.com/" style="display:inline-block;width:30px;height:30px;background-color:#1a1a1a;border-radius:50%;text-align:center;line-height:30px;color:#ffffff;text-decoration:none;font-size:11px;font-weight:700;">in</a>
-                  </td>
-                  <td valign="middle" style="padding-right:12px;">
-                    <a href="https://www.facebook.com/" style="display:inline-block;width:30px;height:30px;background-color:#1a1a1a;border-radius:50%;text-align:center;line-height:30px;color:#ffffff;text-decoration:none;font-size:11px;font-weight:700;">f</a>
-                  </td>
-                  <td valign="middle">
+                  <td valign="middle" style="padding:${Math.max(14, Math.round(footerBarHeight * 0.28))}px 20px ${Math.max(10, Math.round(footerBarHeight * 0.18))}px 22px;min-height:${footerBarHeight}px;">
                     <a href="tel:+528120036699" style="text-decoration:none;">
-                      <img src="${footerPhoneSrc}" alt="81 2003 6699" width="${footerPhoneWidth}" height="${footerPhoneHeight}" style="display:block;border:0;height:auto;">
+                      <img src="${footerPhoneSrc}" alt="81 2003 6699" width="${footerPhoneWidth}" height="${footerPhoneHeight}" style="display:block;border:0;height:auto;max-width:100%;">
                     </a>
+                  </td>
+                  <td width="42%" valign="middle" align="right" style="padding:0;line-height:0;font-size:0;min-height:${footerBarHeight}px;">
+                    <a href="${siteUrl}" style="text-decoration:none;display:block;width:100%;min-height:${footerBarHeight}px;line-height:${footerBarHeight}px;">&nbsp;</a>
                   </td>
                 </tr>
               </table>
-            </td>
-          </tr>
-
-          <tr>
-            <td style="padding:0;line-height:0;font-size:0;background-color:#cdbba8;border-radius:0 0 20px 20px;">
-              <a href="${siteUrl}" style="text-decoration:none;">
-                <img src="${footerBarSrc}" alt="thriveformative.com" width="${EMAIL_WIDTH}" height="${footerBarHeight}" style="display:block;width:100%;max-width:${EMAIL_WIDTH}px;height:auto;border:0;border-radius:0 0 20px 20px;">
-              </a>
             </td>
           </tr>
 
