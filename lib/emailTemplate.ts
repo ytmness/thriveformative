@@ -1,8 +1,9 @@
 const EMAIL_WIDTH = 600;
-const HEADER_SCALE = 1.35;
+const HEADER_DISPLAY_WIDTH = 720;
+const HEADER_HEIGHT_SCALE = 2.5;
 
 const ASSETS = {
-  header: { path: "/emails/header.png", width: 2219, height: 272 },
+  header: { path: "/emails/header.png", width: 2219, height: 273 },
   watermark: { path: "/emails/watermark.png", width: 1920, height: 1080 },
   footerBar: { path: "/emails/footer-bar.png", width: 1991, height: 191 },
   footerPhone: { path: "/emails/footer-phone.png", width: 525, height: 68 },
@@ -43,7 +44,7 @@ export function emailSignOff(): string {
 
 export function buildThriveEmailHtml(bodyHtml: string): string {
   const headerHeight = Math.round(
-    scaledHeight(ASSETS.header.width, ASSETS.header.height, EMAIL_WIDTH) * HEADER_SCALE,
+    scaledHeight(ASSETS.header.width, ASSETS.header.height, HEADER_DISPLAY_WIDTH) * HEADER_HEIGHT_SCALE,
   );
   const footerBarHeight = scaledHeight(ASSETS.footerBar.width, ASSETS.footerBar.height, EMAIL_WIDTH);
   const footerPhoneWidth = 220;
@@ -67,11 +68,11 @@ export function buildThriveEmailHtml(bodyHtml: string): string {
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f7f5f0;">
     <tr>
       <td align="center" style="padding:24px 12px;">
-        <table role="presentation" width="${EMAIL_WIDTH}" cellspacing="0" cellpadding="0" style="max-width:${EMAIL_WIDTH}px;width:100%;background-color:#ffffff;border-radius:0 0 20px 20px;overflow:hidden;">
+        <table role="presentation" width="${EMAIL_WIDTH}" cellspacing="0" cellpadding="0" style="max-width:${EMAIL_WIDTH}px;width:100%;background-color:#ffffff;border-radius:0 0 20px 20px;overflow:visible;">
 
           <tr>
-            <td style="padding:0;line-height:0;font-size:0;">
-              <img src="${headerSrc}" alt="Thrive Formative" width="${EMAIL_WIDTH}" height="${headerHeight}" style="display:block;width:100%;max-width:${EMAIL_WIDTH}px;height:${headerHeight}px;border:0;">
+            <td align="center" style="padding:0;line-height:0;font-size:0;overflow:visible;">
+              <img src="${headerSrc}" alt="Thrive Formative" width="${HEADER_DISPLAY_WIDTH}" height="${headerHeight}" style="display:block;width:${HEADER_DISPLAY_WIDTH}px;max-width:none;height:${headerHeight}px;border:0;margin:0 auto;">
             </td>
           </tr>
 
