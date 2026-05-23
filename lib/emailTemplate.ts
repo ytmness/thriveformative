@@ -1,6 +1,4 @@
 const EMAIL_WIDTH = 600;
-const HEADER_DISPLAY_WIDTH = 720;
-const HEADER_HEIGHT_SCALE = 2.5;
 
 const ASSETS = {
   header: { path: "/emails/header.png", width: 2219, height: 273 },
@@ -43,9 +41,7 @@ export function emailSignOff(): string {
 }
 
 export function buildThriveEmailHtml(bodyHtml: string): string {
-  const headerHeight = Math.round(
-    scaledHeight(ASSETS.header.width, ASSETS.header.height, HEADER_DISPLAY_WIDTH) * HEADER_HEIGHT_SCALE,
-  );
+  const headerHeight = scaledHeight(ASSETS.header.width, ASSETS.header.height, EMAIL_WIDTH);
   const footerBarHeight = scaledHeight(ASSETS.footerBar.width, ASSETS.footerBar.height, EMAIL_WIDTH);
   const footerPhoneWidth = 220;
   const footerPhoneHeight = scaledHeight(ASSETS.footerPhone.width, ASSETS.footerPhone.height, footerPhoneWidth);
@@ -68,11 +64,11 @@ export function buildThriveEmailHtml(bodyHtml: string): string {
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f7f5f0;">
     <tr>
       <td align="center" style="padding:24px 12px;">
-        <table role="presentation" width="${EMAIL_WIDTH}" cellspacing="0" cellpadding="0" style="max-width:${EMAIL_WIDTH}px;width:100%;background-color:#ffffff;border-radius:0 0 20px 20px;overflow:visible;">
+        <table role="presentation" width="${EMAIL_WIDTH}" cellspacing="0" cellpadding="0" style="max-width:${EMAIL_WIDTH}px;width:100%;background-color:#ffffff;border-radius:0 0 20px 20px;overflow:hidden;">
 
           <tr>
-            <td align="center" style="padding:0;line-height:0;font-size:0;overflow:visible;">
-              <img src="${headerSrc}" alt="Thrive Formative" width="${HEADER_DISPLAY_WIDTH}" height="${headerHeight}" style="display:block;width:${HEADER_DISPLAY_WIDTH}px;max-width:none;height:${headerHeight}px;border:0;margin:0 auto;">
+            <td style="padding:0;line-height:0;font-size:0;">
+              <img src="${headerSrc}" alt="Thrive Formative" width="${EMAIL_WIDTH}" height="${headerHeight}" style="display:block;width:100%;max-width:${EMAIL_WIDTH}px;height:auto;border:0;">
             </td>
           </tr>
 
