@@ -41,12 +41,17 @@
 /* Zonas editables */
 .cms-editable {
   position: relative;
-  cursor: pointer;
   border-radius: 0.35rem;
-  transition: box-shadow 0.15s ease, outline-color 0.15s ease;
 }
 
-.cms-editable::after {
+.cms-editable__hit {
+  position: relative;
+  cursor: pointer;
+  border-radius: inherit;
+  transition: box-shadow 0.15s ease;
+}
+
+.cms-editable__hit::after {
   content: "";
   position: absolute;
   inset: -4px;
@@ -54,16 +59,16 @@
   border: 2px dashed transparent;
   pointer-events: none;
   transition: border-color 0.15s ease, background 0.15s ease;
-  z-index: 2;
+  z-index: 1;
 }
 
-.cms-editable:hover::after,
-.cms-editable:focus-visible::after {
+.cms-editable:hover .cms-editable__hit::after,
+.cms-editable:focus-within .cms-editable__hit::after {
   border-color: rgb(var(--primary) / 0.65);
   background: rgb(var(--primary) / 0.06);
 }
 
-.cms-editable:focus-visible {
+.cms-editable__hit:focus-visible {
   outline: none;
 }
 
@@ -91,9 +96,65 @@
 }
 
 .cms-editable:hover .cms-editable__badge,
-.cms-editable:focus-visible .cms-editable__badge {
+.cms-editable:focus-within .cms-editable__badge {
   opacity: 1;
   transform: translateY(0);
+}
+
+.cms-editable--has-toolbar .cms-editable__toolbar {
+  position: absolute;
+  top: 0.35rem;
+  left: 0.35rem;
+  z-index: 4;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  pointer-events: none;
+}
+
+.cms-editable--has-toolbar:hover .cms-editable__toolbar,
+.cms-editable--has-toolbar:focus-within .cms-editable__toolbar {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.cms-editable__tool {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.35rem;
+  border: 1px solid rgb(var(--primary) / 0.4);
+  background: rgb(var(--surface) / 0.98);
+  color: rgb(var(--primary));
+}
+
+.cms-editable__tool--danger {
+  border-color: rgb(220 80 80 / 0.5);
+  color: rgb(200 70 70);
+}
+
+.admin-cms-visual__main {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-cms-visual__booking-wrap {
+  pointer-events: none;
+}
+
+.admin-cms-visual__news-block {
+  padding: 1.5rem 1rem 2rem;
+  min-height: min(70vh, 720px);
+}
+
+.admin-cms-visual__news-block .news-editorial {
+  min-height: min(65vh, 680px);
 }
 
 .cms-editable--block {

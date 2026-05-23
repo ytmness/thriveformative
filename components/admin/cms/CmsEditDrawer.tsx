@@ -39,6 +39,9 @@ export default function CmsEditDrawer({ target, onClose, cms }: Props) {
     updateService,
     updatePlan,
     updateArticle,
+    toggleServiceVisibility,
+    togglePlanVisibility,
+    toggleArticleVisibility,
   } = cms;
 
   useEffect(() => {
@@ -77,6 +80,8 @@ export default function CmsEditDrawer({ target, onClose, cms }: Props) {
   let body: React.ReactNode = null;
   let onSave: (() => void) | null = null;
   let onDelete: (() => void) | null = null;
+  let onToggleVisibility: (() => void) | null = null;
+  let visibilityLabel = "Ocultar del sitio";
 
   if (target.kind === "texts") {
     title = target.title;
@@ -111,6 +116,8 @@ export default function CmsEditDrawer({ target, onClose, cms }: Props) {
       if (current) void handleSaveService(current);
     };
     onDelete = () => void deleteService(target.id).then((ok) => ok && onClose());
+    visibilityLabel = row.is_published ? "Ocultar del sitio" : "Mostrar en el sitio";
+    onToggleVisibility = () => void toggleServiceVisibility(target.id);
   }
 
   if (target.kind === "plan") {
@@ -123,6 +130,8 @@ export default function CmsEditDrawer({ target, onClose, cms }: Props) {
       if (current) void handleSavePlan(current);
     };
     onDelete = () => void deletePlan(target.id).then((ok) => ok && onClose());
+    visibilityLabel = row.is_published ? "Ocultar del sitio" : "Mostrar en el sitio";
+    onToggleVisibility = () => void togglePlanVisibility(target.id);
   }
 
   if (target.kind === "article") {
@@ -135,6 +144,8 @@ export default function CmsEditDrawer({ target, onClose, cms }: Props) {
       if (current) void handleSaveArticle(current);
     };
     onDelete = () => void deleteArticle(target.id).then((ok) => ok && onClose());
+    visibilityLabel = row.is_published ? "Ocultar del sitio" : "Mostrar en el sitio";
+    onToggleVisibility = () => void toggleArticleVisibility(target.id);
   }
 
   return (
@@ -161,6 +172,16 @@ export default function CmsEditDrawer({ target, onClose, cms }: Props) {
         </header>
         <div className="cms-drawer__body">{body}</div>
         <footer className="cms-drawer__foot">
+          {onToggleVisibility && (
+            <button
+              type="button"
+              className="admin-cms__btn admin-cms__btn--ghost"
+              disabled={saving}
+              onClick={onToggleVisibility}
+            >
+              {visibilityLabel}
+            </button>
+          )}
           {onDelete && (
             <button
               type="button"

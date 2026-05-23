@@ -238,6 +238,11 @@ export function useCmsAdmin() {
     return true;
   }
 
+  function nextSortOrder<T extends { sort_order: number }>(items: T[]) {
+    if (!items.length) return 0;
+    return Math.max(...items.map((i) => i.sort_order)) + 1;
+  }
+
   function addService(prefill?: Pick<CmsService, "name" | "description">) {
     const id = `new-${Date.now()}`;
     setServices((prev) => [
@@ -245,7 +250,7 @@ export function useCmsAdmin() {
       {
         id,
         locale,
-        sort_order: prev.length,
+        sort_order: nextSortOrder(prev),
         name: prefill?.name ?? "",
         description: prefill?.description ?? "",
         is_published: true,
@@ -261,7 +266,7 @@ export function useCmsAdmin() {
       {
         id,
         locale,
-        sort_order: prev.length,
+        sort_order: nextSortOrder(prev),
         name: prefill?.name ?? "",
         items: prefill?.items ?? [],
         is_featured: prefill?.is_featured ?? false,
@@ -271,16 +276,16 @@ export function useCmsAdmin() {
     return id;
   }
 
-  function addArticle() {
+  function addArticle(prefill?: Partial<Pick<CmsArticle, "category" | "title" | "sort_order">>) {
     const id = `new-${Date.now()}`;
     setArticles((prev) => [
       ...prev,
       {
         id,
         locale,
-        sort_order: prev.length,
-        category: "",
-        title: "",
+        sort_order: prefill?.sort_order ?? nextSortOrder(prev),
+        category: prefill?.category ?? "",
+        title: prefill?.title ?? "",
         body: null,
         image_url: null,
         is_published: true,
@@ -318,6 +323,39 @@ export function useCmsAdmin() {
     setArticles((prev) => prev.map((a) => (a.id === id ? { ...a, ...patch } : a)));
   }
 
+  async function persistVisibility<T extends CmsService | CmsPlan | CmsArticle>(
+    id: string,
+    row: T | undefined,
+    saver: (r: T) => Promise<boolean>
+  ) {
+    if (!row || id.startsWith("new-")) return;
+    await saver(row);
+  }
+
+  async function toggleServiceVisibility(id: string) {
+    const row = getServiceById(id);
+    if (!row) return;
+    const next = !row.is_published;
+    updateService(id, { is_published: next });
+    await persistVisibility(id, { ...row, is_published: next }, saveService);
+  }
+
+  async function togglePlanVisibility(id: string) {
+    const row = getPlanById(id);
+    if (!row) return;
+    const next = !row.is_published;
+    updatePlan(id, { is_published: next });
+    await persistVisibility(id, { ...row, is_published: next }, savePlan);
+  }
+
+  async function toggleArticleVisibility(id: string) {
+    const row = getArticleById(id);
+    if (!row) return;
+    const next = !row.is_published;
+    updateArticle(id, { is_published: next });
+    await persistVisibility(id, { ...row, is_published: next }, saveArticle);
+  }
+
   return {
     locale,
     setLocale,
@@ -351,6 +389,9 @@ export function useCmsAdmin() {
     updateService,
     updatePlan,
     updateArticle,
+    toggleServiceVisibility,
+    togglePlanVisibility,
+    toggleArticleVisibility,
   };
 }
 

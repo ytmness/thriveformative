@@ -107,6 +107,12 @@
   background: rgb(var(--primary) / 0.1);
 }
 
+.admin-cms__btn--ghost {
+  background: transparent;
+  border-color: rgb(var(--border) / 0.35);
+  color: rgb(var(--text));
+}
+
 .admin-cms__btn--danger {
   color: rgb(185 28 28);
   border-color: rgb(185 28 28 / 0.35);
