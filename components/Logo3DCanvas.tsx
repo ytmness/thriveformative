@@ -1,10 +1,11 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Component, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Bounds, Center, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { useReducedMotion } from "framer-motion";
+import { SITE_LOGO_SRC } from "@/lib/branding";
 
 export type Logo3DPreset = "gold" | "metal";
 
@@ -122,6 +123,34 @@ function SceneLights({ preset }: { preset: Logo3DPreset }) {
   );
 }
 
+function Logo3DFallback({ className }: { className: string }) {
+  return (
+    <div className={`${className} flex items-center justify-center`}>
+      <img
+        src={SITE_LOGO_SRC}
+        alt=""
+        className="h-28 w-auto max-w-[min(100%,12rem)] object-contain opacity-95"
+      />
+    </div>
+  );
+}
+
+class Logo3DErrorBoundary extends Component<
+  { fallback: ReactNode; children: ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) return this.props.fallback;
+    return this.props.children;
+  }
+}
+
 export interface Logo3DCanvasProps {
   modelPath: string;
   preset?: Logo3DPreset;
@@ -137,10 +166,12 @@ export default function Logo3DCanvas({
   const paused = useReducedMotion();
   const exposure = PRESETS[preset].exposure;
   const dprCap = useAdaptiveDprCap();
+  const fallback = <Logo3DFallback className={className} />;
 
   return (
-    <div className={className}>
-      <Canvas
+    <Logo3DErrorBoundary fallback={fallback}>
+      <div className={className}>
+        <Canvas
         camera={{ position: [0, 0, 5], fov: 42 }}
         dpr={[1, dprCap]}
         gl={{
@@ -159,10 +190,11 @@ export default function Logo3DCanvas({
         }}
       >
         <SceneLights preset={preset} />
-        <Suspense fallback={null}>
+        <Suspense fallback={fallback}>
           <RotatingLogo modelPath={modelPath} paused={!!paused} preset={preset} />
         </Suspense>
       </Canvas>
-    </div>
+      </div>
+    </Logo3DErrorBoundary>
   );
 }
