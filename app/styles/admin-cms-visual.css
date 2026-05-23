@@ -26,6 +26,13 @@
   overflow-y: auto;
   overflow-x: hidden;
   scroll-behavior: smooth;
+  scroll-padding-top: 4.5rem;
+}
+
+.admin-cms-visual__page .site-nav {
+  position: sticky;
+  top: 0;
+  z-index: 30;
 }
 
 .admin-cms-visual__page {
@@ -149,12 +156,9 @@
 }
 
 .admin-cms-visual__news-block {
-  padding: 1.5rem 1rem 2rem;
-  min-height: min(70vh, 720px);
-}
-
-.admin-cms-visual__news-block .news-editorial {
-  min-height: min(65vh, 680px);
+  padding: 0 0 2rem;
+  min-height: min(50vh, 560px);
+  border-top: 1px solid rgb(var(--border) / 0.12);
 }
 
 .cms-editable--block {

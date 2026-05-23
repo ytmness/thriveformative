@@ -1,28 +1,22 @@
 "use client";
 
-import Link from "next/link";
-import { useTranslations } from "next-intl";
-import ThemeSwitcher from "@/components/theme/ThemeSwitcher";
+import { Suspense } from "react";
+import Header from "@/components/Header";
 import NewsSection from "@/components/NewsSection";
+import ThemeSwitcher from "@/components/theme/ThemeSwitcher";
 import { CmsProvider } from "@/components/cms/CmsProvider";
+import "@/app/styles/header-nav.css";
 
 export default function DoctorNoticiasPage({ locale }: { locale: string }) {
-  const t = useTranslations("news");
-
   return (
-    <div className="min-h-dvh h-dvh flex flex-col overflow-hidden bg-[rgb(var(--bg))] text-[rgb(var(--text))]">
-      <header className="shrink-0 z-10 flex items-center justify-between gap-4 px-4 sm:px-6 h-14 border-b border-[rgb(var(--border)/0.22)] bg-[rgb(var(--bg)/0.92)] backdrop-blur-md">
-        <Link
-          href={`/${locale}`}
-          className="text-sm font-medium text-[rgb(var(--muted))] hover:text-[rgb(var(--text))] transition-colors"
-        >
-          ← {t("backHome")}
-        </Link>
-        <ThemeSwitcher />
-      </header>
-      <main className="flex-1 min-h-0 flex flex-col p-3 sm:p-4 md:p-5 lg:p-6">
+    <div className="min-h-dvh flex flex-col bg-[rgb(var(--bg))] text-[rgb(var(--text))]">
+      <Header />
+      <ThemeSwitcher />
+      <main className="flex-1 w-full overflow-y-auto">
         <CmsProvider>
-          <NewsSection />
+          <Suspense fallback={<div className="news-hub__contain p-8 text-muted">…</div>}>
+            <NewsSection syncArticleInUrl />
+          </Suspense>
         </CmsProvider>
       </main>
     </div>

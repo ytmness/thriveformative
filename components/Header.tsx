@@ -7,9 +7,15 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useUser, signOut } from "@/lib/useUser";
 import { useRouter, usePathname } from "next/navigation";
 import NotificationBell from "@/components/NotificationBell";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type RefObject } from "react";
 
-type NavItem = { key: string; href: string; label?: string };
+type NavItem = { key: string; href: string; label?: string; hashOnly?: boolean };
+
+export type HeaderPreviewConfig = {
+  scrollRef: RefObject<HTMLElement | null>;
+  /** Ruta ficticia para resaltar enlaces (p. ej. /es/admin) */
+  pathname?: string;
+};
 
 function normalizePath(p: string) {
   if (!p || p === "") return "/";
@@ -48,27 +54,98 @@ function useLocationHash() {
   return hash;
 }
 
-export default function Header() {
+type HeaderProps = {
+  preview?: HeaderPreviewConfig;
+};
+
+export default function Header({ preview }: HeaderProps = {}) {
   const t = useTranslations();
   const locale = useLocale();
-  const pathname = usePathname();
+  const sitePathname = usePathname();
+  const pathname = preview?.pathname ?? sitePathname;
   const locationHash = useLocationHash();
+  const [previewHash, setPreviewHash] = useState("#inicio");
   const { user, role, loading } = useUser();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const activeHash = preview ? previewHash : locationHash;
 
-  const primaryNavItems: NavItem[] = [
-    { key: "home", href: `/${locale}#inicio` },
-    { key: "services", href: `/${locale}#servicios` },
-    { key: "doctor", href: `/${locale}/info#doctor` },
-    { key: "tshape", href: `/${locale}#tshape` },
-    { key: "shapescale", href: `/${locale}/shapescale` },
-    { key: "plans", href: `/${locale}#planes` },
-    ...(role === "doctor" || role === "admin"
-      ? ([{ key: "news", href: `/${locale}/noticias` }] as const)
-      : []),
-    { key: "faq", href: `/${locale}/info#faq` },
-  ];
+  const primaryNavItems: NavItem[] = preview
+    ? [
+        { key: "home", href: `#inicio`, hashOnly: true },
+        { key: "services", href: `#servicios`, hashOnly: true },
+        { key: "tshape", href: `#tshape`, hashOnly: true },
+        { key: "plans", href: `#planes`, hashOnly: true },
+        { key: "booking", href: `#citas`, hashOnly: true },
+        { key: "news", href: `#noticias`, hashOnly: true, label: t("nav.news") },
+      ]
+    : [
+        { key: "home", href: `/${locale}#inicio` },
+        { key: "services", href: `/${locale}#servicios` },
+        { key: "doctor", href: `/${locale}/info#doctor` },
+        { key: "tshape", href: `/${locale}#tshape` },
+        { key: "shapescale", href: `/${locale}/shapescale` },
+        { key: "plans", href: `/${locale}#planes` },
+        ...(role === "doctor" || role === "admin"
+          ? ([{ key: "news", href: `/${locale}/noticias` }] as const)
+          : []),
+        { key: "faq", href: `/${locale}/info#faq` },
+      ];
+
+  const scrollPreviewTo = useCallback(
+    (hash: string) => {
+      const root = preview?.scrollRef.current;
+      if (!root) return;
+      const id = hash.replace(/^#/, "");
+      const el = root.querySelector<HTMLElement>(`#${CSS.escape(id)}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        setPreviewHash(hash.startsWith("#") ? hash : `#${hash}`);
+      }
+    },
+    [preview]
+  );
+
+  useEffect(() => {
+    if (!preview?.scrollRef.current) return;
+    const root = preview.scrollRef.current;
+    const sectionIds = ["inicio", "servicios", "tshape", "planes", "citas", "noticias"];
+
+    const syncActive = () => {
+      const rootRect = root.getBoundingClientRect();
+      let current = "#inicio";
+      for (const id of sectionIds) {
+        const el = root.querySelector<HTMLElement>(`#${CSS.escape(id)}`);
+        if (!el) continue;
+        const top = el.getBoundingClientRect().top - rootRect.top;
+        if (top <= 120) current = `#${id}`;
+      }
+      setPreviewHash(current);
+    };
+
+    syncActive();
+    root.addEventListener("scroll", syncActive, { passive: true });
+    return () => root.removeEventListener("scroll", syncActive);
+  }, [preview]);
+
+  function handleNavClick(
+    e: React.MouseEvent<HTMLAnchorElement>,
+    item: NavItem
+  ) {
+    if (!preview || !item.hashOnly) return;
+    e.preventDefault();
+    const hash = item.href.includes("#") ? item.href.slice(item.href.indexOf("#")) : item.href;
+    scrollPreviewTo(hash);
+    setMobileMenuOpen(false);
+  }
+
+  function navActive(item: NavItem) {
+    if (preview && item.hashOnly) {
+      const expected = item.href.startsWith("#") ? item.href : `#${item.href}`;
+      return activeHash === expected || (expected === "#inicio" && activeHash === "");
+    }
+    return isNavLinkActive(item.href, pathname, activeHash);
+  }
 
   const secondaryMobileItems: NavItem[] = [
     { key: "booking", href: `/${locale}#citas` },
@@ -93,7 +170,8 @@ export default function Header() {
     >
       <div className="site-nav__inner">
         <motion.a
-          href={`/${locale}`}
+          href={preview ? "#inicio" : `/${locale}`}
+          onClick={preview ? (e) => handleNavClick(e, { key: "home", href: "#inicio", hashOnly: true }) : undefined}
           whileHover={{ scale: 1.02 }}
           transition={{ duration: 0.2 }}
           className="site-nav__brand"
@@ -107,11 +185,12 @@ export default function Header() {
 
         <nav className="site-nav__links" aria-label="Principal">
           {primaryNavItems.map((item, i) => {
-            const active = isNavLinkActive(item.href, pathname, locationHash);
+            const active = navActive(item);
             return (
               <motion.a
                 key={item.key}
-                href={item.href}
+                href={preview && item.hashOnly ? item.href : item.href}
+                onClick={(e) => handleNavClick(e, item)}
                 initial={{ opacity: 0, y: -12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.06, duration: 0.35 }}
@@ -124,7 +203,12 @@ export default function Header() {
         </nav>
 
         <div className="site-nav__actions">
-          {!loading && (
+          {preview ? (
+            <span className="site-nav__preview-badge type-ui-muted text-xs hidden sm:inline">
+              Vista previa
+            </span>
+          ) : null}
+          {!preview && !loading && (
             <>
               {user ? (
                 <div className="flex items-center gap-2 sm:gap-3">
@@ -183,19 +267,23 @@ export default function Header() {
               )}
             </>
           )}
-          <div className="site-nav__lang">
-            <LanguageSwitcher variant="minimal" />
-          </div>
-          <motion.a
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.98 }}
-            className="site-nav__cta"
-            href={WHATSAPP_LINK}
-            target="_blank"
-            rel="noreferrer"
-          >
-            {t("nav.schedule")}
-          </motion.a>
+          {!preview ? (
+            <>
+              <div className="site-nav__lang">
+                <LanguageSwitcher variant="minimal" />
+              </div>
+              <motion.a
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+                className="site-nav__cta"
+                href={WHATSAPP_LINK}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {t("nav.schedule")}
+              </motion.a>
+            </>
+          ) : null}
         </div>
 
         <div className="flex lg:hidden items-center gap-2 flex-shrink-0">
@@ -218,35 +306,40 @@ export default function Header() {
         <div className="site-nav__mobile-panel lg:hidden">
           <nav className="px-4 py-3 flex flex-col" aria-label="Móvil">
             {primaryNavItems.map((item) => {
-              const active = isNavLinkActive(item.href, pathname, locationHash);
+              const active = navActive(item);
               return (
                 <a
                   key={item.key}
                   href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={(e) => {
+                    handleNavClick(e, item);
+                    if (!preview) setMobileMenuOpen(false);
+                  }}
                   className={`site-nav__mobile-link ${active ? "site-nav__mobile-link--active" : ""}`}
                 >
                   {"label" in item && item.label ? item.label : t(`nav.${item.key}`)}
                 </a>
               );
             })}
-            {secondaryMobileItems.map((item) => {
-              const active = isNavLinkActive(item.href, pathname, locationHash);
-              return (
-                <a
-                  key={item.key}
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`site-nav__mobile-link ${active ? "site-nav__mobile-link--active" : ""}`}
-                >
-                  {t(`nav.${item.key}`)}
-                </a>
-              );
-            })}
+            {!preview
+              ? secondaryMobileItems.map((item) => {
+                  const active = isNavLinkActive(item.href, pathname, activeHash);
+                  return (
+                    <a
+                      key={item.key}
+                      href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`site-nav__mobile-link ${active ? "site-nav__mobile-link--active" : ""}`}
+                    >
+                      {t(`nav.${item.key}`)}
+                    </a>
+                  );
+                })
+              : null}
           </nav>
 
           <div className="px-4 pb-5 flex flex-col gap-3 border-t border-[rgb(var(--border)/0.12)] pt-4">
-            {!loading && (
+            {!preview && !loading && (
               <>
                 {user ? (
                   <>
@@ -303,15 +396,17 @@ export default function Header() {
               </>
             )}
 
-            <a
-              className="site-nav__cta text-center py-3"
-              href={WHATSAPP_LINK}
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              {t("nav.schedule")}
-            </a>
+            {!preview ? (
+              <a
+                className="site-nav__cta text-center py-3"
+                href={WHATSAPP_LINK}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {t("nav.schedule")}
+              </a>
+            ) : null}
           </div>
         </div>
       )}

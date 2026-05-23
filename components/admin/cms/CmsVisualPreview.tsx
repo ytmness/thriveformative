@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import Header from "@/components/Header";
 import HomePageSections from "@/components/home/HomePageSections";
 import type { HomePageEditableConfig } from "@/components/home/homePageTypes";
 import NewsSection from "@/components/NewsSection";
@@ -22,6 +23,7 @@ import CmsEditDrawer, { type CmsEditTarget } from "@/components/admin/cms/CmsEdi
 import "@/app/styles/utilities.css";
 import "@/app/styles/hero-stats.css";
 import "@/app/styles/booking.css";
+import "@/app/styles/header-nav.css";
 import "@/app/styles/admin-cms-visual.css";
 import "@/components/news-section.css";
 
@@ -38,6 +40,8 @@ export default function CmsVisualPreview({ cms, siteLocale }: Props) {
   const tPlans = useTranslations("plans");
   const tNews = useTranslations("news");
   const [editTarget, setEditTarget] = useState<CmsEditTarget | null>(null);
+  const [previewArticleId, setPreviewArticleId] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const {
     locale,
@@ -182,7 +186,7 @@ export default function CmsVisualPreview({ cms, siteLocale }: Props) {
       </p>
 
       <div className="admin-cms-visual__frame">
-        <div className="admin-cms-visual__scroll">
+        <div className="admin-cms-visual__scroll" ref={scrollRef}>
           <CmsProvider
             value={{
               ...previewBundle,
@@ -191,10 +195,18 @@ export default function CmsVisualPreview({ cms, siteLocale }: Props) {
             }}
           >
             <div className="admin-cms-visual__page">
+              <Header
+                preview={{
+                  scrollRef,
+                  pathname: `/${siteLocale}`,
+                }}
+              />
               <HomePageSections editable={editable} />
 
               <section className="admin-cms-visual__news-block" aria-label="Noticias">
                 <NewsSection
+                  articleId={previewArticleId}
+                  onArticleIdChange={setPreviewArticleId}
                   adminEditable={{
                     onEditArticle: openArticle,
                     onAddArticle: () =>

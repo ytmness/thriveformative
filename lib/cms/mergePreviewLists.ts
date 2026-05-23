@@ -21,7 +21,7 @@ export type PreviewPlanRow = {
 
 export function buildFallbackArticles(
   locale: Locale,
-  items: { category: string; title: string }[]
+  items: { category: string; title: string; body?: string | null }[]
 ): CmsArticle[] {
   return items.map((item, i) => ({
     id: `fallback-article-${i}`,
@@ -29,7 +29,7 @@ export function buildFallbackArticles(
     sort_order: i,
     category: item.category,
     title: item.title,
-    body: null,
+    body: item.body?.trim() || null,
     image_url: null,
     is_published: true,
     published_at: new Date().toISOString().slice(0, 10),

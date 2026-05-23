@@ -306,6 +306,18 @@
   },
   "news": {
     "backHome": "Back to home",
+    "backToList": "Back to list",
+    "readMore": "Read full article…",
+    "untitled": "(Untitled)",
+    "editArticle": "Edit article",
+    "draftBadge": "Draft — not visible on the public site",
+    "breadcrumbLabel": "Article navigation",
+    "infoboxLabel": "Article details",
+    "infoboxCategory": "Category",
+    "infoboxIndex": "No.",
+    "publishedOn": "Published: {date}",
+    "noBody": "This article has no content yet. You can add it from the edit panel.",
+    "paginationLabel": "Article pages",
     "label": "Health & wellness",
     "searchLabel": "Search articles",
     "searchPlaceholder": "Search by topic or title…",
@@ -315,23 +327,28 @@
     "items": {
       "a1": {
         "category": "Nutrition",
-        "title": "A guide to balanced eating"
+        "title": "A guide to balanced eating",
+        "body": "Balanced eating combines protein, healthy fats, complex carbohydrates, and micronutrients in every meal.\n\nPrioritize whole foods, colorful vegetables, and steady hydration. Small, sustainable changes usually work better than restrictive diets."
       },
       "a2": {
         "category": "Exercise",
-        "title": "Effective routines for every age"
+        "title": "Effective routines for every age",
+        "body": "Regular movement improves cardiovascular health, mood, and bone density.\n\nMatch intensity to your age and condition: light strength work, walking, and joint mobility are safe foundations for most people."
       },
       "a3": {
         "category": "Mental health",
-        "title": "Techniques to reduce stress"
+        "title": "Techniques to reduce stress",
+        "body": "Chronic stress affects sleep, digestion, and immune function.\n\nDiaphragmatic breathing, mindful breaks, and clear work boundaries help restore balance. If symptoms persist, talk to a professional."
       },
       "a4": {
         "category": "Prevention",
-        "title": "Essential medical checkups"
+        "title": "Essential medical checkups",
+        "body": "Periodic checkups help detect risk factors before they become disease.\n\nLabs, blood pressure, and age-appropriate screenings are core parts of personalized preventive care."
       },
       "a5": {
         "category": "General wellness",
-        "title": "Healthy habits for everyday life"
+        "title": "Healthy habits for everyday life",
+        "body": "Good sleep, movement, and social connection are pillars of wellbeing.\n\nBuild small, repeatable routines: regular schedules, unhurried meals, and real rest."
       }
     }
   },

@@ -306,6 +306,18 @@
   },
   "news": {
     "backHome": "Volver al inicio",
+    "backToList": "Volver al listado",
+    "readMore": "Leer artículo completo…",
+    "untitled": "(Sin título)",
+    "editArticle": "Editar artículo",
+    "draftBadge": "Borrador — no visible en el sitio público",
+    "breadcrumbLabel": "Navegación del artículo",
+    "infoboxLabel": "Datos del artículo",
+    "infoboxCategory": "Categoría",
+    "infoboxIndex": "N.º",
+    "publishedOn": "Publicado: {date}",
+    "noBody": "Este artículo aún no tiene contenido. Puedes añadirlo desde el panel de edición.",
+    "paginationLabel": "Páginas de artículos",
     "label": "Salud y bienestar",
     "searchLabel": "Buscar en artículos",
     "searchPlaceholder": "Buscar por tema o título…",
@@ -315,23 +327,28 @@
     "items": {
       "a1": {
         "category": "Nutrición",
-        "title": "Guía para una alimentación equilibrada"
+        "title": "Guía para una alimentación equilibrada",
+        "body": "Una alimentación equilibrada combina proteínas, grasas saludables, carbohidratos complejos y micronutrientes en cada comida.\n\nPrioriza alimentos integrales, verduras de colores variados y una hidratación constante. Pequeños cambios sostenibles suelen funcionar mejor que dietas restrictivas."
       },
       "a2": {
         "category": "Ejercicio",
-        "title": "Rutinas efectivas para cada edad"
+        "title": "Rutinas efectivas para cada edad",
+        "body": "El movimiento regular mejora la salud cardiovascular, el estado de ánimo y la densidad ósea.\n\nAdapta la intensidad a tu edad y condición: fuerza ligera, caminatas y movilidad articular son bases seguras para la mayoría de las personas."
       },
       "a3": {
         "category": "Salud mental",
-        "title": "Técnicas para reducir el estrés"
+        "title": "Técnicas para reducir el estrés",
+        "body": "El estrés crónico afecta el sueño, la digestión y el sistema inmune.\n\nRespiración diafragmática, pausas conscientes y límites claros en el trabajo ayudan a recuperar el equilibrio. Si los síntomas persisten, conviene valorarlo con un profesional."
       },
       "a4": {
         "category": "Prevención",
-        "title": "Chequeos médicos esenciales"
+        "title": "Chequeos médicos esenciales",
+        "body": "Los controles periódicos permiten detectar factores de riesgo antes de que se conviertan en enfermedad.\n\nAnalíticas, presión arterial y revisiones según tu edad son piezas clave de la medicina preventiva personalizada."
       },
       "a5": {
         "category": "Bienestar general",
-        "title": "Hábitos saludables del día a día"
+        "title": "Hábitos saludables del día a día",
+        "body": "Dormir bien, moverse y mantener vínculos sociales son pilares del bienestar.\n\nConstruye rutinas pequeñas y repetibles: horarios regulares, comidas sin prisa y momentos de descanso real."
       }
     }
   },
