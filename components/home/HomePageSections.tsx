@@ -14,6 +14,10 @@ import {
   fallbackPlansFromTranslations,
   fallbackServicesFromTranslations,
 } from "@/lib/cms/fallbackContent";
+import {
+  resolvePlansForDisplay,
+  resolveServicesForDisplay,
+} from "@/lib/cms/resolveDisplay";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
@@ -74,10 +78,10 @@ export default function HomePageSections({ editable }: Props) {
   const tPlans = useTranslations("plans");
   const { services: cmsServices, plans: cmsPlans, textOverrides } = useCmsContext();
 
+  const line = (key: string) => resolveCmsText(textOverrides, key, t(key as never));
+
   const txt = (key: string, fallbackKey: string) =>
-    editable
-      ? editable.txt(key, fallbackKey)
-      : resolveCmsText(textOverrides, key, t(fallbackKey as never));
+    editable ? editable.txt(key, fallbackKey) : line(key);
 
   const displayServices = editable
     ? editable.services.map((s) => ({
@@ -87,23 +91,17 @@ export default function HomePageSections({ editable }: Props) {
         unpublished: s.unpublished,
         isFallback: s.isFallback,
       }))
-    : cmsServices.length > 0
-      ? cmsServices
-          .filter((s) => s.is_published)
-          .map((s) => ({
-            id: s.id,
-            name: s.name,
-            desc: s.description,
-            unpublished: false,
-            isFallback: false,
-          }))
-      : fallbackServicesFromTranslations(tServices).map((s, i) => ({
-          id: `fb-${i}`,
-          name: s.name,
-          desc: s.description,
-          unpublished: false,
-          isFallback: true,
-        }));
+    : resolveServicesForDisplay(
+        cmsServices,
+        fallbackServicesFromTranslations(tServices),
+        { includeUnpublished: false }
+      ).map((s) => ({
+        id: s.id,
+        name: s.name,
+        desc: s.desc,
+        unpublished: s.unpublished,
+        isFallback: s.isFallback,
+      }));
 
   const displayPlans = editable
     ? editable.plans.map((p) => ({
@@ -114,25 +112,16 @@ export default function HomePageSections({ editable }: Props) {
         unpublished: p.unpublished,
         isFallback: p.isFallback,
       }))
-    : cmsPlans.length > 0
-      ? cmsPlans
-          .filter((p) => p.is_published)
-          .map((p) => ({
-            id: p.id,
-            name: p.name,
-            items: p.items,
-            featured: p.is_featured,
-            unpublished: false,
-            isFallback: false,
-          }))
-      : fallbackPlansFromTranslations(tPlans).map((p, i) => ({
-          id: `fb-${i}`,
-          name: p.name,
-          items: p.items,
-          featured: p.is_featured,
-          unpublished: false,
-          isFallback: true,
-        }));
+    : resolvePlansForDisplay(cmsPlans, fallbackPlansFromTranslations(tPlans), {
+        includeUnpublished: false,
+      }).map((p) => ({
+        id: p.id,
+        name: p.name,
+        items: p.items,
+        featured: p.featured,
+        unpublished: p.unpublished,
+        isFallback: p.isFallback,
+      }));
 
   const wrapText = (
     label: string,
@@ -302,26 +291,14 @@ export default function HomePageSections({ editable }: Props) {
               <header className="approach-editorial__header">
                 <div className="approach-editorial__header-copy">
                   <p className="approach-editorial__eyebrow">
-                    {editable ? (
-                      txt("approach.sectionEyebrow", "approach.sectionEyebrow")
-                    ) : (
-                      t("approach.sectionEyebrow")
-                    )}
+                    {txt("approach.sectionEyebrow", "approach.sectionEyebrow")}
                   </p>
                   <h2 className="approach-editorial__title">
-                    {editable ? (
-                      txt("approach.sectionTitle", "approach.sectionTitle")
-                    ) : (
-                      t("approach.sectionTitle")
-                    )}
+                    {txt("approach.sectionTitle", "approach.sectionTitle")}
                   </h2>
                 </div>
                 <p className="approach-editorial__lead">
-                  {editable ? (
-                    txt("approach.sectionLead", "approach.sectionLead")
-                  ) : (
-                    t("approach.sectionLead")
-                  )}
+                  {txt("approach.sectionLead", "approach.sectionLead")}
                 </p>
               </header>
             )}
@@ -336,8 +313,8 @@ export default function HomePageSections({ editable }: Props) {
                 ],
                 <ApproachPillar
                   id="approach-funcional"
-                  title={`${editable ? txt("approach.title1a", "approach.title1a") : t("approach.title1a")} ${editable ? txt("approach.title1b", "approach.title1b") : t("approach.title1b")}`}
-                  description={editable ? txt("approach.desc1", "approach.desc1") : t("approach.desc1")}
+                  title={`${txt("approach.title1a", "approach.title1a")} ${txt("approach.title1b", "approach.title1b")}`}
+                  description={txt("approach.desc1", "approach.desc1")}
                 />
               )}
               {wrapText(
@@ -349,8 +326,8 @@ export default function HomePageSections({ editable }: Props) {
                 ],
                 <ApproachPillar
                   id="approach-familiar"
-                  title={`${editable ? txt("approach.title2a", "approach.title2a") : t("approach.title2a")} ${editable ? txt("approach.title2b", "approach.title2b") : t("approach.title2b")}`}
-                  description={editable ? txt("approach.desc2", "approach.desc2") : t("approach.desc2")}
+                  title={`${txt("approach.title2a", "approach.title2a")} ${txt("approach.title2b", "approach.title2b")}`}
+                  description={txt("approach.desc2", "approach.desc2")}
                 />
               )}
               {wrapText(
@@ -361,8 +338,8 @@ export default function HomePageSections({ editable }: Props) {
                 ],
                 <ApproachPillar
                   id="approach-acompanamiento"
-                  title={editable ? txt("approach.title3", "approach.title3") : t("approach.title3")}
-                  description={editable ? txt("approach.desc3", "approach.desc3") : t("approach.desc3")}
+                  title={txt("approach.title3", "approach.title3")}
+                  description={txt("approach.desc3", "approach.desc3")}
                 />
               )}
             </div>
@@ -438,33 +415,21 @@ export default function HomePageSections({ editable }: Props) {
                 ],
                 <div className="tshape-hero">
                   <div className="tshape-hero__copy">
-                    <p className="tshape-hero__eyebrow">
-                      {editable ? txt("tshape.eyebrow", "tshape.eyebrow") : t("tshape.eyebrow")}
-                    </p>
-                    <h2 className="tshape-hero__title">
-                      {editable ? txt("tshape.heroTitle", "tshape.heroTitle") : t("tshape.heroTitle")}
-                    </h2>
-                    <p className="tshape-hero__lead">
-                      {editable ? txt("tshape.subtitle", "tshape.subtitle") : t("tshape.subtitle")}
-                    </p>
-                    <p className="tshape-hero__fda-intro">
-                      {editable ? txt("tshape.fdaDesc", "tshape.fdaDesc") : t("tshape.fdaDesc")}
-                    </p>
+                    <p className="tshape-hero__eyebrow">{txt("tshape.eyebrow", "tshape.eyebrow")}</p>
+                    <h2 className="tshape-hero__title">{txt("tshape.heroTitle", "tshape.heroTitle")}</h2>
+                    <p className="tshape-hero__lead">{txt("tshape.subtitle", "tshape.subtitle")}</p>
+                    <p className="tshape-hero__fda-intro">{txt("tshape.fdaDesc", "tshape.fdaDesc")}</p>
                     <ul className="tshape-hero__list">
                       {[1, 2, 3, 4].map((i) => (
                         <li key={i} className="tshape-hero__item">
                           <TShapeCheckIcon />
                           <span className="tshape-hero__item-text">
-                            {editable
-                              ? txt(`tshape.fdaItem${i}`, `tshape.fdaItem${i}`)
-                              : t(`tshape.fdaItem${i}`)}
+                            {txt(`tshape.fdaItem${i}`, `tshape.fdaItem${i}`)}
                           </span>
                         </li>
                       ))}
                     </ul>
-                    <p className="tshape-hero__note">
-                      {editable ? txt("tshape.fdaNote", "tshape.fdaNote") : t("tshape.fdaNote")}
-                    </p>
+                    <p className="tshape-hero__note">{txt("tshape.fdaNote", "tshape.fdaNote")}</p>
                   </div>
                   <div className="tshape-hero__visual">
                     <div className="tshape-hero__frame">
@@ -497,14 +462,10 @@ export default function HomePageSections({ editable }: Props) {
                         <span className="tshape-tech-card__dot" />
                       </div>
                       <h3 className="tshape-tech-card__title">
-                        {editable
-                          ? txt(`tshape.tech${i}Title`, `tshape.tech${i}Title`)
-                          : t(`tshape.tech${i}Title`)}
+                        {txt(`tshape.tech${i}Title`, `tshape.tech${i}Title`)}
                       </h3>
                       <p className="tshape-tech-card__desc">
-                        {editable
-                          ? txt(`tshape.tech${i}Desc`, `tshape.tech${i}Desc`)
-                          : t(`tshape.tech${i}Desc`)}
+                        {txt(`tshape.tech${i}Desc`, `tshape.tech${i}Desc`)}
                       </p>
                     </article>
                   )

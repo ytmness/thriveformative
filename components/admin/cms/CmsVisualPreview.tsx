@@ -7,12 +7,12 @@ import type { HomePageEditableConfig } from "@/components/home/homePageTypes";
 import NewsSection from "@/components/NewsSection";
 import { CmsProvider } from "@/components/cms/CmsProvider";
 import type { CmsAdminApi } from "@/hooks/useCmsAdmin";
+import { buildFallbackArticles } from "@/lib/cms/mergePreviewLists";
 import {
-  buildFallbackArticles,
-  mergePreviewArticles,
-  mergePreviewPlans,
-  mergePreviewServices,
-} from "@/lib/cms/mergePreviewLists";
+  resolveArticlesForDisplay,
+  resolvePlansForDisplay,
+  resolveServicesForDisplay,
+} from "@/lib/cms/resolveDisplay";
 import {
   fallbackPlansFromTranslations,
   fallbackServicesFromTranslations,
@@ -78,17 +78,26 @@ export default function CmsVisualPreview({ cms, siteLocale }: Props) {
   );
 
   const previewServices = useMemo(
-    () => mergePreviewServices(services, fallbackServicesFromTranslations(tServices), locale),
-    [services, tServices, locale]
+    () =>
+      resolveServicesForDisplay(
+        services,
+        fallbackServicesFromTranslations(tServices),
+        { includeUnpublished: true }
+      ),
+    [services, tServices]
   );
 
   const previewPlans = useMemo(
-    () => mergePreviewPlans(plans, fallbackPlansFromTranslations(tPlans)),
+    () =>
+      resolvePlansForDisplay(plans, fallbackPlansFromTranslations(tPlans), {
+        includeUnpublished: true,
+      }),
     [plans, tPlans]
   );
 
   const previewArticles = useMemo(
-    () => mergePreviewArticles(articles, fallbackArticles),
+    () =>
+      resolveArticlesForDisplay(articles, fallbackArticles, { includeUnpublished: true }),
     [articles, fallbackArticles]
   );
 
@@ -193,7 +202,6 @@ export default function CmsVisualPreview({ cms, siteLocale }: Props) {
                           { key: "news.searchPlaceholder", label: "Placeholder búsqueda" },
                         ],
                       }),
-                    articleIds: previewArticles.map((a) => a.id),
                   }}
                 />
                 <div className="admin-cms-visual__add-row">
@@ -218,9 +226,25 @@ export default function CmsVisualPreview({ cms, siteLocale }: Props) {
           rel="noreferrer"
           className="underline hover:text-[rgb(var(--primary))]"
         >
-          Abrir sitio público
-        </a>{" "}
-        · idioma editado: <strong>{locale}</strong>
+          Abrir inicio
+        </a>
+        {" · "}
+        <a
+          href={`/${siteLocale}/noticias`}
+          target="_blank"
+          rel="noreferrer"
+          className="underline hover:text-[rgb(var(--primary))]"
+        >
+          Ver noticias
+        </a>
+        {" · idioma del CMS: "}
+        <strong>{locale}</strong>
+        {locale !== siteLocale ? (
+          <span className="text-amber-600">
+            {" "}
+            (la URL del admin es /{siteLocale}/admin — elige el mismo idioma arriba)
+          </span>
+        ) : null}
       </p>
 
       <CmsEditDrawer target={editTarget} onClose={() => setEditTarget(null)} cms={cms} />

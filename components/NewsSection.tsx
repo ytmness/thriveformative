@@ -1,11 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useLocale } from "next-intl";
 import { useTranslations } from "next-intl";
 import CmsEditableZone from "@/components/admin/cms/CmsEditableZone";
 import { useCmsContext } from "@/components/cms/CmsProvider";
 import CmsText from "@/components/cms/CmsText";
 import { resolveCmsText } from "@/lib/cms/fetch";
+import { buildFallbackArticles } from "@/lib/cms/mergePreviewLists";
+import { resolveArticlesForDisplay } from "@/lib/cms/resolveDisplay";
+import type { Locale } from "@/lib/cms/types";
 import "./news-section.css";
 
 const ITEM_KEYS = ["a1", "a2", "a3", "a4", "a5"] as const;
@@ -21,7 +25,6 @@ export type NewsSectionAdminEditable = {
   onToggleArticleVisibility: (id: string) => void;
   onDeleteArticle: (id: string) => void;
   onEditHeader: () => void;
-  articleIds: string[];
 };
 
 type Props = {
@@ -30,48 +33,53 @@ type Props = {
 
 export default function NewsSection({ adminEditable }: Props) {
   const t = useTranslations("news");
-  const { articles, textOverrides } = useCmsContext();
+  const pageLocale = useLocale() as Locale;
+  const { articles: cmsArticles, textOverrides } = useCmsContext();
   const [query, setQuery] = useState("");
 
-  const publishedOnly = !adminEditable;
+  const fallbackArticles = useMemo(
+    () =>
+      buildFallbackArticles(
+        pageLocale,
+        ITEM_KEYS.map((key) => ({
+          category: t(`items.${key}.category`),
+          title: t(`items.${key}.title`),
+        }))
+      ),
+    [pageLocale, t]
+  );
+
+  const displayArticles = useMemo(
+    () =>
+      resolveArticlesForDisplay(cmsArticles, fallbackArticles, {
+        includeUnpublished: !!adminEditable,
+      }),
+    [cmsArticles, fallbackArticles, adminEditable]
+  );
 
   const rows = useMemo(() => {
-    const source = publishedOnly ? articles.filter((a) => a.is_published) : articles;
-    const base =
-      source.length > 0
-        ? source.map((a, i) => ({
-            id: a.id,
-            num: String(i + 1).padStart(2, "0"),
-            category: a.category,
-            title: a.title || "(Sin título)",
-            haystack: `${a.category} ${a.title}`.toLowerCase(),
-            unpublished: !a.is_published,
-            isFallback: a.id.startsWith("fallback-article-"),
-          }))
-        : ITEM_KEYS.map((key, i) => {
-            const category = t(`items.${key}.category`);
-            const title = t(`items.${key}.title`);
-            return {
-              id: `fallback-article-${i}`,
-              num: String(i + 1).padStart(2, "0"),
-              category,
-              title,
-              haystack: `${category} ${title}`.toLowerCase(),
-              unpublished: false,
-              isFallback: true,
-            };
-          });
+    const base = displayArticles.map((a, i) => ({
+      id: a.id,
+      num: String(i + 1).padStart(2, "0"),
+      category: a.category,
+      title: a.title?.trim() || "(Sin título)",
+      haystack: `${a.category} ${a.title}`.toLowerCase(),
+      unpublished: !a.is_published,
+      isFallback: a.id.startsWith("fallback-article-"),
+    }));
     const q = query.trim().toLowerCase();
     if (!q) return base;
     return base.filter((r) => r.haystack.includes(q));
-  }, [articles, query, t, publishedOnly]);
+  }, [displayArticles, query]);
+
+  const persistedArticles = cmsArticles.filter((a) => !a.id.startsWith("fallback-article-"));
 
   const imgMain =
-    articles.find((a) => a.image_url && (adminEditable || a.is_published))?.image_url ??
+    persistedArticles.find((a) => a.image_url && (adminEditable || a.is_published))?.image_url ??
     IMG_MAIN_DEFAULT;
   const imgSub =
-    articles.filter((a) => a.image_url && (adminEditable || a.is_published))[1]?.image_url ??
-    IMG_SUB_DEFAULT;
+    persistedArticles.filter((a) => a.image_url && (adminEditable || a.is_published))[1]
+      ?.image_url ?? IMG_SUB_DEFAULT;
 
   const searchPlaceholder = resolveCmsText(
     textOverrides,

@@ -5,11 +5,18 @@ import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase";
 import { fetchCmsBundle } from "@/lib/cms/fetch";
 import { CMS_TEXT_GROUPS } from "@/lib/cms/textKeys";
+import { isEphemeralCmsId } from "@/lib/cms/resolveDisplay";
 import type { CmsArticle, CmsPlan, CmsService, Locale } from "@/lib/cms/types";
 
-export function useCmsAdmin() {
+function mergeWithPendingDrafts<T extends { id: string }>(loaded: T[], pending: T[]): T[] {
+  const loadedIds = new Set(loaded.map((x) => x.id));
+  const extra = pending.filter((x) => x.id.startsWith("new-") && !loadedIds.has(x.id));
+  return [...loaded, ...extra];
+}
+
+export function useCmsAdmin(initialLocale: Locale) {
   const t = useTranslations();
-  const [locale, setLocale] = useState<Locale>("es");
+  const [locale, setLocale] = useState<Locale>(initialLocale);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
@@ -19,14 +26,18 @@ export function useCmsAdmin() {
   const [articles, setArticles] = useState<CmsArticle[]>([]);
   const [textDraft, setTextDraft] = useState<Record<string, string>>({});
 
+  useEffect(() => {
+    setLocale(initialLocale);
+  }, [initialLocale]);
+
   const load = useCallback(async () => {
     setLoading(true);
     setMessage(null);
     try {
       const bundle = await fetchCmsBundle(locale, { includeUnpublished: true });
-      setServices(bundle.services);
-      setPlans(bundle.plans);
-      setArticles(bundle.articles);
+      setServices((prev) => mergeWithPendingDrafts(bundle.services, prev));
+      setPlans((prev) => mergeWithPendingDrafts(bundle.plans, prev));
+      setArticles((prev) => mergeWithPendingDrafts(bundle.articles, prev));
       const draft: Record<string, string> = { ...bundle.textOverrides };
       CMS_TEXT_GROUPS.forEach((g) =>
         g.keys.forEach((k) => {
@@ -71,22 +82,35 @@ export function useCmsAdmin() {
       is_published: row.is_published,
       updated_at: new Date().toISOString(),
     };
-    const { error } = row.id.startsWith("new-")
-      ? await supabase.from("cms_services").insert(payload)
-      : await supabase.from("cms_services").update(payload).eq("id", row.id);
+    const isNew = row.id.startsWith("new-");
+    const { data, error } = isNew
+      ? await supabase.from("cms_services").insert(payload).select().single()
+      : await supabase
+          .from("cms_services")
+          .update(payload)
+          .eq("id", row.id)
+          .select()
+          .single();
     setSaving(false);
     if (error) {
       setMessage({ type: "err", text: error.message });
       return false;
     }
+    if (data) {
+      setServices((prev) => {
+        const next = isNew ? prev.filter((s) => s.id !== row.id) : prev.filter((s) => s.id !== row.id);
+        return [...next, data as CmsService].sort((a, b) => a.sort_order - b.sort_order);
+      });
+    }
     setMessage({ type: "ok", text: "Servicio guardado." });
-    await load();
     return true;
   }
 
   async function deleteService(id: string) {
-    if (id.startsWith("new-")) {
-      setServices((prev) => prev.filter((s) => s.id !== id));
+    if (isEphemeralCmsId(id)) {
+      if (id.startsWith("new-")) {
+        setServices((prev) => prev.filter((s) => s.id !== id));
+      }
       return true;
     }
     const supabase = createClient();
@@ -95,7 +119,7 @@ export function useCmsAdmin() {
       setMessage({ type: "err", text: error.message });
       return false;
     }
-    await load();
+    setServices((prev) => prev.filter((s) => s.id !== id));
     return true;
   }
 
@@ -111,22 +135,37 @@ export function useCmsAdmin() {
       is_published: row.is_published,
       updated_at: new Date().toISOString(),
     };
-    const { error } = row.id.startsWith("new-")
-      ? await supabase.from("cms_plans").insert(payload)
-      : await supabase.from("cms_plans").update(payload).eq("id", row.id);
+    const isNew = row.id.startsWith("new-");
+    const { data, error } = isNew
+      ? await supabase.from("cms_plans").insert(payload).select().single()
+      : await supabase.from("cms_plans").update(payload).eq("id", row.id).select().single();
     setSaving(false);
     if (error) {
       setMessage({ type: "err", text: error.message });
       return false;
     }
+    if (data) {
+      const raw = data as CmsPlan;
+      const parsed: CmsPlan = {
+        ...raw,
+        items: Array.isArray(raw.items)
+          ? raw.items.filter((x): x is string => typeof x === "string")
+          : row.items.filter((x) => x.trim()),
+      };
+      setPlans((prev) => {
+        const next = prev.filter((p) => p.id !== row.id);
+        return [...next, parsed].sort((a, b) => a.sort_order - b.sort_order);
+      });
+    }
     setMessage({ type: "ok", text: "Plan guardado." });
-    await load();
     return true;
   }
 
   async function deletePlan(id: string) {
-    if (id.startsWith("new-")) {
-      setPlans((prev) => prev.filter((p) => p.id !== id));
+    if (isEphemeralCmsId(id)) {
+      if (id.startsWith("new-")) {
+        setPlans((prev) => prev.filter((p) => p.id !== id));
+      }
       return true;
     }
     const supabase = createClient();
@@ -135,7 +174,7 @@ export function useCmsAdmin() {
       setMessage({ type: "err", text: error.message });
       return false;
     }
-    await load();
+    setPlans((prev) => prev.filter((p) => p.id !== id));
     return true;
   }
 
@@ -153,22 +192,30 @@ export function useCmsAdmin() {
       published_at: row.published_at || new Date().toISOString().slice(0, 10),
       updated_at: new Date().toISOString(),
     };
-    const { error } = row.id.startsWith("new-")
-      ? await supabase.from("cms_articles").insert(payload)
-      : await supabase.from("cms_articles").update(payload).eq("id", row.id);
+    const isNew = row.id.startsWith("new-");
+    const { data, error } = isNew
+      ? await supabase.from("cms_articles").insert(payload).select().single()
+      : await supabase.from("cms_articles").update(payload).eq("id", row.id).select().single();
     setSaving(false);
     if (error) {
       setMessage({ type: "err", text: error.message });
       return false;
     }
+    if (data) {
+      setArticles((prev) => {
+        const next = prev.filter((a) => a.id !== row.id);
+        return [...next, data as CmsArticle].sort((a, b) => a.sort_order - b.sort_order);
+      });
+    }
     setMessage({ type: "ok", text: "Artículo guardado." });
-    await load();
     return true;
   }
 
   async function deleteArticle(id: string) {
-    if (id.startsWith("new-")) {
-      setArticles((prev) => prev.filter((a) => a.id !== id));
+    if (isEphemeralCmsId(id)) {
+      if (id.startsWith("new-")) {
+        setArticles((prev) => prev.filter((a) => a.id !== id));
+      }
       return true;
     }
     const supabase = createClient();
@@ -177,7 +224,7 @@ export function useCmsAdmin() {
       setMessage({ type: "err", text: error.message });
       return false;
     }
-    await load();
+    setArticles((prev) => prev.filter((a) => a.id !== id));
     return true;
   }
 
@@ -323,37 +370,31 @@ export function useCmsAdmin() {
     setArticles((prev) => prev.map((a) => (a.id === id ? { ...a, ...patch } : a)));
   }
 
-  async function persistVisibility<T extends CmsService | CmsPlan | CmsArticle>(
-    id: string,
-    row: T | undefined,
-    saver: (r: T) => Promise<boolean>
-  ) {
-    if (!row || id.startsWith("new-")) return;
-    await saver(row);
-  }
-
   async function toggleServiceVisibility(id: string) {
+    if (isEphemeralCmsId(id)) return;
     const row = getServiceById(id);
     if (!row) return;
     const next = !row.is_published;
     updateService(id, { is_published: next });
-    await persistVisibility(id, { ...row, is_published: next }, saveService);
+    await saveService({ ...row, is_published: next });
   }
 
   async function togglePlanVisibility(id: string) {
+    if (isEphemeralCmsId(id)) return;
     const row = getPlanById(id);
     if (!row) return;
     const next = !row.is_published;
     updatePlan(id, { is_published: next });
-    await persistVisibility(id, { ...row, is_published: next }, savePlan);
+    await savePlan({ ...row, is_published: next });
   }
 
   async function toggleArticleVisibility(id: string) {
+    if (isEphemeralCmsId(id)) return;
     const row = getArticleById(id);
     if (!row) return;
     const next = !row.is_published;
     updateArticle(id, { is_published: next });
-    await persistVisibility(id, { ...row, is_published: next }, saveArticle);
+    await saveArticle({ ...row, is_published: next });
   }
 
   return {

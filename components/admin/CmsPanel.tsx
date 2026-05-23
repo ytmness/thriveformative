@@ -23,7 +23,7 @@ type Props = {
 };
 
 export default function CmsPanel({ siteLocale }: Props) {
-  const cms = useCmsAdmin();
+  const cms = useCmsAdmin(siteLocale as Locale);
   const [viewMode, setViewMode] = useState<ViewMode>("visual");
   const [subTab, setSubTab] = useState<SubTab>("services");
 
