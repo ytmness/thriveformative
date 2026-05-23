@@ -9,6 +9,7 @@ import { CmsProvider } from "@/components/cms/CmsProvider";
 import type { CmsAdminApi } from "@/hooks/useCmsAdmin";
 import { buildFallbackArticles } from "@/lib/cms/mergePreviewLists";
 import {
+  nextSortOrderFromDisplay,
   resolveArticlesForDisplay,
   resolvePlansForDisplay,
   resolveServicesForDisplay,
@@ -113,7 +114,11 @@ export default function CmsVisualPreview({ cms, siteLocale }: Props) {
 
   function openService(id: string, fallback?: { name: string; description: string }) {
     if (id.startsWith("fallback-service-")) {
-      setEditTarget({ kind: "service", id: addService(fallback) });
+      const sort_order = Number.parseInt(id.replace("fallback-service-", ""), 10);
+      setEditTarget({
+        kind: "service",
+        id: addService({ ...fallback, sort_order }),
+      });
       return;
     }
     setEditTarget({ kind: "service", id });
@@ -124,7 +129,11 @@ export default function CmsVisualPreview({ cms, siteLocale }: Props) {
     fallback?: { name: string; items: string[]; is_featured: boolean }
   ) {
     if (id.startsWith("fallback-plan-")) {
-      setEditTarget({ kind: "plan", id: addPlan(fallback) });
+      const sort_order = Number.parseInt(id.replace("fallback-plan-", ""), 10);
+      setEditTarget({
+        kind: "plan",
+        id: addPlan({ ...fallback, sort_order }),
+      });
       return;
     }
     setEditTarget({ kind: "plan", id });
@@ -154,8 +163,8 @@ export default function CmsVisualPreview({ cms, siteLocale }: Props) {
     onEdit: setEditTarget,
     services: previewServices,
     plans: previewPlans,
-    onAddService: () => addService(),
-    onAddPlan: () => addPlan(),
+    onAddService: () => addService({ sort_order: nextSortOrderFromDisplay(previewServices) }),
+    onAddPlan: () => addPlan({ sort_order: nextSortOrderFromDisplay(previewPlans) }),
     onEditService: openService,
     onEditPlan: openPlan,
     onToggleServiceVisibility: toggleServiceVisibility,
@@ -188,7 +197,8 @@ export default function CmsVisualPreview({ cms, siteLocale }: Props) {
                 <NewsSection
                   adminEditable={{
                     onEditArticle: openArticle,
-                    onAddArticle: () => addArticle(),
+                    onAddArticle: () =>
+                      addArticle({ sort_order: nextSortOrderFromDisplay(previewArticles) }),
                     onToggleArticleVisibility: toggleArticleVisibility,
                     onDeleteArticle: deleteArticle,
                     onEditHeader: () =>
@@ -208,7 +218,9 @@ export default function CmsVisualPreview({ cms, siteLocale }: Props) {
                   <button
                     type="button"
                     className="admin-cms-visual__add-btn"
-                    onClick={() => addArticle()}
+                    onClick={() =>
+                      addArticle({ sort_order: nextSortOrderFromDisplay(previewArticles) })
+                    }
                   >
                     + Añadir artículo
                   </button>

@@ -13,10 +13,26 @@ export function isEphemeralCmsId(id: string): boolean {
   return id.startsWith("new-") || isFallbackId(id);
 }
 
+/** Siguiente orden al añadir fila nueva (después de lo que ya se muestra en pantalla). */
+export function nextSortOrderFromDisplay(items: { sort_order: number }[]): number {
+  if (!items.length) return 0;
+  return Math.max(...items.map((i) => i.sort_order)) + 1;
+}
+
 /**
- * Combina filas del CMS con traducciones por defecto: si hay 1 artículo en CMS
- * y 5 en traducciones, se muestran 1 + 4 (no solo el del CMS).
+ * CMS + traducciones por hueco de sort_order (no por cantidad).
+ * Si hay CMS en orden 0 y 5, se mantienen los fallback 1–4 y no se sustituye el 2.
  */
+function mergeBySortOrderSlot<T extends { sort_order: number }>(
+  cmsItems: T[],
+  fallbacks: T[]
+): T[] {
+  if (cmsItems.length === 0) return fallbacks;
+  const cmsOrders = new Set(cmsItems.map((c) => c.sort_order));
+  const remaining = fallbacks.filter((f) => !cmsOrders.has(f.sort_order));
+  return sortByOrder([...cmsItems, ...remaining]);
+}
+
 export function resolveArticlesForDisplay(
   cmsItems: CmsArticle[],
   fallbacks: CmsArticle[],
@@ -25,8 +41,7 @@ export function resolveArticlesForDisplay(
   const cms = sortByOrder(
     options?.includeUnpublished ? cmsItems : cmsItems.filter((a) => a.is_published)
   );
-  if (cms.length === 0) return fallbacks;
-  return [...cms, ...fallbacks.slice(cms.length)];
+  return mergeBySortOrderSlot(cms, fallbacks);
 }
 
 export function resolveServicesForDisplay(
@@ -37,6 +52,7 @@ export function resolveServicesForDisplay(
   const cms = sortByOrder(
     options?.includeUnpublished ? cmsItems : cmsItems.filter((s) => s.is_published)
   );
+
   const cmsRows: PreviewServiceRow[] = cms.map((s) => ({
     id: s.id,
     name: s.name.trim() || "Sin nombre",
@@ -46,27 +62,16 @@ export function resolveServicesForDisplay(
     sort_order: s.sort_order,
   }));
 
-  if (cmsRows.length === 0) {
-    return fallbacks.map((fb, i) => ({
-      id: `fallback-service-${i}`,
-      name: fb.name,
-      desc: fb.description,
-      unpublished: false,
-      isFallback: true,
-      sort_order: i,
-    }));
-  }
-
-  const extra = fallbacks.slice(cmsRows.length).map((fb, i) => ({
-    id: `fallback-service-${cmsRows.length + i}`,
+  const fallbackRows: PreviewServiceRow[] = fallbacks.map((fb, i) => ({
+    id: `fallback-service-${i}`,
     name: fb.name,
     desc: fb.description,
     unpublished: false,
     isFallback: true,
-    sort_order: cmsRows.length + i,
+    sort_order: i,
   }));
 
-  return [...cmsRows, ...extra];
+  return mergeBySortOrderSlot(cmsRows, fallbackRows);
 }
 
 export function resolvePlansForDisplay(
@@ -77,6 +82,7 @@ export function resolvePlansForDisplay(
   const cms = sortByOrder(
     options?.includeUnpublished ? cmsItems : cmsItems.filter((p) => p.is_published)
   );
+
   const cmsRows: PreviewPlanRow[] = cms.map((p) => ({
     id: p.id,
     name: p.name.trim() || "Sin nombre",
@@ -87,27 +93,15 @@ export function resolvePlansForDisplay(
     sort_order: p.sort_order,
   }));
 
-  if (cmsRows.length === 0) {
-    return fallbacks.map((fb, i) => ({
-      id: `fallback-plan-${i}`,
-      name: fb.name,
-      items: fb.items,
-      featured: fb.is_featured,
-      unpublished: false,
-      isFallback: true,
-      sort_order: i,
-    }));
-  }
-
-  const extra = fallbacks.slice(cmsRows.length).map((fb, i) => ({
-    id: `fallback-plan-${cmsRows.length + i}`,
+  const fallbackRows: PreviewPlanRow[] = fallbacks.map((fb, i) => ({
+    id: `fallback-plan-${i}`,
     name: fb.name,
     items: fb.items,
     featured: fb.is_featured,
     unpublished: false,
     isFallback: true,
-    sort_order: cmsRows.length + i,
+    sort_order: i,
   }));
 
-  return [...cmsRows, ...extra];
+  return mergeBySortOrderSlot(cmsRows, fallbackRows);
 }

@@ -290,14 +290,16 @@ export function useCmsAdmin(initialLocale: Locale) {
     return Math.max(...items.map((i) => i.sort_order)) + 1;
   }
 
-  function addService(prefill?: Pick<CmsService, "name" | "description">) {
+  function addService(
+    prefill?: Partial<Pick<CmsService, "name" | "description" | "sort_order">>
+  ) {
     const id = `new-${Date.now()}`;
     setServices((prev) => [
       ...prev,
       {
         id,
         locale,
-        sort_order: nextSortOrder(prev),
+        sort_order: prefill?.sort_order ?? nextSortOrder(prev),
         name: prefill?.name ?? "",
         description: prefill?.description ?? "",
         is_published: true,
@@ -306,14 +308,16 @@ export function useCmsAdmin(initialLocale: Locale) {
     return id;
   }
 
-  function addPlan(prefill?: Pick<CmsPlan, "name" | "items" | "is_featured">) {
+  function addPlan(
+    prefill?: Partial<Pick<CmsPlan, "name" | "items" | "is_featured" | "sort_order">>
+  ) {
     const id = `new-${Date.now()}`;
     setPlans((prev) => [
       ...prev,
       {
         id,
         locale,
-        sort_order: nextSortOrder(prev),
+        sort_order: prefill?.sort_order ?? nextSortOrder(prev),
         name: prefill?.name ?? "",
         items: prefill?.items ?? [],
         is_featured: prefill?.is_featured ?? false,
