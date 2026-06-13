@@ -11,7 +11,22 @@
     "about": "El Doctor",
     "faq": "FAQ",
     "contact": "Contacto",
-    "schedule": "Agendar"
+    "schedule": "Agendar",
+    "tienda": "Tienda"
+  },
+  "tienda": {
+    "eyebrow": "Recomendaciones",
+    "pageTitle": "Tienda",
+    "pageSubtitle": "Productos seleccionados para apoyar tu bienestar. Compra en la tienda externa con nuestro enlace de referido.",
+    "empty": "Pronto habrá productos disponibles.",
+    "loadError": "No se pudo cargar el catálogo.",
+    "noImage": "Sin imagen",
+    "viewProduct": "Ver detalle",
+    "buyExternal": "Comprar en tienda",
+    "backToStore": "Volver a la tienda",
+    "notFoundTitle": "Producto no encontrado",
+    "notFoundBody": "Este producto no existe o ya no está disponible.",
+    "externalDisclaimer": "Serás redirigido a una tienda externa para completar tu compra."
   },
   "shapescale": {
     "title": "ShapeScale",

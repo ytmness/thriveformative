@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase";
 import BookingAvailabilityPanel from "@/components/admin/BookingAvailabilityPanel";
 import CmsPanel from "@/components/admin/CmsPanel";
+import StorePanel from "@/components/admin/StorePanel";
 
 type AppointmentRow = {
   id: string;
@@ -67,7 +68,7 @@ const SEX_LABELS: Record<string, string> = {
 
 export default function AdminDashboard({ locale }: { locale: string }) {
   const [tab, setTab] = useState<
-    "appointments" | "availability" | "cms" | "clients" | "contact"
+    "appointments" | "availability" | "cms" | "store" | "clients" | "contact"
   >("appointments");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -291,6 +292,17 @@ export default function AdminDashboard({ locale }: { locale: string }) {
           </button>
           <button
             type="button"
+            onClick={() => setTab("store")}
+            className={`rounded-xl px-4 py-2 text-sm font-medium border ${
+              tab === "store"
+                ? "bg-[rgb(var(--primary)/0.14)] border-[rgb(var(--primary)/0.35)]"
+                : "bg-surface border-theme hover:bg-[rgb(var(--primary)/0.06)]"
+            }`}
+          >
+            Tienda
+          </button>
+          <button
+            type="button"
             onClick={() => setTab("clients")}
             className={`rounded-xl px-4 py-2 text-sm font-medium border ${
               tab === "clients"
@@ -470,6 +482,8 @@ export default function AdminDashboard({ locale }: { locale: string }) {
         <BookingAvailabilityPanel />
       ) : tab === "cms" ? (
         <CmsPanel siteLocale={locale} />
+      ) : tab === "store" ? (
+        <StorePanel siteLocale={locale} />
       ) : tab === "contact" ? (
         <section className="mt-10">
           <div className="rounded-2xl border border-theme bg-surface overflow-hidden">

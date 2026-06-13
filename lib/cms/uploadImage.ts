@@ -21,7 +21,13 @@ export function validateCmsImageFile(file: File): string | null {
   return null;
 }
 
-export async function uploadCmsImage(file: File, locale: Locale): Promise<string> {
+export type CmsImageFolder = "articles" | "products";
+
+export async function uploadCmsImage(
+  file: File,
+  locale: Locale,
+  folder: CmsImageFolder = "articles"
+): Promise<string> {
   const validation = validateCmsImageFile(file);
   if (validation) throw new Error(validation);
 
@@ -30,7 +36,7 @@ export async function uploadCmsImage(file: File, locale: Locale): Promise<string
   const ext =
     extFromName === "jpeg" ? "jpg" : ["jpg", "png", "webp", "gif"].includes(extFromName) ? extFromName : "jpg";
 
-  const path = `${locale}/articles/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
+  const path = `${locale}/${folder}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
 
   const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
     cacheControl: "31536000",

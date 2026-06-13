@@ -11,7 +11,22 @@
     "about": "About the Doctor",
     "faq": "FAQ",
     "contact": "Contact",
-    "schedule": "Book"
+    "schedule": "Book",
+    "tienda": "Shop"
+  },
+  "tienda": {
+    "eyebrow": "Recommendations",
+    "pageTitle": "Shop",
+    "pageSubtitle": "Curated products to support your wellness. Purchase through our external referral link.",
+    "empty": "Products coming soon.",
+    "loadError": "Could not load the catalog.",
+    "noImage": "No image",
+    "viewProduct": "View details",
+    "buyExternal": "Buy at store",
+    "backToStore": "Back to shop",
+    "notFoundTitle": "Product not found",
+    "notFoundBody": "This product does not exist or is no longer available.",
+    "externalDisclaimer": "You will be redirected to an external store to complete your purchase."
   },
   "shapescale": {
     "title": "ShapeScale",

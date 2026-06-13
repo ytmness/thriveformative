@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
-import { uploadCmsImage, validateCmsImageFile } from "@/lib/cms/uploadImage";
+import { uploadCmsImage, validateCmsImageFile, type CmsImageFolder } from "@/lib/cms/uploadImage";
 import type { Locale } from "@/lib/cms/types";
 import "@/app/styles/cms-image-field.css";
 
@@ -10,6 +10,7 @@ type Props = {
   value: string | null;
   onChange: (url: string | null) => void;
   label?: string;
+  uploadFolder?: CmsImageFolder;
 };
 
 export default function CmsImageField({
@@ -17,6 +18,7 @@ export default function CmsImageField({
   value,
   onChange,
   label = "Imagen",
+  uploadFolder = "articles",
 }: Props) {
   const inputId = useId();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -34,7 +36,7 @@ export default function CmsImageField({
     }
     setUploading(true);
     try {
-      const url = await uploadCmsImage(file, locale);
+      const url = await uploadCmsImage(file, locale, uploadFolder);
       onChange(url);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error al subir la imagen.");

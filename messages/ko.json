@@ -11,7 +11,22 @@
     "about": "의사 소개",
     "faq": "자주 묻는 질문",
     "contact": "연락처",
-    "schedule": "예약"
+    "schedule": "예약",
+    "tienda": "스토어"
+  },
+  "tienda": {
+    "eyebrow": "추천",
+    "pageTitle": "스토어",
+    "pageSubtitle": "웰니스를 위한 엄선 제품. 외부 추천 링크를 통해 구매하세요.",
+    "empty": "곧 제품이 추가됩니다.",
+    "loadError": "카탈로그를 불러올 수 없습니다.",
+    "noImage": "이미지 없음",
+    "viewProduct": "자세히 보기",
+    "buyExternal": "스토어에서 구매",
+    "backToStore": "스토어로 돌아가기",
+    "notFoundTitle": "제품을 찾을 수 없습니다",
+    "notFoundBody": "이 제품은 존재하지 않거나 더 이상 제공되지 않습니다.",
+    "externalDisclaimer": "구매를 완료하려면 외부 스토어로 이동합니다."
   },
   "shapescale": {
     "title": "ShapeScale",
