@@ -6,13 +6,23 @@ import { fetchStoreProducts } from "@/lib/store/fetch";
 import { isValidRef, slugifyRef } from "@/lib/store/slug";
 import type { Locale, StoreProduct } from "@/lib/store/types";
 
-function mergeWithPendingDrafts(loaded: StoreProduct[], pending: StoreProduct[]): StoreProduct[] {
-  const loadedIds = new Set(loaded.map((x) => x.id));
-  const extra = pending.filter((x) => x.id.startsWith("new-") && !loadedIds.has(x.id));
-  return [...loaded, ...extra];
+export type StoreProductDraft = StoreProduct & { id: string | "draft" };
+
+function createEmptyDraft(locale: Locale, sortOrder: number): StoreProductDraft {
+  return {
+    id: "draft",
+    locale,
+    sort_order: sortOrder,
+    name: "",
+    description: "",
+    ref: "",
+    referral_url: "",
+    image_url: null,
+    is_published: true,
+  };
 }
 
-function validateProduct(row: StoreProduct): string | null {
+function validateProduct(row: Pick<StoreProduct, "name" | "ref" | "referral_url">): string | null {
   if (!row.name.trim()) return "El nombre es obligatorio.";
   const ref = row.ref.trim();
   if (!ref) return "El ref (slug) es obligatorio.";
@@ -38,17 +48,34 @@ export function useStoreAdmin(initialLocale: Locale) {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [products, setProducts] = useState<StoreProduct[]>([]);
+  const [draft, setDraft] = useState<StoreProductDraft>(() => createEmptyDraft(initialLocale, 0));
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
     setLocale(initialLocale);
   }, [initialLocale]);
+
+  const nextSortOrder = useCallback((rows: StoreProduct[]) => {
+    if (!rows.length) return 0;
+    return Math.max(...rows.map((p) => p.sort_order)) + 1;
+  }, []);
+
+  const resetDraft = useCallback(
+    (rows: StoreProduct[] = products) => {
+      setDraft(createEmptyDraft(locale, nextSortOrder(rows)));
+      setEditingId(null);
+    },
+    [locale, nextSortOrder, products]
+  );
 
   const load = useCallback(async () => {
     setLoading(true);
     setMessage(null);
     try {
       const rows = await fetchStoreProducts(locale, { includeUnpublished: true });
-      setProducts((prev) => mergeWithPendingDrafts(rows, prev));
+      setProducts(rows);
+      setDraft(createEmptyDraft(locale, nextSortOrder(rows)));
+      setEditingId(null);
     } catch (e) {
       setMessage({
         type: "err",
@@ -60,42 +87,65 @@ export function useStoreAdmin(initialLocale: Locale) {
     } finally {
       setLoading(false);
     }
-  }, [locale]);
+  }, [locale, nextSortOrder]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  async function saveProduct(row: StoreProduct) {
-    const validation = validateProduct(row);
+  function updateDraft(patch: Partial<StoreProductDraft>) {
+    setDraft((prev) => ({ ...prev, ...patch }));
+  }
+
+  function suggestRefFromName(name: string): string {
+    return slugifyRef(name);
+  }
+
+  function startNewProduct() {
+    setMessage(null);
+    resetDraft();
+  }
+
+  function startEditProduct(product: StoreProduct) {
+    setMessage(null);
+    setDraft({ ...product });
+    setEditingId(product.id);
+  }
+
+  async function saveDraft() {
+    const validation = validateProduct(draft);
     if (validation) {
       setMessage({ type: "err", text: validation });
       return false;
     }
 
     setSaving(true);
+    setMessage(null);
     const supabase = createClient();
     const payload = {
       locale,
-      sort_order: row.sort_order,
-      name: row.name.trim(),
-      description: row.description.trim(),
-      ref: row.ref.trim(),
-      referral_url: row.referral_url.trim(),
-      image_url: row.image_url?.trim() || null,
-      is_published: row.is_published,
+      sort_order: draft.sort_order,
+      name: draft.name.trim(),
+      description: draft.description.trim(),
+      ref: draft.ref.trim(),
+      referral_url: draft.referral_url.trim(),
+      image_url: draft.image_url?.trim() || null,
+      is_published: draft.is_published,
       updated_at: new Date().toISOString(),
     };
-    const isNew = row.id.startsWith("new-");
+
+    const isNew = editingId === null;
     const { data, error } = isNew
       ? await supabase.from("store_products").insert(payload).select().single()
       : await supabase
           .from("store_products")
           .update(payload)
-          .eq("id", row.id)
+          .eq("id", editingId)
           .select()
           .single();
+
     setSaving(false);
+
     if (error) {
       setMessage({
         type: "err",
@@ -105,57 +155,73 @@ export function useStoreAdmin(initialLocale: Locale) {
       });
       return false;
     }
+
     if (data) {
+      const saved = data as StoreProduct;
       setProducts((prev) => {
-        const next = prev.filter((p) => p.id !== row.id);
-        return [...next, data as StoreProduct].sort((a, b) => a.sort_order - b.sort_order);
+        const next = prev.filter((p) => p.id !== saved.id);
+        return [...next, saved].sort((a, b) => a.sort_order - b.sort_order);
       });
+      setDraft(createEmptyDraft(locale, nextSortOrder([...products.filter((p) => p.id !== saved.id), saved])));
+      setEditingId(null);
     }
-    setMessage({ type: "ok", text: "Producto guardado." });
+
+    setMessage({
+      type: "ok",
+      text: isNew ? "Producto añadido. Puedes agregar otro." : "Producto actualizado.",
+    });
     return true;
   }
 
   async function deleteProduct(id: string) {
-    if (id.startsWith("new-")) {
-      setProducts((prev) => prev.filter((p) => p.id !== id));
-      return true;
-    }
+    setMessage(null);
     const supabase = createClient();
     const { error } = await supabase.from("store_products").delete().eq("id", id);
     if (error) {
       setMessage({ type: "err", text: error.message });
       return false;
     }
-    setProducts((prev) => prev.filter((p) => p.id !== id));
+
+    const nextProducts = products.filter((p) => p.id !== id);
+    setProducts(nextProducts);
+    if (editingId === id) {
+      setDraft(createEmptyDraft(locale, nextSortOrder(nextProducts)));
+      setEditingId(null);
+    }
+    setMessage({ type: "ok", text: "Producto eliminado." });
     return true;
   }
 
-  function nextSortOrder() {
-    if (!products.length) return 0;
-    return Math.max(...products.map((p) => p.sort_order)) + 1;
-  }
+  async function togglePublished(id: string) {
+    const product = products.find((p) => p.id === id);
+    if (!product) return false;
 
-  function addProduct() {
-    const id = `new-${Date.now()}`;
-    setProducts((prev) => [
-      ...prev,
-      {
-        id,
-        locale,
-        sort_order: nextSortOrder(),
-        name: "",
-        description: "",
-        ref: "",
-        referral_url: "",
-        image_url: null,
-        is_published: true,
-      },
-    ]);
-    return id;
-  }
+    const next = !product.is_published;
+    setSaving(true);
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("store_products")
+      .update({ is_published: next, updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .select()
+      .single();
+    setSaving(false);
 
-  function suggestRefFromName(name: string): string {
-    return slugifyRef(name);
+    if (error) {
+      setMessage({ type: "err", text: error.message });
+      return false;
+    }
+
+    if (data) {
+      const saved = data as StoreProduct;
+      setProducts((prev) =>
+        prev.map((p) => (p.id === id ? saved : p)).sort((a, b) => a.sort_order - b.sort_order)
+      );
+      if (editingId === id) {
+        setDraft((prev) => ({ ...prev, is_published: saved.is_published }));
+      }
+    }
+    return true;
   }
 
   return {
@@ -165,11 +231,15 @@ export function useStoreAdmin(initialLocale: Locale) {
     saving,
     message,
     products,
-    setProducts,
+    draft,
+    editingId,
+    updateDraft,
     load,
-    saveProduct,
+    saveDraft,
     deleteProduct,
-    addProduct,
+    togglePublished,
+    startNewProduct,
+    startEditProduct,
     suggestRefFromName,
   };
 }
