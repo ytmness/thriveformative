@@ -24,11 +24,16 @@ export default function StorePanel({ siteLocale }: Props) {
     saving,
     message,
     products,
+    categories,
     draft,
     editingId,
+    categoryName,
+    setCategoryName,
     updateDraft,
     saveDraft,
     deleteProduct,
+    deleteCategory,
+    addCategory,
     togglePublished,
     startNewProduct,
     startEditProduct,
@@ -59,8 +64,8 @@ export default function StorePanel({ siteLocale }: Props) {
           </select>
         </div>
         <p className="text-sm text-muted max-w-xl">
-          Añade productos con enlace de referido externo. Al guardar, el formulario se limpia para
-          que puedas agregar otro.
+          Gestiona categorías y productos con enlace de referido. Al guardar un producto nuevo, el
+          formulario se limpia.
         </p>
       </div>
 
@@ -69,6 +74,61 @@ export default function StorePanel({ siteLocale }: Props) {
       )}
 
       <div className="admin-cms__card">
+        <h2 className="text-lg font-semibold mb-4">Categorías ({categories.length})</h2>
+
+        <div className="flex flex-wrap gap-2 mb-4">
+          <input
+            className="flex-1 min-w-[12rem] rounded-xl border border-theme bg-[rgb(var(--bg)/0.35)] px-3 py-2 text-sm"
+            value={categoryName}
+            placeholder="Nueva categoría (ej. Suplementos)"
+            onChange={(e) => setCategoryName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                void addCategory();
+              }
+            }}
+          />
+          <button
+            type="button"
+            className="admin-cms__btn"
+            disabled={saving || !categoryName.trim()}
+            onClick={() => void addCategory()}
+          >
+            Añadir categoría
+          </button>
+        </div>
+
+        {categories.length === 0 ? (
+          <p className="text-muted text-sm">Sin categorías. Los productos pueden quedar sin categoría.</p>
+        ) : (
+          <ul className="flex flex-wrap gap-2">
+            {categories.map((cat) => (
+              <li
+                key={cat.id}
+                className="inline-flex items-center gap-2 rounded-full border border-theme bg-[rgb(var(--bg)/0.35)] px-3 py-1.5 text-sm"
+              >
+                <span>{cat.name}</span>
+                <span className="text-muted text-xs">/{cat.slug}</span>
+                <button
+                  type="button"
+                  className="text-red-600 hover:opacity-80 text-xs font-medium ml-1"
+                  disabled={saving}
+                  onClick={() => {
+                    if (window.confirm(`¿Eliminar categoría "${cat.name}"? Los productos quedarán sin categoría.`)) {
+                      void deleteCategory(cat.id);
+                    }
+                  }}
+                >
+                  Eliminar
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="admin-cms__card mt-6">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <h2 className="text-lg font-semibold">
             {isEditing ? "Editar producto" : "Nuevo producto"}
@@ -83,6 +143,7 @@ export default function StorePanel({ siteLocale }: Props) {
         <ProductForm
           locale={locale}
           draft={draft}
+          categories={categories}
           saving={saving}
           isEditing={isEditing}
           onChange={updateDraft}
@@ -93,9 +154,7 @@ export default function StorePanel({ siteLocale }: Props) {
 
       <div className="admin-cms__card mt-6">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-          <h2 className="text-lg font-semibold">
-            Productos ({products.length})
-          </h2>
+          <h2 className="text-lg font-semibold">Productos ({products.length})</h2>
         </div>
 
         {products.length === 0 ? (
@@ -116,7 +175,7 @@ export default function StorePanel({ siteLocale }: Props) {
                     <img
                       src={product.image_url}
                       alt=""
-                      className="w-16 h-16 rounded-lg object-cover border border-theme flex-shrink-0"
+                      className="w-16 h-16 rounded-lg object-contain border border-theme flex-shrink-0 bg-[rgb(var(--bg)/0.5)]"
                     />
                   ) : (
                     <div className="w-16 h-16 rounded-lg border border-theme bg-[rgb(var(--primary)/0.06)] flex-shrink-0" />
@@ -125,6 +184,11 @@ export default function StorePanel({ siteLocale }: Props) {
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-medium">{product.name}</span>
+                      {product.category ? (
+                        <span className="text-xs px-2 py-0.5 rounded-full border border-[rgb(var(--primary)/0.35)] text-[rgb(var(--primary))] bg-[rgb(var(--primary)/0.08)]">
+                          {product.category.name}
+                        </span>
+                      ) : null}
                       <span
                         className={`text-xs px-2 py-0.5 rounded-full border ${
                           product.is_published
@@ -186,6 +250,7 @@ export default function StorePanel({ siteLocale }: Props) {
 function ProductForm({
   locale,
   draft,
+  categories,
   saving,
   isEditing,
   onChange,
@@ -194,6 +259,7 @@ function ProductForm({
 }: {
   locale: Locale;
   draft: ReturnType<typeof useStoreAdmin>["draft"];
+  categories: ReturnType<typeof useStoreAdmin>["categories"];
   saving: boolean;
   isEditing: boolean;
   onChange: (patch: Partial<typeof draft>) => void;
@@ -215,6 +281,23 @@ function ProductForm({
             onChange(patch);
           }}
         />
+      </div>
+
+      <div className="admin-cms__field">
+        <label>Categoría</label>
+        <select
+          value={draft.category_id ?? ""}
+          onChange={(e) =>
+            onChange({ category_id: e.target.value ? e.target.value : null })
+          }
+        >
+          <option value="">Sin categoría</option>
+          {categories.map((cat) => (
+            <option key={cat.id} value={cat.id}>
+              {cat.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="admin-cms__field">

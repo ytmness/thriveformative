@@ -4,16 +4,18 @@ import { motion } from "framer-motion";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
-import { fetchStoreProducts } from "@/lib/store/fetch";
+import { useEffect, useMemo, useState } from "react";
+import { fetchStoreCategories, fetchStoreProducts } from "@/lib/store/fetch";
 import type { Locale } from "@/lib/cms/types";
-import type { StoreProduct } from "@/lib/store/types";
+import type { StoreCategory, StoreProduct } from "@/lib/store/types";
 import "@/app/styles/tienda.css";
 
 export default function StoreCatalog() {
   const t = useTranslations("tienda");
   const locale = useLocale();
   const [products, setProducts] = useState<StoreProduct[]>([]);
+  const [categories, setCategories] = useState<StoreCategory[]>([]);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,9 +23,15 @@ export default function StoreCatalog() {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    fetchStoreProducts(locale as Locale)
-      .then((rows) => {
-        if (!cancelled) setProducts(rows);
+    Promise.all([
+      fetchStoreProducts(locale as Locale),
+      fetchStoreCategories(locale as Locale),
+    ])
+      .then(([rows, cats]) => {
+        if (!cancelled) {
+          setProducts(rows);
+          setCategories(cats);
+        }
       })
       .catch((e) => {
         if (!cancelled) {
@@ -37,6 +45,11 @@ export default function StoreCatalog() {
       cancelled = true;
     };
   }, [locale, t]);
+
+  const filteredProducts = useMemo(() => {
+    if (!activeCategory) return products;
+    return products.filter((p) => p.category?.slug === activeCategory);
+  }, [products, activeCategory]);
 
   if (loading) {
     return (
@@ -66,11 +79,45 @@ export default function StoreCatalog() {
   }
 
   return (
-    <div className="tienda-catalog">
-      {products.map((product, i) => (
-        <ProductCard key={product.id} product={product} locale={locale} index={i} />
-      ))}
-    </div>
+    <>
+      {categories.length > 0 ? (
+        <div className="tienda-filters" role="tablist" aria-label={t("filterLabel")}>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeCategory === null}
+            className={`tienda-filters__chip${activeCategory === null ? " tienda-filters__chip--active" : ""}`}
+            onClick={() => setActiveCategory(null)}
+          >
+            {t("allCategories")}
+          </button>
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              type="button"
+              role="tab"
+              aria-selected={activeCategory === cat.slug}
+              className={`tienda-filters__chip${
+                activeCategory === cat.slug ? " tienda-filters__chip--active" : ""
+              }`}
+              onClick={() => setActiveCategory(cat.slug)}
+            >
+              {cat.name}
+            </button>
+          ))}
+        </div>
+      ) : null}
+
+      {filteredProducts.length === 0 ? (
+        <p className="tienda-empty type-body-muted mt-8">{t("emptyCategory")}</p>
+      ) : (
+        <div className="tienda-catalog">
+          {filteredProducts.map((product, i) => (
+            <ProductCard key={product.id} product={product} locale={locale} index={i} />
+          ))}
+        </div>
+      )}
+    </>
   );
 }
 
@@ -103,7 +150,9 @@ function ProductCard({
       </Link>
 
       <div className="tienda-card__body">
-        <span className="tienda-card__eyebrow">{t("cardEyebrow")}</span>
+        <span className="tienda-card__eyebrow">
+          {product.category?.name ?? t("cardEyebrow")}
+        </span>
         <h2 className="tienda-card__title">
           <Link href={detailHref}>{product.name}</Link>
         </h2>

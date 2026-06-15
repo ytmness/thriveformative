@@ -103,7 +103,9 @@ function ProductDetailContent() {
             </div>
 
             <div className="tienda-detail__panel">
-              <p className="tienda-detail__eyebrow">{t("cardEyebrow")}</p>
+              <p className="tienda-detail__eyebrow">
+                {product.category?.name ?? t("cardEyebrow")}
+              </p>
               <h1 className="type-page-title tracking-wide tienda-detail__title">{product.name}</h1>
 
               {product.description ? (
