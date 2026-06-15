@@ -1,44 +1,33 @@
 import { createClient } from "@/lib/supabase";
 import type { Locale, StoreCategory, StoreProduct } from "@/lib/store/types";
 
-const PRODUCT_SELECT = `
-  id,
-  locale,
-  sort_order,
-  name,
-  description,
-  ref,
-  referral_url,
-  image_url,
-  category_id,
-  is_published,
-  store_categories (
-    id,
-    locale,
-    name,
-    slug,
-    sort_order
-  )
-`;
+const PRODUCT_FIELDS =
+  "id, locale, sort_order, name, description, ref, referral_url, image_url, category_id, is_published";
 
-type ProductRow = Omit<StoreProduct, "category"> & {
-  store_categories: StoreCategory | StoreCategory[] | null;
+type ProductRow = {
+  id: string;
+  locale: string;
+  sort_order: number;
+  name: string;
+  description: string;
+  ref: string;
+  referral_url: string;
+  image_url: string | null;
+  category_id: string | null;
+  is_published: boolean;
 };
 
-function mapCategory(raw: StoreCategory | StoreCategory[] | null): StoreCategory | null {
-  if (!raw) return null;
-  if (Array.isArray(raw)) return raw[0] ?? null;
-  return raw;
-}
-
-function mapProduct(row: ProductRow): StoreProduct {
-  const { store_categories, ...rest } = row;
-  return {
-    ...rest,
-    description: rest.description ?? "",
-    category_id: rest.category_id ?? null,
-    category: mapCategory(store_categories),
-  };
+function joinProductsWithCategories(
+  rows: ProductRow[],
+  categories: StoreCategory[]
+): StoreProduct[] {
+  const byId = new Map(categories.map((c) => [c.id, c]));
+  return rows.map((row) => ({
+    ...row,
+    description: row.description ?? "",
+    category_id: row.category_id ?? null,
+    category: row.category_id ? (byId.get(row.category_id) ?? null) : null,
+  }));
 }
 
 export async function fetchStoreCategories(locale: Locale): Promise<StoreCategory[]> {
@@ -61,9 +50,11 @@ export async function fetchStoreProducts(
   const includeUnpublished = options?.includeUnpublished ?? false;
   const categorySlug = options?.categorySlug;
 
+  const categories = await fetchStoreCategories(locale);
+
   let query = supabase
     .from("store_products")
-    .select(PRODUCT_SELECT)
+    .select(PRODUCT_FIELDS)
     .eq("locale", locale)
     .order("sort_order", { ascending: true });
 
@@ -72,13 +63,7 @@ export async function fetchStoreProducts(
   }
 
   if (categorySlug) {
-    const { data: cat } = await supabase
-      .from("store_categories")
-      .select("id")
-      .eq("locale", locale)
-      .eq("slug", categorySlug)
-      .maybeSingle();
-
+    const cat = categories.find((c) => c.slug === categorySlug);
     if (!cat) return [];
     query = query.eq("category_id", cat.id);
   }
@@ -86,7 +71,7 @@ export async function fetchStoreProducts(
   const { data, error } = await query;
   if (error) throw new Error(error.message);
 
-  return ((data ?? []) as ProductRow[]).map(mapProduct);
+  return joinProductsWithCategories((data ?? []) as ProductRow[], categories);
 }
 
 export async function fetchStoreProductByRef(
@@ -99,7 +84,7 @@ export async function fetchStoreProductByRef(
 
   let query = supabase
     .from("store_products")
-    .select(PRODUCT_SELECT)
+    .select(PRODUCT_FIELDS)
     .eq("locale", locale)
     .eq("ref", ref);
 
@@ -107,9 +92,21 @@ export async function fetchStoreProductByRef(
     query = query.eq("is_published", true);
   }
 
-  const { data, error } = await query.maybeSingle();
+  const [categories, productResult] = await Promise.all([
+    fetchStoreCategories(locale),
+    query.maybeSingle(),
+  ]);
+
+  const { data, error } = productResult;
   if (error) throw new Error(error.message);
   if (!data) return null;
 
-  return mapProduct(data as ProductRow);
+  return joinProductsWithCategories([data as ProductRow], categories)[0] ?? null;
+}
+
+export function attachCategoryToProduct(
+  product: ProductRow,
+  categories: StoreCategory[]
+): StoreProduct {
+  return joinProductsWithCategories([product], categories)[0];
 }

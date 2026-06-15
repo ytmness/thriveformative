@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase";
-import { fetchStoreCategories, fetchStoreProducts } from "@/lib/store/fetch";
+import { attachCategoryToProduct, fetchStoreCategories, fetchStoreProducts } from "@/lib/store/fetch";
 import { isValidRef, slugifyRef } from "@/lib/store/slug";
 import type { Locale, StoreCategory, StoreProduct } from "@/lib/store/types";
 
@@ -160,12 +160,12 @@ export function useStoreAdmin(initialLocale: Locale) {
 
     const isNew = editingId === null;
     const { data, error } = isNew
-      ? await supabase.from("store_products").insert(payload).select(PRODUCT_SELECT).single()
+      ? await supabase.from("store_products").insert(payload).select(PRODUCT_FIELDS).single()
       : await supabase
           .from("store_products")
           .update(payload)
           .eq("id", editingId)
-          .select(PRODUCT_SELECT)
+          .select(PRODUCT_FIELDS)
           .single();
 
     setSaving(false);
@@ -181,7 +181,7 @@ export function useStoreAdmin(initialLocale: Locale) {
     }
 
     if (data) {
-      const saved = mapProductFromDb(data);
+      const saved = attachCategoryToProduct(data as ProductRow, categories);
       const nextProducts = [...products.filter((p) => p.id !== saved.id), saved].sort(
         (a, b) => a.sort_order - b.sort_order
       );
@@ -227,7 +227,7 @@ export function useStoreAdmin(initialLocale: Locale) {
       .from("store_products")
       .update({ is_published: next, updated_at: new Date().toISOString() })
       .eq("id", id)
-      .select(PRODUCT_SELECT)
+      .select(PRODUCT_FIELDS)
       .single();
     setSaving(false);
 
@@ -237,7 +237,7 @@ export function useStoreAdmin(initialLocale: Locale) {
     }
 
     if (data) {
-      const saved = mapProductFromDb(data);
+      const saved = attachCategoryToProduct(data as ProductRow, categories);
       setProducts((prev) =>
         prev.map((p) => (p.id === id ? saved : p)).sort((a, b) => a.sort_order - b.sort_order)
       );
@@ -349,42 +349,20 @@ export function useStoreAdmin(initialLocale: Locale) {
   };
 }
 
-const PRODUCT_SELECT = `
-  id,
-  locale,
-  sort_order,
-  name,
-  description,
-  ref,
-  referral_url,
-  image_url,
-  category_id,
-  is_published,
-  store_categories (
-    id,
-    locale,
-    name,
-    slug,
-    sort_order
-  )
-`;
+const PRODUCT_FIELDS =
+  "id, locale, sort_order, name, description, ref, referral_url, image_url, category_id, is_published";
 
-function mapProductFromDb(row: Record<string, unknown>): StoreProduct {
-  const rawCat = row.store_categories as StoreCategory | StoreCategory[] | null;
-  const category = Array.isArray(rawCat) ? rawCat[0] ?? null : rawCat;
-  return {
-    id: row.id as string,
-    locale: row.locale as string,
-    sort_order: row.sort_order as number,
-    name: row.name as string,
-    description: (row.description as string) ?? "",
-    ref: row.ref as string,
-    referral_url: row.referral_url as string,
-    image_url: (row.image_url as string | null) ?? null,
-    category_id: (row.category_id as string | null) ?? null,
-    category,
-    is_published: row.is_published as boolean,
-  };
-}
+type ProductRow = {
+  id: string;
+  locale: string;
+  sort_order: number;
+  name: string;
+  description: string;
+  ref: string;
+  referral_url: string;
+  image_url: string | null;
+  category_id: string | null;
+  is_published: boolean;
+};
 
 export type StoreAdminApi = ReturnType<typeof useStoreAdmin>;
