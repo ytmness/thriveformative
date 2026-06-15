@@ -10,10 +10,12 @@ import { fetchStoreProductByRef } from "@/lib/store/fetch";
 import type { Locale } from "@/lib/cms/types";
 import type { StoreProduct } from "@/lib/store/types";
 import { motion } from "framer-motion";
+import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import "@/app/styles/tienda.css";
 
 function ProductDetailContent() {
   const t = useTranslations("tienda");
@@ -55,7 +57,7 @@ function ProductDetailContent() {
       <ThemeSwitcher />
       <Header />
 
-      <main className="max-w-4xl mx-auto px-6 py-16 md:py-24">
+      <main className="tienda-main max-w-6xl mx-auto px-6 py-16 md:py-24">
         <Link
           href={`/${locale}/tienda`}
           className="type-ui text-sm text-[rgb(var(--primary))] hover:opacity-80 inline-flex items-center gap-1 mb-10"
@@ -64,13 +66,16 @@ function ProductDetailContent() {
         </Link>
 
         {loading ? (
-          <div className="animate-pulse space-y-6">
-            <div className="aspect-[16/10] rounded-2xl bg-surface border border-theme" />
-            <div className="h-8 w-2/3 rounded bg-surface border border-theme" />
-            <div className="h-24 rounded bg-surface border border-theme" />
+          <div className="tienda-detail animate-pulse">
+            <div className="tienda-detail__media bg-surface border border-theme" />
+            <div className="space-y-4">
+              <div className="h-4 w-24 rounded bg-surface border border-theme" />
+              <div className="h-10 w-2/3 rounded bg-surface border border-theme" />
+              <div className="h-24 rounded bg-surface border border-theme" />
+            </div>
           </div>
         ) : notFound || !product ? (
-          <div className="text-center py-16">
+          <div className="tienda-empty text-center py-16">
             <h1 className="type-section-title">{t("notFoundTitle")}</h1>
             <p className="type-body-muted mt-4">{t("notFoundBody")}</p>
             <Link
@@ -82,37 +87,45 @@ function ProductDetailContent() {
           </div>
         ) : (
           <motion.div
+            className="tienda-detail"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            {product.image_url ? (
-              <div className="rounded-2xl overflow-hidden border border-theme shadow-soft aspect-[16/10] bg-[rgb(var(--primary)/0.06)]">
-                <img
-                  src={product.image_url}
-                  alt=""
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            ) : null}
-
-            <h1 className="type-page-title tracking-wide mt-10">{product.name}</h1>
-
-            {product.description ? (
-              <p className="type-body mt-6 whitespace-pre-wrap">{product.description}</p>
-            ) : null}
-
-            <div className="mt-10 flex flex-wrap gap-4">
-              <BrandCtaLink
-                href={product.referral_url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {t("buyExternal")}
-              </BrandCtaLink>
+            <div className="tienda-detail__media">
+              {product.image_url ? (
+                <img src={product.image_url} alt={product.name} />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center type-caption text-muted uppercase tracking-wider">
+                  {t("noImage")}
+                </div>
+              )}
             </div>
 
-            <p className="type-caption text-muted mt-6">{t("externalDisclaimer")}</p>
+            <div className="tienda-detail__panel">
+              <p className="tienda-detail__eyebrow">{t("cardEyebrow")}</p>
+              <h1 className="type-page-title tracking-wide tienda-detail__title">{product.name}</h1>
+
+              {product.description ? (
+                <p className="type-body tienda-detail__desc">{product.description}</p>
+              ) : null}
+
+              <div className="tienda-detail__cta-wrap">
+                <BrandCtaLink
+                  href={product.referral_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  block
+                  className="inline-flex items-center justify-center gap-2"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    {t("buyExternal")}
+                    <ExternalLink size={16} strokeWidth={2.25} aria-hidden />
+                  </span>
+                </BrandCtaLink>
+                <p className="tienda-detail__disclaimer">{t("externalDisclaimer")}</p>
+              </div>
+            </div>
           </motion.div>
         )}
       </main>

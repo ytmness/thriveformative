@@ -1,12 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { fetchStoreProducts } from "@/lib/store/fetch";
 import type { Locale } from "@/lib/cms/types";
 import type { StoreProduct } from "@/lib/store/types";
+import "@/app/styles/tienda.css";
 
 export default function StoreCatalog() {
   const t = useTranslations("tienda");
@@ -38,31 +40,33 @@ export default function StoreCatalog() {
 
   if (loading) {
     return (
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="tienda-catalog" aria-busy="true" aria-label={t("loading")}>
         {[1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className="h-80 rounded-2xl border border-theme bg-surface animate-pulse"
-          />
+          <div key={i} className="tienda-skeleton">
+            <div className="tienda-skeleton__media" />
+            <div className="tienda-skeleton__body">
+              <div className="tienda-skeleton__line tienda-skeleton__line--short" />
+              <div className="tienda-skeleton__line tienda-skeleton__line--title" />
+              <div className="tienda-skeleton__line" />
+              <div className="tienda-skeleton__line" />
+              <div className="tienda-skeleton__btn" />
+            </div>
+          </div>
         ))}
       </div>
     );
   }
 
   if (error) {
-    return (
-      <p className="type-body-muted text-center py-12">{error}</p>
-    );
+    return <p className="tienda-empty type-body-muted">{error}</p>;
   }
 
   if (!products.length) {
-    return (
-      <p className="type-body-muted text-center py-12">{t("empty")}</p>
-    );
+    return <p className="tienda-empty type-body-muted">{t("empty")}</p>;
   }
 
   return (
-    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div className="tienda-catalog">
       {products.map((product, i) => (
         <ProductCard key={product.id} product={product} locale={locale} index={i} />
       ))}
@@ -84,51 +88,45 @@ function ProductCard({
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 24 }}
+      initial={{ opacity: 0, y: 28 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay: index * 0.06 }}
-      whileHover={{ y: -4, boxShadow: "0 20px 50px rgba(0,0,0,0.12)" }}
-      className="bg-surface border border-theme rounded-2xl shadow-soft overflow-hidden flex flex-col"
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.55, delay: index * 0.07, ease: "easeOut" }}
+      className="tienda-card"
     >
-      <Link href={detailHref} className="block aspect-[4/3] bg-[rgb(var(--primary)/0.06)] overflow-hidden">
+      <Link href={detailHref} className="tienda-card__media-link">
         {product.image_url ? (
-          <img
-            src={product.image_url}
-            alt=""
-            className="w-full h-full object-cover"
-          />
+          <>
+            <img src={product.image_url} alt={product.name} />
+            <span className="tienda-card__media-overlay" aria-hidden />
+          </>
         ) : (
-          <div className="w-full h-full flex items-center justify-center type-caption text-muted uppercase tracking-wider">
-            {t("noImage")}
-          </div>
+          <span className="tienda-card__media-placeholder">{t("noImage")}</span>
         )}
       </Link>
 
-      <div className="p-6 flex flex-col flex-1">
-        <h2 className="type-card-name tracking-wide">
-          <Link href={detailHref} className="hover:text-[rgb(var(--primary))] transition-colors">
-            {product.name}
-          </Link>
+      <div className="tienda-card__body">
+        <span className="tienda-card__eyebrow">{t("cardEyebrow")}</span>
+        <h2 className="tienda-card__title">
+          <Link href={detailHref}>{product.name}</Link>
         </h2>
         {product.description ? (
-          <p className="type-body-muted mt-3 line-clamp-3 flex-1">{product.description}</p>
+          <p className="tienda-card__desc">{product.description}</p>
         ) : null}
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link
-            href={detailHref}
-            className="type-ui text-sm font-medium text-[rgb(var(--primary))] hover:opacity-80"
-          >
-            {t("viewProduct")}
-          </Link>
+
+        <div className="tienda-card__actions">
           <a
             href={product.referral_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn-outline type-ui text-sm font-medium rounded-lg px-4 py-2"
+            className="tienda-card__buy"
           >
             {t("buyExternal")}
+            <ExternalLink size={15} strokeWidth={2.25} aria-hidden />
           </a>
+          <Link href={detailHref} className="tienda-card__detail">
+            {t("viewProduct")} →
+          </Link>
         </div>
       </div>
     </motion.article>

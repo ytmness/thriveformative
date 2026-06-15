@@ -20,6 +20,8 @@
     "pageSubtitle": "Curated products to support your wellness. Purchase through our external referral link.",
     "empty": "Products coming soon.",
     "loadError": "Could not load the catalog.",
+    "loading": "Loading products…",
+    "cardEyebrow": "Thrive pick",
     "noImage": "No image",
     "viewProduct": "View details",
     "buyExternal": "Buy at store",

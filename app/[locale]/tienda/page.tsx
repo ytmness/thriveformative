@@ -8,6 +8,7 @@ import WaveDivider from "@/components/WaveDivider";
 import StoreCatalog from "@/components/store/StoreCatalog";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
+import "@/app/styles/tienda.css";
 
 function TiendaContent() {
   const t = useTranslations("tienda");
@@ -17,8 +18,8 @@ function TiendaContent() {
       <ThemeSwitcher />
       <Header />
 
-      <section className="relative overflow-hidden border-b border-[rgb(var(--border)/0.12)]">
-        <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--bg))] via-[rgb(var(--surface)/0.4)] to-[rgb(var(--primary)/0.05)] pointer-events-none" />
+      <section className="tienda-page-hero relative overflow-hidden">
+        <div className="tienda-page-hero__gradient absolute inset-0 pointer-events-none" aria-hidden />
         <div className="relative z-10 max-w-4xl mx-auto px-6 py-16 md:py-24 lg:py-28 text-center">
           <motion.p
             className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--primary))]"
@@ -49,7 +50,7 @@ function TiendaContent() {
 
       <WaveDivider variant="accent" />
 
-      <main className="max-w-7xl mx-auto px-6 py-20 md:py-28">
+      <main className="tienda-main max-w-7xl mx-auto px-6 py-20 md:py-28">
         <StoreCatalog />
       </main>
 
