@@ -96,10 +96,7 @@ function ProductCard({
     >
       <Link href={detailHref} className="tienda-card__media-link">
         {product.image_url ? (
-          <>
-            <img src={product.image_url} alt={product.name} />
-            <span className="tienda-card__media-overlay" aria-hidden />
-          </>
+          <img src={product.image_url} alt={product.name} />
         ) : (
           <span className="tienda-card__media-placeholder">{t("noImage")}</span>
         )}
