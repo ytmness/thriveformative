@@ -10,6 +10,7 @@ import "../styles/scroll.css";
 import "../styles/coming-soon.css";
 import "../styles/booking.css";
 import "../styles/header-nav.css";
+import "../styles/brand-cta.css";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { Poppins, Playfair_Display } from "next/font/google";

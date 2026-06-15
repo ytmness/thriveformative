@@ -164,37 +164,7 @@
 }
 
 .coming-soon-page__btn {
-  padding: 0.95rem 1.35rem;
-  font-size: 0.78rem;
   min-height: 2.95rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: #1a1a1a;
-  background: linear-gradient(
-    90deg,
-    rgb(var(--primary)),
-    rgb(var(--secondary))
-  );
-  border: none;
-  border-radius: 0.75rem;
-  cursor: pointer;
-  transition: filter 0.2s, transform 0.15s;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
-}
-
-.coming-soon-page__btn:hover:not(:disabled) {
-  filter: brightness(1.04);
-  transform: translateY(-1px);
-}
-
-.coming-soon-page__btn:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.coming-soon-page__btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
 }
 
 .coming-soon-page__error {

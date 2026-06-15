@@ -98,30 +98,7 @@
   margin-top: 0.5rem;
 }
 
-.admin-cms__btn {
-  border-radius: 0.65rem;
-  padding: 0.4rem 0.85rem;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  border: 1px solid rgb(var(--border) / 0.25);
-  background: rgb(var(--primary) / 0.1);
-}
-
-.admin-cms__btn--ghost {
-  background: transparent;
-  border-color: rgb(var(--border) / 0.35);
-  color: rgb(var(--text));
-}
-
-.admin-cms__btn--danger {
-  color: rgb(185 28 28);
-  border-color: rgb(185 28 28 / 0.35);
-  background: transparent;
-}
-
-.admin-cms__btn--ghost {
-  background: transparent;
-}
+/* .admin-cms__btn — estilos en brand-cta.css */
 
 .admin-cms__msg {
   font-size: 0.875rem;

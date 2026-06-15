@@ -172,30 +172,7 @@
 }
 
 .tienda-card__buy {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
   width: 100%;
-  padding: 0.78rem 1rem;
-  border-radius: 0.75rem;
-  font-size: 0.88rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-decoration: none;
-  color: rgb(var(--primary-contrast, 255 255 255));
-  background: rgb(var(--primary));
-  border: 1px solid rgb(var(--primary) / 0.85);
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    opacity 0.2s ease;
-}
-
-.tienda-card__buy:hover {
-  opacity: 0.92;
-  transform: translateY(-1px);
-  box-shadow: 0 10px 24px rgb(var(--primary) / 0.28);
 }
 
 .tienda-card__detail {

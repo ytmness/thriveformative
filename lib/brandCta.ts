@@ -1,3 +1,2 @@
-/** Clases unificadas para CTAs principales (hero, planes, contacto, footer). */
-export const BRAND_CTA_BASE_CLASS =
-  "plan-card-plan__btn plan-card-plan__btn--featured hero-editorial__cta-btn brand-cta";
+/** Clases unificadas para CTAs principales (hero, planes, contacto, footer, tienda). */
+export const BRAND_CTA_BASE_CLASS = "site-btn site-btn--primary brand-cta hero-editorial__cta-btn";

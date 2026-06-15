@@ -125,41 +125,7 @@
   white-space: nowrap;
 }
 
-.site-nav__cta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 0.625rem;
-  padding: 0.55rem 1.15rem;
-  font-family: var(--font-body), system-ui, sans-serif;
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  text-decoration: none;
-  border: none;
-  background: linear-gradient(
-    90deg,
-    rgb(var(--primary)),
-    rgb(var(--secondary))
-  );
-  color: #1a1a1a;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
-  transition: filter 0.2s ease, transform 0.15s ease;
-  white-space: nowrap;
-}
-
-.site-nav__cta:hover {
-  filter: brightness(1.04);
-}
-
-.site-nav__cta:active {
-  transform: scale(0.98);
-}
-
-[data-theme="nocturnal"] .site-nav__cta {
-  color: #141414;
-}
+/* .site-nav__cta — estilos en brand-cta.css */
 
 /* Language switcher minimal dentro del nav */
 .site-nav__lang .site-nav-lang-btn {

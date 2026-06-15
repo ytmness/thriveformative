@@ -1,5 +1,149 @@
-/* CTA de marca — complementa plan-card-plan__btn */
+/* Botones globales — estilo unificado (basado en tienda "Comprar en tienda") */
 
+.site-btn,
+.btn-primary,
+.btn-outline,
+.tienda-card__buy,
+.site-nav__cta,
+.cta-final-button,
+.plan-card-plan__btn,
+.coming-soon-page__btn,
+.admin-cms__btn,
+.brand-cta,
+.booking-section__whatsapp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.78rem 1.25rem;
+  border-radius: 0.75rem;
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.25;
+  text-decoration: none;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.site-btn:hover,
+.btn-primary:hover,
+.btn-outline:hover,
+.tienda-card__buy:hover,
+.site-nav__cta:hover,
+.cta-final-button:hover,
+.plan-card-plan__btn:hover,
+.coming-soon-page__btn:hover:not(:disabled),
+.admin-cms__btn:hover,
+.brand-cta:hover,
+.booking-section__whatsapp-btn:hover {
+  transform: translateY(-1px);
+}
+
+.site-btn:active,
+.btn-primary:active,
+.btn-outline:active,
+.tienda-card__buy:active,
+.site-nav__cta:active,
+.cta-final-button:active,
+.plan-card-plan__btn:active,
+.coming-soon-page__btn:active:not(:disabled),
+.admin-cms__btn:active,
+.brand-cta:active,
+.booking-section__whatsapp-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.site-btn:disabled,
+.site-btn[aria-disabled="true"],
+.btn-primary:disabled,
+.coming-soon-page__btn:disabled,
+.admin-cms__btn:disabled,
+.brand-cta:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Primario — relleno con color de marca */
+.site-btn--primary,
+.btn-primary,
+.tienda-card__buy,
+.site-nav__cta,
+.cta-final-button,
+.plan-card-plan__btn--featured,
+.coming-soon-page__btn,
+.admin-cms__btn:not(.admin-cms__btn--ghost):not(.admin-cms__btn--danger),
+.booking-section__whatsapp-btn {
+  color: rgb(var(--primary-contrast, 255 255 255));
+  background: rgb(var(--primary));
+  border-color: rgb(var(--primary) / 0.85);
+}
+
+.site-btn--primary:hover,
+.btn-primary:hover:not(:disabled),
+.tienda-card__buy:hover,
+.site-nav__cta:hover,
+.cta-final-button:hover,
+.plan-card-plan__btn--featured:hover,
+.coming-soon-page__btn:hover:not(:disabled),
+.admin-cms__btn:not(.admin-cms__btn--ghost):not(.admin-cms__btn--danger):hover,
+.booking-section__whatsapp-btn:hover {
+  opacity: 0.92;
+  box-shadow: 0 10px 24px rgb(var(--primary) / 0.28);
+}
+
+/* Outline — secundario */
+.site-btn--outline,
+.btn-outline,
+.plan-card-plan__btn--outline {
+  color: rgb(var(--text));
+  background: rgb(var(--surface));
+  border-color: rgb(var(--border) / 0.28);
+}
+
+.site-btn--outline:hover,
+.btn-outline:hover,
+.plan-card-plan__btn--outline:hover {
+  background: rgb(var(--primary) / 0.08);
+  border-color: rgb(var(--primary) / 0.35);
+  box-shadow: 0 6px 18px rgb(var(--primary) / 0.12);
+}
+
+/* Tamaños y layout */
+.site-btn--block,
+.brand-cta--block {
+  width: 100%;
+}
+
+.site-btn--inline,
+.brand-cta--inline {
+  width: auto;
+  min-width: 10rem;
+  max-width: 100%;
+}
+
+.site-btn--sm {
+  padding: 0.55rem 1rem;
+  font-size: 0.78rem;
+}
+
+.site-btn--lg {
+  padding: 0.95rem 1.5rem;
+  font-size: 0.95rem;
+}
+
+/* BrandCta — alias del primario */
 .brand-cta {
   display: inline-flex;
   align-items: center;
@@ -11,22 +155,79 @@
 }
 
 .brand-cta span {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
 }
 
-.brand-cta--inline {
-  width: auto;
-  min-width: 17rem;
-  max-width: 100%;
+/* Plan cards */
+.plan-card-plan__btn--featured {
+  box-shadow: none;
 }
 
-.brand-cta--block {
+/* Nav CTA — compacto */
+.site-nav__cta {
+  padding: 0.65rem 1.15rem;
+  font-size: 0.82rem;
+  text-transform: none;
+  letter-spacing: 0.04em;
+  box-shadow: none;
+}
+
+[data-theme="nocturnal"] .site-nav__cta {
+  color: rgb(var(--primary-contrast, 255 255 255));
+}
+
+/* CTA final de secciones */
+.cta-final-button {
+  min-width: 12rem;
+  text-transform: none;
+  letter-spacing: 0.04em;
+  font-size: 0.88rem;
+  box-shadow: none;
+}
+
+/* Tienda */
+.tienda-card__buy {
   width: 100%;
-  margin-top: 0.25rem;
 }
 
-.brand-cta:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
+/* Admin — tamaño compacto, mantiene variantes ghost/danger */
+.admin-cms__btn {
+  padding: 0.5rem 0.95rem;
+  font-size: 0.8125rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.admin-cms__btn--ghost {
+  color: rgb(var(--text));
+  background: rgb(var(--surface));
+  border-color: rgb(var(--border) / 0.28);
+}
+
+.admin-cms__btn--ghost:hover {
+  background: rgb(var(--primary) / 0.08);
+  border-color: rgb(var(--primary) / 0.35);
+  box-shadow: 0 6px 18px rgb(var(--primary) / 0.12);
+}
+
+.admin-cms__btn--danger {
+  color: rgb(185 28 28);
+  border-color: rgb(185 28 28 / 0.35);
+  background: transparent;
+  box-shadow: none;
+}
+
+.admin-cms__btn--danger:hover {
+  background: rgb(185 28 28 / 0.08);
+  transform: translateY(-1px);
+}
+
+.hero-editorial__cta-btn {
+  min-width: 12rem;
+  padding-top: 0.85rem;
+  padding-bottom: 0.85rem;
 }
