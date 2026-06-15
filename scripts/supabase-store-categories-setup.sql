@@ -1,7 +1,5 @@
--- Ejecutar en Supabase → SQL Editor (todo de una vez)
--- Crea store_categories, enlaza store_products y recarga la caché de la API.
+-- Supabase SQL Editor: run this entire script once.
 
--- 1) Tabla de categorías
 create table if not exists public.store_categories (
   id uuid primary key default gen_random_uuid(),
   locale text not null check (locale in ('es', 'en', 'ko', 'it')),
@@ -16,11 +14,9 @@ create table if not exists public.store_categories (
 create index if not exists idx_store_categories_locale_sort
   on public.store_categories (locale, sort_order);
 
--- 2) Columna category_id en productos (sin FK primero, por si la tabla es nueva)
 alter table public.store_products
   add column if not exists category_id uuid;
 
--- 3) FK explícita
 do $$
 begin
   if not exists (
@@ -37,7 +33,6 @@ end $$;
 create index if not exists idx_store_products_category_id
   on public.store_products (category_id);
 
--- 4) RLS
 alter table public.store_categories enable row level security;
 
 drop policy if exists "Public read store_categories" on public.store_categories;
@@ -51,5 +46,4 @@ create policy "Admin manage store_categories"
   using (public.get_my_profile_role() = 'admin')
   with check (public.get_my_profile_role() = 'admin');
 
--- 5) Recargar caché de PostgREST (API de Supabase)
 notify pgrst, 'reload schema';
