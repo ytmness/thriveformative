@@ -183,21 +183,30 @@ export default function BookingSection() {
 
     const supabase = createClient();
 
-    supabase
-
-      .from("appointments")
-
-      .select("appointment_date, time_slot")
-
-      .eq("appointment_date", selectedDateKey)
-
-      .neq("status", "cancelled")
-
-      .then(({ data }) => {
-
-        setAppointments(data ?? []);
-
+    void (async () => {
+      const { data, error } = await supabase.rpc("get_taken_slots", {
+        p_date: selectedDateKey,
       });
+
+      if (!error) {
+        setAppointments(
+          (data ?? []).map((row: { time_slot: string }) => ({
+            appointment_date: selectedDateKey,
+            time_slot: row.time_slot,
+          }))
+        );
+        return;
+      }
+
+      // Fallback hasta aplicar migración 016 (RPC aún no existe)
+      const fallback = await supabase
+        .from("appointments")
+        .select("appointment_date, time_slot")
+        .eq("appointment_date", selectedDateKey)
+        .neq("status", "cancelled");
+
+      setAppointments(fallback.data ?? []);
+    })();
 
   }, [user, selectedDateKey]);
 
@@ -387,11 +396,11 @@ export default function BookingSection() {
 
           kind: "appointment_pending",
 
-          to: user.email,
-
           date: selectedDateKey,
 
           timeSlot,
+
+          website: "",
 
         }),
 

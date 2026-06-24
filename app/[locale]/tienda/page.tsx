@@ -22,7 +22,7 @@ function TiendaContent() {
         <div className="tienda-page-hero__gradient absolute inset-0 pointer-events-none" aria-hidden />
         <div className="relative z-10 max-w-4xl mx-auto px-6 py-16 md:py-24 lg:py-28 text-center">
           <motion.p
-            className="text-xs font-semibold uppercase tracking-[0.28em] text-[rgb(var(--primary))]"
+            className="tienda-page-hero__eyebrow"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -30,7 +30,7 @@ function TiendaContent() {
             {t("eyebrow")}
           </motion.p>
           <motion.h1
-            className="type-page-title tracking-wide mt-3"
+            className="tienda-page-hero__title"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.05 }}
@@ -38,19 +38,26 @@ function TiendaContent() {
             {t("pageTitle")}
           </motion.h1>
           <motion.p
-            className="type-page-lead mt-4 max-w-2xl mx-auto"
+            className="tienda-page-hero__lead"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.7, delay: 0.15 }}
           >
             {t("pageSubtitle")}
           </motion.p>
+          <motion.div
+            className="tienda-page-hero__rule"
+            initial={{ opacity: 0, scaleX: 0 }}
+            animate={{ opacity: 1, scaleX: 1 }}
+            transition={{ duration: 0.6, delay: 0.25 }}
+            aria-hidden
+          />
         </div>
       </section>
 
       <WaveDivider variant="accent" />
 
-      <main className="tienda-main max-w-7xl mx-auto px-6 py-20 md:py-28">
+      <main className="tienda-main max-w-7xl mx-auto px-6 py-16 md:py-24 lg:py-28">
         <StoreCatalog />
       </main>
 

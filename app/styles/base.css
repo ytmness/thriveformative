@@ -51,6 +51,26 @@ html {
   background: rgb(var(--primary) / 0.5);
 }
 
+/* Logo 3D skeleton (pantalla de carga) */
+.logo-3d-skeleton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  background: rgb(var(--surface) / 0.35);
+  animation: logo-3d-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes logo-3d-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.72;
+  }
+}
+
 /* Section alternating bg */
 .section-elevated {
   background: rgb(var(--surface) / 0.5);

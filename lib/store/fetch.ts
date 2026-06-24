@@ -1,21 +1,8 @@
 import { createClient } from "@/lib/supabase";
+import { PRODUCT_FIELDS, type ProductRow } from "@/lib/store/fields";
 import type { Locale, StoreCategory, StoreProduct } from "@/lib/store/types";
 
-const PRODUCT_FIELDS =
-  "id, locale, sort_order, name, description, ref, referral_url, image_url, category_id, is_published";
-
-type ProductRow = {
-  id: string;
-  locale: string;
-  sort_order: number;
-  name: string;
-  description: string;
-  ref: string;
-  referral_url: string;
-  image_url: string | null;
-  category_id: string | null;
-  is_published: boolean;
-};
+export const STORE_REVALIDATE_SECONDS = 60;
 
 function joinProductsWithCategories(
   rows: ProductRow[],
@@ -27,6 +14,8 @@ function joinProductsWithCategories(
     description: row.description ?? "",
     category_id: row.category_id ?? null,
     category: row.category_id ? (byId.get(row.category_id) ?? null) : null,
+    source: row.source ?? null,
+    source_handle: row.source_handle ?? null,
   }));
 }
 

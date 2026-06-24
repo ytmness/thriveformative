@@ -333,6 +333,59 @@ function ProductForm({
         />
       </div>
 
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="admin-cms__field">
+          <label>Precio mín.</label>
+          <input
+            type="number"
+            min={0}
+            step="0.01"
+            value={draft.price_min ?? ""}
+            onChange={(e) =>
+              onChange({
+                price_min: e.target.value === "" ? null : Number(e.target.value),
+              })
+            }
+          />
+        </div>
+        <div className="admin-cms__field">
+          <label>Precio máx.</label>
+          <input
+            type="number"
+            min={0}
+            step="0.01"
+            value={draft.price_max ?? ""}
+            onChange={(e) =>
+              onChange({
+                price_max: e.target.value === "" ? null : Number(e.target.value),
+              })
+            }
+          />
+        </div>
+        <div className="admin-cms__field">
+          <label>Compare at</label>
+          <input
+            type="number"
+            min={0}
+            step="0.01"
+            value={draft.compare_at_price_min ?? ""}
+            onChange={(e) =>
+              onChange({
+                compare_at_price_min: e.target.value === "" ? null : Number(e.target.value),
+              })
+            }
+          />
+        </div>
+        <div className="admin-cms__field">
+          <label>Moneda</label>
+          <input
+            value={draft.currency ?? "USD"}
+            maxLength={3}
+            onChange={(e) => onChange({ currency: e.target.value.toUpperCase() })}
+          />
+        </div>
+      </div>
+
       <div className="admin-cms__field">
         <label>Orden</label>
         <input

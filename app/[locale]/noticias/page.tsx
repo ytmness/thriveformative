@@ -3,7 +3,7 @@ import DoctorNoticiasPage from "@/components/DoctorNoticiasPage";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
-const ALLOWED_ROLES = new Set(["doctor", "admin"]);
+const ALLOWED_ROLES = new Set(["admin"]);
 
 export default async function NoticiasPage({
   params,

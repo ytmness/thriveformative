@@ -6,16 +6,19 @@
 }
 
 .admin-booking__card {
-  border-radius: 1rem;
+  border-radius: 1.15rem;
   border: 1px solid rgb(var(--border) / 0.18);
-  background: rgb(var(--surface));
+  background: rgb(var(--surface) / 0.72);
   padding: 1.25rem 1.5rem;
 }
 
 .admin-booking__card-title {
-  font-size: 1.125rem;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 1.15rem;
   font-weight: 600;
+  letter-spacing: -0.01em;
   margin-bottom: 0.25rem;
+  color: rgb(var(--text) / 0.92);
 }
 
 .admin-booking__card-desc {
@@ -81,16 +84,24 @@
 }
 
 .admin-booking__btn {
-  border-radius: 0.75rem;
+  border-radius: 0.65rem;
   padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  border: 1px solid rgb(var(--border) / 0.25);
-  background: rgb(var(--primary) / 0.12);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: 1px solid rgb(var(--primary) / 0.32);
+  background: rgb(var(--primary) / 0.14);
+  color: rgb(var(--primary));
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .admin-booking__btn:hover {
-  background: rgb(var(--primary) / 0.18);
+  background: rgb(var(--primary) / 0.22);
+}
+
+.admin-booking__btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(var(--primary) / 0.18);
 }
 
 .admin-booking__btn--danger {

@@ -21,10 +21,12 @@ export default function ContactForm({ embedded = false }: Props) {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setLoading(true);
+    const formData = new FormData(e.currentTarget);
+    const honeypot = String(formData.get("website") ?? "");
     const supabase = createClient();
     const { error: err } = await supabase.from("contact_requests").insert({
       name: name.trim(),
@@ -43,8 +45,9 @@ export default function ContactForm({ embedded = false }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           kind: "contact_confirmation",
-          to: email.trim(),
+          email: email.trim(),
           name: name.trim(),
+          website: honeypot,
         }),
       });
       if (res1.ok) {
@@ -57,6 +60,7 @@ export default function ContactForm({ embedded = false }: Props) {
             email: email.trim(),
             subject: subject.trim() || null,
             message: message.trim(),
+            website: honeypot,
           }),
         });
       }
@@ -160,6 +164,15 @@ export default function ContactForm({ embedded = false }: Props) {
           />
         </div>
       </div>
+      <input
+        type="text"
+        name="website"
+        autoComplete="off"
+        aria-hidden
+        className="sr-only"
+        style={{ position: "absolute", left: "-9999px" }}
+        defaultValue=""
+      />
       <BrandCtaButton type="submit" disabled={loading} block>
         {loading ? t("sending") : t("submit")}
       </BrandCtaButton>

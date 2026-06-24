@@ -1,30 +1,50 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getComingSoonPassword } from "@/lib/env/server";
+import { log } from "@/lib/log";
+import { checkRateLimit } from "@/lib/rate-limit/memory";
+import { handleRouteError, jsonError, jsonOk } from "@/lib/security/errors";
+import {
+  getClientIp,
+  invalidJsonResponse,
+  InvalidJsonError,
+  PayloadTooLargeError,
+  payloadTooLargeResponse,
+  rateLimitedResponse,
+  readJsonBody,
+} from "@/lib/security/request";
+import { comingSoonUnlockSchema } from "@/lib/validation/schemas";
 
 const COOKIE_NAME = "thrive_unlock";
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 año
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+const RATE_LIMIT = { limit: 8, windowMs: 15 * 60 * 1000 };
 
 export async function POST(request: NextRequest) {
+  const scope = "coming-soon-unlock";
+
   try {
-    const body = await request.json();
-    const password = typeof body?.password === "string" ? body.password : "";
+    const ip = getClientIp(request);
+    const rate = checkRateLimit(`coming-soon:${ip}`, RATE_LIMIT);
+    if (!rate.allowed) {
+      return rateLimitedResponse(rate.retryAfterSec);
+    }
 
-    const expected = process.env.COMING_SOON_PASSWORD;
+    const raw = await readJsonBody(request, 4 * 1024);
+    const parsed = comingSoonUnlockSchema.safeParse(raw);
+    if (!parsed.success) {
+      return jsonError(400, "Solicitud inválida.");
+    }
+
+    const expected = getComingSoonPassword();
     if (!expected) {
-      console.warn("[coming-soon-unlock] COMING_SOON_PASSWORD no está configurado.");
-      return NextResponse.json(
-        { ok: false, error: "Acceso no configurado" },
-        { status: 500 }
-      );
+      log.warn(scope, "COMING_SOON_PASSWORD no configurado");
+      return jsonError(500, "Acceso no configurado");
     }
 
-    if (password !== expected) {
-      return NextResponse.json(
-        { ok: false, error: "Contraseña incorrecta" },
-        { status: 401 }
-      );
+    if (parsed.data.password !== expected) {
+      return jsonError(401, "Contraseña incorrecta");
     }
 
-    const res = NextResponse.json({ ok: true });
+    const res = jsonOk();
     res.cookies.set(COOKIE_NAME, "1", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -33,8 +53,9 @@ export async function POST(request: NextRequest) {
       maxAge: COOKIE_MAX_AGE,
     });
     return res;
-  } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+  } catch (error) {
+    if (error instanceof PayloadTooLargeError) return payloadTooLargeResponse();
+    if (error instanceof InvalidJsonError) return invalidJsonResponse();
+    return handleRouteError(scope, error);
   }
 }

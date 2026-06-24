@@ -20,6 +20,12 @@ export type StoreProduct = {
   category_id: string | null;
   category: StoreCategory | null;
   is_published: boolean;
+  price_min: number | null;
+  price_max: number | null;
+  compare_at_price_min: number | null;
+  currency: string | null;
+  source: string | null;
+  source_handle: string | null;
 };
 
 export type { Locale };

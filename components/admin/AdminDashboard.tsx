@@ -1,6 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import {
+  Calendar,
+  Clock,
+  FileText,
+  Mail,
+  RefreshCw,
+  ShoppingBag,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import BookingAvailabilityPanel from "@/components/admin/BookingAvailabilityPanel";
 import CmsPanel from "@/components/admin/CmsPanel";
@@ -66,10 +76,74 @@ const SEX_LABELS: Record<string, string> = {
   other: "Otro",
 };
 
+type AdminTab =
+  | "appointments"
+  | "availability"
+  | "cms"
+  | "store"
+  | "clients"
+  | "contact";
+
+const NAV_ITEMS: {
+  id: AdminTab;
+  label: string;
+  title: string;
+  description: string;
+  icon: LucideIcon;
+}[] = [
+  {
+    id: "appointments",
+    label: "Citas",
+    title: "Citas",
+    description: "Gestiona solicitudes, confirma o cancela citas y añade notas internas.",
+    icon: Calendar,
+  },
+  {
+    id: "availability",
+    label: "Disponibilidad",
+    title: "Disponibilidad",
+    description: "Configura horarios semanales, bloqueos y ajustes del calendario de citas.",
+    icon: Clock,
+  },
+  {
+    id: "cms",
+    label: "Contenido",
+    title: "Contenido del sitio",
+    description: "Edita textos, servicios, planes y secciones del sitio web.",
+    icon: FileText,
+  },
+  {
+    id: "store",
+    label: "Tienda",
+    title: "Tienda",
+    description: "Administra categorías y productos con enlace de referido externo.",
+    icon: ShoppingBag,
+  },
+  {
+    id: "clients",
+    label: "Clientes",
+    title: "Clientes",
+    description: "Revisa perfiles registrados, datos de contacto y origen de referencia.",
+    icon: Users,
+  },
+  {
+    id: "contact",
+    label: "Solicitudes",
+    title: "Solicitudes de contacto",
+    description: "Mensajes recibidos desde el formulario de contacto del sitio.",
+    icon: Mail,
+  },
+];
+
+function statusBadgeClass(status: string): string {
+  if (status === "pending") return "admin-badge admin-badge--pending";
+  if (status === "confirmed") return "admin-badge admin-badge--confirmed";
+  if (status === "cancelled") return "admin-badge admin-badge--cancelled";
+  return "admin-badge";
+}
+
 export default function AdminDashboard({ locale }: { locale: string }) {
-  const [tab, setTab] = useState<
-    "appointments" | "availability" | "cms" | "store" | "clients" | "contact"
-  >("appointments");
+  const [tab, setTab] = useState<AdminTab>("appointments");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -206,9 +280,10 @@ export default function AdminDashboard({ locale }: { locale: string }) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               kind: isConfirmed ? "appointment_confirmed" : "appointment_cancelled",
-              to: profile.email,
+              appointmentId: appt.id,
               date: appt.appointment_date,
               timeSlot: appt.time_slot,
+              website: "",
             }),
           });
         }
@@ -244,353 +319,329 @@ export default function AdminDashboard({ locale }: { locale: string }) {
     }
   }
 
+  const activeMeta = NAV_ITEMS.find((n) => n.id === tab) ?? NAV_ITEMS[0];
+
   return (
-    <main className="max-w-7xl mx-auto px-6 py-12">
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-        <div>
-          <h1 className="font-display text-3xl md:text-4xl tracking-wide">
-            Admin
-          </h1>
-          <p className="text-muted mt-2">
-            Gestiona citas y revisa los datos de clientes registrados.
-          </p>
+    <div className="admin-shell">
+      <aside className="admin-sidebar" aria-label="Navegación del panel">
+        <div className="admin-sidebar__brand">
+          <p className="admin-sidebar__eyebrow">Thrive Formative</p>
+          <p className="admin-sidebar__title">Admin</p>
         </div>
 
-        <div className="flex gap-2">
+        <nav className="admin-nav" role="tablist" aria-label="Secciones del panel">
+          {NAV_ITEMS.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={tab === id}
+              aria-current={tab === id ? "page" : undefined}
+              className={`admin-nav__item${tab === id ? " admin-nav__item--active" : ""}`}
+              onClick={() => setTab(id)}
+            >
+              <Icon className="admin-nav__icon" size={17} strokeWidth={2} aria-hidden />
+              {label}
+            </button>
+          ))}
+        </nav>
+
+        <div className="admin-sidebar__footer">
           <button
             type="button"
-            onClick={() => setTab("appointments")}
-            className={`rounded-xl px-4 py-2 text-sm font-medium border ${
-              tab === "appointments"
-                ? "bg-[rgb(var(--primary)/0.14)] border-[rgb(var(--primary)/0.35)]"
-                : "bg-surface border-theme hover:bg-[rgb(var(--primary)/0.06)]"
-            }`}
-          >
-            Citas
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab("availability")}
-            className={`rounded-xl px-4 py-2 text-sm font-medium border ${
-              tab === "availability"
-                ? "bg-[rgb(var(--primary)/0.14)] border-[rgb(var(--primary)/0.35)]"
-                : "bg-surface border-theme hover:bg-[rgb(var(--primary)/0.06)]"
-            }`}
-          >
-            Disponibilidad
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab("cms")}
-            className={`rounded-xl px-4 py-2 text-sm font-medium border ${
-              tab === "cms"
-                ? "bg-[rgb(var(--primary)/0.14)] border-[rgb(var(--primary)/0.35)]"
-                : "bg-surface border-theme hover:bg-[rgb(var(--primary)/0.06)]"
-            }`}
-          >
-            Contenido
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab("store")}
-            className={`rounded-xl px-4 py-2 text-sm font-medium border ${
-              tab === "store"
-                ? "bg-[rgb(var(--primary)/0.14)] border-[rgb(var(--primary)/0.35)]"
-                : "bg-surface border-theme hover:bg-[rgb(var(--primary)/0.06)]"
-            }`}
-          >
-            Tienda
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab("clients")}
-            className={`rounded-xl px-4 py-2 text-sm font-medium border ${
-              tab === "clients"
-                ? "bg-[rgb(var(--primary)/0.14)] border-[rgb(var(--primary)/0.35)]"
-                : "bg-surface border-theme hover:bg-[rgb(var(--primary)/0.06)]"
-            }`}
-          >
-            Clientes
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab("contact")}
-            className={`rounded-xl px-4 py-2 text-sm font-medium border ${
-              tab === "contact"
-                ? "bg-[rgb(var(--primary)/0.14)] border-[rgb(var(--primary)/0.35)]"
-                : "bg-surface border-theme hover:bg-[rgb(var(--primary)/0.06)]"
-            }`}
-          >
-            Solicitudes contacto
-          </button>
-          <button
-            type="button"
+            className="admin-nav__refresh"
             onClick={loadAll}
-            className="rounded-xl px-4 py-2 text-sm font-medium border border-theme bg-surface hover:bg-[rgb(var(--primary)/0.06)]"
+            aria-label="Refrescar datos"
           >
+            <RefreshCw size={15} strokeWidth={2.25} aria-hidden />
             Refrescar
           </button>
         </div>
-      </div>
+      </aside>
 
-      {error && (
-        <div className="mt-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 text-base">
-          {error}
-        </div>
-      )}
+      <main className="admin-main">
+        <header className="admin-header">
+          <p className="admin-header__eyebrow">Panel de administración</p>
+          <h1 className="admin-header__title">{activeMeta.title}</h1>
+          <p className="admin-header__desc">{activeMeta.description}</p>
+          <div className="admin-header__actions">
+            <button type="button" className="admin-nav__refresh" onClick={loadAll}>
+              <RefreshCw size={15} strokeWidth={2.25} aria-hidden />
+              Refrescar
+            </button>
+          </div>
+        </header>
 
-      {!loading && (
-        <section className="mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-7 gap-4" aria-label="Métricas">
-          <div className="rounded-xl border border-theme bg-surface px-4 py-3">
-            <div className="text-2xl font-semibold tabular-nums">{metrics.totalClients}</div>
-            <div className="text-sm text-muted">Clientes</div>
-          </div>
-          <div className="rounded-xl border border-theme bg-surface px-4 py-3">
-            <div className="text-2xl font-semibold tabular-nums">{metrics.totalAppointments}</div>
-            <div className="text-sm text-muted">Citas totales</div>
-          </div>
-          <div className="rounded-xl border border-theme bg-surface px-4 py-3">
-            <div className="text-2xl font-semibold tabular-nums">{metrics.appointmentsThisMonth}</div>
-            <div className="text-sm text-muted">Citas este mes</div>
-          </div>
-          <div className="rounded-xl border border-theme bg-surface px-4 py-3">
-            <div className="text-2xl font-semibold tabular-nums text-amber-600">{metrics.pending}</div>
-            <div className="text-sm text-muted">Pendientes</div>
-          </div>
-          <div className="rounded-xl border border-theme bg-surface px-4 py-3">
-            <div className="text-2xl font-semibold tabular-nums text-green-600">{metrics.confirmed}</div>
-            <div className="text-sm text-muted">Confirmadas</div>
-          </div>
-          <div className="rounded-xl border border-theme bg-surface px-4 py-3">
-            <div className="text-2xl font-semibold tabular-nums text-red-600">{metrics.cancelled}</div>
-            <div className="text-sm text-muted">Canceladas</div>
-          </div>
-          <div className="rounded-xl border border-theme bg-surface px-4 py-3">
-            <div className="text-2xl font-semibold tabular-nums">{metrics.newClientsLast7Days}</div>
-            <div className="text-sm text-muted">Nuevos (7 días)</div>
-          </div>
-        </section>
-      )}
+        {error ? <div className="admin-alert" role="alert">{error}</div> : null}
 
-      {!loading && metrics.referralBreakdown.length > 0 && (
-        <section className="mt-6" aria-label="De dónde nos conocen">
-          <h2 className="text-lg font-semibold text-muted mb-3">De dónde nos conocen</h2>
-          <div className="rounded-xl border border-theme bg-surface p-4 flex flex-wrap gap-3">
-            {metrics.referralBreakdown.map(({ source, count }) => (
-              <div
-                key={source}
-                className="flex items-center gap-2 rounded-lg bg-[rgb(var(--bg)/0.5)] px-3 py-2 border border-theme"
-              >
-                <span className="font-medium tabular-nums">{count}</span>
-                <span className="text-muted text-sm">
-                  {REFERRAL_SOURCE_LABELS[source] ?? (source === "no_indicated" ? "No indicado" : source)}
-                </span>
+        {!loading && (
+          <>
+            <section className="admin-metrics" aria-label="Métricas">
+              <div className="admin-metric">
+                <div className="admin-metric__value">{metrics.totalClients}</div>
+                <div className="admin-metric__label">Clientes</div>
               </div>
-            ))}
-          </div>
-        </section>
-      )}
+              <div className="admin-metric">
+                <div className="admin-metric__value">{metrics.totalAppointments}</div>
+                <div className="admin-metric__label">Citas totales</div>
+              </div>
+              <div className="admin-metric">
+                <div className="admin-metric__value">{metrics.appointmentsThisMonth}</div>
+                <div className="admin-metric__label">Citas este mes</div>
+              </div>
+              <div className="admin-metric admin-metric--pending">
+                <div className="admin-metric__value">{metrics.pending}</div>
+                <div className="admin-metric__label">Pendientes</div>
+              </div>
+              <div className="admin-metric admin-metric--confirmed">
+                <div className="admin-metric__value">{metrics.confirmed}</div>
+                <div className="admin-metric__label">Confirmadas</div>
+              </div>
+              <div className="admin-metric admin-metric--cancelled">
+                <div className="admin-metric__value">{metrics.cancelled}</div>
+                <div className="admin-metric__label">Canceladas</div>
+              </div>
+              <div className="admin-metric">
+                <div className="admin-metric__value">{metrics.newClientsLast7Days}</div>
+                <div className="admin-metric__label">Nuevos (7 días)</div>
+              </div>
+            </section>
 
-      {loading ? (
-        <div className="mt-10 animate-pulse h-64 bg-surface rounded-2xl border border-theme" />
-      ) : tab === "appointments" ? (
-        <section className="mt-10">
-          <div className="rounded-2xl border border-theme bg-surface overflow-hidden">
-            <div className="grid grid-cols-[1.2fr_1fr_0.8fr_0.9fr_1.2fr] gap-4 px-6 py-4 text-sm text-muted border-b border-theme">
-              <div>Cliente</div>
-              <div>Fecha / hora</div>
-              <div>Tipo</div>
-              <div>Estado</div>
-              <div>Acciones</div>
-            </div>
-            <div className="divide-y divide-[rgb(var(--border)/0.18)]">
-              {appointments.map((a) => {
-                const p = profileById.get(a.user_id);
-                return (
-                  <div
-                    key={a.id}
-                    className="grid grid-cols-[1.2fr_1fr_0.8fr_0.9fr_1.2fr] gap-4 px-6 py-4"
-                  >
-                    <div className="min-w-0">
-                      <div className="font-medium truncate">
-                        {p?.full_name?.trim() || p?.email || "Cliente (sin nombre)"}
-                      </div>
-                      <div className="text-sm text-muted truncate">
-                        {p?.phone?.trim() || "No indicado"}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="font-medium">
-                        {a.appointment_date} {a.time_slot}
-                      </div>
-                      <div className="text-sm text-muted">
-                        {new Date(a.created_at).toLocaleString(locale)}
-                      </div>
-                    </div>
-                    <div className="capitalize">{a.type}</div>
-                    <div className="capitalize">{a.status}</div>
-                    <div className="flex flex-col gap-2">
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          onClick={() => updateAppointmentStatus(a.id, "confirmed")}
-                          className="rounded-lg px-3 py-1.5 text-xs font-medium border border-theme bg-[rgb(var(--primary)/0.10)] hover:bg-[rgb(var(--primary)/0.16)]"
-                        >
-                          Confirmar
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => updateAppointmentStatus(a.id, "pending")}
-                          className="rounded-lg px-3 py-1.5 text-xs font-medium border border-theme bg-surface hover:bg-[rgb(var(--primary)/0.06)]"
-                        >
-                          Pendiente
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => updateAppointmentStatus(a.id, "cancelled")}
-                          className="rounded-lg px-3 py-1.5 text-xs font-medium border border-red-500/40 text-red-600 hover:bg-red-500/10"
-                        >
-                          Cancelar
-                        </button>
-                      </div>
-                      <textarea
-                        value={a.notes ?? ""}
-                        onChange={(e) =>
-                          setAppointments((prev) =>
-                            prev.map((x) =>
-                              x.id === a.id ? { ...x, notes: e.target.value } : x
-                            )
-                          )
-                        }
-                        onBlur={(e) => updateAppointmentNotes(a.id, e.target.value)}
-                        placeholder="Notas…"
-                        className="w-full rounded-xl border border-theme bg-[rgb(var(--bg)/0.35)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]"
-                        rows={2}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+            {metrics.referralBreakdown.length > 0 ? (
+              <section className="admin-referral" aria-label="De dónde nos conocen">
+                <h2 className="admin-referral__title">De dónde nos conocen</h2>
+                <div className="admin-referral__card">
+                  {metrics.referralBreakdown.map(({ source, count }) => (
+                    <span key={source} className="admin-referral__chip">
+                      <span className="admin-referral__chip-count">{count}</span>
+                      <span className="admin-referral__chip-label">
+                        {REFERRAL_SOURCE_LABELS[source] ??
+                          (source === "no_indicated" ? "No indicado" : source)}
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+          </>
+        )}
 
-              {!appointments.length && (
-                <div className="px-6 py-10 text-muted">No hay citas.</div>
-              )}
-            </div>
-          </div>
-        </section>
-      ) : tab === "availability" ? (
-        <BookingAvailabilityPanel />
-      ) : tab === "cms" ? (
-        <CmsPanel siteLocale={locale} />
-      ) : tab === "store" ? (
-        <StorePanel siteLocale={locale} />
-      ) : tab === "contact" ? (
-        <section className="mt-10">
-          <div className="rounded-2xl border border-theme bg-surface overflow-hidden">
-            <div className="grid grid-cols-[1fr_1.2fr_1.5fr_0.6fr] gap-4 px-6 py-4 text-sm text-muted border-b border-theme">
-              <div>Nombre / Email</div>
-              <div>Asunto</div>
-              <div>Mensaje</div>
-              <div>Estado</div>
-            </div>
-            <div className="divide-y divide-[rgb(var(--border)/0.18)]">
-              {contactRequests.map((c) => (
-                <div
-                  key={c.id}
-                  className={`grid grid-cols-[1fr_1.2fr_1.5fr_0.6fr] gap-4 px-6 py-4 ${!c.read_at ? "bg-[rgb(var(--primary)/0.06)]" : ""}`}
-                >
-                  <div className="min-w-0">
-                    <div className="font-medium truncate">{c.name}</div>
-                    <div className="text-sm text-muted truncate">{c.email}</div>
-                    <div className="text-xs text-muted mt-1">
-                      {new Date(c.created_at).toLocaleString(locale)}
-                    </div>
-                  </div>
-                  <div className="text-sm truncate">{c.subject || "—"}</div>
-                  <div className="text-sm text-muted whitespace-pre-wrap break-words">{c.message}</div>
-                  <div className="flex flex-col gap-2">
-                    {!c.read_at ? (
-                      <button
-                        type="button"
-                        onClick={() => markContactRequestRead(c.id)}
-                        className="rounded-lg px-3 py-1.5 text-xs font-medium border border-theme bg-[rgb(var(--primary)/0.10)] hover:bg-[rgb(var(--primary)/0.16)]"
+        {loading ? (
+          <div className="admin-skeleton" aria-busy="true" aria-label="Cargando" />
+        ) : tab === "appointments" ? (
+          <section className="admin-content__panel" aria-label="Citas">
+            <div className="admin-table-wrap">
+              <div className="admin-table">
+                <div className="admin-table__head admin-table__head--appointments">
+                  <div>Cliente</div>
+                  <div>Fecha / hora</div>
+                  <div>Tipo</div>
+                  <div>Estado</div>
+                  <div>Acciones</div>
+                </div>
+                <div className="admin-table__body">
+                  {appointments.map((a) => {
+                    const p = profileById.get(a.user_id);
+                    return (
+                      <div
+                        key={a.id}
+                        className="admin-table__row admin-table__row--appointments"
                       >
-                        Marcar leído
-                      </button>
-                    ) : (
-                      <span className="text-xs text-muted">Leído</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-              {!contactRequests.length && (
-                <div className="px-6 py-10 text-muted">No hay solicitudes de contacto.</div>
-              )}
-            </div>
-          </div>
-        </section>
-      ) : (
-        <section className="mt-10">
-          <div className="rounded-2xl border border-theme bg-surface overflow-hidden">
-            <div className="grid grid-cols-[1.2fr_1fr_1fr_1fr] gap-4 px-6 py-4 text-sm text-muted border-b border-theme">
-              <div>Cliente</div>
-              <div>Contacto</div>
-              <div>Datos</div>
-              <div>Origen</div>
-            </div>
-            <div className="divide-y divide-[rgb(var(--border)/0.18)]">
-              {profiles.map((p) => (
-                <div
-                  key={p.id}
-                  className="grid grid-cols-[1.2fr_1fr_1fr_1fr] gap-4 px-6 py-4"
-                >
-                  <div className="min-w-0">
-                    <div className="font-medium truncate">
-                      {p.full_name?.trim() || p.email || "Sin nombre"}
-                    </div>
-                    <div className="text-sm text-muted truncate">
-                      {p.full_name?.trim() && p.email ? `${p.email} · ` : ""}Rol: {p.role}
-                    </div>
-                  </div>
-                  <div className="text-sm">
-                    <div>{p.phone?.trim() || "No indicado"}</div>
-                    <div className="text-muted">
-                      Pref: {p.contact_preference ? (CONTACT_PREFERENCE_LABELS[p.contact_preference] ?? p.contact_preference) : "No indicado"}
-                    </div>
-                  </div>
-                  <div className="text-sm">
-                    <div>Nac: {p.birth_date || "No indicado"}</div>
-                    <div className="text-muted">
-                      Edad: {p.age != null ? p.age : "No indicado"} · Sexo: {p.sex ? (SEX_LABELS[p.sex] ?? p.sex) : "No indicado"}
-                    </div>
-                    <div className="text-muted truncate">
-                      Dir: {p.address?.trim() || "No indicado"}
-                    </div>
-                  </div>
-                  <div className="text-sm">
-                    <div>
-                      {p.referral_source
-                        ? (REFERRAL_SOURCE_LABELS[p.referral_source] ?? p.referral_source)
-                        : "No indicado"}
-                    </div>
-                    {p.referral_source === "other" && (
-                      <div className="text-muted truncate">
-                        {p.referral_source_other?.trim() || "No indicado"}
+                        <div className="min-w-0">
+                          <div className="admin-table__cell-title truncate">
+                            {p?.full_name?.trim() || p?.email || "Cliente (sin nombre)"}
+                          </div>
+                          <div className="admin-table__cell-sub truncate">
+                            {p?.phone?.trim() || "No indicado"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="admin-table__cell-title">
+                            {a.appointment_date} {a.time_slot}
+                          </div>
+                          <div className="admin-table__cell-sub">
+                            {new Date(a.created_at).toLocaleString(locale)}
+                          </div>
+                        </div>
+                        <div className="capitalize text-sm">{a.type}</div>
+                        <div>
+                          <span className={statusBadgeClass(a.status)}>{a.status}</span>
+                        </div>
+                        <div>
+                          <div className="admin-table__actions">
+                            <button
+                              type="button"
+                              onClick={() => updateAppointmentStatus(a.id, "confirmed")}
+                              className="admin-btn admin-btn--primary"
+                            >
+                              Confirmar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => updateAppointmentStatus(a.id, "pending")}
+                              className="admin-btn admin-btn--ghost"
+                            >
+                              Pendiente
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => updateAppointmentStatus(a.id, "cancelled")}
+                              className="admin-btn admin-btn--danger"
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                          <textarea
+                            value={a.notes ?? ""}
+                            onChange={(e) =>
+                              setAppointments((prev) =>
+                                prev.map((x) =>
+                                  x.id === a.id ? { ...x, notes: e.target.value } : x
+                                )
+                              )
+                            }
+                            onBlur={(e) => updateAppointmentNotes(a.id, e.target.value)}
+                            placeholder="Notas…"
+                            className="admin-table__notes"
+                            rows={2}
+                          />
+                        </div>
                       </div>
-                    )}
-                  </div>
+                    );
+                  })}
+                  {!appointments.length ? (
+                    <div className="admin-table__empty">No hay citas.</div>
+                  ) : null}
                 </div>
-              ))}
-              {!profiles.length && (
-                <div className="px-6 py-10 text-muted">
-                  No hay clientes cargados.
-                </div>
-              )}
+              </div>
             </div>
+          </section>
+        ) : tab === "availability" ? (
+          <div className="admin-content__panel">
+            <BookingAvailabilityPanel />
           </div>
-        </section>
-      )}
-    </main>
+        ) : tab === "cms" ? (
+          <div className="admin-content__panel">
+            <CmsPanel siteLocale={locale} />
+          </div>
+        ) : tab === "store" ? (
+          <div className="admin-content__panel">
+            <StorePanel siteLocale={locale} />
+          </div>
+        ) : tab === "contact" ? (
+          <section className="admin-content__panel" aria-label="Solicitudes de contacto">
+            <div className="admin-table-wrap">
+              <div className="admin-table">
+                <div className="admin-table__head admin-table__head--contact">
+                  <div>Nombre / Email</div>
+                  <div>Asunto</div>
+                  <div>Mensaje</div>
+                  <div>Estado</div>
+                </div>
+                <div className="admin-table__body">
+                  {contactRequests.map((c) => (
+                    <div
+                      key={c.id}
+                      className={`admin-table__row admin-table__row--contact${!c.read_at ? " admin-table__row--unread" : ""}`}
+                    >
+                      <div className="min-w-0">
+                        <div className="admin-table__cell-title truncate">{c.name}</div>
+                        <div className="admin-table__cell-sub truncate">{c.email}</div>
+                        <div className="admin-table__cell-sub">
+                          {new Date(c.created_at).toLocaleString(locale)}
+                        </div>
+                      </div>
+                      <div className="text-sm truncate">{c.subject || "—"}</div>
+                      <div className="text-sm text-muted whitespace-pre-wrap break-words">
+                        {c.message}
+                      </div>
+                      <div>
+                        {!c.read_at ? (
+                          <button
+                            type="button"
+                            onClick={() => markContactRequestRead(c.id)}
+                            className="admin-btn admin-btn--primary"
+                          >
+                            Marcar leído
+                          </button>
+                        ) : (
+                          <span className="admin-badge admin-badge--read">Leído</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {!contactRequests.length ? (
+                    <div className="admin-table__empty">No hay solicitudes de contacto.</div>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          </section>
+        ) : (
+          <section className="admin-content__panel" aria-label="Clientes">
+            <div className="admin-table-wrap">
+              <div className="admin-table">
+                <div className="admin-table__head admin-table__head--clients">
+                  <div>Cliente</div>
+                  <div>Contacto</div>
+                  <div>Datos</div>
+                  <div>Origen</div>
+                </div>
+                <div className="admin-table__body">
+                  {profiles.map((p) => (
+                    <div key={p.id} className="admin-table__row admin-table__row--clients">
+                      <div className="min-w-0">
+                        <div className="admin-table__cell-title truncate">
+                          {p.full_name?.trim() || p.email || "Sin nombre"}
+                        </div>
+                        <div className="admin-table__cell-sub truncate">
+                          {p.full_name?.trim() && p.email ? `${p.email} · ` : ""}Rol: {p.role}
+                        </div>
+                      </div>
+                      <div className="text-sm">
+                        <div>{p.phone?.trim() || "No indicado"}</div>
+                        <div className="admin-table__cell-sub">
+                          Pref:{" "}
+                          {p.contact_preference
+                            ? (CONTACT_PREFERENCE_LABELS[p.contact_preference] ??
+                              p.contact_preference)
+                            : "No indicado"}
+                        </div>
+                      </div>
+                      <div className="text-sm">
+                        <div>Nac: {p.birth_date || "No indicado"}</div>
+                        <div className="admin-table__cell-sub">
+                          Edad: {p.age != null ? p.age : "No indicado"} · Sexo:{" "}
+                          {p.sex ? (SEX_LABELS[p.sex] ?? p.sex) : "No indicado"}
+                        </div>
+                        <div className="admin-table__cell-sub truncate">
+                          Dir: {p.address?.trim() || "No indicado"}
+                        </div>
+                      </div>
+                      <div className="text-sm">
+                        <div>
+                          {p.referral_source
+                            ? (REFERRAL_SOURCE_LABELS[p.referral_source] ?? p.referral_source)
+                            : "No indicado"}
+                        </div>
+                        {p.referral_source === "other" ? (
+                          <div className="admin-table__cell-sub truncate">
+                            {p.referral_source_other?.trim() || "No indicado"}
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                  ))}
+                  {!profiles.length ? (
+                    <div className="admin-table__empty">No hay clientes cargados.</div>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+      </main>
+    </div>
   );
 }
 

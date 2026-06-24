@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase";
 import { attachCategoryToProduct, fetchStoreCategories, fetchStoreProducts } from "@/lib/store/fetch";
+import { PRODUCT_FIELDS_ADMIN, type ProductRow } from "@/lib/store/fields";
 import { isValidRef, slugifyRef } from "@/lib/store/slug";
 import type { Locale, StoreCategory, StoreProduct } from "@/lib/store/types";
 
@@ -21,6 +22,12 @@ function createEmptyDraft(locale: Locale, sortOrder: number): StoreProductDraft 
     category_id: null,
     category: null,
     is_published: true,
+    price_min: null,
+    price_max: null,
+    compare_at_price_min: null,
+    currency: "USD",
+    source: null,
+    source_handle: null,
   };
 }
 
@@ -155,17 +162,23 @@ export function useStoreAdmin(initialLocale: Locale) {
       image_url: draft.image_url?.trim() || null,
       category_id: draft.category_id || null,
       is_published: draft.is_published,
+      price_min: draft.price_min,
+      price_max: draft.price_max,
+      compare_at_price_min: draft.compare_at_price_min,
+      currency: draft.currency?.trim() || "USD",
+      source: draft.source?.trim() || null,
+      source_handle: draft.source_handle?.trim() || null,
       updated_at: new Date().toISOString(),
     };
 
     const isNew = editingId === null;
     const { data, error } = isNew
-      ? await supabase.from("store_products").insert(payload).select(PRODUCT_FIELDS).single()
+      ? await supabase.from("store_products").insert(payload).select(PRODUCT_FIELDS_ADMIN).single()
       : await supabase
           .from("store_products")
           .update(payload)
           .eq("id", editingId)
-          .select(PRODUCT_FIELDS)
+          .select(PRODUCT_FIELDS_ADMIN)
           .single();
 
     setSaving(false);
@@ -227,7 +240,7 @@ export function useStoreAdmin(initialLocale: Locale) {
       .from("store_products")
       .update({ is_published: next, updated_at: new Date().toISOString() })
       .eq("id", id)
-      .select(PRODUCT_FIELDS)
+      .select(PRODUCT_FIELDS_ADMIN)
       .single();
     setSaving(false);
 
@@ -349,20 +362,5 @@ export function useStoreAdmin(initialLocale: Locale) {
   };
 }
 
-const PRODUCT_FIELDS =
-  "id, locale, sort_order, name, description, ref, referral_url, image_url, category_id, is_published";
-
-type ProductRow = {
-  id: string;
-  locale: string;
-  sort_order: number;
-  name: string;
-  description: string;
-  ref: string;
-  referral_url: string;
-  image_url: string | null;
-  category_id: string | null;
-  is_published: boolean;
-};
 
 export type StoreAdminApi = ReturnType<typeof useStoreAdmin>;

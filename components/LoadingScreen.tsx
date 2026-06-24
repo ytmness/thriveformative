@@ -1,5 +1,6 @@
 "use client";
 
+import "@/lib/preload-logo-glb";
 import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
@@ -11,7 +12,7 @@ const LoadingScreenLogo3D = dynamic(() => import("./LoadingScreenLogo3D"), {
   ssr: false,
   loading: () => (
     <div
-      className="h-48 w-48 max-w-[192px] mx-auto rounded-lg bg-[rgb(var(--surface)/0.35)] animate-pulse"
+      className="logo-3d-skeleton h-48 w-48 max-w-[192px] mx-auto"
       aria-hidden
     />
   ),

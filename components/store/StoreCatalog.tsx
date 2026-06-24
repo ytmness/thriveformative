@@ -1,11 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Search, X } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
+import StoreProductPrice from "@/components/store/StoreProductPrice";
 import { fetchStoreCategories, fetchStoreProducts } from "@/lib/store/fetch";
+import { productMatchesQuery } from "@/lib/store/search";
 import type { Locale } from "@/lib/cms/types";
 import type { StoreCategory, StoreProduct } from "@/lib/store/types";
 import "@/app/styles/tienda.css";
@@ -16,6 +19,7 @@ export default function StoreCatalog() {
   const [products, setProducts] = useState<StoreProduct[]>([]);
   const [categories, setCategories] = useState<StoreCategory[]>([]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,9 +51,12 @@ export default function StoreCatalog() {
   }, [locale, t]);
 
   const filteredProducts = useMemo(() => {
-    if (!activeCategory) return products;
-    return products.filter((p) => p.category?.slug === activeCategory);
-  }, [products, activeCategory]);
+    return products.filter((p) => {
+      const categoryOk = !activeCategory || p.category?.slug === activeCategory;
+      const searchOk = productMatchesQuery(p, query);
+      return categoryOk && searchOk;
+    });
+  }, [products, activeCategory, query]);
 
   if (loading) {
     return (
@@ -60,7 +67,6 @@ export default function StoreCatalog() {
             <div className="tienda-skeleton__body">
               <div className="tienda-skeleton__line tienda-skeleton__line--short" />
               <div className="tienda-skeleton__line tienda-skeleton__line--title" />
-              <div className="tienda-skeleton__line" />
               <div className="tienda-skeleton__line" />
               <div className="tienda-skeleton__btn" />
             </div>
@@ -78,38 +84,66 @@ export default function StoreCatalog() {
     return <p className="tienda-empty type-body-muted">{t("empty")}</p>;
   }
 
+  const hasActiveFilters = Boolean(activeCategory || query.trim());
+
   return (
     <>
-      {categories.length > 0 ? (
-        <div className="tienda-filters" role="tablist" aria-label={t("filterLabel")}>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeCategory === null}
-            className={`tienda-filters__chip${activeCategory === null ? " tienda-filters__chip--active" : ""}`}
-            onClick={() => setActiveCategory(null)}
-          >
-            {t("allCategories")}
-          </button>
-          {categories.map((cat) => (
+      <div className="tienda-toolbar">
+        <div className="tienda-search">
+          <Search className="tienda-search__icon" size={17} strokeWidth={2} aria-hidden />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t("searchPlaceholder")}
+            className="tienda-search__input"
+            aria-label={t("searchPlaceholder")}
+          />
+          {query ? (
             <button
-              key={cat.id}
+              type="button"
+              className="tienda-search__clear"
+              onClick={() => setQuery("")}
+              aria-label={t("searchClear")}
+            >
+              <X size={15} strokeWidth={2.25} />
+            </button>
+          ) : null}
+        </div>
+
+        {categories.length > 0 ? (
+          <div className="tienda-filters" role="tablist" aria-label={t("filterLabel")}>
+            <button
               type="button"
               role="tab"
-              aria-selected={activeCategory === cat.slug}
-              className={`tienda-filters__chip${
-                activeCategory === cat.slug ? " tienda-filters__chip--active" : ""
-              }`}
-              onClick={() => setActiveCategory(cat.slug)}
+              aria-selected={activeCategory === null}
+              className={`tienda-filters__chip${activeCategory === null ? " tienda-filters__chip--active" : ""}`}
+              onClick={() => setActiveCategory(null)}
             >
-              {cat.name}
+              {t("allCategories")}
             </button>
-          ))}
-        </div>
-      ) : null}
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                role="tab"
+                aria-selected={activeCategory === cat.slug}
+                className={`tienda-filters__chip${
+                  activeCategory === cat.slug ? " tienda-filters__chip--active" : ""
+                }`}
+                onClick={() => setActiveCategory(cat.slug)}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
 
       {filteredProducts.length === 0 ? (
-        <p className="tienda-empty type-body-muted mt-8">{t("emptyCategory")}</p>
+        <p className="tienda-empty type-body-muted">
+          {query.trim() ? t("searchEmpty") : t("emptyCategory")}
+        </p>
       ) : (
         <div className="tienda-catalog">
           {filteredProducts.map((product, i) => (
@@ -117,6 +151,13 @@ export default function StoreCatalog() {
           ))}
         </div>
       )}
+
+      {hasActiveFilters && filteredProducts.length > 0 ? (
+        <p className="type-caption text-center mt-8">
+          {filteredProducts.length}{" "}
+          {filteredProducts.length === 1 ? t("resultSingular") : t("resultPlural")}
+        </p>
+      ) : null}
     </>
   );
 }
@@ -135,15 +176,22 @@ function ProductCard({
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 28 }}
+      initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.55, delay: index * 0.07, ease: "easeOut" }}
+      transition={{ duration: 0.5, delay: Math.min(index * 0.05, 0.35), ease: "easeOut" }}
       className="tienda-card"
     >
       <Link href={detailHref} className="tienda-card__media-link">
         {product.image_url ? (
-          <img src={product.image_url} alt={product.name} />
+          <Image
+            src={product.image_url}
+            alt={product.name}
+            width={400}
+            height={400}
+            className="tienda-card__image"
+            sizes="(max-width: 768px) 100vw, 280px"
+          />
         ) : (
           <span className="tienda-card__media-placeholder">{t("noImage")}</span>
         )}
@@ -156,6 +204,13 @@ function ProductCard({
         <h2 className="tienda-card__title">
           <Link href={detailHref}>{product.name}</Link>
         </h2>
+
+        <StoreProductPrice
+          product={product}
+          locale={locale}
+          priceFromLabel={t("priceFrom")}
+        />
+
         {product.description ? (
           <p className="tienda-card__desc">{product.description}</p>
         ) : null}
@@ -168,7 +223,7 @@ function ProductCard({
             className="tienda-card__buy"
           >
             {t("buyExternal")}
-            <ExternalLink size={15} strokeWidth={2.25} aria-hidden />
+            <ExternalLink size={14} strokeWidth={2.25} aria-hidden />
           </a>
           <Link href={detailHref} className="tienda-card__detail">
             {t("viewProduct")} →

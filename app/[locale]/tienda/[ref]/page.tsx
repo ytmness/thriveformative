@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import WaveDivider from "@/components/WaveDivider";
 import BrandCtaLink from "@/components/ui/BrandCtaLink";
+import StoreProductPrice from "@/components/store/StoreProductPrice";
 import { fetchStoreProductByRef } from "@/lib/store/fetch";
 import type { Locale } from "@/lib/cms/types";
 import type { StoreProduct } from "@/lib/store/types";
@@ -86,49 +87,7 @@ function ProductDetailContent() {
             </Link>
           </div>
         ) : (
-          <motion.div
-            className="tienda-detail"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="tienda-detail__media">
-              {product.image_url ? (
-                <img src={product.image_url} alt={product.name} />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center type-caption text-muted uppercase tracking-wider">
-                  {t("noImage")}
-                </div>
-              )}
-            </div>
-
-            <div className="tienda-detail__panel">
-              <p className="tienda-detail__eyebrow">
-                {product.category?.name ?? t("cardEyebrow")}
-              </p>
-              <h1 className="type-page-title tracking-wide tienda-detail__title">{product.name}</h1>
-
-              {product.description ? (
-                <p className="type-body tienda-detail__desc">{product.description}</p>
-              ) : null}
-
-              <div className="tienda-detail__cta-wrap">
-                <BrandCtaLink
-                  href={product.referral_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  block
-                  className="inline-flex items-center justify-center gap-2"
-                >
-                  <span className="inline-flex items-center gap-2">
-                    {t("buyExternal")}
-                    <ExternalLink size={16} strokeWidth={2.25} aria-hidden />
-                  </span>
-                </BrandCtaLink>
-                <p className="tienda-detail__disclaimer">{t("externalDisclaimer")}</p>
-              </div>
-            </div>
-          </motion.div>
+          <ProductDetailView product={product} locale={locale} t={t} />
         )}
       </main>
 
@@ -143,5 +102,68 @@ export default function ProductDetailPage() {
     <ThemeProvider>
       <ProductDetailContent />
     </ThemeProvider>
+  );
+}
+
+function ProductDetailView({
+  product,
+  locale,
+  t,
+}: {
+  product: StoreProduct;
+  locale: string;
+  t: ReturnType<typeof useTranslations<"tienda">>;
+}) {
+  return (
+    <motion.div
+      className="tienda-detail"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <div className="tienda-detail__media">
+        {product.image_url ? (
+          <img src={product.image_url} alt={product.name} />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center type-caption text-muted uppercase tracking-wider">
+            {t("noImage")}
+          </div>
+        )}
+      </div>
+
+      <div className="tienda-detail__panel">
+        <p className="tienda-detail__eyebrow">
+          {product.category?.name ?? t("cardEyebrow")}
+        </p>
+        <h1 className="tienda-detail__title">{product.name}</h1>
+
+        <StoreProductPrice
+          product={product}
+          locale={locale}
+          priceFromLabel={t("priceFrom")}
+          size="detail"
+        />
+
+        {product.description ? (
+          <p className="type-body tienda-detail__desc">{product.description}</p>
+        ) : null}
+
+        <div className="tienda-detail__cta-wrap">
+          <BrandCtaLink
+            href={product.referral_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            block
+            className="inline-flex items-center justify-center gap-2"
+          >
+            <span className="inline-flex items-center gap-2">
+              {t("buyExternal")}
+              <ExternalLink size={16} strokeWidth={2.25} aria-hidden />
+            </span>
+          </BrandCtaLink>
+          <p className="tienda-detail__disclaimer">{t("externalDisclaimer")}</p>
+        </div>
+      </div>
+    </motion.div>
   );
 }

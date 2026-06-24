@@ -5,23 +5,20 @@ import {
   emailSignOff,
   escapeHtml,
 } from "@/lib/emailTemplate";
+import { getSmtpEnv } from "@/lib/env/server";
+import { log } from "@/lib/log";
 
 const FROM = "Thrive Formative <info@thriveformative.com>";
 
 function getTransport() {
-  const host = process.env.SMTP_HOST || "localhost";
-  const port = Number(process.env.SMTP_PORT || "25");
-  const secure = process.env.SMTP_SECURE === "true";
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
+  const smtp = getSmtpEnv();
 
   return nodemailer.createTransport({
-    host,
-    port,
-    secure,
-    // Aceptar certificado del relay (p. ej. GoDaddy) aunque sea self-signed o la cadena no esté en el sistema
-    tls: { rejectUnauthorized: false },
-    ...(user && pass ? { auth: { user, pass } } : {}),
+    host: smtp.host,
+    port: smtp.port,
+    secure: smtp.secure,
+    tls: { rejectUnauthorized: smtp.rejectUnauthorized },
+    ...(smtp.user && smtp.pass ? { auth: { user: smtp.user, pass: smtp.pass } } : {}),
   });
 }
 
@@ -110,11 +107,11 @@ export async function sendEmailPayload(payload: EmailKind): Promise<{ ok: boolea
       text,
       html,
     });
-    console.log("[sendEmail]", (payload as EmailKind).kind, "→ enviado OK a", to);
+    log.info("sendEmail", "sent", { kind: payload.kind });
     return { ok: true };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error("[sendEmail]", (payload as EmailKind).kind, "→", message);
+    log.error("sendEmail", message, { kind: (payload as EmailKind).kind });
     return { ok: false, error: message };
   }
 }

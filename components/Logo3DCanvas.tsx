@@ -1,6 +1,14 @@
 "use client";
 
-import { Component, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  Component,
+  Suspense,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Bounds, Center, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
@@ -8,6 +16,9 @@ import { useReducedMotion } from "framer-motion";
 import { SITE_LOGO_SRC } from "@/lib/branding";
 
 export type Logo3DPreset = "gold" | "metal";
+
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 600;
 
 const PRESETS: Record<
   Logo3DPreset,
@@ -48,7 +59,6 @@ const PRESETS: Record<
   },
 };
 
-/** Tope de DPR: menos píxeles en móvil sin perder sensación 3D. */
 function useAdaptiveDprCap(): number {
   const [cap, setCap] = useState(2);
   useEffect(() => {
@@ -74,14 +84,23 @@ function useAdaptiveDprCap(): number {
   return cap;
 }
 
+function ModelReadyMarker({ onReady }: { onReady: () => void }) {
+  useEffect(() => {
+    onReady();
+  }, [onReady]);
+  return null;
+}
+
 function RotatingLogo({
   modelPath,
   paused,
   preset,
+  onReady,
 }: {
   modelPath: string;
   paused: boolean;
   preset: Logo3DPreset;
+  onReady: () => void;
 }) {
   const { scene } = useGLTF(modelPath, true, true);
   const groupRef = useRef<THREE.Group>(null);
@@ -94,13 +113,16 @@ function RotatingLogo({
   });
 
   return (
-    <Bounds fit clip={false} margin={margin}>
-      <Center>
-        <group ref={groupRef}>
-          <primitive object={scene} />
-        </group>
-      </Center>
-    </Bounds>
+    <>
+      <ModelReadyMarker onReady={onReady} />
+      <Bounds fit clip={false} margin={margin}>
+        <Center>
+          <group ref={groupRef}>
+            <primitive object={scene} />
+          </group>
+        </Center>
+      </Bounds>
+    </>
   );
 }
 
@@ -109,7 +131,11 @@ function SceneLights({ preset }: { preset: Logo3DPreset }) {
   return (
     <>
       <ambientLight intensity={p.ambient} />
-      <hemisphereLight intensity={p.hemisphere.intensity} groundColor={p.hemisphere.ground} color={p.hemisphere.sky} />
+      <hemisphereLight
+        intensity={p.hemisphere.intensity}
+        groundColor={p.hemisphere.ground}
+        color={p.hemisphere.sky}
+      />
       {p.directional.map((d, i) => (
         <directionalLight key={i} position={d.position} intensity={d.intensity} />
       ))}
@@ -121,6 +147,10 @@ function SceneLights({ preset }: { preset: Logo3DPreset }) {
       />
     </>
   );
+}
+
+export function Logo3DSkeleton({ className }: { className: string }) {
+  return <div className={`logo-3d-skeleton ${className}`} aria-hidden />;
 }
 
 function Logo3DFallback({ className }: { className: string }) {
@@ -136,7 +166,12 @@ function Logo3DFallback({ className }: { className: string }) {
 }
 
 class Logo3DErrorBoundary extends Component<
-  { fallback: ReactNode; children: ReactNode },
+  {
+    children: ReactNode;
+    loadingFallback: ReactNode;
+    onRecoverableError: () => void;
+    resetKey: number;
+  },
   { hasError: boolean }
 > {
   state = { hasError: false };
@@ -145,8 +180,18 @@ class Logo3DErrorBoundary extends Component<
     return { hasError: true };
   }
 
+  componentDidCatch() {
+    this.props.onRecoverableError();
+  }
+
+  componentDidUpdate(prevProps: { resetKey: number }) {
+    if (prevProps.resetKey !== this.props.resetKey && this.state.hasError) {
+      this.setState({ hasError: false });
+    }
+  }
+
   render() {
-    if (this.state.hasError) return this.props.fallback;
+    if (this.state.hasError) return this.props.loadingFallback;
     return this.props.children;
   }
 }
@@ -154,7 +199,6 @@ class Logo3DErrorBoundary extends Component<
 export interface Logo3DCanvasProps {
   modelPath: string;
   preset?: Logo3DPreset;
-  /** Contenedor del Canvas (altura/ancho vía CSS). */
   className?: string;
 }
 
@@ -166,34 +210,97 @@ export default function Logo3DCanvas({
   const paused = useReducedMotion();
   const exposure = PRESETS[preset].exposure;
   const dprCap = useAdaptiveDprCap();
-  const fallback = <Logo3DFallback className={className} />;
+
+  const [canvasKey, setCanvasKey] = useState(0);
+  const [modelReady, setModelReady] = useState(false);
+  const [fatal, setFatal] = useState(false);
+  const retryCountRef = useRef(0);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const scheduleRetry = useCallback(() => {
+    if (retryCountRef.current >= MAX_RETRIES) {
+      setFatal(true);
+      return;
+    }
+    retryCountRef.current += 1;
+    setModelReady(false);
+    if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+    retryTimerRef.current = setTimeout(() => {
+      setCanvasKey((k) => k + 1);
+    }, RETRY_DELAY_MS);
+  }, []);
+
+  const handleModelReady = useCallback(() => {
+    setModelReady(true);
+    retryCountRef.current = 0;
+  }, []);
+
+  useEffect(() => {
+    setModelReady(false);
+  }, [canvasKey, modelPath]);
+
+  useEffect(() => {
+    return () => {
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+    };
+  }, []);
+
+  if (fatal) {
+    return <Logo3DFallback className={className} />;
+  }
+
+  const skeleton = <Logo3DSkeleton className={className} />;
 
   return (
-    <Logo3DErrorBoundary fallback={fallback}>
-      <div className={className}>
+    <Logo3DErrorBoundary
+      loadingFallback={skeleton}
+      onRecoverableError={scheduleRetry}
+      resetKey={canvasKey}
+    >
+      <div className={`relative ${className}`}>
+        {!modelReady ? (
+          <div className="absolute inset-0 z-10 pointer-events-none">{skeleton}</div>
+        ) : null}
         <Canvas
-        camera={{ position: [0, 0, 5], fov: 42 }}
-        dpr={[1, dprCap]}
-        gl={{
-          alpha: true,
-          antialias: true,
-          powerPreference: "high-performance",
-          failIfMajorPerformanceCaveat: false,
-        }}
-        className="h-full w-full touch-none"
-        onCreated={({ gl }) => {
-          gl.toneMapping = THREE.ACESFilmicToneMapping;
-          gl.toneMappingExposure = exposure;
-          if ("outputColorSpace" in gl) {
-            (gl as THREE.WebGLRenderer).outputColorSpace = THREE.SRGBColorSpace;
-          }
-        }}
-      >
-        <SceneLights preset={preset} />
-        <Suspense fallback={fallback}>
-          <RotatingLogo modelPath={modelPath} paused={!!paused} preset={preset} />
-        </Suspense>
-      </Canvas>
+          key={canvasKey}
+          camera={{ position: [0, 0, 5], fov: 42 }}
+          dpr={[1, dprCap]}
+          gl={{
+            alpha: true,
+            antialias: true,
+            powerPreference: "high-performance",
+            failIfMajorPerformanceCaveat: false,
+          }}
+          className="h-full w-full touch-none"
+          onCreated={({ gl }) => {
+            gl.toneMapping = THREE.ACESFilmicToneMapping;
+            gl.toneMappingExposure = exposure;
+            if ("outputColorSpace" in gl) {
+              (gl as THREE.WebGLRenderer).outputColorSpace = THREE.SRGBColorSpace;
+            }
+
+            const canvas = gl.domElement;
+            const handleContextLost = (event: Event) => {
+              event.preventDefault();
+              scheduleRetry();
+            };
+            const handleContextRestored = () => {
+              setCanvasKey((k) => k + 1);
+            };
+            canvas.addEventListener("webglcontextlost", handleContextLost, false);
+            canvas.addEventListener("webglcontextrestored", handleContextRestored, false);
+          }}
+        >
+          <SceneLights preset={preset} />
+          <Suspense fallback={null}>
+            <RotatingLogo
+              modelPath={modelPath}
+              paused={!!paused}
+              preset={preset}
+              onReady={handleModelReady}
+            />
+          </Suspense>
+        </Canvas>
       </div>
     </Logo3DErrorBoundary>
   );
