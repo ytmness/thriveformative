@@ -101,30 +101,12 @@ NGINX_CONF="/etc/nginx/sites-available/thriveformative"
 if [ -f "$NGINX_CONF" ]; then
   echo "==> Nginx: config ya existe, no se sobrescribe (se conserva SSL de Certbot)"
   echo "    Si ves 404 en JS/CSS/fuentes o /logos: sudo bash $APP_DIR/scripts/apply-nginx-proxy-only.sh"
+  echo "    Si el navegador cachea 502/503 tras deploy: sudo bash $APP_DIR/scripts/apply-nginx-no-cache-errors.sh"
 else
   # Proxy puro: Next standalone ya sirve /_next/static y archivos de public/.
   # Evita 404 por alias mal alineados (chunks con hash, fuentes .woff2, CSS, /logos/).
-  cat > "$NGINX_CONF" << EOF
-# Thrive Formative — proxy a Node (standalone)
-server {
-    listen 80;
-    listen [::]:80;
-    server_name $DOMAIN www.$DOMAIN;
-
-    location / {
-        proxy_pass http://127.0.0.1:3001;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_cache_bypass \$http_upgrade;
-    }
-}
-EOF
-  echo "==> Nginx: config creada (solo proxy). Para HTTPS: sudo certbot --nginx -d $DOMAIN -d www.$DOMAIN"
+  bash "$APP_DIR/scripts/apply-nginx-no-cache-errors.sh"
+  echo "==> Nginx: config creada (proxy + errores no cacheables). Para HTTPS: sudo certbot --nginx -d $DOMAIN -d www.$DOMAIN"
 fi
 
 ln -sf "$NGINX_CONF" /etc/nginx/sites-enabled/thriveformative
