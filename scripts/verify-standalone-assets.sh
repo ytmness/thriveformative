@@ -32,7 +32,8 @@ echo "==> Probando Node en :$PORT con: $REL"
 code=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:$PORT$REL")
 echo "    HTTP $code (esperado 200)"
 if [ "$code" != "200" ]; then
-  echo "    Repara con: cd $APP_DIR && npm run build && mkdir -p .next/standalone/.next && rm -rf .next/standalone/.next/static && cp -r .next/static .next/standalone/.next/ && rm -rf .next/standalone/public && cp -r public .next/standalone/ && systemctl restart thriveformative"
+  echo "    Repara con: cd $APP_DIR && npm run build && pm2 restart thriveformative --update-env"
+  echo "    (Si el 404 es justo tras build, reinicia PM2 antes de verificar: el proceso viejo no tiene los chunks nuevos.)"
   exit 1
 fi
 
