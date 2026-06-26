@@ -104,24 +104,21 @@ if [ -f "$NGINX_CONF" ]; then
 else
   # Proxy puro: Next standalone ya sirve /_next/static y archivos de public/.
   # Evita 404 por alias mal alineados (chunks con hash, fuentes .woff2, CSS, /logos/).
+  PROXY_SNIPPET="$APP_DIR/scripts/lib/nginx-proxy-location.conf"
+  PROXY_LOCATION="$(sed 's/__PORT__/3001/g' "$PROXY_SNIPPET")"
   cat > "$NGINX_CONF" << EOF
 # Thrive Formative — proxy a Node (standalone)
+map \$status \$thrive_error_cache_control {
+    ~^50[234]  "no-store, no-cache, must-revalidate, max-age=0";
+    default    "";
+}
+
 server {
     listen 80;
     listen [::]:80;
     server_name $DOMAIN www.$DOMAIN;
 
-    location / {
-        proxy_pass http://127.0.0.1:3001;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_cache_bypass \$http_upgrade;
-    }
+$PROXY_LOCATION
 }
 EOF
   echo "==> Nginx: config creada (solo proxy). Para HTTPS: sudo certbot --nginx -d $DOMAIN -d www.$DOMAIN"

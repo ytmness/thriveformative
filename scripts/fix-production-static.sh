@@ -10,7 +10,14 @@ echo "==> Copiando estáticos al standalone (public + .next/static)..."
 node scripts/copy-standalone-assets.js
 
 echo "==> Reiniciando servicio..."
-systemctl restart thriveformative
+if command -v pm2 >/dev/null 2>&1 && pm2 describe thriveformative >/dev/null 2>&1; then
+  pm2 restart thriveformative --update-env
+  pm2 save
+elif systemctl is-active --quiet thriveformative 2>/dev/null; then
+  systemctl restart thriveformative
+else
+  echo "WARN: no se encontró PM2 ni systemd thriveformative; reinicia la app manualmente."
+fi
 
 echo "==> Verificando..."
 bash scripts/verify-standalone-assets.sh

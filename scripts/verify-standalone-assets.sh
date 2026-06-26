@@ -32,7 +32,7 @@ echo "==> Probando Node en :$PORT con: $REL"
 code=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:$PORT$REL")
 echo "    HTTP $code (esperado 200)"
 if [ "$code" != "200" ]; then
-  echo "    Repara con: cd $APP_DIR && npm run build && mkdir -p .next/standalone/.next && rm -rf .next/standalone/.next/static && cp -r .next/static .next/standalone/.next/ && rm -rf .next/standalone/public && cp -r public .next/standalone/ && systemctl restart thriveformative"
+  echo "    Repara con: cd $APP_DIR && npm run build && node scripts/copy-standalone-assets.js && pm2 restart thriveformative --update-env"
   exit 1
 fi
 

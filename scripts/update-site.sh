@@ -25,5 +25,16 @@ else
   echo "WARN: no se encontró PM2 ni systemd thriveformative; reinicia la app manualmente."
 fi
 
+PORT="${PORT:-3001}"
+HEALTH_URL="http://127.0.0.1:${PORT}/api/health"
+echo "==> Esperando health check..."
+for i in $(seq 1 30); do
+  if curl -sf "$HEALTH_URL" >/dev/null 2>&1; then
+    echo "    OK tras ${i}s"
+    break
+  fi
+  sleep 1
+done
+
 echo ""
 echo "==> Listo. Prueba https://thriveformative.com (Ctrl+Shift+R para evitar caché)."
