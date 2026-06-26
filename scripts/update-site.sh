@@ -12,9 +12,6 @@ bash "$APP_DIR/scripts/git-sync-main.sh"
 echo "==> npm run build (incluye postbuild: copia public + static al standalone)"
 npm run build
 
-echo "==> Verificando estáticos en standalone..."
-bash scripts/verify-standalone-assets.sh
-
 echo "==> Reiniciando thriveformative..."
 if command -v pm2 >/dev/null 2>&1 && pm2 describe thriveformative >/dev/null 2>&1; then
   pm2 restart thriveformative --update-env
@@ -24,6 +21,9 @@ elif systemctl is-active --quiet thriveformative 2>/dev/null; then
 else
   echo "WARN: no se encontró PM2 ni systemd thriveformative; reinicia la app manualmente."
 fi
+
+echo "==> Verificando estáticos en standalone (tras restart)..."
+bash scripts/verify-standalone-assets.sh
 
 echo ""
 echo "==> Listo. Prueba https://thriveformative.com (Ctrl+Shift+R para evitar caché)."

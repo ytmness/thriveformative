@@ -22,11 +22,6 @@ npm install
 echo "==> npm run build"
 npm run build
 
-echo "==> Verificando estáticos en standalone..."
-if [ -f "$APP_DIR/scripts/verify-standalone-assets.sh" ]; then
-  bash "$APP_DIR/scripts/verify-standalone-assets.sh" || true
-fi
-
 echo "==> PM2 restart $PM2_APP"
 if pm2 describe "$PM2_APP" >/dev/null 2>&1; then
   pm2 restart "$PM2_APP" --update-env
@@ -35,6 +30,11 @@ else
 fi
 
 pm2 save
+
+echo "==> Verificando estáticos en standalone (tras restart)..."
+if [ -f "$APP_DIR/scripts/verify-standalone-assets.sh" ]; then
+  bash "$APP_DIR/scripts/verify-standalone-assets.sh" || true
+fi
 
 echo ""
 echo "==> Deploy completado."
