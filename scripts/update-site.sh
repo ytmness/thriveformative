@@ -22,6 +22,9 @@ else
   echo "WARN: no se encontró PM2 ni systemd thriveformative; reinicia la app manualmente."
 fi
 
+echo "==> Esperando que la app responda..."
+bash "$APP_DIR/scripts/wait-for-app-health.sh"
+
 echo "==> Verificando estáticos en standalone (tras restart)..."
 bash scripts/verify-standalone-assets.sh
 
