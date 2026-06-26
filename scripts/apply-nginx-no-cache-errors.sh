@@ -52,6 +52,8 @@ fi
 
 write_proxy_location() {
   cat << EOF
+    include $SNIPPET_DST;
+
     location / {
         proxy_pass http://127.0.0.1:$PORT;
         proxy_http_version 1.1;
@@ -66,10 +68,7 @@ write_proxy_location() {
         proxy_send_timeout 60s;
         proxy_read_timeout 60s;
         proxy_intercept_errors on;
-        error_page 502 503 504 = @thrive_proxy_error;
     }
-
-    include $SNIPPET_DST;
 EOF
 }
 

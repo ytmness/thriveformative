@@ -31,6 +31,9 @@ fi
 
 pm2 save
 
+echo "==> Esperando que la app responda..."
+bash "$APP_DIR/scripts/wait-for-app-health.sh"
+
 echo "==> Verificando estáticos en standalone (tras restart)..."
 if [ -f "$APP_DIR/scripts/verify-standalone-assets.sh" ]; then
   bash "$APP_DIR/scripts/verify-standalone-assets.sh" || true
