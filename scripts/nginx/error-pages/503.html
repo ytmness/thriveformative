@@ -9,35 +9,38 @@
     h1 { font-size: 1.35rem; font-weight: 600; }
     p { color: #555; line-height: 1.5; }
     .hint { font-size: 0.875rem; color: #888; margin-top: 1.5rem; }
+    .btn { display: none; margin-top: 1.25rem; padding: 0.65rem 1.25rem; font-size: 1rem; color: #fff; background: #2563eb; border: none; border-radius: 0.5rem; cursor: pointer; text-decoration: none; }
+    .btn.visible { display: inline-block; }
   </style>
 </head>
 <body>
   <h1>Un momento…</h1>
-  <p>Estamos actualizando el sitio. Se abrirá automáticamente cuando esté listo.</p>
-  <p class="hint" id="status">Comprobando…</p>
+  <p>Estamos actualizando el sitio. Esta página <strong>no se recarga sola</strong>.</p>
+  <p class="hint" id="status">Comprobando en segundo plano…</p>
+  <a class="btn" id="enter" href="/">Entrar al sitio</a>
   <script>
     (function () {
       var tries = 0;
-      var max = 30;
+      var max = 60;
       var status = document.getElementById("status");
+      var enter = document.getElementById("enter");
+      function ready() {
+        var url = "/?_=" + Date.now();
+        enter.href = url;
+        enter.className = "btn visible";
+        status.textContent = "El sitio está listo.";
+      }
       function check() {
+        if (enter.className.indexOf("visible") !== -1) return;
         if (tries++ >= max) {
-          status.textContent = "Tarda más de lo habitual. Recarga la página en unos segundos.";
+          status.textContent = "Si sigue así, abre thriveformative.com en una ventana nueva.";
+          enter.className = "btn visible";
+          enter.href = "/?_=" + Date.now();
           return;
         }
         fetch("/api/health", { cache: "no-store" })
-          .then(function (r) {
-            if (r.ok) {
-              location.replace("/");
-            } else {
-              status.textContent = "Reintentando…";
-              setTimeout(check, 2000);
-            }
-          })
-          .catch(function () {
-            status.textContent = "Reintentando…";
-            setTimeout(check, 2000);
-          });
+          .then(function (r) { if (r.ok) ready(); else setTimeout(check, 2000); })
+          .catch(function () { setTimeout(check, 2000); });
       }
       setTimeout(check, 1500);
     })();
