@@ -67,35 +67,55 @@ write_proxy_location() {
         proxy_connect_timeout 10s;
         proxy_send_timeout 60s;
         proxy_read_timeout 60s;
-        proxy_intercept_errors on;
     }
 EOF
+}
+
+write_http_redirect_server() {
+  cat << EOF
+server {
+    listen 80;
+    listen [::]:80;
+    server_name $DOMAIN www.$DOMAIN;
+    return 301 https://\$host\$request_uri;
+}
+EOF
+}
+
+write_https_server() {
+  cat << EOF
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name $DOMAIN www.$DOMAIN;
+EOF
+  if [ -n "$SSL_OPTS" ]; then
+    echo "$SSL_OPTS"
+  else
+    cat << EOF
+    ssl_certificate $SSL_CERT;
+    ssl_certificate_key $SSL_KEY;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+EOF
+  fi
+  write_proxy_location
+  echo "}"
 }
 
 {
   echo "# Thrive Formative — proxy a Node con errores no cacheables"
   echo "# Generado por apply-nginx-no-cache-errors.sh"
-  echo "server {"
-  echo "    listen 80;"
-  echo "    listen [::]:80;"
-  echo "    server_name $DOMAIN www.$DOMAIN;"
-  write_proxy_location
-  echo "}"
 
   if [ -n "$SSL_CERT" ]; then
+    write_http_redirect_server
     echo ""
+    write_https_server
+  else
     echo "server {"
-    echo "    listen 443 ssl http2;"
-    echo "    listen [::]:443 ssl http2;"
+    echo "    listen 80;"
+    echo "    listen [::]:80;"
     echo "    server_name $DOMAIN www.$DOMAIN;"
-    if [ -n "$SSL_OPTS" ]; then
-      echo "$SSL_OPTS"
-    else
-      echo "    ssl_certificate $SSL_CERT;"
-      echo "    ssl_certificate_key $SSL_KEY;"
-      echo "    include /etc/letsencrypt/options-ssl-nginx.conf;"
-      echo "    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;"
-    fi
     write_proxy_location
     echo "}"
   fi
@@ -105,5 +125,5 @@ ln -sf "$NGINX_CONF" /etc/nginx/sites-enabled/thriveformative
 nginx -t
 systemctl reload nginx
 
-echo "==> Nginx actualizado: errores 502/503/504 con Cache-Control: no-store."
-echo "    Tras un deploy, el navegador ya no debería guardar la página de error."
+echo "==> Nginx actualizado: errores 502/504 con Cache-Control: no-store."
+echo "    La página de espera solo redirige cuando /api/health responde OK."

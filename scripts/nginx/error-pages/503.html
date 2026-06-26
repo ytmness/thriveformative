@@ -3,20 +3,44 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="refresh" content="3">
   <title>Cargando…</title>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 28rem; margin: 4rem auto; padding: 0 1rem; color: #333; text-align: center; }
     h1 { font-size: 1.35rem; font-weight: 600; }
     p { color: #555; line-height: 1.5; }
     .hint { font-size: 0.875rem; color: #888; margin-top: 1.5rem; }
-    a { color: #2563eb; }
   </style>
 </head>
 <body>
   <h1>Un momento…</h1>
-  <p>Estamos actualizando el sitio. Se recargará automáticamente en unos segundos.</p>
-  <p class="hint">Si no cambia, <a href="/">haz clic aquí</a>.</p>
-  <script>setTimeout(function () { location.reload(); }, 3000);</script>
+  <p>Estamos actualizando el sitio. Se abrirá automáticamente cuando esté listo.</p>
+  <p class="hint" id="status">Comprobando…</p>
+  <script>
+    (function () {
+      var tries = 0;
+      var max = 30;
+      var status = document.getElementById("status");
+      function check() {
+        if (tries++ >= max) {
+          status.textContent = "Tarda más de lo habitual. Recarga la página en unos segundos.";
+          return;
+        }
+        fetch("/api/health", { cache: "no-store" })
+          .then(function (r) {
+            if (r.ok) {
+              location.replace("/");
+            } else {
+              status.textContent = "Reintentando…";
+              setTimeout(check, 2000);
+            }
+          })
+          .catch(function () {
+            status.textContent = "Reintentando…";
+            setTimeout(check, 2000);
+          });
+      }
+      setTimeout(check, 1500);
+    })();
+  </script>
 </body>
 </html>
