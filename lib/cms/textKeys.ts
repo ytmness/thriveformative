@@ -8,6 +8,12 @@ export const CMS_TEXT_GROUPS: {
     keys: [
       { key: "hero.title", label: "Título principal" },
       { key: "hero.subtitle", label: "Subtítulo" },
+      { key: "hero.question1", label: "Pregunta rotativa 1" },
+      { key: "hero.question2", label: "Pregunta rotativa 2" },
+      { key: "hero.question3", label: "Pregunta rotativa 3" },
+      { key: "hero.question4", label: "Pregunta rotativa 4" },
+      { key: "hero.question5", label: "Pregunta rotativa 5" },
+      { key: "hero.question6", label: "Pregunta rotativa 6" },
       { key: "hero.scheduleBtn", label: "Botón agendar" },
       { key: "hero.benefit1", label: "Beneficio 1" },
       { key: "hero.benefit2", label: "Beneficio 2" },

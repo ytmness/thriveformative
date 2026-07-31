@@ -102,6 +102,12 @@
   "hero": {
     "title": "Descubre tu salud",
     "subtitle": "¿Cuándo fue la última vez que te sentiste realmente bien? No hablamos de un buen día, sino de despertar con energía, dormir profundamente y disfrutar cada día con claridad mental. Thrive Formative Method te ayuda a descubrirlo y a construir hábitos que lo sostengan.",
+    "question1": "¿Cuándo fue la última vez que te sentiste realmente bien?",
+    "question2": "¿Alguna vez te has preguntado de qué está hecha realmente tu salud?",
+    "question3": "¿Estás normalizando el cansancio, la inflamación o la falta de energía?",
+    "question4": "¿Sabes qué hábitos te ayudan… y cuáles te alejan del bienestar?",
+    "question5": "¿Cuándo fue la última vez que realmente escuchaste a tu cuerpo?",
+    "question6": "¿Y si tu salud se construye todos los días, no solo cuando estás enfermo?",
     "scheduleBtn": "Agenda tu consulta inicial",
     "servicesBtn": "Ver servicios",
     "benefit1": "Comprende cómo cambia tu cuerpo con el tiempo",

@@ -102,6 +102,12 @@
   "hero": {
     "title": "Scopri la tua salute",
     "subtitle": "Quando è stata l'ultima volta che ti sei sentito davvero bene? Non parliamo di una buona giornata, ma di svegliarti con energia, dormire profondamente e vivere ogni giorno con chiarezza mentale. Il Thrive Formative Method ti aiuta a scoprirlo e a costruire abitudini che lo mantengano.",
+    "question1": "Quando è stata l'ultima volta che ti sei sentito davvero bene?",
+    "question2": "Ti sei mai chiesto di cosa è fatta davvero la tua salute?",
+    "question3": "Stai normalizzando la stanchezza, l'infiammazione o la mancanza di energia?",
+    "question4": "Sai quali abitudini ti aiutano… e quali ti allontanano dal benessere?",
+    "question5": "Quando è stata l'ultima volta che hai davvero ascoltato il tuo corpo?",
+    "question6": "E se la tua salute si costruisse ogni giorno, non solo quando sei malato?",
     "scheduleBtn": "Prenota la tua visita iniziale",
     "servicesBtn": "Vedi servizi",
     "benefit1": "Comprendi come cambia il tuo corpo nel tempo",

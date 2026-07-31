@@ -102,6 +102,12 @@
   "hero": {
     "title": "Discover Your Health",
     "subtitle": "When was the last time you truly felt well? We don't mean a good day — we mean waking up with energy, sleeping deeply, and enjoying real mental clarity every day. Thrive Formative Method helps you discover that and build habits that sustain it.",
+    "question1": "When was the last time you truly felt well?",
+    "question2": "Have you ever wondered what your health is really made of?",
+    "question3": "Are you normalizing fatigue, inflammation, or low energy?",
+    "question4": "Do you know which habits help you… and which ones pull you away from wellness?",
+    "question5": "When was the last time you truly listened to your body?",
+    "question6": "What if your health is built every day — not only when you're sick?",
     "scheduleBtn": "Schedule your initial consultation",
     "servicesBtn": "View services",
     "benefit1": "Understand how your body changes over time",

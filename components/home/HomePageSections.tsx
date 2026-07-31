@@ -8,6 +8,7 @@ import CmsEditableZone from "@/components/admin/cms/CmsEditableZone";
 import CmsText from "@/components/cms/CmsText";
 import { useCmsContext } from "@/components/cms/CmsProvider";
 import type { HomePageEditableConfig } from "@/components/home/homePageTypes";
+import HeroQuestionsRotator from "@/components/home/HeroQuestionsRotator";
 import BrandCtaLink from "@/components/ui/BrandCtaLink";
 import { WHATSAPP_LINK } from "@/lib/branding";
 import { resolveCmsText } from "@/lib/cms/fetch";
@@ -169,6 +170,22 @@ export default function HomePageSections({
               <h1 className="hero-editorial__title">
                 {editable ? txt("hero.title", "hero.title") : <CmsText contentKey="hero.title" as="span" />}
               </h1>
+            )}
+            {wrapText(
+              "Preguntas del hero (rotación)",
+              [
+                { key: "hero.question1", label: "Pregunta 1" },
+                { key: "hero.question2", label: "Pregunta 2" },
+                { key: "hero.question3", label: "Pregunta 3" },
+                { key: "hero.question4", label: "Pregunta 4" },
+                { key: "hero.question5", label: "Pregunta 5" },
+                { key: "hero.question6", label: "Pregunta 6" },
+              ],
+              <HeroQuestionsRotator
+                questions={[1, 2, 3, 4, 5, 6].map((i) =>
+                  txt(`hero.question${i}`, `hero.question${i}`)
+                )}
+              />
             )}
             {wrapText(
               "Subtítulo del hero",
