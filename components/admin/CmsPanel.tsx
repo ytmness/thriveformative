@@ -9,7 +9,7 @@ import CmsVisualPreview from "@/components/admin/cms/CmsVisualPreview";
 import "@/app/styles/admin-cms.css";
 import "@/app/styles/admin-cms-visual.css";
 
-type SubTab = "services" | "plans" | "articles" | "texts";
+type SubTab = "services" | "articles" | "texts";
 type ViewMode = "visual" | "forms";
 
 const LOCALE_LABELS: Record<Locale, string> = {
@@ -36,21 +36,16 @@ export default function CmsPanel({ siteLocale }: Props) {
     message,
     services,
     setServices,
-    plans,
-    setPlans,
     articles,
     setArticles,
     textDraft,
     updateTextDraft,
     saveService,
     deleteService,
-    savePlan,
-    deletePlan,
     saveArticle,
     deleteArticle,
     saveAllTexts,
     addService,
-    addPlan,
     addArticle,
   } = cms;
 
@@ -116,7 +111,6 @@ export default function CmsPanel({ siteLocale }: Props) {
             {(
               [
                 ["services", "Servicios"],
-                ["plans", "Planes"],
                 ["articles", "Artículos"],
                 ["texts", "Textos del sitio"],
               ] as const
@@ -217,94 +211,6 @@ export default function CmsPanel({ siteLocale }: Props) {
               {!services.length && (
                 <p className="text-muted text-sm">No hay servicios en CMS para este idioma.</p>
               )}
-            </div>
-          )}
-
-          {subTab === "plans" && (
-            <div className="admin-cms__card">
-              <button type="button" className="admin-cms__btn mb-4" onClick={() => addPlan()}>
-                + Añadir plan
-              </button>
-              {plans.map((row, i) => (
-                <div key={row.id} className="admin-cms__row">
-                  <div className="admin-cms__field">
-                    <label>Nombre del plan</label>
-                    <input
-                      value={row.name}
-                      onChange={(e) =>
-                        setPlans((prev) =>
-                          prev.map((p, j) => (j === i ? { ...p, name: e.target.value } : p))
-                        )
-                      }
-                    />
-                  </div>
-                  <div className="admin-cms__field">
-                    <label>Beneficios (uno por línea)</label>
-                    <textarea
-                      value={row.items.join("\n")}
-                      onChange={(e) =>
-                        setPlans((prev) =>
-                          prev.map((p, j) =>
-                            j === i
-                              ? {
-                                  ...p,
-                                  items: e.target.value.split("\n").map((x) => x.trim()),
-                                }
-                              : p
-                          )
-                        )
-                      }
-                    />
-                  </div>
-                  <div className="flex flex-wrap gap-4">
-                    <label className="flex items-center gap-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={row.is_featured}
-                        onChange={(e) =>
-                          setPlans((prev) =>
-                            prev.map((p, j) =>
-                              j === i ? { ...p, is_featured: e.target.checked } : p
-                            )
-                          )
-                        }
-                      />
-                      Destacado (recomendado)
-                    </label>
-                    <label className="flex items-center gap-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={row.is_published}
-                        onChange={(e) =>
-                          setPlans((prev) =>
-                            prev.map((p, j) =>
-                              j === i ? { ...p, is_published: e.target.checked } : p
-                            )
-                          )
-                        }
-                      />
-                      Publicado
-                    </label>
-                  </div>
-                  <div className="admin-cms__actions">
-                    <button
-                      type="button"
-                      className="admin-cms__btn"
-                      disabled={saving}
-                      onClick={() => savePlan(row)}
-                    >
-                      Guardar
-                    </button>
-                    <button
-                      type="button"
-                      className="admin-cms__btn admin-cms__btn--danger"
-                      onClick={() => deletePlan(row.id)}
-                    >
-                      Eliminar
-                    </button>
-                  </div>
-                </div>
-              ))}
             </div>
           )}
 

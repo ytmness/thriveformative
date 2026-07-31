@@ -11,33 +11,10 @@ import type { HomePageEditableConfig } from "@/components/home/homePageTypes";
 import BrandCtaLink from "@/components/ui/BrandCtaLink";
 import { WHATSAPP_LINK } from "@/lib/branding";
 import { resolveCmsText } from "@/lib/cms/fetch";
-import {
-  fallbackPlansFromTranslations,
-  fallbackServicesFromTranslations,
-} from "@/lib/cms/fallbackContent";
-import {
-  resolvePlansForDisplay,
-  resolveServicesForDisplay,
-} from "@/lib/cms/resolveDisplay";
+import { fallbackServicesFromTranslations } from "@/lib/cms/fallbackContent";
+import { resolveServicesForDisplay } from "@/lib/cms/resolveDisplay";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
-
-function TShapeCheckIcon() {
-  return (
-    <span className="tshape-hero__check" aria-hidden>
-      <svg className="tshape-hero__check-svg" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="10" cy="10" r="8.5" stroke="currentColor" strokeWidth="1.1" opacity="0.9" />
-        <path
-          d="M6 10.2 8.6 12.8 14.2 7.2"
-          stroke="currentColor"
-          strokeWidth="1.35"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </span>
-  );
-}
 
 function OrganicPattern({ className = "" }: { className?: string }) {
   return (
@@ -84,8 +61,7 @@ export default function HomePageSections({
 }: Props) {
   const t = useTranslations();
   const tServices = useTranslations("services");
-  const tPlans = useTranslations("plans");
-  const { services: cmsServices, plans: cmsPlans, textOverrides } = useCmsContext();
+  const { services: cmsServices, textOverrides } = useCmsContext();
 
   const line = (key: string) => resolveCmsText(textOverrides, key, t(key as never));
 
@@ -110,26 +86,6 @@ export default function HomePageSections({
         desc: s.desc,
         unpublished: s.unpublished,
         isFallback: s.isFallback,
-      }));
-
-  const displayPlans = editable
-    ? editable.plans.map((p) => ({
-        id: p.id,
-        name: p.name,
-        items: p.items,
-        featured: p.featured,
-        unpublished: p.unpublished,
-        isFallback: p.isFallback,
-      }))
-    : resolvePlansForDisplay(cmsPlans, fallbackPlansFromTranslations(tPlans), {
-        includeUnpublished: false,
-      }).map((p) => ({
-        id: p.id,
-        name: p.name,
-        items: p.items,
-        featured: p.featured,
-        unpublished: p.unpublished,
-        isFallback: p.isFallback,
       }));
 
   const wrapText = (
@@ -408,144 +364,6 @@ export default function HomePageSections({
 
         {previewAfterServices}
 
-        <GiantScrollCard variant="slideUp" id="tshape">
-          <section className="tshape-section">
-            <div className="tshape-section__contain">
-              {wrapText(
-                "T-Shape — bloque principal",
-                [
-                  { key: "tshape.eyebrow", label: "Etiqueta" },
-                  { key: "tshape.heroTitle", label: "Título" },
-                  { key: "tshape.subtitle", label: "Subtítulo" },
-                  { key: "tshape.fdaDesc", label: "Intro FDA" },
-                  { key: "tshape.fdaItem1", label: "FDA ítem 1" },
-                  { key: "tshape.fdaItem2", label: "FDA ítem 2" },
-                  { key: "tshape.fdaItem3", label: "FDA ítem 3" },
-                  { key: "tshape.fdaItem4", label: "FDA ítem 4" },
-                  { key: "tshape.fdaNote", label: "Nota FDA" },
-                ],
-                <div className="tshape-hero">
-                  <div className="tshape-hero__copy">
-                    <p className="tshape-hero__eyebrow">{txt("tshape.eyebrow", "tshape.eyebrow")}</p>
-                    <h2 className="tshape-hero__title">{txt("tshape.heroTitle", "tshape.heroTitle")}</h2>
-                    <p className="tshape-hero__lead">{txt("tshape.subtitle", "tshape.subtitle")}</p>
-                    <p className="tshape-hero__fda-intro">{txt("tshape.fdaDesc", "tshape.fdaDesc")}</p>
-                    <ul className="tshape-hero__list">
-                      {[1, 2, 3, 4].map((i) => (
-                        <li key={i} className="tshape-hero__item">
-                          <TShapeCheckIcon />
-                          <span className="tshape-hero__item-text">
-                            {txt(`tshape.fdaItem${i}`, `tshape.fdaItem${i}`)}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                    <p className="tshape-hero__note">{txt("tshape.fdaNote", "tshape.fdaNote")}</p>
-                  </div>
-                  <div className="tshape-hero__visual">
-                    <div className="tshape-hero__frame">
-                      <img
-                        src="/logos/t-shape-2-1.png"
-                        alt={t("tshape.title")}
-                        className="tshape-hero__img"
-                      />
-                    </div>
-                    <div className="tshape-hero__fda-badge">
-                      <img
-                        src="/logos/fda-approved.png"
-                        alt={t("tshape.fdaBadge")}
-                        className="tshape-hero__fda-img"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-              <div className="tshape-tech">
-                {[1, 2, 3].map((i) =>
-                  wrapText(
-                    `T-Shape — tecnología ${i}`,
-                    [
-                      { key: `tshape.tech${i}Title`, label: "Título" },
-                      { key: `tshape.tech${i}Desc`, label: "Descripción" },
-                    ],
-                    <article key={i} className="tshape-tech-card">
-                      <div className="tshape-tech-card__icon" aria-hidden>
-                        <span className="tshape-tech-card__dot" />
-                      </div>
-                      <h3 className="tshape-tech-card__title">
-                        {txt(`tshape.tech${i}Title`, `tshape.tech${i}Title`)}
-                      </h3>
-                      <p className="tshape-tech-card__desc">
-                        {txt(`tshape.tech${i}Desc`, `tshape.tech${i}Desc`)}
-                      </p>
-                    </article>
-                  )
-                )}
-              </div>
-            </div>
-          </section>
-        </GiantScrollCard>
-
-        <GiantScrollCard variant="slideUp" id="planes">
-          <section className="plans-section">
-            {wrapText(
-              "Planes — encabezado",
-              [
-                { key: "plans.title", label: "Título" },
-                { key: "plans.subtitle", label: "Subtítulo" },
-                { key: "plans.recommendedBadge", label: "Badge recomendado" },
-                { key: "plans.chooseBtn", label: "Texto del botón" },
-              ],
-              <div className="plans-section__intro">
-                <h2 className="plans-section__title">
-                  {editable ? (
-                    txt("plans.title", "plans.title")
-                  ) : (
-                    <CmsText contentKey="plans.title" as="span" />
-                  )}
-                </h2>
-                <p className="plans-section__subtitle">
-                  {editable ? (
-                    txt("plans.subtitle", "plans.subtitle")
-                  ) : (
-                    <CmsText contentKey="plans.subtitle" as="span" />
-                  )}
-                </p>
-              </div>
-            )}
-            <div className="plans-section__grid">
-              {displayPlans.map((plan) =>
-                wrapEntity(
-                  `Plan: ${plan.name}`,
-                  plan.unpublished,
-                  () =>
-                    editable?.onEditPlan(plan.id, {
-                      name: plan.name,
-                      items: plan.items,
-                      is_featured: plan.featured,
-                    }),
-                  <Plan
-                    name={plan.name}
-                    items={plan.items}
-                    featured={plan.featured}
-                    editable={editable}
-                    txt={txt}
-                  />,
-                  !plan.isFallback ? () => editable?.onTogglePlanVisibility(plan.id) : undefined,
-                  !plan.isFallback ? () => editable?.onDeletePlan(plan.id) : undefined
-                )
-              )}
-            </div>
-            {editable ? (
-              <div className="admin-cms-visual__add-row">
-                <button type="button" className="admin-cms-visual__add-btn" onClick={editable.onAddPlan}>
-                  + Añadir plan
-                </button>
-              </div>
-            ) : null}
-          </section>
-        </GiantScrollCard>
-
         <GiantScrollCard variant="slideUp" id="citas">
           {editable ? (
             <CmsEditableZone
@@ -668,56 +486,5 @@ function Service({ name, desc }: { name: string; desc: string }) {
       <h3 className="service-editorial-card__title">{name}</h3>
       <p className="service-editorial-card__desc">{desc}</p>
     </article>
-  );
-}
-
-function Plan({
-  name,
-  items,
-  featured,
-  editable,
-  txt,
-}: {
-  name: string;
-  items: string[];
-  featured?: boolean;
-  editable?: HomePageEditableConfig;
-  txt: (key: string, fallbackKey: string) => string;
-}) {
-  return (
-    <div
-      className={`plan-card-plan ${featured ? "plan-card-plan--featured" : "plan-card-plan--side"}`}
-    >
-      {featured ? (
-        <span className="plan-card-plan__badge">
-          {editable ? (
-            txt("plans.recommendedBadge", "plans.recommendedBadge")
-          ) : (
-            <CmsText contentKey="plans.recommendedBadge" as="span" />
-          )}
-        </span>
-      ) : null}
-      <div className="plan-card-plan__inner">
-        <h3 className="plan-card-plan__title">{name}</h3>
-        <ul className="plan-card-plan__list">
-          {items.map((x) => (
-            <li key={x} className="plan-card-plan__item">
-              <span className="plan-card-plan__bullet" aria-hidden />
-              <span className="plan-card-plan__item-text">{x}</span>
-            </li>
-          ))}
-        </ul>
-        <button
-          type="button"
-          className={`plan-card-plan__btn ${featured ? "plan-card-plan__btn--featured" : "plan-card-plan__btn--outline"}`}
-        >
-          {editable ? (
-            txt("plans.chooseBtn", "plans.chooseBtn")
-          ) : (
-            <CmsText contentKey="plans.chooseBtn" as="span" />
-          )}
-        </button>
-      </div>
-    </div>
   );
 }

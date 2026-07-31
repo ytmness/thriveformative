@@ -50,35 +50,6 @@ export const CMS_TEXT_GROUPS: {
     ],
   },
   {
-    group: "T-Shape",
-    keys: [
-      { key: "tshape.eyebrow", label: "Etiqueta" },
-      { key: "tshape.heroTitle", label: "Título principal" },
-      { key: "tshape.subtitle", label: "Subtítulo" },
-      { key: "tshape.fdaDesc", label: "Intro FDA" },
-      { key: "tshape.fdaItem1", label: "FDA ítem 1" },
-      { key: "tshape.fdaItem2", label: "FDA ítem 2" },
-      { key: "tshape.fdaItem3", label: "FDA ítem 3" },
-      { key: "tshape.fdaItem4", label: "FDA ítem 4" },
-      { key: "tshape.fdaNote", label: "Nota FDA" },
-      { key: "tshape.tech1Title", label: "Tech 1 — título" },
-      { key: "tshape.tech1Desc", label: "Tech 1 — descripción" },
-      { key: "tshape.tech2Title", label: "Tech 2 — título" },
-      { key: "tshape.tech2Desc", label: "Tech 2 — descripción" },
-      { key: "tshape.tech3Title", label: "Tech 3 — título" },
-      { key: "tshape.tech3Desc", label: "Tech 3 — descripción" },
-    ],
-  },
-  {
-    group: "Planes (encabezado)",
-    keys: [
-      { key: "plans.title", label: "Título" },
-      { key: "plans.subtitle", label: "Subtítulo" },
-      { key: "plans.recommendedBadge", label: "Badge recomendado" },
-      { key: "plans.chooseBtn", label: "Botón elegir plan" },
-    ],
-  },
-  {
     group: "CTA final",
     keys: [
       { key: "cta.title", label: "Título" },

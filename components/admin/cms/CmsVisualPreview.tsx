@@ -12,13 +12,9 @@ import { buildFallbackArticles } from "@/lib/cms/mergePreviewLists";
 import {
   nextSortOrderFromDisplay,
   resolveArticlesForDisplay,
-  resolvePlansForDisplay,
   resolveServicesForDisplay,
 } from "@/lib/cms/resolveDisplay";
-import {
-  fallbackPlansFromTranslations,
-  fallbackServicesFromTranslations,
-} from "@/lib/cms/fallbackContent";
+import { fallbackServicesFromTranslations } from "@/lib/cms/fallbackContent";
 import CmsEditDrawer, { type CmsEditTarget } from "@/components/admin/cms/CmsEditDrawer";
 import {
   CmsPreviewDoctorSection,
@@ -55,7 +51,6 @@ const MESSAGES_BY_LOCALE: Record<Locale, Record<string, unknown>> = {
 export default function CmsVisualPreview({ cms, siteLocale }: Props) {
   const t = useTranslations();
   const tServices = useTranslations("services");
-  const tPlans = useTranslations("plans");
   const tNews = useTranslations("news");
   const [editTarget, setEditTarget] = useState<CmsEditTarget | null>(null);
   const [previewArticleId, setPreviewArticleId] = useState<string | null>(null);
@@ -68,13 +63,10 @@ export default function CmsVisualPreview({ cms, siteLocale }: Props) {
     articles,
     textDraft,
     addService,
-    addPlan,
     addArticle,
     toggleServiceVisibility,
-    togglePlanVisibility,
     toggleArticleVisibility,
     deleteService,
-    deletePlan,
     deleteArticle,
   } = cms;
 
@@ -114,14 +106,6 @@ export default function CmsVisualPreview({ cms, siteLocale }: Props) {
     [services, tServices]
   );
 
-  const previewPlans = useMemo(
-    () =>
-      resolvePlansForDisplay(plans, fallbackPlansFromTranslations(tPlans), {
-        includeUnpublished: true,
-      }),
-    [plans, tPlans]
-  );
-
   const previewArticles = useMemo(
     () =>
       resolveArticlesForDisplay(articles, fallbackArticles, { includeUnpublished: true }),
@@ -150,21 +134,6 @@ export default function CmsVisualPreview({ cms, siteLocale }: Props) {
     setEditTarget({ kind: "service", id });
   }
 
-  function openPlan(
-    id: string,
-    fallback?: { name: string; items: string[]; is_featured: boolean }
-  ) {
-    if (id.startsWith("fallback-plan-")) {
-      const sort_order = Number.parseInt(id.replace("fallback-plan-", ""), 10);
-      setEditTarget({
-        kind: "plan",
-        id: addPlan({ ...fallback, sort_order }),
-      });
-      return;
-    }
-    setEditTarget({ kind: "plan", id });
-  }
-
   function openArticle(id: string) {
     if (id.startsWith("fallback-article-")) {
       const index = Number.parseInt(id.replace("fallback-article-", ""), 10);
@@ -188,22 +157,17 @@ export default function CmsVisualPreview({ cms, siteLocale }: Props) {
     txt,
     onEdit: setEditTarget,
     services: previewServices,
-    plans: previewPlans,
     onAddService: () => addService({ sort_order: nextSortOrderFromDisplay(previewServices) }),
-    onAddPlan: () => addPlan({ sort_order: nextSortOrderFromDisplay(previewPlans) }),
     onEditService: openService,
-    onEditPlan: openPlan,
     onToggleServiceVisibility: toggleServiceVisibility,
-    onTogglePlanVisibility: togglePlanVisibility,
     onDeleteService: deleteService,
-    onDeletePlan: deletePlan,
   };
 
   return (
     <div className="admin-cms-visual">
       <p className="admin-cms-visual__hint">
         Vista idéntica a la página pública. Haz clic en un bloque para editarlo; usa{" "}
-        <strong>Ocultar</strong> para dejar de mostrarlo sin borrarlo. Al añadir servicios, planes o
+        <strong>Ocultar</strong> para dejar de mostrarlo sin borrarlo. Al añadir servicios o
         artículos nuevos, el resto sigue visible al instante.
       </p>
 

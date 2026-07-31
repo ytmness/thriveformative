@@ -75,8 +75,6 @@ export default function Header({ preview }: HeaderProps = {}) {
         { key: "home", href: `#inicio`, hashOnly: true },
         { key: "services", href: `#servicios`, hashOnly: true },
         { key: "doctor", href: `#doctor`, hashOnly: true },
-        { key: "tshape", href: `#tshape`, hashOnly: true },
-        { key: "plans", href: `#planes`, hashOnly: true },
         { key: "news", href: `#noticias`, hashOnly: true, label: t("nav.news") },
         { key: "faq", href: `#faq`, hashOnly: true },
       ]
@@ -84,10 +82,8 @@ export default function Header({ preview }: HeaderProps = {}) {
         { key: "home", href: `/${locale}#inicio` },
         { key: "services", href: `/${locale}#servicios` },
         { key: "doctor", href: `/${locale}/info#doctor` },
-        { key: "tshape", href: `/${locale}#tshape` },
         { key: "shapescale", href: `/${locale}/shapescale` },
         { key: "tienda", href: `/${locale}/tienda` },
-        { key: "plans", href: `/${locale}#planes` },
         ...(role === "doctor" || role === "admin"
           ? ([{ key: "news", href: `/${locale}/noticias` }] as const)
           : []),
@@ -115,8 +111,6 @@ export default function Header({ preview }: HeaderProps = {}) {
       "inicio",
       "servicios",
       "doctor",
-      "tshape",
-      "planes",
       "citas",
       "noticias",
       "faq",

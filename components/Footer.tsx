@@ -17,7 +17,6 @@ export default function Footer() {
   const quickLinks = [
     { label: t("footer.linkHome"), href: `/${locale}#inicio` },
     { label: t("footer.linkServices"), href: `/${locale}#servicios` },
-    { label: t("footer.linkPlans"), href: `/${locale}#planes` },
     { label: t("footer.linkDoctor"), href: `/${locale}/info#doctor` },
     { label: t("footer.linkFaq"), href: `/${locale}/info#faq` },
     { label: t("footer.linkContact"), href: `/${locale}/info#contacto` },
