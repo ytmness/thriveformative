@@ -82,11 +82,9 @@ export default function Header({ preview }: HeaderProps = {}) {
         { key: "home", href: `/${locale}#inicio` },
         { key: "services", href: `/${locale}#servicios` },
         { key: "doctor", href: `/${locale}/info#doctor` },
+        { key: "news", href: `/${locale}/noticias` },
         { key: "shapescale", href: `/${locale}/shapescale` },
         { key: "tienda", href: `/${locale}/tienda` },
-        ...(role === "doctor" || role === "admin"
-          ? ([{ key: "news", href: `/${locale}/noticias` }] as const)
-          : []),
         { key: "faq", href: `/${locale}/info#faq` },
       ];
 
