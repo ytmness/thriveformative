@@ -100,20 +100,20 @@
     }
   },
   "hero": {
-    "title": "Salute personalizzata per vivere più a lungo e meglio",
-    "subtitle": "Assistenza medica con approccio di medicina funzionale e familiare: prevenzione, supporto continuo e piani basati su evidenze.",
+    "title": "Il benessere inizia dall'interno",
+    "subtitle": "Con il tempo il corpo cambia: cala l'energia, il recupero richiede di più ed è comune notare cambiamenti nel corpo, nella mente e nell'umore. Il Thrive Formative Method ti aiuta a capire perché succede e a costruire abitudini che invertono la tendenza.",
     "scheduleBtn": "Prenota la tua visita iniziale",
     "servicesBtn": "Vedi servizi",
-    "benefit1": "Ripristina l'equilibrio di corpo, mente ed emozioni",
-    "benefit2": "Coaching personalizzato su stile di vita e benessere",
-    "benefit3": "Identifica e tratta le cause alla radice",
-    "benefit4": "Risultati sostenibili per la tua salute a lungo termine",
-    "stat1Label": "Visita iniziale",
-    "stat1Value": "60–90 min",
-    "stat2Label": "Piano scritto",
-    "stat2Value": "24 ore",
-    "stat3Label": "Follow-up",
-    "stat3Value": "15–30 giorni"
+    "benefit1": "Comprendi come cambia il tuo corpo nel tempo",
+    "benefit2": "Scopri il potere dell'epigenetica per il tuo benessere",
+    "benefit3": "Abitudini personalizzate secondo il tuo stile di vita",
+    "benefit4": "Strategie sostenibili per un invecchiamento più sano",
+    "stat1Label": "Punto di partenza",
+    "stat1Value": "Età biologica",
+    "stat2Label": "La scienza",
+    "stat2Value": "Epigenetica",
+    "stat3Label": "Il programma",
+    "stat3Value": "100% personalizzato"
   },
   "premiumScene": {
     "word1": "Equilibrio",
@@ -134,18 +134,18 @@
   "approach": {
     "sectionEyebrow": "FILOSOFIA",
     "sectionTitle": "Il nostro approccio",
-    "sectionLead": "Combiniamo precisione diagnostica e uno straordinario calore umano per trasformare la tua esperienza di salute.",
-    "title1a": "Medicina",
-    "title1b": "funzionale",
-    "highlight1": "Cause radici, esami e piano su misura",
-    "desc1": "Trattiamo la radice delle patologie, non solo i sintomi, analizzando l'interconnessione dei tuoi sistemi biologici.",
-    "title2a": "Medicina",
-    "title2b": "familiare",
-    "highlight2": "Storia completa e continuità delle cure",
-    "desc2": "Cura integrale per ogni fase della vita, con un rapporto di fiducia e continuità a lungo termine.",
-    "title3": "Accompagnamento",
-    "highlight3": "Obiettivi, cartella digitale e contatto diretto",
-    "desc3": "Non sei solo nel tuo percorso. Offriamo supporto costante perché ogni raccomandazione si integri nella tua vita quotidiana."
+    "sectionLead": "Ogni persona è unica, quindi anche il percorso verso un maggiore benessere deve esserlo. Così portiamo il Thrive Formative Method nella pratica con te.",
+    "title1a": "Valutazione",
+    "title1b": "integrale",
+    "highlight1": "Comprendi il tuo stato attuale di salute e benessere",
+    "desc1": "Ti aiutiamo a capire il tuo punto di partenza con uno sguardo completo sul tuo stile di vita, per identificare con chiarezza ciò che richiede attenzione.",
+    "title2a": "Abitudini",
+    "title2b": "personalizzate",
+    "highlight2": "Strategie sostenibili di energia, riposo e vitalità",
+    "desc2": "Progettiamo strategie su misura per migliorare le abitudini quotidiane, favorire energia e vitalità e costruire cambiamenti che puoi mantenere nel tempo.",
+    "title3": "Invecchiamento sano",
+    "highlight3": "Accompagnamento per una migliore qualità della vita",
+    "desc3": "Ti accompagniamo a prendere decisioni informate che promuovono funzionalità, benessere duraturo e un modo migliore di vivere il passare del tempo."
   },
   "services": {
     "title": "Servizi",
@@ -411,9 +411,9 @@
   },
   "heroStats": {
     "eyebrow": "METODOLOGIA",
-    "title": "Il flusso di assistenza",
-    "stat1Desc": "Uno spazio dedicato esclusivamente a te, dove esploriamo ogni dettaglio della tua storia clinica e dei tuoi obiettivi personali.",
-    "stat2Desc": "Canali di comunicazione aperti per risolvere dubbi immediati e assicurare che il tuo piano proceda senza attriti.",
-    "stat3Desc": "Punti di contatto strategici per valutare gli adattamenti biologici e ricalibrare il protocollo in base ai tuoi risultati."
+    "title": "Il Thrive Formative Method",
+    "stat1Desc": "L'età cronologica è solo il numero di anni vissuti. Il tuo organismo può riflettere un benessere molto diverso in base ad alimentazione, sonno, stress, attività fisica e abitudini quotidiane.",
+    "stat2Desc": "Studia come ambiente e stile di vita influenzano l'attività dei geni senza cambiare il DNA: nutrizione, sonno, movimento, stress, ambiente e microbiota.",
+    "stat3Desc": "Una valutazione integrale dello stile di vita e strumenti di benessere per comprendere il tuo stato attuale, migliorare le abitudini e costruire vitalità sostenibile a lungo termine."
   }
 }
