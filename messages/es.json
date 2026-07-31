@@ -100,8 +100,8 @@
     }
   },
   "hero": {
-    "title": "El bienestar comienza desde el interior",
-    "subtitle": "Con el tiempo el cuerpo cambia: baja la energía, cuesta más recuperarse y es común notar cambios en el cuerpo, la mente y el ánimo. Thrive Formative Method te ayuda a entender por qué ocurre y a construir hábitos que lo revierten.",
+    "title": "Descubre tu salud",
+    "subtitle": "¿Cuándo fue la última vez que te sentiste realmente bien? No hablamos de un buen día, sino de despertar con energía, dormir profundamente y disfrutar cada día con claridad mental. Thrive Formative Method te ayuda a descubrirlo y a construir hábitos que lo sostengan.",
     "scheduleBtn": "Agenda tu consulta inicial",
     "servicesBtn": "Ver servicios",
     "benefit1": "Comprende cómo cambia tu cuerpo con el tiempo",
@@ -139,9 +139,9 @@
     "scriptText": "Hola, soy del consultorio. Tu consulta está confirmada para mañana. Por favor trae tus laboratorios y llega 10 minutos antes."
   },
   "approach": {
-    "sectionEyebrow": "FILOSOFÍA",
-    "sectionTitle": "Nuestro Enfoque",
-    "sectionLead": "Cada persona es única, así que el camino hacia un mayor bienestar también debe serlo. Así llevamos Thrive Formative Method a la práctica contigo.",
+    "sectionEyebrow": "PROPÓSITO",
+    "sectionTitle": "Nuestro Propósito",
+    "sectionLead": "En Thrive Formative, nuestro propósito es inspirarte y acompañarte a tomar el control de tu salud a través de educación, soluciones personalizadas y hábitos sostenibles, para que vivas más años con energía, equilibrio y bienestar real.",
     "title1a": "Evaluación",
     "title1b": "integral",
     "highlight1": "Comprende tu estado actual de salud y bienestar",
@@ -156,7 +156,7 @@
   },
   "services": {
     "title": "Servicios",
-    "subtitle": "Opciones claras y escalables según tu necesidad.",
+    "subtitle": "Tu salud es tu activo más valioso. Nuestros servicios de bienestar están diseñados para ayudarte a comprender mejor tu cuerpo y desarrollar estrategias 100% personalizadas que promuevan un bienestar duradero, hoy y durante muchos años.",
     "service1": "Evaluación inicial",
     "desc1": "Consulta profunda de 60–90 minutos. Revisión exhaustiva de historia clínica, análisis integral de laboratorios desde perspectiva funcional, identificación de causas raíz y plan personalizado por escrito entregado en 24 horas.",
     "service2": "Seguimiento mensual",

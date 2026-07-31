@@ -100,8 +100,8 @@
     }
   },
   "hero": {
-    "title": "Il benessere inizia dall'interno",
-    "subtitle": "Con il tempo il corpo cambia: cala l'energia, il recupero richiede di più ed è comune notare cambiamenti nel corpo, nella mente e nell'umore. Il Thrive Formative Method ti aiuta a capire perché succede e a costruire abitudini che invertono la tendenza.",
+    "title": "Scopri la tua salute",
+    "subtitle": "Quando è stata l'ultima volta che ti sei sentito davvero bene? Non parliamo di una buona giornata, ma di svegliarti con energia, dormire profondamente e vivere ogni giorno con chiarezza mentale. Il Thrive Formative Method ti aiuta a scoprirlo e a costruire abitudini che lo mantengano.",
     "scheduleBtn": "Prenota la tua visita iniziale",
     "servicesBtn": "Vedi servizi",
     "benefit1": "Comprendi come cambia il tuo corpo nel tempo",
@@ -132,9 +132,9 @@
     "scriptText": "Buongiorno, sono dello studio. La tua visita è confermata per domani. Porta i referti e arriva 10 minuti prima."
   },
   "approach": {
-    "sectionEyebrow": "FILOSOFIA",
-    "sectionTitle": "Il nostro approccio",
-    "sectionLead": "Ogni persona è unica, quindi anche il percorso verso un maggiore benessere deve esserlo. Così portiamo il Thrive Formative Method nella pratica con te.",
+    "sectionEyebrow": "SCOPO",
+    "sectionTitle": "Il nostro scopo",
+    "sectionLead": "In Thrive Formative, il nostro scopo è ispirarti e accompagnarti a prendere il controllo della tua salute attraverso l'educazione, soluzioni di benessere personalizzate e abitudini sostenibili, per vivere più anni con energia, equilibrio e benessere reale.",
     "title1a": "Valutazione",
     "title1b": "integrale",
     "highlight1": "Comprendi il tuo stato attuale di salute e benessere",
@@ -149,7 +149,7 @@
   },
   "services": {
     "title": "Servizi",
-    "subtitle": "Opzioni chiare e scalabili in base alle tue esigenze.",
+    "subtitle": "La tua salute è il tuo bene più prezioso. I nostri servizi di benessere sono pensati per aiutarti a comprendere meglio il tuo corpo e sviluppare strategie 100% personalizzate per un benessere duraturo, oggi e per molti anni a venire.",
     "service1": "Valutazione iniziale",
     "desc1": "Consulta approfondita di 60–90 minuti. Revisione completa dell'anamnesi, analisi integrale degli esami da prospettiva funzionale, identificazione delle cause alla radice e piano personalizzato scritto entro 24 ore.",
     "service2": "Follow-up mensile",
