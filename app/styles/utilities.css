@@ -527,6 +527,24 @@
   background: rgb(var(--primary));
   color: rgb(26 26 26);
   padding: clamp(3rem, 6vw, 5.5rem) 1.5rem clamp(3.25rem, 6vw, 5.75rem);
+  /* Rompe el padding del giant-card-inner para franja de borde a borde */
+  margin-left: -1.5rem;
+  margin-right: -1.5rem;
+  width: calc(100% + 3rem);
+}
+
+.scroll-cards-stack .giant-card--compact .giant-card-inner > .approach-editorial {
+  margin-top: -1.5rem;
+  margin-bottom: -1.5rem;
+  padding-top: clamp(3.5rem, 7vw, 6rem);
+  padding-bottom: clamp(3.5rem, 7vw, 6rem);
+}
+
+@media (min-width: 768px) {
+  .scroll-cards-stack .giant-card--compact .giant-card-inner > .approach-editorial {
+    margin-top: -2rem;
+    margin-bottom: -2rem;
+  }
 }
 
 [data-theme="nocturnal"] .approach-editorial {
