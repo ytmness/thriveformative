@@ -10,7 +10,7 @@ import { useCmsContext } from "@/components/cms/CmsProvider";
 import type { HomePageEditableConfig } from "@/components/home/homePageTypes";
 import HeroQuestionsRotator from "@/components/home/HeroQuestionsRotator";
 import BrandCtaLink from "@/components/ui/BrandCtaLink";
-import { WHATSAPP_LINK } from "@/lib/branding";
+import { PABAU_BOOKING_URL } from "@/lib/pabau";
 import { resolveCmsText } from "@/lib/cms/fetch";
 import { fallbackServicesFromTranslations } from "@/lib/cms/fallbackContent";
 import { resolveServicesForDisplay } from "@/lib/cms/resolveDisplay";
@@ -225,7 +225,7 @@ export default function HomePageSections({
               "Botón del hero",
               [{ key: "hero.scheduleBtn", label: "Texto del botón" }],
               <div className="hero-editorial__cta">
-                <BrandCtaLink href={WHATSAPP_LINK} target="_blank" rel="noreferrer">
+                <BrandCtaLink href={PABAU_BOOKING_URL} target="_blank" rel="noreferrer">
                   {editable ? (
                     txt("hero.scheduleBtn", "hero.scheduleBtn")
                   ) : (
@@ -384,17 +384,20 @@ export default function HomePageSections({
         <GiantScrollCard variant="slideUp" id="citas">
           {editable ? (
             <CmsEditableZone
-              label="Sección de citas (calendario)"
+              label="Sección de citas (Pabau)"
               onEdit={() =>
                 editable.onEdit({
                   kind: "texts",
                   title: "Citas — textos",
-                  subtitle: "Los horarios se configuran en Admin → Disponibilidad.",
+                  subtitle: "Los horarios se gestionan en Pabau.",
                   keys: [
                     { key: "booking.title", label: "Título" },
                     { key: "booking.subtitle", label: "Subtítulo" },
-                    { key: "booking.ctaHint", label: "Texto antes de WhatsApp" },
-                    { key: "booking.ctaButton", label: "Botón WhatsApp" },
+                    { key: "booking.portalHint", label: "Texto antes del CTA del portal" },
+                    { key: "booking.portalCta", label: "Botón Agendar (Pabau)" },
+                    { key: "booking.durationNote", label: "Nota de duración" },
+                    { key: "booking.whatsappHint", label: "Texto antes de WhatsApp" },
+                    { key: "booking.whatsappCta", label: "Botón WhatsApp" },
                   ],
                 })
               }

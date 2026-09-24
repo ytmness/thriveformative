@@ -1,5 +1,5 @@
 /* =========================
-   Reserva / calendario
+   Reserva / portal Pabau
    ========================= */
 
 .booking-section {
@@ -11,7 +11,7 @@
   max-width: 36rem;
   margin-left: auto;
   margin-right: auto;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
 }
 
 .booking-section__title {
@@ -41,368 +41,18 @@
   }
 }
 
-/* Calendario grande + panel horarios en rejilla estable */
-.booking-section__layout {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.75rem;
-  width: 100%;
-  max-width: min(100%, 96rem);
-  margin-left: auto;
-  margin-right: auto;
-  align-items: stretch;
-}
-
-@media (min-width: 1024px) {
-  .booking-section__layout {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 2rem;
-  }
-}
-
-.booking-cal-wrap {
-  width: 100%;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-.booking-cal {
-  width: 100%;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-.booking-cal__label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgb(var(--muted));
-  margin-bottom: 1rem;
-  text-align: left;
-}
-
-.booking-cal__shell {
-  border-radius: 1.25rem;
-  padding: 1.5rem 1.25rem 1.75rem;
-  background: rgb(var(--surface));
-  border: 1px solid rgb(var(--border) / 0.45);
-  box-shadow: 0 4px 24px rgb(0 0 0 / 0.06);
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-@media (min-width: 768px) {
-  .booking-cal__shell {
-    padding: 1.75rem 1.5rem 2rem;
-  }
-}
-
-.booking-cal__nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.125rem;
-}
-
-.booking-cal__nav-btn {
-  width: 3rem;
-  height: 3rem;
-  flex-shrink: 0;
-  border-radius: 0.875rem;
-  border: 1px solid rgb(var(--border) / 0.55);
-  background: rgb(var(--bg) / 0.4);
-  color: rgb(var(--text));
-  font-size: 1.35rem;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-}
-
-.booking-cal__nav-btn:hover {
-  background: rgb(var(--primary) / 0.1);
-  border-color: rgb(var(--primary) / 0.35);
-  color: rgb(var(--primary));
-}
-
-@media (min-width: 768px) {
-  .booking-cal__nav-btn {
-    width: 3.25rem;
-    height: 3.25rem;
-    font-size: 1.5rem;
-  }
-}
-
-.booking-cal__month {
+.booking-section__duration {
+  margin: 0.85rem auto 0;
+  max-width: 32rem;
   font-family: var(--font-body), system-ui, sans-serif;
-  font-size: 1.25rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: rgb(var(--text));
-  text-align: center;
-  flex: 1;
-}
-
-@media (min-width: 768px) {
-  .booking-cal__month {
-    font-size: 1.4rem;
-  }
-}
-
-.booking-cal__dow {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 0.35rem;
-  margin-bottom: 0.5rem;
-}
-
-.booking-cal__dow-cell {
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgb(var(--muted));
-  text-align: center;
-  padding: 0.45rem 0;
-}
-
-@media (min-width: 768px) {
-  .booking-cal__dow-cell {
-    font-size: 0.78rem;
-    padding: 0.55rem 0;
-  }
-}
-
-.booking-cal__grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 0.4rem;
-  flex: 1;
-  min-height: 0;
-  grid-auto-rows: minmax(2.75rem, 1fr);
-  align-content: stretch;
-}
-
-@media (min-width: 768px) {
-  .booking-cal__grid {
-    gap: 0.5rem;
-    grid-auto-rows: minmax(3.25rem, 1fr);
-  }
-}
-
-@media (min-width: 1280px) {
-  .booking-cal__grid {
-    grid-auto-rows: minmax(3.5rem, 1fr);
-  }
-}
-
-/* Días grandes — rejilla clásica, no círculos pequeños */
-.booking-cal__day {
-  min-height: 2.75rem;
-  width: 100%;
-  border-radius: 0.65rem;
-  border: 1px solid transparent;
-  background: rgb(var(--bg) / 0.35);
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: rgb(var(--text));
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-@media (min-width: 768px) {
-  .booking-cal__day {
-    min-height: 3.25rem;
-    font-size: 1.0625rem;
-    border-radius: 0.75rem;
-  }
-}
-
-@media (min-width: 1280px) {
-  .booking-cal__day {
-    min-height: 3.5rem;
-    font-size: 1.125rem;
-  }
-}
-
-.booking-cal__day:hover:not(:disabled) {
-  background: rgb(var(--primary) / 0.12);
-  border-color: rgb(var(--primary) / 0.2);
-}
-
-.booking-cal__day--selected {
-  background: rgb(var(--primary));
-  color: rgb(var(--bg));
-  border-color: rgb(var(--primary));
-  box-shadow: 0 4px 16px rgb(var(--primary) / 0.3);
-}
-
-/* Huecos del mes anterior/siguiente */
-.booking-cal__day--pad:disabled {
-  visibility: hidden;
-  pointer-events: none;
-}
-
-/* Hoy y días pasados: no se puede citar el mismo día */
-.booking-cal__day--blocked {
-  opacity: 0.4;
-  cursor: not-allowed;
-  background: rgb(var(--bg) / 0.2);
-  color: rgb(var(--muted));
-}
-
-.booking-cal__day--blocked:hover {
-  background: rgb(var(--bg) / 0.2);
-  border-color: transparent;
-}
-
-/* Panel horarios — misma familia visual que el calendario */
-.booking-slots {
-  width: 100%;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-.booking-slots__shell {
-  border-radius: 1.25rem;
-  padding: 1.5rem 1.25rem 1.75rem;
-  background: rgb(var(--surface));
-  border: 1px solid rgb(var(--border) / 0.45);
-  box-shadow: 0 4px 24px rgb(0 0 0 / 0.06);
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-@media (min-width: 768px) {
-  .booking-slots__shell {
-    padding: 1.75rem 1.5rem 2rem;
-  }
-}
-
-.booking-slots__label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgb(var(--muted));
-  margin-bottom: 1rem;
-  text-align: left;
-}
-
-.booking-slots__empty {
-  text-align: center;
-  color: rgb(var(--muted));
-  font-size: 1rem;
-  padding: 2rem 1.25rem;
-  border-radius: 0.875rem;
-  border: 1px dashed rgb(var(--border) / 0.55);
-  background: rgb(var(--bg) / 0.35);
-  line-height: 1.5;
-}
-
-.booking-slots__grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.5rem;
-  flex: 1;
-  min-height: 0;
-  /* Altura fija por fila: misma para todas; el subtítulo va siempre en la misma zona */
-  grid-auto-rows: 4.625rem;
-  align-items: stretch;
-  align-content: start;
-}
-
-@media (min-width: 640px) {
-  .booking-slots__grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (min-width: 1280px) {
-  .booking-slots__grid {
-    gap: 0.65rem;
-    grid-auto-rows: 4.875rem;
-  }
-}
-
-.booking-slot {
-  box-sizing: border-box;
-  border-radius: 0.75rem;
-  padding: 0.5rem 0.5rem;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  text-align: center;
-  border: 1px solid rgb(var(--border) / 0.5);
-  background: rgb(var(--bg) / 0.35);
-  color: rgb(var(--text));
-  cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
-  min-height: 0;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.booking-slot:hover:not(:disabled) {
-  border-color: rgb(var(--primary) / 0.45);
-  background: rgb(var(--primary) / 0.08);
-}
-
-/* No tachar todo el botón (bug visual); solo la hora */
-.booking-slot--busy {
-  opacity: 0.72;
-  cursor: not-allowed;
-  background: rgb(var(--bg) / 0.45);
-}
-
-.booking-slot--busy .booking-slot__time {
-  text-decoration: line-through;
-}
-
-.booking-slot__sub {
-  display: block;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  margin-top: 0.1rem;
-  line-height: 1.25;
-  min-height: 1.25em;
-  opacity: 0.9;
-}
-
-/* Reserva espacio en libres para que la rejilla no “salte” cuando hay Ocupado */
-.booking-slot__sub:empty {
-  opacity: 0;
-}
-
-.booking-slots__hint {
-  margin-top: auto;
-  padding-top: 1.25rem;
-  border-top: 1px solid rgb(var(--border) / 0.45);
   font-size: 0.875rem;
+  line-height: 1.5;
   color: rgb(var(--muted));
-  line-height: 1.55;
-  text-align: left;
-  flex-shrink: 0;
 }
 
 .booking-section__cta {
-  margin-top: 2.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 2rem;
   text-align: center;
 }
 
@@ -415,21 +65,50 @@
 }
 
 .booking-section__cta-hint--inline {
-  margin-bottom: 0.95rem;
+  margin-bottom: 0.5rem;
 }
 
-.booking-section__whatsapp-btn {
+.booking-section__portal-btn {
   min-width: 16.5rem;
   padding: 0.92rem 1.7rem;
 }
 
-.booking-error {
-  margin-bottom: 1rem;
-  padding: 0.75rem 1rem;
-  border-radius: 0.875rem;
-  background: rgb(239 68 68 / 0.1);
-  border: 1px solid rgb(239 68 68 / 0.35);
-  color: rgb(185 28 28);
-  font-size: 0.875rem;
-  text-align: left;
+.booking-embed {
+  width: 100%;
+  max-width: 40rem;
+  margin: 0 auto;
+  border-radius: 1.25rem;
+  overflow: hidden;
+  border: 1px solid rgb(var(--border) / 0.45);
+  box-shadow: 0 4px 24px rgb(0 0 0 / 0.06);
+  background: rgb(var(--surface));
+  aspect-ratio: 600 / 550;
+  min-height: 22rem;
+}
+
+.booking-embed__frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: rgb(var(--bg));
+}
+
+.booking-section__secondary {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.booking-section__whatsapp-link {
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: rgb(var(--primary));
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  transition: opacity 0.15s ease;
+}
+
+.booking-section__whatsapp-link:hover {
+  opacity: 0.8;
 }
