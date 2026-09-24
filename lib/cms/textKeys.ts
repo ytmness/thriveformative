@@ -64,12 +64,15 @@ export const CMS_TEXT_GROUPS: {
     ],
   },
   {
-    group: "Citas (agenda)",
+    group: "Citas (agenda Pabau)",
     keys: [
       { key: "booking.title", label: "Título" },
       { key: "booking.subtitle", label: "Subtítulo" },
-      { key: "booking.ctaHint", label: "Texto antes de WhatsApp" },
-      { key: "booking.ctaButton", label: "Botón WhatsApp" },
+      { key: "booking.portalHint", label: "Texto antes del CTA del portal" },
+      { key: "booking.portalCta", label: "Botón Agendar (Pabau)" },
+      { key: "booking.durationNote", label: "Nota de duración" },
+      { key: "booking.whatsappHint", label: "Texto antes de WhatsApp (secundario)" },
+      { key: "booking.whatsappCta", label: "Botón WhatsApp (secundario)" },
     ],
   },
   {
