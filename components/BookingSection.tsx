@@ -59,7 +59,6 @@ export default function BookingSection() {
             href={PABAU_BOOKING_URL}
             target="_blank"
             rel="noreferrer"
-            block
             className="booking-section__portal-btn"
           >
             {portalCta}

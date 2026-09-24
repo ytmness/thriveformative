@@ -57,34 +57,51 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: 1.15rem;
+  max-width: 36rem;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .booking-section__cta-hint {
   margin: 0;
   max-width: 32rem;
+  width: 100%;
+  text-align: center;
   font-family: var(--font-body), system-ui, sans-serif;
   font-size: 1rem;
   line-height: 1.6;
   color: rgb(var(--muted));
+  text-wrap: balance;
 }
 
 .booking-section__cta-hint--inline {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0;
 }
 
 .booking-section__portal-btn {
-  min-width: min(100%, 20rem);
-  padding: 1.05rem 2rem;
-  font-size: 1.0625rem;
+  width: auto;
+  max-width: 100%;
+  min-width: 0;
+  padding: 0.95rem 2.25rem;
+  font-size: 1rem;
+  white-space: nowrap;
 }
 
 .booking-section__secondary {
   margin-top: 2.5rem;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  max-width: 36rem;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .booking-section__whatsapp-link {
+  display: inline-block;
   font-family: var(--font-body), system-ui, sans-serif;
   font-size: 0.9375rem;
   font-weight: 500;
