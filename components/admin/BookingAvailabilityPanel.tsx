@@ -141,6 +141,13 @@ export default function BookingAvailabilityPanel() {
 
   return (
     <section className="admin-booking mt-10" aria-label="Disponibilidad de citas">
+      <div
+        className="admin-booking__msg admin-booking__msg--err mb-4"
+        role="note"
+      >
+        Deprecado: la disponibilidad del sitio se gestiona en Pabau. Este panel
+        ya no alimenta el calendario público.
+      </div>
       {message && (
         <div
           className={`admin-booking__msg admin-booking__msg--${message.type === "ok" ? "ok" : "err"}`}

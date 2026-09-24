@@ -15,6 +15,7 @@ import { createClient } from "@/lib/supabase";
 import BookingAvailabilityPanel from "@/components/admin/BookingAvailabilityPanel";
 import CmsPanel from "@/components/admin/CmsPanel";
 import StorePanel from "@/components/admin/StorePanel";
+import { PABAU_BOOKING_URL } from "@/lib/pabau";
 
 type AppointmentRow = {
   id: string;
@@ -95,14 +96,16 @@ const NAV_ITEMS: {
     id: "appointments",
     label: "Citas",
     title: "Citas",
-    description: "Gestiona solicitudes, confirma o cancela citas y añade notas internas.",
+    description:
+      "Histórico de solicitudes en Supabase. La agenda vigente se gestiona en Pabau.",
     icon: Calendar,
   },
   {
     id: "availability",
     label: "Disponibilidad",
     title: "Disponibilidad",
-    description: "Configura horarios semanales, bloqueos y ajustes del calendario de citas.",
+    description:
+      "Deprecado: la disponibilidad se gestiona en Pabau. Este panel ya no afecta al sitio público.",
     icon: Clock,
   },
   {
@@ -430,6 +433,27 @@ export default function AdminDashboard({ locale }: { locale: string }) {
           <div className="admin-skeleton" aria-busy="true" aria-label="Cargando" />
         ) : tab === "appointments" ? (
           <section className="admin-content__panel" aria-label="Citas">
+            <div
+              className="mb-6 rounded-xl border border-[rgb(var(--primary)/0.35)] bg-[rgb(var(--primary)/0.08)] px-4 py-3 text-sm"
+              role="status"
+            >
+              <p className="font-medium text-[rgb(var(--text))]">
+                Histórico. La agenda vigente está en Pabau.
+              </p>
+              <p className="mt-1 type-ui-muted">
+                El sitio público ya no crea citas en Supabase. Las filas de abajo son
+                solicitudes antiguas; confirma o cancela solo si las necesitas para
+                el historial interno.
+              </p>
+              <a
+                href={PABAU_BOOKING_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-2 inline-block font-medium text-[rgb(var(--primary))] underline underline-offset-2"
+              >
+                Abrir portal Pabau
+              </a>
+            </div>
             <div className="admin-table-wrap">
               <div className="admin-table">
                 <div className="admin-table__head admin-table__head--appointments">
@@ -518,6 +542,25 @@ export default function AdminDashboard({ locale }: { locale: string }) {
           </section>
         ) : tab === "availability" ? (
           <div className="admin-content__panel">
+            <details className="mb-6 rounded-xl border border-theme bg-surface px-4 py-3">
+              <summary className="cursor-pointer font-medium text-sm">
+                Aviso: disponibilidad deprecada (gestionar en Pabau)
+              </summary>
+              <p className="mt-2 type-ui-muted text-sm leading-relaxed">
+                Los horarios públicos y el calendario de citas viven en Pabau.
+                Este panel solo afecta tablas legacy de Supabase y ya no se usa
+                en la web. Conservamos el formulario por si hace falta consultar
+                o limpiar datos históricos.
+              </p>
+              <a
+                href={PABAU_BOOKING_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-2 inline-block text-sm font-medium text-[rgb(var(--primary))] underline underline-offset-2"
+              >
+                Abrir portal Pabau
+              </a>
+            </details>
             <BookingAvailabilityPanel />
           </div>
         ) : tab === "cms" ? (
