@@ -6,6 +6,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import WaveDivider from "@/components/WaveDivider";
 import ShapeScaleStorySection from "@/components/ShapeScaleStorySection";
+import BrandCtaLink from "@/components/ui/BrandCtaLink";
+import { PABAU_BOOKING_SHAPESCALE_URL } from "@/lib/pabau";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import "@/app/styles/shapescale-story.css";
@@ -45,6 +47,20 @@ function ShapeScaleContent() {
           >
             {t("subtitle")}
           </motion.p>
+          <motion.div
+            className="mt-8 flex justify-center"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.25 }}
+          >
+            <BrandCtaLink
+              href={PABAU_BOOKING_SHAPESCALE_URL}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {t("scheduleBtn")}
+            </BrandCtaLink>
+          </motion.div>
         </div>
       </section>
 

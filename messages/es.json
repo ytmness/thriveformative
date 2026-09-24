@@ -97,7 +97,8 @@
         "lead": "ShapeScale te escanea en 3D fotorrealista para darte una visión general de tu progreso. Te permite ver los cambios que tus ojos no perciben. No se trata solo de los pasos que das, sino de obtener resultados visibles.",
         "items": []
       }
-    }
+    },
+    "scheduleBtn": "Agendar ShapeScale"
   },
   "hero": {
     "title": "Descubre tu salud",
@@ -218,8 +219,8 @@
   },
   "booking": {
     "title": "Agenda tu cita",
-    "subtitle": "Reserva tu consulta a través del portal de Pabau. Crea tu cuenta de paciente, elige fecha, horario y servicio en unos pocos pasos.",
-    "portalHint": "Haz clic en el botón para abrir el portal de reservas de Pabau en una nueva pestaña. Allí podrás registrarte como paciente y agendar tu cita.",
+    "subtitle": "Reserva tu consulta a través del portal de la clínica. Crea tu cuenta de paciente, elige fecha, horario y servicio en unos pocos pasos.",
+    "portalHint": "Haz clic en el botón para abrir el portal de la clínica en una nueva pestaña. Allí podrás registrarte como paciente y agendar tu cita.",
     "portalCta": "Agendar ahora",
     "durationNote": "Las citas tienen un intervalo de agenda de 70 minutos.",
     "embedTitle": "Portal de reservas Thrive Formative",
@@ -228,7 +229,7 @@
   },
   "auth": {
     "loginTitle": "Iniciar sesión",
-    "loginSubtitle": "Accede a tu cuenta para agendar y ver tus citas.",
+    "loginSubtitle": "Los pacientes agendan por el portal de la clínica. El personal entra con Acceso staff.",
     "email": "Correo",
     "emailPlaceholder": "tu@correo.com",
     "password": "Contraseña",
@@ -238,7 +239,7 @@
     "registerLink": "Regístrate",
     "backHome": "← Volver al inicio",
     "registerTitle": "Crear cuenta",
-    "registerSubtitle": "Regístrate para agendar y gestionar tus citas.",
+    "registerSubtitle": "Los pacientes reservan por el portal de la clínica. El personal usa Acceso staff.",
     "fullName": "Nombre completo",
     "fullNamePlaceholder": "Tu nombre",
     "passwordMin": "Mínimo 6 caracteres",
@@ -287,7 +288,9 @@
     "refAdsGoogle": "Google Ads",
     "refOther": "Otro",
     "refOtherLabel": "Especifica",
-    "refOtherPlaceholder": "Cuéntanos cómo"
+    "refOtherPlaceholder": "Cuéntanos cómo",
+    "staffLogin": "Acceso staff",
+    "staffLoginHint": "Solo para personal de la clínica"
   },
   "doctor": {
     "photoPlaceholder": "Foto del doctor (placeholder)",

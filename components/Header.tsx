@@ -252,27 +252,15 @@ export default function Header({ preview }: HeaderProps = {}) {
                   <NotificationBell />
                 </div>
               ) : (
-                <div className="flex items-center gap-2">
-                  <motion.a
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    href={PABAU_BOOKING_URL}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="type-ui text-xs font-medium text-[rgb(var(--primary))] hover:opacity-80 whitespace-nowrap"
-                  >
-                    {t("booking.portalCta")}
-                  </motion.a>
-                  <motion.a
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    href={`/${locale}/admin/login`}
-                    className="type-ui-muted text-xs hover:opacity-80 whitespace-nowrap hidden xl:inline"
-                    title={t("auth.staffLoginHint")}
-                  >
-                    {t("auth.staffLogin")}
-                  </motion.a>
-                </div>
+                <motion.a
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  href={`/${locale}/admin/login`}
+                  className="type-ui-muted text-xs hover:opacity-80 whitespace-nowrap hidden xl:inline"
+                  title={t("auth.staffLoginHint")}
+                >
+                  {t("auth.staffLogin")}
+                </motion.a>
               )}
             </>
           )}
@@ -393,25 +381,14 @@ export default function Header({ preview }: HeaderProps = {}) {
                     </div>
                   </>
                 ) : (
-                  <>
-                    <a
-                      href={PABAU_BOOKING_URL}
-                      target="_blank"
-                      rel="noreferrer"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="type-ui font-medium text-[rgb(var(--primary))] text-sm"
-                    >
-                      {t("booking.portalCta")}
-                    </a>
-                    <a
-                      href={`/${locale}/admin/login`}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="type-ui-muted text-sm"
-                      title={t("auth.staffLoginHint")}
-                    >
-                      {t("auth.staffLogin")}
-                    </a>
-                  </>
+                  <a
+                    href={`/${locale}/admin/login`}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="type-ui-muted text-sm"
+                    title={t("auth.staffLoginHint")}
+                  >
+                    {t("auth.staffLogin")}
+                  </a>
                 )}
               </>
             )}

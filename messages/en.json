@@ -97,7 +97,8 @@
         "lead": "ShapeScale scans you in photorealistic 3D to give you a visual overview of your progress. ShapeScale allows you to see the changes that your eyes can't see. It's not just about the number of steps you take. It's about getting visible results.",
         "items": []
       }
-    }
+    },
+    "scheduleBtn": "Book ShapeScale"
   },
   "hero": {
     "title": "Discover Your Health",
@@ -218,8 +219,8 @@
   },
   "booking": {
     "title": "Book your appointment",
-    "subtitle": "Schedule your consultation through the Pabau portal. Create your patient account, choose date, time, and service in a few steps.",
-    "portalHint": "Click the button to open the Pabau booking portal in a new tab. There you can register as a patient and schedule your appointment.",
+    "subtitle": "Schedule your consultation through the clinic portal. Create your patient account, choose date, time, and service in a few steps.",
+    "portalHint": "Click the button to open the clinic portal in a new tab. There you can register as a patient and schedule your appointment.",
     "portalCta": "Book now",
     "durationNote": "Appointments use a 70-minute scheduling interval.",
     "embedTitle": "Thrive Formative booking portal",
@@ -228,7 +229,7 @@
   },
   "auth": {
     "loginTitle": "Sign in",
-    "loginSubtitle": "Access your account to schedule and view your appointments.",
+    "loginSubtitle": "Patients book through the clinic portal. Staff sign in via Staff access.",
     "email": "Email",
     "emailPlaceholder": "you@email.com",
     "password": "Password",
@@ -238,7 +239,7 @@
     "registerLink": "Sign up",
     "backHome": "← Back to home",
     "registerTitle": "Create account",
-    "registerSubtitle": "Sign up to schedule and manage your appointments.",
+    "registerSubtitle": "Patients book through the clinic portal. Staff use Staff access.",
     "fullName": "Full name",
     "fullNamePlaceholder": "Your name",
     "passwordMin": "Minimum 6 characters",
@@ -287,7 +288,9 @@
     "refAdsGoogle": "Google Ads",
     "refOther": "Other",
     "refOtherLabel": "Please specify",
-    "refOtherPlaceholder": "Tell us how"
+    "refOtherPlaceholder": "Tell us how",
+    "staffLogin": "Staff access",
+    "staffLoginHint": "Clinic staff only"
   },
   "doctor": {
     "photoPlaceholder": "Doctor photo (placeholder)",

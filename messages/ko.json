@@ -97,7 +97,8 @@
         "lead": "ShapeScale은 사실적인 3D로 스캔하여 진행 상황의 시각적 개요를 제공합니다. 눈에 보이지 않는 변화를 볼 수 있게 해 줍니다. 걸음 수만이 아니라, 눈에 보이는 결과가 중요합니다.",
         "items": []
       }
-    }
+    },
+    "scheduleBtn": "ShapeScale 예약"
   },
   "hero": {
     "title": "당신의 건강을 발견하세요",
@@ -218,8 +219,8 @@
   },
   "booking": {
     "title": "예약하기",
-    "subtitle": "클리닉 포털을 통해 상담을 예약하세요. 날짜, 시간, 서비스를 몇 단계로 선택합니다.",
-    "portalHint": "새 탭에서 예약 포털을 열거나, 아래 위젯으로 예약하세요.",
+    "subtitle": "클리닉 포털을 통해 상담을 예약하세요. 환자 계정을 만들고, 날짜, 시간, 서비스를 몇 단계로 선택합니다.",
+    "portalHint": "버튼을 클릭하여 새 탭에서 클리닉 포털을 여세요. 환자로 등록하고 예약할 수 있습니다.",
     "portalCta": "지금 예약",
     "durationNote": "예약 간격은 70분입니다.",
     "embedTitle": "Thrive Formative 예약 포털",
@@ -228,7 +229,7 @@
   },
   "auth": {
     "loginTitle": "로그인",
-    "loginSubtitle": "예약 및 예약 내역을 보려면 계정에 로그인하세요.",
+    "loginSubtitle": "환자는 클리닉 포털로 예약합니다. 직원은 직원 로그인을 사용하세요.",
     "email": "이메일",
     "emailPlaceholder": "you@email.com",
     "password": "비밀번호",
@@ -238,7 +239,7 @@
     "registerLink": "가입하기",
     "backHome": "← 홈으로",
     "registerTitle": "계정 만들기",
-    "registerSubtitle": "예약 및 예약 관리를 위해 가입하세요.",
+    "registerSubtitle": "환자는 클리닉 포털로 예약합니다. 직원은 직원 로그인을 사용하세요.",
     "fullName": "이름",
     "fullNamePlaceholder": "이름을 입력하세요",
     "passwordMin": "최소 6자",
@@ -287,7 +288,9 @@
     "refAdsGoogle": "구글 광고",
     "refOther": "기타",
     "refOtherLabel": "기타(직접 입력)",
-    "refOtherPlaceholder": "어떻게 알게 되셨나요?"
+    "refOtherPlaceholder": "어떻게 알게 되셨나요?",
+    "staffLogin": "직원 로그인",
+    "staffLoginHint": "클리닉 직원 전용"
   },
   "doctor": {
     "photoPlaceholder": "의사 사진 (플레이스홀더)",
