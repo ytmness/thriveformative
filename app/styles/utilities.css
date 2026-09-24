@@ -521,11 +521,12 @@
   font-weight: 600;
 }
 
-/* ─── Approach / Nuestro Enfoque — banda del color de las olitas (--primary) ─── */
+/* ─── Approach / Nuestro Enfoque — mismo tono que wave-front (primary @ 0.32) ─── */
 .approach-editorial {
   width: 100%;
-  background: rgb(var(--primary));
-  color: rgb(26 26 26);
+  /* Equivalente visual a .wave-front: fill primary + fill-opacity 0.32 sobre --bg */
+  background: color-mix(in srgb, rgb(var(--primary)) 32%, rgb(var(--bg)));
+  color: rgb(var(--text));
   padding: clamp(3rem, 6vw, 5.5rem) 1.5rem clamp(3.25rem, 6vw, 5.75rem);
   /* Rompe el padding del giant-card-inner para franja de borde a borde */
   margin-left: -1.5rem;
@@ -548,8 +549,8 @@
 }
 
 [data-theme="nocturnal"] .approach-editorial {
-  background: rgb(var(--primary));
-  color: rgb(26 26 26);
+  background: color-mix(in srgb, rgb(var(--primary)) 32%, rgb(var(--bg)));
+  color: rgb(var(--text));
 }
 
 .approach-editorial__header {
@@ -580,7 +581,7 @@
   font-weight: 600;
   letter-spacing: 0.26em;
   text-transform: uppercase;
-  color: rgb(26 26 26 / 0.62);
+  color: rgb(var(--muted));
 }
 
 .approach-editorial__title {
@@ -590,7 +591,7 @@
   font-weight: 600;
   letter-spacing: 0.02em;
   line-height: 1.08;
-  color: rgb(26 26 26);
+  color: rgb(var(--text));
   text-wrap: balance;
 }
 
@@ -600,14 +601,14 @@
   font-family: var(--font-body), system-ui, sans-serif;
   font-size: clamp(1rem, 0.45vw + 0.92rem, 1.125rem);
   line-height: 1.65;
-  color: rgb(26 26 26 / 0.78);
+  color: rgb(var(--muted));
 }
 
 .approach-editorial__rule {
   max-width: 72rem;
   margin: clamp(2rem, 4vw, 2.75rem) auto 0;
   height: 1px;
-  background: rgb(26 26 26 / 0.18);
+  background: rgb(var(--primary) / 0.32);
 }
 
 .approach-editorial__columns {
@@ -631,7 +632,7 @@
   font-weight: 600;
   letter-spacing: 0.01em;
   line-height: 1.22;
-  color: rgb(26 26 26);
+  color: rgb(var(--text));
   text-align: left;
   text-wrap: balance;
 }
@@ -641,7 +642,7 @@
   font-family: var(--font-body), system-ui, sans-serif;
   font-size: 0.9375rem;
   line-height: 1.65;
-  color: rgb(26 26 26 / 0.76);
+  color: rgb(var(--muted));
   text-align: left;
 }
 
