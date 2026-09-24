@@ -211,8 +211,8 @@
   },
   "booking": {
     "title": "Prenota la tua visita",
-    "subtitle": "Prenota il consulto tramite il portale della clinica. Scegli data, orario e servizio in pochi passaggi.",
-    "portalHint": "Apri il portale di prenotazione in una nuova scheda, oppure prenota con il widget qui sotto.",
+    "subtitle": "Prenota il consulto tramite il portale Pabau. Crea il tuo account paziente, scegli data, orario e servizio in pochi passaggi.",
+    "portalHint": "Clicca il pulsante per aprire il portale di prenotazione Pabau in una nuova scheda. Lì potrai registrarti come paziente e prenotare la tua visita.",
     "portalCta": "Prenota ora",
     "durationNote": "Le visite usano un intervallo di agenda di 70 minuti.",
     "embedTitle": "Portale di prenotazione Thrive Formative",
