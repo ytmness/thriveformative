@@ -521,47 +521,27 @@
   font-weight: 600;
 }
 
-/* ─── Approach — mismo composite que WaveDivider accent (0.08+0.18+0.32) ─── */
+/* ─── Approach / Propósito — misma esencia que Metodología (crema + editorial) ─── */
 .approach-editorial {
   width: 100%;
-  /*
-    Las olitas no son un solo fill @ 0.32: son 3 capas apiladas (accent).
-    Replicamos el mismo apilado sobre --bg para igualar el tono visible.
-  */
-  background:
-    linear-gradient(rgb(var(--primary) / 0.32), rgb(var(--primary) / 0.32)),
-    linear-gradient(rgb(var(--primary) / 0.18), rgb(var(--primary) / 0.18)),
-    linear-gradient(rgb(var(--primary) / 0.08), rgb(var(--primary) / 0.08)),
-    rgb(var(--bg));
+  background: transparent;
   color: rgb(var(--text));
-  padding: clamp(3rem, 6vw, 5.5rem) 1.5rem clamp(3.25rem, 6vw, 5.75rem);
-  /* Rompe el padding del giant-card-inner para franja de borde a borde */
-  margin-left: -1.5rem;
-  margin-right: -1.5rem;
-  width: calc(100% + 3rem);
+  padding: clamp(2.5rem, 5vw, 4.5rem) 0 clamp(3rem, 6vw, 5.5rem);
 }
 
 .scroll-cards-stack .giant-card--compact .giant-card-inner > .approach-editorial {
-  margin-top: 0;
-  margin-bottom: -1.5rem;
-  padding-top: clamp(2.5rem, 5vw, 4.5rem);
-  padding-bottom: clamp(3.5rem, 7vw, 6rem);
+  margin: 0;
+  padding-top: clamp(1.5rem, 3vw, 2.5rem);
+  padding-bottom: clamp(2.5rem, 5vw, 4rem);
 }
 
-@media (min-width: 768px) {
-  .scroll-cards-stack .giant-card--compact .giant-card-inner > .approach-editorial {
-    margin-top: 0;
-    margin-bottom: -2rem;
-  }
-}
-
-/* Ola accent encima de Propósito: mismo apilado, borde a borde */
+/* Ola suave como marco (no relleno de sección) */
 .scroll-cards-stack .giant-card--compact .giant-card-inner > .wave-divider--approach-top {
   margin-left: -1.5rem;
   margin-right: -1.5rem;
   margin-top: -1.5rem;
   width: calc(100% + 3rem);
-  background: rgb(var(--bg));
+  background: transparent;
 }
 
 @media (min-width: 768px) {
@@ -571,17 +551,13 @@
 }
 
 [data-theme="nocturnal"] .approach-editorial {
-  background:
-    linear-gradient(rgb(var(--primary) / 0.32), rgb(var(--primary) / 0.32)),
-    linear-gradient(rgb(var(--primary) / 0.18), rgb(var(--primary) / 0.18)),
-    linear-gradient(rgb(var(--primary) / 0.08), rgb(var(--primary) / 0.08)),
-    rgb(var(--bg));
+  background: transparent;
   color: rgb(var(--text));
 }
 
 .approach-editorial__header {
   display: grid;
-  gap: 1.75rem;
+  gap: 1.25rem;
   max-width: 72rem;
   margin: 0 auto;
   align-items: start;
@@ -590,7 +566,7 @@
 @media (min-width: 900px) {
   .approach-editorial__header {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-    gap: 2rem 3.5rem;
+    gap: 1.75rem 3.5rem;
     align-items: end;
   }
 
@@ -601,22 +577,22 @@
 }
 
 .approach-editorial__eyebrow {
-  margin: 0 0 0.85rem;
+  margin: 0 0 0.5rem;
   font-family: var(--font-body), system-ui, sans-serif;
-  font-size: 0.6875rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.26em;
+  letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: rgb(var(--muted));
+  color: rgb(var(--muted) / 0.9);
 }
 
 .approach-editorial__title {
   margin: 0;
-  font-family: var(--font-serif), ui-serif, Georgia, serif;
-  font-size: clamp(2rem, 2.2vw + 1.15rem, 3.25rem);
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(2rem, 2.7vw, 3.35rem);
   font-weight: 600;
-  letter-spacing: 0.02em;
-  line-height: 1.08;
+  letter-spacing: -0.015em;
+  line-height: 1.03;
   color: rgb(var(--text));
   text-wrap: balance;
 }
@@ -625,39 +601,67 @@
   margin: 0;
   max-width: 32rem;
   font-family: var(--font-body), system-ui, sans-serif;
-  font-size: clamp(1rem, 0.45vw + 0.92rem, 1.125rem);
-  line-height: 1.65;
+  font-size: 0.97rem;
+  line-height: 1.6;
   color: rgb(var(--muted));
 }
 
 .approach-editorial__rule {
   max-width: 72rem;
-  margin: clamp(2rem, 4vw, 2.75rem) auto 0;
+  margin: clamp(1.75rem, 3.5vw, 2.4rem) auto 0;
   height: 1px;
-  background: rgb(var(--primary) / 0.32);
+  background: rgb(var(--border) / 0.14);
 }
 
 .approach-editorial__columns {
   display: grid;
-  gap: 2rem;
+  gap: 1.5rem;
   max-width: 72rem;
-  margin: clamp(2rem, 4vw, 2.75rem) auto 0;
+  margin: clamp(1.75rem, 3.5vw, 2.4rem) auto 0;
 }
 
 @media (min-width: 768px) {
   .approach-editorial__columns {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 2rem 2.75rem;
+    gap: 1.5rem;
   }
+}
+
+.approach-editorial__column {
+  position: relative;
+  border: 1px solid rgb(var(--border) / 0.12);
+  border-top: 2px solid rgb(var(--primary) / 0.58);
+  background: rgb(var(--surface) / 0.5);
+  padding: 2.6rem 1.85rem 1.6rem;
+  transition: transform 0.22s ease, border-color 0.22s ease, background 0.22s ease;
+}
+
+.approach-editorial__column:hover {
+  transform: translateY(-3px);
+  border-top-color: rgb(var(--primary) / 0.82);
+  background: rgb(var(--surface) / 0.72);
+}
+
+.approach-editorial__num {
+  position: absolute;
+  top: -1.95rem;
+  left: 0.15rem;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 3.5rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: rgb(var(--border) / 0.18);
+  pointer-events: none;
 }
 
 .approach-editorial__column-title {
   margin: 0 0 0.85rem;
-  font-family: var(--font-serif), ui-serif, Georgia, serif;
-  font-size: clamp(1.2rem, 0.9vw + 0.95rem, 1.55rem);
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(1.35rem, 1.1vw + 0.95rem, 1.75rem);
   font-weight: 600;
-  letter-spacing: 0.01em;
-  line-height: 1.22;
+  letter-spacing: -0.012em;
+  line-height: 1.15;
   color: rgb(var(--text));
   text-align: left;
   text-wrap: balance;
@@ -666,62 +670,72 @@
 .approach-editorial__column-desc {
   margin: 0;
   font-family: var(--font-body), system-ui, sans-serif;
-  font-size: 0.9375rem;
-  line-height: 1.65;
+  font-size: 0.97rem;
+  line-height: 1.6;
   color: rgb(var(--muted));
   text-align: left;
 }
 
 @media (min-width: 768px) {
   .approach-editorial__column-desc {
-    font-size: 1rem;
+    font-size: 0.97rem;
   }
 }
 
-/* ─── Servicios ─── */
+/* ─── Servicios — misma lengua que Metodología / Propósito ─── */
 .services-editorial-section {
-  max-width: 78rem;
+  max-width: 72rem;
   margin: 0 auto;
-  padding: 4.5rem 1.5rem 5.75rem;
+  padding: 4.5rem 0 5.75rem;
 }
 
 @media (min-width: 768px) {
   .services-editorial-section {
-    padding-top: 6rem;
-    padding-bottom: 7rem;
+    padding-top: 5.5rem;
+    padding-bottom: 6.5rem;
   }
 }
 
 .services-editorial-section__head {
   max-width: 44rem;
-  margin: 0 auto;
-  text-align: center;
+  margin: 0;
+  text-align: left;
+}
+
+.services-editorial-section__eyebrow {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgb(var(--muted) / 0.9);
 }
 
 .services-editorial-section__title {
   margin: 0;
   font-family: var(--font-serif), Georgia, serif;
-  font-size: clamp(2.2rem, 4vw, 3.8rem);
+  font-size: clamp(2rem, 2.7vw, 3.35rem);
   font-weight: 600;
   letter-spacing: -0.015em;
-  line-height: 1.02;
+  line-height: 1.03;
   color: rgb(var(--text));
   text-wrap: balance;
 }
 
 .services-editorial-section__subtitle {
-  margin: 1.25rem auto 0;
+  margin: 1rem 0 0;
   max-width: 36rem;
   font-family: var(--font-body), system-ui, sans-serif;
-  font-size: 1rem;
-  line-height: 1.62;
+  font-size: 0.97rem;
+  line-height: 1.6;
   color: rgb(var(--muted));
 }
 
 @media (min-width: 768px) {
   .services-editorial-section__subtitle {
-    margin-top: 1.55rem;
-    font-size: 1.0625rem;
+    margin-top: 1.15rem;
+    font-size: 0.97rem;
   }
 }
 
@@ -729,43 +743,48 @@
   margin-top: 2.2rem;
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 @media (min-width: 768px) {
   .services-editorial-section__grid {
-    margin-top: 2.9rem;
+    margin-top: 2.6rem;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1.25rem;
+    gap: 1.5rem;
   }
 }
 
 .service-editorial-card {
-  border-radius: 1.25rem;
-  border: 1px solid rgb(var(--border) / 0.18);
-  background: rgb(var(--surface) / 0.72);
-  padding: 1.5rem 1.25rem 1.6rem;
-  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+  position: relative;
+  border-radius: 0;
+  border: 1px solid rgb(var(--border) / 0.12);
+  border-top: 2px solid rgb(var(--primary) / 0.58);
+  background: rgb(var(--surface) / 0.5);
+  box-shadow: none;
+  padding: 2.2rem 1.85rem 1.7rem;
+  transition: transform 0.22s ease, border-color 0.22s ease, background 0.22s ease;
 }
 
 @media (min-width: 768px) {
   .service-editorial-card {
-    padding: 1.9rem 1.6rem 2rem;
+    padding: 2.4rem 1.85rem 1.85rem;
   }
 }
 
 .service-editorial-card:hover {
-  transform: translateY(-4px);
-  border-color: rgb(var(--primary) / 0.24);
-  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.11);
+  transform: translateY(-3px);
+  border-color: rgb(var(--border) / 0.12);
+  border-top-color: rgb(var(--primary) / 0.82);
+  background: rgb(var(--surface) / 0.72);
+  box-shadow: none;
 }
 
 .service-editorial-card__title {
   margin: 0;
   font-family: var(--font-serif), Georgia, serif;
-  font-size: clamp(1.45rem, 1.25vw + 0.95rem, 2rem);
+  font-size: clamp(1.35rem, 1.1vw + 0.95rem, 1.75rem);
   font-weight: 600;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.012em;
   line-height: 1.15;
   color: rgb(var(--text));
 }
@@ -773,8 +792,8 @@
 .service-editorial-card__desc {
   margin: 0.85rem 0 0;
   font-family: var(--font-body), system-ui, sans-serif;
-  font-size: 0.98rem;
-  line-height: 1.62;
+  font-size: 0.97rem;
+  line-height: 1.6;
   color: rgb(var(--muted));
 }
 

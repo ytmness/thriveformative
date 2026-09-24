@@ -296,6 +296,7 @@ export default function HomePageSections({
                 ],
                 <ApproachPillar
                   id="approach-funcional"
+                  index="01"
                   title={`${txt("approach.title1a", "approach.title1a")} ${txt("approach.title1b", "approach.title1b")}`}
                   description={txt("approach.desc1", "approach.desc1")}
                 />
@@ -309,6 +310,7 @@ export default function HomePageSections({
                 ],
                 <ApproachPillar
                   id="approach-familiar"
+                  index="02"
                   title={`${txt("approach.title2a", "approach.title2a")} ${txt("approach.title2b", "approach.title2b")}`}
                   description={txt("approach.desc2", "approach.desc2")}
                 />
@@ -321,6 +323,7 @@ export default function HomePageSections({
                 ],
                 <ApproachPillar
                   id="approach-acompanamiento"
+                  index="03"
                   title={txt("approach.title3", "approach.title3")}
                   description={txt("approach.desc3", "approach.desc3")}
                 />
@@ -338,6 +341,7 @@ export default function HomePageSections({
                 { key: "services.subtitle", label: "Subtítulo" },
               ],
               <header className="services-editorial-section__head">
+                <p className="services-editorial-section__eyebrow">{t("nav.services")}</p>
                 <h2 className="services-editorial-section__title">
                   {editable ? (
                     txt("services.title", "services.title")
@@ -420,15 +424,20 @@ export default function HomePageSections({
 
 function ApproachPillar({
   id,
+  index,
   title,
   description,
 }: {
   id: string;
+  index: string;
   title: string;
   description: string;
 }) {
   return (
     <article id={id} className="approach-editorial__column">
+      <span className="approach-editorial__num" aria-hidden>
+        {index}
+      </span>
       <h3 className="approach-editorial__column-title">{title}</h3>
       <p className="approach-editorial__column-desc">{description}</p>
     </article>
