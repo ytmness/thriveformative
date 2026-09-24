@@ -262,6 +262,7 @@ export default function HomePageSections({
 
       <main className={editable ? "admin-cms-visual__main" : "scroll-cards-stack"}>
         <GiantScrollCard variant="slideUp" id="approach" noFade compact>
+          <WaveDivider variant="accent" flip className="wave-divider--approach-top" />
           <div className="approach-editorial">
             {wrapText(
               "Enfoque — encabezado",
