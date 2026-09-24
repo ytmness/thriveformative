@@ -256,7 +256,9 @@ export default function Header({ preview }: HeaderProps = {}) {
                   <motion.a
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
-                    href={`/${locale}/login`}
+                    href={PABAU_BOOKING_URL}
+                    target="_blank"
+                    rel="noreferrer"
                     className="type-ui text-xs font-medium hover:opacity-80"
                   >
                     {t("auth.loginTitle")}
@@ -264,7 +266,9 @@ export default function Header({ preview }: HeaderProps = {}) {
                   <motion.a
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    href={`/${locale}/register`}
+                    href={PABAU_BOOKING_URL}
+                    target="_blank"
+                    rel="noreferrer"
                     className="btn-outline type-ui text-xs font-medium rounded-lg px-3 py-1.5"
                   >
                     {t("auth.registerLink")}
@@ -392,14 +396,18 @@ export default function Header({ preview }: HeaderProps = {}) {
                 ) : (
                   <>
                     <a
-                      href={`/${locale}/login`}
+                      href={PABAU_BOOKING_URL}
+                      target="_blank"
+                      rel="noreferrer"
                       onClick={() => setMobileMenuOpen(false)}
                       className="type-ui font-medium text-sm"
                     >
                       {t("auth.loginTitle")}
                     </a>
                     <a
-                      href={`/${locale}/register`}
+                      href={PABAU_BOOKING_URL}
+                      target="_blank"
+                      rel="noreferrer"
                       onClick={() => setMobileMenuOpen(false)}
                       className="btn-outline type-ui font-medium rounded-xl px-4 py-2 text-center text-sm"
                     >

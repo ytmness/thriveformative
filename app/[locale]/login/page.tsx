@@ -1,3 +1,8 @@
+/**
+ * Login page — primarily for staff/admin use.
+ * Public patient login/register links in Header redirect to Pabau portal.
+ * This page remains accessible for administrative access to Thrive CMS.
+ */
 "use client";
 
 import { useState, useEffect } from "react";

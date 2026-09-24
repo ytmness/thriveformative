@@ -6,7 +6,7 @@ import { useCmsContext } from "@/components/cms/CmsProvider";
 import { resolveCmsText } from "@/lib/cms/fetch";
 import BrandCtaLink from "@/components/ui/BrandCtaLink";
 import { WHATSAPP_LINK } from "@/lib/branding";
-import { PABAU_BOOKING_URL, PABAU_WIDGET_URL } from "@/lib/pabau";
+import { PABAU_BOOKING_URL } from "@/lib/pabau";
 
 export default function BookingSection() {
   const t = useTranslations("booking");
@@ -63,17 +63,6 @@ export default function BookingSection() {
           >
             {portalCta}
           </BrandCtaLink>
-        </div>
-
-        <div className="booking-embed">
-          <iframe
-            className="booking-embed__frame"
-            src={PABAU_WIDGET_URL}
-            title={t("embedTitle")}
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            allow="payment *"
-          />
         </div>
 
         <div className="booking-section__secondary">
