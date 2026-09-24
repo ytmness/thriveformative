@@ -28,11 +28,12 @@ const nextConfig = {
   async headers() {
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://pabau.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data: https:",
       `connect-src 'self' https://${SUPABASE_HOST} wss://${SUPABASE_HOST} https:`,
+      "frame-src 'self' https://partner-us.pabau.com https://partner.pabau.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
