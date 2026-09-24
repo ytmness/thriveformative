@@ -7,8 +7,8 @@ import {
   CLINIC_PHONE_DISPLAY,
   CLINIC_PHONE_TEL,
   SITE_LOGO_SRC,
-  WHATSAPP_LINK,
 } from "@/lib/branding";
+import { PABAU_BOOKING_URL } from "@/lib/pabau";
 
 export default function Footer() {
   const t = useTranslations();
@@ -73,7 +73,7 @@ export default function Footer() {
               <div>{CLINIC_ADDRESS_LINE}</div>
             </div>
             <div className="mt-5">
-              <BrandCtaLink href={WHATSAPP_LINK} target="_blank" rel="noreferrer">
+              <BrandCtaLink href={PABAU_BOOKING_URL} target="_blank" rel="noreferrer">
                 {t("contact.scheduleBtn")}
               </BrandCtaLink>
             </div>

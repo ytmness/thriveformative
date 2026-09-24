@@ -10,7 +10,7 @@ import ContactSection from "@/components/contact/ContactSection";
 import BrandCtaLink from "@/components/ui/BrandCtaLink";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { WHATSAPP_LINK } from "@/lib/branding";
+import { PABAU_BOOKING_URL } from "@/lib/pabau";
 
 /* ───────────────────────────────────────────
    Info page content
@@ -282,7 +282,7 @@ function InfoContent() {
                 className="mt-10"
               >
                 <BrandCtaLink
-                  href={WHATSAPP_LINK}
+                  href={PABAU_BOOKING_URL}
                   target="_blank"
                   rel="noreferrer"
                 >

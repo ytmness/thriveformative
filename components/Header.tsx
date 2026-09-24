@@ -2,7 +2,8 @@
 
 import { motion } from "framer-motion";
 import { useTranslations, useLocale } from "next-intl";
-import { SITE_LOGO_SRC, WHATSAPP_LINK } from "@/lib/branding";
+import { SITE_LOGO_SRC } from "@/lib/branding";
+import { PABAU_BOOKING_URL } from "@/lib/pabau";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useUser, signOut } from "@/lib/useUser";
 import { useRouter, usePathname } from "next/navigation";
@@ -151,7 +152,7 @@ export default function Header({ preview }: HeaderProps = {}) {
   }
 
   const secondaryMobileItems: NavItem[] = [
-    { key: "booking", href: `/${locale}#citas` },
+    { key: "booking", href: PABAU_BOOKING_URL },
     { key: "contact", href: `/${locale}/info#contacto` },
   ];
 
@@ -231,7 +232,9 @@ export default function Header({ preview }: HeaderProps = {}) {
                   <motion.a
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
-                    href={`/${locale}#citas`}
+                    href={PABAU_BOOKING_URL}
+                    target="_blank"
+                    rel="noreferrer"
                     className="type-ui text-xs font-medium text-[rgb(var(--primary))] hover:opacity-80 hidden xl:inline"
                   >
                     {t("nav.booking")}
@@ -279,7 +282,7 @@ export default function Header({ preview }: HeaderProps = {}) {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
                 className="site-nav__cta"
-                href={WHATSAPP_LINK}
+                href={PABAU_BOOKING_URL}
                 target="_blank"
                 rel="noreferrer"
               >
@@ -326,11 +329,17 @@ export default function Header({ preview }: HeaderProps = {}) {
             })}
             {!preview
               ? secondaryMobileItems.map((item) => {
-                  const active = isNavLinkActive(item.href, pathname, activeHash);
+                  const isExternal = item.href.startsWith("http");
+                  const active = isExternal
+                    ? false
+                    : isNavLinkActive(item.href, pathname, activeHash);
                   return (
                     <a
                       key={item.key}
                       href={item.href}
+                      {...(isExternal
+                        ? { target: "_blank", rel: "noreferrer" }
+                        : {})}
                       onClick={() => setMobileMenuOpen(false)}
                       className={`site-nav__mobile-link ${active ? "site-nav__mobile-link--active" : ""}`}
                     >
@@ -357,7 +366,9 @@ export default function Header({ preview }: HeaderProps = {}) {
                       </a>
                     )}
                     <a
-                      href={`/${locale}#citas`}
+                      href={PABAU_BOOKING_URL}
+                      target="_blank"
+                      rel="noreferrer"
                       onClick={() => setMobileMenuOpen(false)}
                       className="type-ui font-medium text-[rgb(var(--primary))] text-sm"
                     >
@@ -402,7 +413,7 @@ export default function Header({ preview }: HeaderProps = {}) {
             {!preview ? (
               <a
                 className="site-nav__cta text-center py-3"
-                href={WHATSAPP_LINK}
+                href={PABAU_BOOKING_URL}
                 target="_blank"
                 rel="noreferrer"
                 onClick={() => setMobileMenuOpen(false)}

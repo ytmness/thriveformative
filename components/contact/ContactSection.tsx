@@ -11,6 +11,7 @@ import {
   CLINIC_PHONE_TEL,
   WHATSAPP_LINK,
 } from "@/lib/branding";
+import { PABAU_BOOKING_URL } from "@/lib/pabau";
 import "@/app/styles/contact-section.css";
 
 export default function ContactSection() {
@@ -33,9 +34,17 @@ export default function ContactSection() {
             <h3 className="contact-section__card-title">{t("contact.schedule")}</h3>
             <p className="contact-section__card-lead">{t("contact.scheduleDesc")}</p>
             <div className="contact-section__cta-wrap">
-              <BrandCtaLink href={WHATSAPP_LINK} target="_blank" rel="noreferrer" block>
+              <BrandCtaLink href={PABAU_BOOKING_URL} target="_blank" rel="noreferrer" block>
                 {t("contact.scheduleBtn")}
               </BrandCtaLink>
+              <a
+                href={WHATSAPP_LINK}
+                target="_blank"
+                rel="noreferrer"
+                className="contact-section__whatsapp-secondary"
+              >
+                {t("booking.whatsappCta")}
+              </a>
             </div>
             <ul className="contact-section__details">
               <li>
