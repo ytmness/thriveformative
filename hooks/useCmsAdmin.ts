@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { createClient } from "@/lib/supabase";
 import { fetchCmsBundle } from "@/lib/cms/fetch";
+import { mutateCms } from "@/lib/cms/mutateClient";
 import { CMS_TEXT_GROUPS } from "@/lib/cms/textKeys";
 import { isEphemeralCmsId } from "@/lib/cms/resolveDisplay";
 import type { CmsArticle, CmsPlan, CmsService, Locale } from "@/lib/cms/types";
@@ -73,37 +73,32 @@ export function useCmsAdmin(initialLocale: Locale) {
 
   async function saveService(row: CmsService) {
     setSaving(true);
-    const supabase = createClient();
     const payload = {
       locale,
       sort_order: row.sort_order,
       name: row.name.trim(),
       description: row.description.trim(),
       is_published: row.is_published,
-      updated_at: new Date().toISOString(),
     };
     const isNew = row.id.startsWith("new-");
-    const { data, error } = isNew
-      ? await supabase.from("cms_services").insert(payload).select().single()
-      : await supabase
-          .from("cms_services")
-          .update(payload)
-          .eq("id", row.id)
-          .select()
-          .single();
-    setSaving(false);
-    if (error) {
-      setMessage({ type: "err", text: error.message });
-      return false;
-    }
-    if (data) {
-      setServices((prev) => {
-        const next = isNew ? prev.filter((s) => s.id !== row.id) : prev.filter((s) => s.id !== row.id);
-        return [...next, data as CmsService].sort((a, b) => a.sort_order - b.sort_order);
+    try {
+      const { data } = await mutateCms<{ data: CmsService }>({
+        op: "saveService",
+        id: isNew ? undefined : row.id,
+        payload,
       });
+      setServices((prev) => {
+        const next = prev.filter((s) => s.id !== row.id);
+        return [...next, data].sort((a, b) => a.sort_order - b.sort_order);
+      });
+      setMessage({ type: "ok", text: "Servicio guardado." });
+      return true;
+    } catch (e) {
+      setMessage({ type: "err", text: e instanceof Error ? e.message : "Error" });
+      return false;
+    } finally {
+      setSaving(false);
     }
-    setMessage({ type: "ok", text: "Servicio guardado." });
-    return true;
   }
 
   async function deleteService(id: string) {
@@ -113,19 +108,18 @@ export function useCmsAdmin(initialLocale: Locale) {
       }
       return true;
     }
-    const supabase = createClient();
-    const { error } = await supabase.from("cms_services").delete().eq("id", id);
-    if (error) {
-      setMessage({ type: "err", text: error.message });
+    try {
+      await mutateCms({ op: "deleteService", id });
+      setServices((prev) => prev.filter((s) => s.id !== id));
+      return true;
+    } catch (e) {
+      setMessage({ type: "err", text: e instanceof Error ? e.message : "Error" });
       return false;
     }
-    setServices((prev) => prev.filter((s) => s.id !== id));
-    return true;
   }
 
   async function savePlan(row: CmsPlan) {
     setSaving(true);
-    const supabase = createClient();
     const payload = {
       locale,
       sort_order: row.sort_order,
@@ -133,32 +127,32 @@ export function useCmsAdmin(initialLocale: Locale) {
       items: row.items.filter((x) => x.trim()),
       is_featured: row.is_featured,
       is_published: row.is_published,
-      updated_at: new Date().toISOString(),
     };
     const isNew = row.id.startsWith("new-");
-    const { data, error } = isNew
-      ? await supabase.from("cms_plans").insert(payload).select().single()
-      : await supabase.from("cms_plans").update(payload).eq("id", row.id).select().single();
-    setSaving(false);
-    if (error) {
-      setMessage({ type: "err", text: error.message });
-      return false;
-    }
-    if (data) {
-      const raw = data as CmsPlan;
+    try {
+      const { data } = await mutateCms<{ data: CmsPlan }>({
+        op: "savePlan",
+        id: isNew ? undefined : row.id,
+        payload,
+      });
       const parsed: CmsPlan = {
-        ...raw,
-        items: Array.isArray(raw.items)
-          ? raw.items.filter((x): x is string => typeof x === "string")
+        ...data,
+        items: Array.isArray(data.items)
+          ? data.items.filter((x): x is string => typeof x === "string")
           : row.items.filter((x) => x.trim()),
       };
       setPlans((prev) => {
         const next = prev.filter((p) => p.id !== row.id);
         return [...next, parsed].sort((a, b) => a.sort_order - b.sort_order);
       });
+      setMessage({ type: "ok", text: "Plan guardado." });
+      return true;
+    } catch (e) {
+      setMessage({ type: "err", text: e instanceof Error ? e.message : "Error" });
+      return false;
+    } finally {
+      setSaving(false);
     }
-    setMessage({ type: "ok", text: "Plan guardado." });
-    return true;
   }
 
   async function deletePlan(id: string) {
@@ -168,19 +162,18 @@ export function useCmsAdmin(initialLocale: Locale) {
       }
       return true;
     }
-    const supabase = createClient();
-    const { error } = await supabase.from("cms_plans").delete().eq("id", id);
-    if (error) {
-      setMessage({ type: "err", text: error.message });
+    try {
+      await mutateCms({ op: "deletePlan", id });
+      setPlans((prev) => prev.filter((p) => p.id !== id));
+      return true;
+    } catch (e) {
+      setMessage({ type: "err", text: e instanceof Error ? e.message : "Error" });
       return false;
     }
-    setPlans((prev) => prev.filter((p) => p.id !== id));
-    return true;
   }
 
   async function saveArticle(row: CmsArticle) {
     setSaving(true);
-    const supabase = createClient();
     const payload = {
       locale,
       sort_order: row.sort_order,
@@ -190,25 +183,26 @@ export function useCmsAdmin(initialLocale: Locale) {
       image_url: row.image_url?.trim() || null,
       is_published: row.is_published,
       published_at: row.published_at || new Date().toISOString().slice(0, 10),
-      updated_at: new Date().toISOString(),
     };
     const isNew = row.id.startsWith("new-");
-    const { data, error } = isNew
-      ? await supabase.from("cms_articles").insert(payload).select().single()
-      : await supabase.from("cms_articles").update(payload).eq("id", row.id).select().single();
-    setSaving(false);
-    if (error) {
-      setMessage({ type: "err", text: error.message });
-      return false;
-    }
-    if (data) {
+    try {
+      const { data } = await mutateCms<{ data: CmsArticle }>({
+        op: "saveArticle",
+        id: isNew ? undefined : row.id,
+        payload,
+      });
       setArticles((prev) => {
         const next = prev.filter((a) => a.id !== row.id);
-        return [...next, data as CmsArticle].sort((a, b) => a.sort_order - b.sort_order);
+        return [...next, data].sort((a, b) => a.sort_order - b.sort_order);
       });
+      setMessage({ type: "ok", text: "Artículo guardado." });
+      return true;
+    } catch (e) {
+      setMessage({ type: "err", text: e instanceof Error ? e.message : "Error" });
+      return false;
+    } finally {
+      setSaving(false);
     }
-    setMessage({ type: "ok", text: "Artículo guardado." });
-    return true;
   }
 
   async function deleteArticle(id: string) {
@@ -218,71 +212,58 @@ export function useCmsAdmin(initialLocale: Locale) {
       }
       return true;
     }
-    const supabase = createClient();
-    const { error } = await supabase.from("cms_articles").delete().eq("id", id);
-    if (error) {
-      setMessage({ type: "err", text: error.message });
+    try {
+      await mutateCms({ op: "deleteArticle", id });
+      setArticles((prev) => prev.filter((a) => a.id !== id));
+      return true;
+    } catch (e) {
+      setMessage({ type: "err", text: e instanceof Error ? e.message : "Error" });
       return false;
     }
-    setArticles((prev) => prev.filter((a) => a.id !== id));
-    return true;
   }
 
   async function saveTextKeys(keys: string[]) {
     setSaving(true);
     setMessage(null);
-    const supabase = createClient();
-    for (const content_key of keys) {
-      const value = (textDraft[content_key] ?? "").trim();
-      if (!value) continue;
-      const { error } = await supabase.from("cms_text_entries").upsert(
-        {
-          locale,
+    try {
+      const rows = keys
+        .map((content_key) => ({
           content_key,
-          value,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "locale,content_key" }
-      );
-      if (error) {
-        setSaving(false);
-        setMessage({ type: "err", text: error.message });
-        return false;
-      }
+          value: (textDraft[content_key] ?? "").trim(),
+        }))
+        .filter((r) => r.value.length > 0);
+      await mutateCms({ op: "upsertTexts", locale, rows });
+      setMessage({ type: "ok", text: "Texto guardado." });
+      await load();
+      return true;
+    } catch (e) {
+      setMessage({ type: "err", text: e instanceof Error ? e.message : "Error" });
+      return false;
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
-    setMessage({ type: "ok", text: "Texto guardado." });
-    await load();
-    return true;
   }
 
   async function saveAllTexts() {
     setSaving(true);
     setMessage(null);
-    const supabase = createClient();
-    const rows = Object.entries(textDraft)
-      .filter(([, v]) => v.trim().length > 0)
-      .map(([content_key, value]) => ({
-        locale,
-        content_key,
-        value: value.trim(),
-        updated_at: new Date().toISOString(),
-      }));
-
-    for (const row of rows) {
-      const { error } = await supabase.from("cms_text_entries").upsert(row, {
-        onConflict: "locale,content_key",
-      });
-      if (error) {
-        setSaving(false);
-        setMessage({ type: "err", text: error.message });
-        return false;
-      }
+    try {
+      const rows = Object.entries(textDraft)
+        .filter(([, v]) => v.trim().length > 0)
+        .map(([content_key, value]) => ({
+          content_key,
+          value: value.trim(),
+        }));
+      await mutateCms({ op: "upsertTexts", locale, rows });
+      setMessage({ type: "ok", text: "Textos guardados." });
+      await load();
+      return true;
+    } catch (e) {
+      setMessage({ type: "err", text: e instanceof Error ? e.message : "Error" });
+      return false;
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
-    setMessage({ type: "ok", text: "Textos guardados." });
-    await load();
-    return true;
   }
 
   function nextSortOrder<T extends { sort_order: number }>(items: T[]) {

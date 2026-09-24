@@ -22,15 +22,15 @@ const portalBase = `${DEFAULT_PORTAL_ORIGIN}/online-bookings/${PABAU_COMPANY_SLU
 export const PABAU_BOOKING_URL =
   process.env.NEXT_PUBLIC_PABAU_BOOKING_URL?.trim() || portalBase;
 
-/** Same portal URL used as iframe src (official widget dimensions 600×550). */
-export const PABAU_WIDGET_URL = PABAU_BOOKING_URL;
-
 /** ShapeScale service deep link (category Diagnostics 314027, service 3571762). */
 export const PABAU_BOOKING_SHAPESCALE_URL =
   process.env.NEXT_PUBLIC_PABAU_BOOKING_SHAPESCALE_URL?.trim() ||
   `${portalBase}?category=314027&services=3571762`;
 
-/** Official Book Now button script (documented; site uses BrandCtaLink instead). */
+/**
+ * Official Pabau “Book Now” script URL (Promote → Book Now button).
+ * The site uses a branded Thrive CTA → PABAU_BOOKING_URL instead of loading this script.
+ */
 export const PABAU_BOOK_NOW_SCRIPT_SRC = `https://pabau.com/widgets/online-bookings/book-now-button.js?company_slug=${PABAU_COMPANY_SLUG}&btnStyle=1`;
 
 /** Locations known in Pabau. Expand when new branches are added. */

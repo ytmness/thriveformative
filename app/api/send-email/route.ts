@@ -1,5 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { NextRequest } from "next/server";
 import { sendEmailPayload, type EmailKind } from "@/lib/emailServer";
 import { requireNotifyEmail } from "@/lib/env/server";
 import { log } from "@/lib/log";
@@ -18,39 +17,10 @@ import { sendEmailBodySchema } from "@/lib/validation/schemas";
 
 const RATE_LIMIT = { limit: 10, windowMs: 15 * 60 * 1000 };
 
-async function resolveAdminRecipient(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  appointmentId: string
-): Promise<string | null> {
-  const { data: appt, error: apptErr } = await supabase
-    .from("appointments")
-    .select("user_id")
-    .eq("id", appointmentId)
-    .maybeSingle();
-
-  if (apptErr || !appt?.user_id) return null;
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("email")
-    .eq("id", appt.user_id)
-    .maybeSingle();
-
-  return profile?.email?.trim() || null;
-}
-
-async function assertAdmin(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  userId: string
-): Promise<boolean> {
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", userId)
-    .maybeSingle();
-  return profile?.role === "admin";
-}
-
+/**
+ * Contact confirmation / admin notify emails.
+ * Appointment email kinds are retired (patients book in Pabau).
+ */
 export async function POST(request: NextRequest) {
   const scope = "send-email";
 
@@ -72,47 +42,16 @@ export async function POST(request: NextRequest) {
       return jsonOk();
     }
 
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
     let payload: EmailKind;
 
     switch (body.kind) {
-      case "appointment_pending": {
-        if (!user?.email) {
-          return jsonError(401, "Debes iniciar sesión para solicitar una cita.");
-        }
-        payload = {
-          kind: body.kind,
-          to: user.email,
-          date: body.date,
-          timeSlot: body.timeSlot,
-        };
-        break;
-      }
+      case "appointment_pending":
       case "appointment_confirmed":
-      case "appointment_cancelled": {
-        if (!user) {
-          return jsonError(401, "No autorizado.");
-        }
-        const isAdmin = await assertAdmin(supabase, user.id);
-        if (!isAdmin) {
-          return jsonError(403, "No autorizado.");
-        }
-        const recipient = await resolveAdminRecipient(supabase, body.appointmentId);
-        if (!recipient) {
-          return jsonError(400, "No se encontró el email del cliente para esta cita.");
-        }
-        payload = {
-          kind: body.kind,
-          to: recipient,
-          date: body.date,
-          timeSlot: body.timeSlot,
-        };
-        break;
-      }
+      case "appointment_cancelled":
+        return jsonError(
+          410,
+          "Las citas se gestionan en Pabau; este endpoint ya no envía emails de citas."
+        );
       case "contact_confirmation": {
         payload = {
           kind: body.kind,

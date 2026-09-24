@@ -218,8 +218,8 @@
   },
   "booking": {
     "title": "Book your appointment",
-    "subtitle": "Schedule your consultation through the clinic portal. Choose date, time, and service in a few steps.",
-    "portalHint": "Open the booking portal in a new tab, or book with the widget below.",
+    "subtitle": "Schedule your consultation through the Pabau portal. Create your patient account, choose date, time, and service in a few steps.",
+    "portalHint": "Click the button to open the Pabau booking portal in a new tab. There you can register as a patient and schedule your appointment.",
     "portalCta": "Book now",
     "durationNote": "Appointments use a 70-minute scheduling interval.",
     "embedTitle": "Thrive Formative booking portal",

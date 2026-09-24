@@ -6,7 +6,7 @@ import ThemeProvider from "@/components/theme/ThemeProvider";
 import ThemeSwitcher from "@/components/theme/ThemeSwitcher";
 import Header from "@/components/Header";
 import AdminDashboard from "@/components/admin/AdminDashboard";
-import { createClient } from "@/lib/supabase/server";
+import { isAdminAuthenticated } from "@/lib/adminSession";
 import { redirect } from "next/navigation";
 
 export default async function AdminPage({
@@ -15,24 +15,9 @@ export default async function AdminPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect(`/${locale}/login`);
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (!profile || profile.role !== "admin") {
-    redirect(`/${locale}`);
+  if (!(await isAdminAuthenticated())) {
+    redirect(`/${locale}/admin/login`);
   }
 
   return (
@@ -43,4 +28,3 @@ export default async function AdminPage({
     </ThemeProvider>
   );
 }
-

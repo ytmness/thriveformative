@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { createClient } from "@/lib/supabase";
 import BrandCtaButton from "@/components/ui/BrandCtaButton";
 import "@/app/styles/contact-section.css";
 
@@ -27,16 +26,27 @@ export default function ContactForm({ embedded = false }: Props) {
     setLoading(true);
     const formData = new FormData(e.currentTarget);
     const honeypot = String(formData.get("website") ?? "");
-    const supabase = createClient();
-    const { error: err } = await supabase.from("contact_requests").insert({
-      name: name.trim(),
-      email: email.trim(),
-      subject: subject.trim() || null,
-      message: message.trim(),
-    });
-    if (err) {
+    try {
+      const saveRes = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+          subject: subject.trim() || null,
+          message: message.trim(),
+          website: honeypot,
+        }),
+      });
+      const saveBody = await saveRes.json().catch(() => ({}));
+      if (!saveRes.ok) {
+        setLoading(false);
+        setError((saveBody as { error?: string }).error || "No se pudo enviar");
+        return;
+      }
+    } catch (e) {
       setLoading(false);
-      setError(err.message);
+      setError(e instanceof Error ? e.message : "No se pudo enviar");
       return;
     }
     try {

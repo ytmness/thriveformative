@@ -1,11 +1,21 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase";
-import { attachCategoryToProduct, fetchStoreCategories, fetchStoreProducts } from "@/lib/store/fetch";
-import { PRODUCT_FIELDS_ADMIN, type ProductRow } from "@/lib/store/fields";
+import { fetchStoreCategories, fetchStoreProducts } from "@/lib/store/fetch";
 import { isValidRef, slugifyRef } from "@/lib/store/slug";
 import type { Locale, StoreCategory, StoreProduct } from "@/lib/store/types";
+
+async function mutateStore<T = unknown>(body: Record<string, unknown>): Promise<T> {
+  const res = await fetch("/api/store/mutate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "same-origin",
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error((data as { error?: string }).error || `Error ${res.status}`);
+  return data as T;
+}
 
 export type StoreProductDraft = StoreProduct & { id: string | "draft" };
 
@@ -151,7 +161,6 @@ export function useStoreAdmin(initialLocale: Locale) {
 
     setSaving(true);
     setMessage(null);
-    const supabase = createClient();
     const payload = {
       locale,
       sort_order: draft.sort_order,
@@ -168,97 +177,76 @@ export function useStoreAdmin(initialLocale: Locale) {
       currency: draft.currency?.trim() || "USD",
       source: draft.source?.trim() || null,
       source_handle: draft.source_handle?.trim() || null,
-      updated_at: new Date().toISOString(),
     };
 
     const isNew = editingId === null;
-    const { data, error } = isNew
-      ? await supabase.from("store_products").insert(payload).select(PRODUCT_FIELDS_ADMIN).single()
-      : await supabase
-          .from("store_products")
-          .update(payload)
-          .eq("id", editingId)
-          .select(PRODUCT_FIELDS_ADMIN)
-          .single();
-
-    setSaving(false);
-
-    if (error) {
-      setMessage({
-        type: "err",
-        text: error.message.includes("store_products_locale_ref_key")
-          ? "Ya existe un producto con ese ref en este idioma."
-          : error.message,
+    try {
+      const { data } = await mutateStore<{ data: StoreProduct }>({
+        op: "saveProduct",
+        id: isNew ? undefined : editingId,
+        payload,
       });
-      return false;
-    }
-
-    if (data) {
-      const saved = attachCategoryToProduct(data as ProductRow, categories);
-      const nextProducts = [...products.filter((p) => p.id !== saved.id), saved].sort(
+      const nextProducts = [...products.filter((p) => p.id !== data.id), data].sort(
         (a, b) => a.sort_order - b.sort_order
       );
       setProducts(nextProducts);
       setDraft(createEmptyDraft(locale, nextSortOrder(nextProducts)));
       setEditingId(null);
+      setMessage({
+        type: "ok",
+        text: isNew ? "Producto añadido. Puedes agregar otro." : "Producto actualizado.",
+      });
+      return true;
+    } catch (e) {
+      setMessage({ type: "err", text: e instanceof Error ? e.message : "Error" });
+      return false;
+    } finally {
+      setSaving(false);
     }
-
-    setMessage({
-      type: "ok",
-      text: isNew ? "Producto añadido. Puedes agregar otro." : "Producto actualizado.",
-    });
-    return true;
   }
 
   async function deleteProduct(id: string) {
     setMessage(null);
-    const supabase = createClient();
-    const { error } = await supabase.from("store_products").delete().eq("id", id);
-    if (error) {
-      setMessage({ type: "err", text: error.message });
+    try {
+      await mutateStore({ op: "deleteProduct", id });
+      const nextProducts = products.filter((p) => p.id !== id);
+      setProducts(nextProducts);
+      if (editingId === id) {
+        setDraft(createEmptyDraft(locale, nextSortOrder(nextProducts)));
+        setEditingId(null);
+      }
+      setMessage({ type: "ok", text: "Producto eliminado." });
+      return true;
+    } catch (e) {
+      setMessage({ type: "err", text: e instanceof Error ? e.message : "Error" });
       return false;
     }
-
-    const nextProducts = products.filter((p) => p.id !== id);
-    setProducts(nextProducts);
-    if (editingId === id) {
-      setDraft(createEmptyDraft(locale, nextSortOrder(nextProducts)));
-      setEditingId(null);
-    }
-    setMessage({ type: "ok", text: "Producto eliminado." });
-    return true;
   }
 
   async function togglePublished(id: string) {
     const product = products.find((p) => p.id === id);
     if (!product) return false;
 
-    const next = !product.is_published;
     setSaving(true);
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from("store_products")
-      .update({ is_published: next, updated_at: new Date().toISOString() })
-      .eq("id", id)
-      .select(PRODUCT_FIELDS_ADMIN)
-      .single();
-    setSaving(false);
-
-    if (error) {
-      setMessage({ type: "err", text: error.message });
-      return false;
-    }
-
-    if (data) {
-      const saved = attachCategoryToProduct(data as ProductRow, categories);
+    try {
+      const { data } = await mutateStore<{ data: StoreProduct }>({
+        op: "toggleProduct",
+        id,
+        locale,
+      });
       setProducts((prev) =>
-        prev.map((p) => (p.id === id ? saved : p)).sort((a, b) => a.sort_order - b.sort_order)
+        prev.map((p) => (p.id === id ? data : p)).sort((a, b) => a.sort_order - b.sort_order)
       );
       if (editingId === id) {
-        setDraft((prev) => ({ ...prev, is_published: saved.is_published }));
+        setDraft((prev) => ({ ...prev, is_published: data.is_published }));
       }
+      return true;
+    } catch (e) {
+      setMessage({ type: "err", text: e instanceof Error ? e.message : "Error" });
+      return false;
+    } finally {
+      setSaving(false);
     }
-    return true;
   }
 
   async function addCategory() {
@@ -270,7 +258,6 @@ export function useStoreAdmin(initialLocale: Locale) {
 
     setSaving(true);
     setMessage(null);
-    const supabase = createClient();
     const slug = slugifyRef(categoryName);
     if (!slug) {
       setSaving(false);
@@ -278,63 +265,48 @@ export function useStoreAdmin(initialLocale: Locale) {
       return false;
     }
 
-    const { data, error } = await supabase
-      .from("store_categories")
-      .insert({
+    try {
+      const { data } = await mutateStore<{ data: StoreCategory }>({
+        op: "saveCategory",
         locale,
         name: categoryName.trim(),
-        slug,
-        sort_order: nextSortOrder(categories),
-        updated_at: new Date().toISOString(),
-      })
-      .select("id, locale, name, slug, sort_order")
-      .single();
-
-    setSaving(false);
-
-    if (error) {
-      setMessage({
-        type: "err",
-        text: error.message.includes("store_categories_locale_slug_key")
-          ? "Ya existe una categoría con ese nombre/slug."
-          : error.message,
       });
-      return false;
-    }
-
-    if (data) {
       setCategories((prev) =>
-        [...prev, data as StoreCategory].sort((a, b) => a.sort_order - b.sort_order)
+        [...prev, data].sort((a, b) => a.sort_order - b.sort_order)
       );
       setCategoryName("");
+      setMessage({ type: "ok", text: "Categoría añadida." });
+      return true;
+    } catch (e) {
+      setMessage({ type: "err", text: e instanceof Error ? e.message : "Error" });
+      return false;
+    } finally {
+      setSaving(false);
     }
-    setMessage({ type: "ok", text: "Categoría añadida." });
-    return true;
   }
 
   async function deleteCategory(id: string) {
     setMessage(null);
     setSaving(true);
-    const supabase = createClient();
-    const { error } = await supabase.from("store_categories").delete().eq("id", id);
-    setSaving(false);
-
-    if (error) {
-      setMessage({ type: "err", text: error.message });
+    try {
+      await mutateStore({ op: "deleteCategory", id });
+      setCategories((prev) => prev.filter((c) => c.id !== id));
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.category_id === id ? { ...p, category_id: null, category: null } : p
+        )
+      );
+      if (draft.category_id === id) {
+        updateDraft({ category_id: null, category: null });
+      }
+      setMessage({ type: "ok", text: "Categoría eliminada." });
+      return true;
+    } catch (e) {
+      setMessage({ type: "err", text: e instanceof Error ? e.message : "Error" });
       return false;
+    } finally {
+      setSaving(false);
     }
-
-    setCategories((prev) => prev.filter((c) => c.id !== id));
-    setProducts((prev) =>
-      prev.map((p) =>
-        p.category_id === id ? { ...p, category_id: null, category: null } : p
-      )
-    );
-    if (draft.category_id === id) {
-      updateDraft({ category_id: null, category: null });
-    }
-    setMessage({ type: "ok", text: "Categoría eliminada." });
-    return true;
   }
 
   return {

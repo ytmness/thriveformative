@@ -256,18 +256,21 @@ export default function Header({ preview }: HeaderProps = {}) {
                   <motion.a
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
-                    href={`/${locale}/login`}
-                    className="type-ui text-xs font-medium hover:opacity-80"
+                    href={PABAU_BOOKING_URL}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="type-ui text-xs font-medium text-[rgb(var(--primary))] hover:opacity-80 whitespace-nowrap"
                   >
-                    {t("auth.loginTitle")}
+                    {t("booking.portalCta")}
                   </motion.a>
                   <motion.a
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    href={`/${locale}/register`}
-                    className="btn-outline type-ui text-xs font-medium rounded-lg px-3 py-1.5"
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    href={`/${locale}/admin/login`}
+                    className="type-ui-muted text-xs hover:opacity-80 whitespace-nowrap hidden xl:inline"
+                    title={t("auth.staffLoginHint")}
                   >
-                    {t("auth.registerLink")}
+                    {t("auth.staffLogin")}
                   </motion.a>
                 </div>
               )}
@@ -392,18 +395,21 @@ export default function Header({ preview }: HeaderProps = {}) {
                 ) : (
                   <>
                     <a
-                      href={`/${locale}/login`}
+                      href={PABAU_BOOKING_URL}
+                      target="_blank"
+                      rel="noreferrer"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="type-ui font-medium text-sm"
+                      className="type-ui font-medium text-[rgb(var(--primary))] text-sm"
                     >
-                      {t("auth.loginTitle")}
+                      {t("booking.portalCta")}
                     </a>
                     <a
-                      href={`/${locale}/register`}
+                      href={`/${locale}/admin/login`}
                       onClick={() => setMobileMenuOpen(false)}
-                      className="btn-outline type-ui font-medium rounded-xl px-4 py-2 text-center text-sm"
+                      className="type-ui-muted text-sm"
+                      title={t("auth.staffLoginHint")}
                     >
-                      {t("auth.registerLink")}
+                      {t("auth.staffLogin")}
                     </a>
                   </>
                 )}

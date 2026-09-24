@@ -1,7 +1,5 @@
-import { createClient } from "@/lib/supabase";
 import type { Locale } from "@/lib/cms/types";
 
-const BUCKET = "cms-images";
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_TYPES = new Set([
   "image/jpeg",
@@ -31,23 +29,19 @@ export async function uploadCmsImage(
   const validation = validateCmsImageFile(file);
   if (validation) throw new Error(validation);
 
-  const supabase = createClient();
-  const extFromName = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
-  const ext =
-    extFromName === "jpeg" ? "jpg" : ["jpg", "png", "webp", "gif"].includes(extFromName) ? extFromName : "jpg";
+  const form = new FormData();
+  form.set("file", file);
+  form.set("locale", locale);
+  form.set("folder", folder);
 
-  const path = `${locale}/${folder}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
-
-  const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
-    cacheControl: "31536000",
-    upsert: false,
-    contentType: file.type || undefined,
+  const res = await fetch("/api/upload", {
+    method: "POST",
+    body: form,
+    credentials: "same-origin",
   });
-
-  if (error) {
-    throw new Error(error.message || "No se pudo subir la imagen.");
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error((body as { error?: string }).error || "No se pudo subir la imagen.");
   }
-
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return data.publicUrl;
+  return (body as { url: string }).url;
 }

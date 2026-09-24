@@ -218,8 +218,8 @@
   },
   "booking": {
     "title": "Agenda tu cita",
-    "subtitle": "Reserva tu consulta a través del portal de la clínica. Elige fecha, horario y servicio en unos pocos pasos.",
-    "portalHint": "Abre el portal de reservas en una nueva pestaña, o agenda desde el widget abajo.",
+    "subtitle": "Reserva tu consulta a través del portal de Pabau. Crea tu cuenta de paciente, elige fecha, horario y servicio en unos pocos pasos.",
+    "portalHint": "Haz clic en el botón para abrir el portal de reservas de Pabau en una nueva pestaña. Allí podrás registrarte como paciente y agendar tu cita.",
     "portalCta": "Agendar ahora",
     "durationNote": "Las citas tienen un intervalo de agenda de 70 minutos.",
     "embedTitle": "Portal de reservas Thrive Formative",

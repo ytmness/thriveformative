@@ -1,66 +1,50 @@
-import { createClient } from "@/lib/supabase";
-import { PRODUCT_FIELDS, type ProductRow } from "@/lib/store/fields";
+import type { ProductRow } from "@/lib/store/fields";
 import type { Locale, StoreCategory, StoreProduct } from "@/lib/store/types";
 
 export const STORE_REVALIDATE_SECONDS = 60;
 
-function joinProductsWithCategories(
-  rows: ProductRow[],
+export function attachCategoryToProduct(
+  product: ProductRow,
   categories: StoreCategory[]
-): StoreProduct[] {
+): StoreProduct {
   const byId = new Map(categories.map((c) => [c.id, c]));
-  return rows.map((row) => ({
-    ...row,
-    description: row.description ?? "",
-    category_id: row.category_id ?? null,
-    category: row.category_id ? (byId.get(row.category_id) ?? null) : null,
-    source: row.source ?? null,
-    source_handle: row.source_handle ?? null,
-  }));
+  return {
+    ...product,
+    description: product.description ?? "",
+    category_id: product.category_id ?? null,
+    category: product.category_id ? (byId.get(product.category_id) ?? null) : null,
+    source: product.source ?? null,
+    source_handle: product.source_handle ?? null,
+  };
+}
+
+async function storeApi<T>(path: string): Promise<T> {
+  const res = await fetch(path, { credentials: "same-origin" });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error((body as { error?: string }).error || `Store error ${res.status}`);
+  return body as T;
 }
 
 export async function fetchStoreCategories(locale: Locale): Promise<StoreCategory[]> {
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from("store_categories")
-    .select("id, locale, name, slug, sort_order")
-    .eq("locale", locale)
-    .order("sort_order", { ascending: true });
-
-  if (error) throw new Error(error.message);
-  return (data ?? []) as StoreCategory[];
+  if (typeof window === "undefined") {
+    const { fetchStoreCategoriesFromDb } = await import("@/lib/store/db");
+    return fetchStoreCategoriesFromDb(locale);
+  }
+  return storeApi(`/api/store/categories?locale=${encodeURIComponent(locale)}`);
 }
 
 export async function fetchStoreProducts(
   locale: Locale,
   options?: { includeUnpublished?: boolean; categorySlug?: string | null }
 ): Promise<StoreProduct[]> {
-  const supabase = createClient();
-  const includeUnpublished = options?.includeUnpublished ?? false;
-  const categorySlug = options?.categorySlug;
-
-  const categories = await fetchStoreCategories(locale);
-
-  let query = supabase
-    .from("store_products")
-    .select(PRODUCT_FIELDS)
-    .eq("locale", locale)
-    .order("sort_order", { ascending: true });
-
-  if (!includeUnpublished) {
-    query = query.eq("is_published", true);
+  if (typeof window === "undefined") {
+    const { fetchStoreProductsFromDb } = await import("@/lib/store/db");
+    return fetchStoreProductsFromDb(locale, options);
   }
-
-  if (categorySlug) {
-    const cat = categories.find((c) => c.slug === categorySlug);
-    if (!cat) return [];
-    query = query.eq("category_id", cat.id);
-  }
-
-  const { data, error } = await query;
-  if (error) throw new Error(error.message);
-
-  return joinProductsWithCategories((data ?? []) as ProductRow[], categories);
+  const params = new URLSearchParams({ locale });
+  if (options?.includeUnpublished) params.set("all", "1");
+  if (options?.categorySlug) params.set("category", options.categorySlug);
+  return storeApi(`/api/store/products?${params.toString()}`);
 }
 
 export async function fetchStoreProductByRef(
@@ -68,34 +52,11 @@ export async function fetchStoreProductByRef(
   ref: string,
   options?: { includeUnpublished?: boolean }
 ): Promise<StoreProduct | null> {
-  const supabase = createClient();
-  const includeUnpublished = options?.includeUnpublished ?? false;
-
-  let query = supabase
-    .from("store_products")
-    .select(PRODUCT_FIELDS)
-    .eq("locale", locale)
-    .eq("ref", ref);
-
-  if (!includeUnpublished) {
-    query = query.eq("is_published", true);
+  if (typeof window === "undefined") {
+    const { fetchStoreProductByRefFromDb } = await import("@/lib/store/db");
+    return fetchStoreProductByRefFromDb(locale, ref, options);
   }
-
-  const [categories, productResult] = await Promise.all([
-    fetchStoreCategories(locale),
-    query.maybeSingle(),
-  ]);
-
-  const { data, error } = productResult;
-  if (error) throw new Error(error.message);
-  if (!data) return null;
-
-  return joinProductsWithCategories([data as ProductRow], categories)[0] ?? null;
-}
-
-export function attachCategoryToProduct(
-  product: ProductRow,
-  categories: StoreCategory[]
-): StoreProduct {
-  return joinProductsWithCategories([product], categories)[0];
+  const params = new URLSearchParams({ locale, ref });
+  if (options?.includeUnpublished) params.set("all", "1");
+  return storeApi(`/api/store/product?${params.toString()}`);
 }

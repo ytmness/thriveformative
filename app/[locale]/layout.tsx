@@ -5,7 +5,6 @@ import "../styles/utilities.css";
 import "../styles/hero-stats.css";
 import "../styles/waves.css";
 import "../styles/animations.css";
-import "../styles/cursor.css";
 import "../styles/scroll.css";
 import "../styles/coming-soon.css";
 import "../styles/booking.css";
@@ -17,7 +16,6 @@ import { Poppins, Playfair_Display } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { locales } from "@/i18n/config";
-import PendingProfileSync from "@/components/PendingProfileSync";
 import ComingSoonScreen from "@/components/ComingSoonScreen";
 
 const poppins = Poppins({ subsets: ["latin"], weight: ["300","400","500","600","700"], variable: "--font-body" });
@@ -65,7 +63,6 @@ export default async function LocaleLayout({
       </head>
       <body>
         <NextIntlClientProvider messages={messages}>
-          <PendingProfileSync />
           {unlocked ? children : <ComingSoonScreen />}
         </NextIntlClientProvider>
       </body>
