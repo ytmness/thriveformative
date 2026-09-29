@@ -92,15 +92,39 @@
 }
 .admin-tutorial__btn:hover { color: rgb(var(--text)); border-color: rgb(122 62 40 / 0.4); }
 .admin-tutorial__panel {
-  position: absolute; right: 0; top: calc(100% + 8px); z-index: 40; width: min(22rem, calc(100vw - 2rem));
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 40; width: min(24rem, calc(100vw - 2rem));
   padding: 0.85rem 1rem 1rem; text-align: left; background: rgb(255 252 247);
   border: 1px solid rgb(var(--border) / 0.16); border-radius: 0.9rem; box-shadow: 0 12px 32px rgb(0 0 0 / 0.12);
 }
 [data-theme="nocturnal"] .admin-tutorial__panel { background: rgb(46 44 42); }
 .admin-tutorial__head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
-.admin-tutorial__head p { margin: 0; font-weight: 700; }
+.admin-tutorial__head p { margin: 0; display: flex; align-items: center; gap: 0.4rem; font-weight: 700; }
 .admin-tutorial__head .admin-icon-btn { width: 28px; height: 28px; }
-.admin-tutorial__panel ol { margin: 0.55rem 0 0; padding-left: 1.15rem; display: grid; gap: 0.4rem; font-size: 0.875rem; line-height: 1.45; }
+.admin-tutorial__langs { display: flex; gap: 0.3rem; margin: 0.7rem 0 0.85rem; }
+.admin-tutorial__langs button {
+  height: 26px; min-width: 2.1rem; padding: 0 0.4rem; border-radius: 999px; border: 1px solid rgb(var(--border) / 0.3);
+  background: transparent; color: rgb(var(--muted)); font-size: 0.7rem; font-weight: 700; cursor: pointer;
+}
+.admin-tutorial__langs .is-active { background: rgb(122 62 40); border-color: rgb(122 62 40); color: #fff; }
+.admin-tutorial__art {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; align-items: center;
+  min-height: 4.5rem; padding: 0.85rem; border-radius: 0.8rem; background: rgb(247 243 236);
+  border: 1px solid rgb(var(--border) / 0.12);
+}
+[data-theme="nocturnal"] .admin-tutorial__art { background: rgb(38 36 34); }
+.admin-tutorial__art--done { place-items: center; color: rgb(122 62 40); grid-template-columns: 1fr; }
+.admin-tutorial__cell { height: 2.4rem; border-radius: 0.45rem; background: rgb(255 252 247); border: 1px solid rgb(var(--border) / 0.2); }
+.admin-tutorial__cell--on { background: rgb(122 62 40); border-color: rgb(122 62 40); }
+.admin-tutorial__fake-label { grid-column: 1 / -1; font-size: 0.75rem; font-weight: 700; }
+.admin-tutorial__fake-input { grid-column: span 2; height: 1.6rem; border-radius: 0.4rem; background: #fff; border: 1px solid rgb(var(--border) / 0.25); }
+.admin-tutorial__fake-input--short { grid-column: span 1; }
+.admin-tutorial__kicker { margin: 0.75rem 0 0.2rem; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: rgb(var(--muted)); }
+.admin-tutorial__text { margin: 0; min-height: 2.8rem; font-size: 1rem; line-height: 1.4; }
+.admin-tutorial__dots { display: flex; gap: 0.35rem; margin: 0.7rem 0; }
+.admin-tutorial__dots button { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 99px; background: rgb(var(--border) / 0.45); cursor: pointer; }
+.admin-tutorial__dots .is-active { width: 18px; background: rgb(122 62 40); }
+.admin-tutorial__nav { display: flex; justify-content: space-between; gap: 0.5rem; }
+.admin-tutorial__nav .admin-btn { height: 36px; }
 .admin-offer { display: block; margin: 6px 0 0; font-size: 0.8125rem; line-height: 1.4; color: rgb(var(--muted)); text-align: left; }
 .admin-offer a { color: rgb(122 62 40); font-weight: 700; }
 .admin-offer span { display: block; margin-top: 2px; }

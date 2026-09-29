@@ -127,15 +127,13 @@ export default function PosScreen() {
           {catalog.map((item) => <button key={item.id} type="button" className="admin-table__row" onClick={() => add(item)}><span className="admin-table__cell-title">{item.name}</span><span>${Number(item.price || 0)}</span></button>)}
           <CreateOffer
             show={catalogReady && !catalog.length && tab === "service"}
-            what="un servicio"
+            kind="service"
             href="/admin/configuracion/servicios?nuevo=1"
-            how="En Servicios, pulsa + Nuevo, completa nombre, duración y precio, y guarda. Luego vuelve a Ventas."
           />
           <CreateOffer
             show={catalogReady && !catalog.length && tab === "product"}
-            what="un producto"
+            kind="product"
             href="/admin/productos"
-            how="En Productos, completa el formulario de arriba y guarda. Luego vuelve a Ventas."
           />
         </div>
         <aside className="admin-metric">
