@@ -60,8 +60,8 @@ export function ProductAdmin() {
     <>
       <header className="admin-header"><p className="admin-header__eyebrow">Inventario</p><h1 className="admin-header__title">Productos</h1></header>
       <div className="admin-toolbar">
-        <a className="admin-btn" href="/api/admin/products?export=1&format=csv">CSV</a>
-        <a className="admin-btn" href="/api/admin/products?export=1&format=xlsx">Excel</a>
+        <button type="button" className="admin-btn" onClick={() => { window.location.href = "/api/admin/products?export=1&format=csv"; }}>CSV</button>
+        <button type="button" className="admin-btn" onClick={() => { window.location.href = "/api/admin/products?export=1&format=xlsx"; }}>Excel</button>
       </div>
       <form className="admin-form-grid" onSubmit={async (e) => { e.preventDefault(); await api("/api/admin/products", { method: "POST", body: JSON.stringify({ ...form, price: Number(form.price || 0), cost: Number(form.cost || 0) }) }); location.reload(); }}>
         <label className="admin-field">Nombre<input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
