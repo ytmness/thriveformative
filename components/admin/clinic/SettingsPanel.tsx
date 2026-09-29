@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { api } from "@/components/admin/clinic/client";
 import { CloseButton, EmptyState, SegmentedControl } from "@/components/admin/ui";
 
@@ -154,16 +155,16 @@ export default function SettingsPanel({ section }: { section: string }) {
           <div key={group} className="admin-settings__group">
             <p className="admin-settings__label">{group}</p>
             {items.map(([id, label]) => (
-              <a key={id} className={section === id ? "is-active" : ""} href={`/admin/configuracion/${id}`}>{label}</a>
+              <Link key={id} className={section === id ? "is-active" : ""} href={`/admin/configuracion/${id}`}>{label}</Link>
             ))}
           </div>
         ))}
       </nav>
       <div>
         <p className="admin-crumb">
-          <a href="/admin/configuracion/sedes">Configuración</a>
+          <Link href="/admin/configuracion/sedes">Configuración</Link>
           {" › "}
-          <a href={`/admin/configuracion/${section}`}>{title}</a>
+          <Link href={`/admin/configuracion/${section}`}>{title}</Link>
           {openForm && recordName ? ` › ${recordName}` : null}
         </p>
         <header className="admin-header">
