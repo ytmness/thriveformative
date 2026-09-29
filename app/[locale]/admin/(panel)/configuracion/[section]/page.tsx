@@ -1,5 +1,5 @@
-import { SettingsManager } from "@/components/admin/clinic/Modules";
+import SettingsPanel from "@/components/admin/clinic/SettingsPanel";
 export default async function Page({ params }: { params: Promise<{ section: string }> }) {
   const { section } = await params;
-  return <SettingsManager section={section} />;
+  return <SettingsPanel section={section} />;
 }

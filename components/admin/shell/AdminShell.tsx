@@ -82,7 +82,24 @@ export default function AdminShell({
             <button type="button" className="admin-nav__refresh" onClick={logout}>Salir</button>
           </div>
         </aside>
-        <main className="admin-main">{children}</main>
+        <main className="admin-main">
+          <header className="admin-topbar">
+            <form className="admin-topbar__search" onSubmit={(e) => { e.preventDefault(); const data = new FormData(e.currentTarget); router.push(`/admin/pacientes?q=${encodeURIComponent(String(data.get("q") || ""))}`); }}>
+              <label className="sr-only" htmlFor="admin-search">Buscar pacientes</label>
+              <input id="admin-search" name="q" placeholder="Buscar pacientes" />
+            </form>
+            <details className="admin-create">
+              <summary className="admin-btn admin-btn--primary">Crear</summary>
+              <div className="admin-create__menu">
+                <Link href="/admin/pacientes?nuevo=1">Paciente</Link>
+                <Link href="/admin/leads?nuevo=1">Lead</Link>
+                <Link href="/admin/calendario?nueva=1">Cita</Link>
+                <Link href="/admin/ventas">Venta</Link>
+              </div>
+            </details>
+          </header>
+          {children}
+        </main>
       </div>
     </ThemeProvider>
   );

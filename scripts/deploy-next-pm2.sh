@@ -20,6 +20,7 @@ echo "==> npm install"
 npm install
 
 echo "==> npm run build"
+export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=2048}"
 npm run build
 
 echo "==> PM2 restart $PM2_APP"

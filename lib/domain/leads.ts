@@ -8,10 +8,12 @@ import { emitWebhook } from "@/lib/webhooks/emit";
 
 export async function listLeads() {
   const rows = await query(
-    `SELECT l.*, s.name AS stage_name, s.is_won, s.is_lost, u.first_name AS owner_first, u.last_name AS owner_last
+    `SELECT l.*, s.name AS stage_name, s.is_won, s.is_lost, u.first_name AS owner_first, u.last_name AS owner_last,
+            ms.name AS source_name
      FROM leads l
      LEFT JOIN lead_stages s ON s.id = l.stage_id
      LEFT JOIN staff_users u ON u.id = l.owner_staff_id
+     LEFT JOIN marketing_sources ms ON ms.id = l.marketing_source_id
      ORDER BY l.created_at DESC`
   );
   return rows.rows.map((row) => ({

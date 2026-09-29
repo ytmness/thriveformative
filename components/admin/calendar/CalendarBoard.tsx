@@ -42,6 +42,10 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
   const [locations, setLocations] = useState<Opt[]>([]);
   const [patients, setPatients] = useState<{ id: string; firstName: string; lastName: string }[]>([]);
   const [staffFilter, setStaffFilter] = useState("");
+  const [columnsBy, setColumnsBy] = useState<"day" | "staff" | "room">("day");
+  const [rooms, setRooms] = useState<Opt[]>([]);
+  const [waitlist, setWaitlist] = useState<{ id: string; first_name: string | null; last_name: string | null; service_name: string | null }[]>([]);
+  const [block, setBlock] = useState<{ startsAt: string; endsAt: string; reason: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [draft, setDraft] = useState<Record<string, string> | null>(openCreate ? { status: "booked" } : null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
@@ -68,6 +72,8 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
     api<{ rows: Opt[] }>("/api/admin/settings/staff").then((r) => setStaff(r.rows)).catch(() => undefined);
     api<{ rows: Opt[] }>("/api/admin/settings/services").then((r) => setServices(r.rows)).catch(() => undefined);
     api<{ rows: Opt[] }>("/api/admin/settings/locations").then((r) => setLocations(r.rows)).catch(() => undefined);
+    api<{ rows: Opt[] }>("/api/admin/settings/rooms").then((r) => setRooms(r.rows)).catch(() => undefined);
+    api<{ rows: { id: string; first_name: string | null; last_name: string | null; service_name: string | null }[] }>("/api/admin/waitlist").then((r) => setWaitlist(r.rows)).catch(() => undefined);
     api<{ rows: { id: string; firstName: string; lastName: string }[] }>("/api/admin/patients?pageSize=100").then((r) => setPatients(r.rows)).catch(() => undefined);
   }, [load]);
 
@@ -89,6 +95,30 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
       return d;
     });
   }, [range, view]);
+
+  const boardColumns = useMemo(() => {
+    const day = days[0];
+    const sameDay = (row: Appt) => day && dayKey(new Date(row.startsAt)) === dayKey(day);
+    if (view === "day" && columnsBy === "staff") {
+      return staff.map((person) => ({
+        key: person.id,
+        label: `${person.first_name || ""} ${person.last_name || ""}`.trim(),
+        match: (row: Appt, hour: number) => sameDay(row) && row.staffUserId === person.id && new Date(row.startsAt).getHours() === hour,
+      }));
+    }
+    if (view === "day" && columnsBy === "room") {
+      return rooms.map((room) => ({
+        key: room.id,
+        label: room.name || "Sala",
+        match: (row: Appt, hour: number) => sameDay(row) && row.roomId === room.id && new Date(row.startsAt).getHours() === hour,
+      }));
+    }
+    return days.map((item) => ({
+      key: dayKey(item),
+      label: item.toLocaleDateString("es-MX", { weekday: "short", day: "numeric" }),
+      match: (row: Appt, hour: number) => dayKey(new Date(row.startsAt)) === dayKey(item) && new Date(row.startsAt).getHours() === hour,
+    }));
+  }, [columnsBy, days, rooms, staff, view]);
 
   async function saveDraft() {
     if (!draft) return;
@@ -113,12 +143,12 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
     }
   }
 
-  async function addBlock() {
-    const start = prompt("Inicio del bloqueo (YYYY-MM-DDTHH:mm)");
-    const end = prompt("Fin del bloqueo (YYYY-MM-DDTHH:mm)");
-    if (!start || !end) return;
+  async function addBlock(e: React.FormEvent) {
+    e.preventDefault();
+    if (!block) return;
     try {
-      await api("/api/admin/bookouts", { method: "POST", body: JSON.stringify({ startsAt: new Date(start).toISOString(), endsAt: new Date(end).toISOString(), staffUserId: staffFilter || null, reason: "Bloqueo", locationId: locations[0]?.id || null }) });
+      await api("/api/admin/bookouts", { method: "POST", body: JSON.stringify({ startsAt: new Date(block.startsAt).toISOString(), endsAt: new Date(block.endsAt).toISOString(), staffUserId: staffFilter || null, reason: block.reason || "Bloqueo", locationId: locations[0]?.id || null }) });
+      setBlock(null);
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error");
@@ -145,17 +175,33 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
           {staff.map((person) => <option key={person.id} value={person.id}>{person.first_name} {person.last_name}</option>)}
         </select>
         <button className="admin-btn admin-btn--primary" type="button" onClick={() => setDraft({ status: "booked", startsAt: new Date().toISOString().slice(0, 16) })}>+ Cita</button>
-        <button className="admin-btn" type="button" onClick={addBlock}>Bloqueo</button>
+        <button className="admin-btn" type="button" onClick={() => setBlock({ startsAt: "", endsAt: "", reason: "Bloqueo" })}>Bloqueo</button>
+        {view === "day" ? (
+          <select value={columnsBy} onChange={(e) => setColumnsBy(e.target.value as "day" | "staff" | "room")} aria-label="Columnas">
+            <option value="day">Una columna</option>
+            <option value="staff">Por profesional</option>
+            <option value="room">Por sala</option>
+          </select>
+        ) : null}
       </div>
       <DndContext sensors={sensors} onDragEnd={async (event) => {
         const appt = rows.find((row) => row.id === event.active.id);
         const over = event.over?.id ? String(event.over.id) : "";
         if (!appt || !over) return;
-        const [date, hour] = over.split("|");
-        const start = new Date(`${date}T${hour}:00`);
+        const [columnKey, hour] = over.split("|");
+        const start = new Date(anchor);
+        if (view !== "day" || columnsBy === "day") {
+          const [date] = [columnKey];
+          start.setTime(new Date(`${date}T${hour}:00`).getTime());
+        } else {
+          start.setHours(Number(hour), 0, 0, 0);
+        }
         const end = new Date(start.getTime() + appt.durationMinutes * 60000);
+        const patch: Record<string, string> = { startsAt: start.toISOString(), endsAt: end.toISOString() };
+        if (view === "day" && columnsBy === "staff") patch.staffUserId = columnKey;
+        if (view === "day" && columnsBy === "room") patch.roomId = columnKey;
         try {
-          await api(`/api/admin/appointments/${appt.id}`, { method: "PATCH", body: JSON.stringify({ startsAt: start.toISOString(), endsAt: end.toISOString() }) });
+          await api(`/api/admin/appointments/${appt.id}`, { method: "PATCH", body: JSON.stringify(patch) });
           await load();
         } catch (e) {
           setError(e instanceof Error ? e.message : "No se pudo mover la cita");
@@ -171,19 +217,16 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
             ))}
           </div>
         ) : (
-          <div className="admin-cal" style={{ ["--cols" as string]: days.length }}>
+          <div className="admin-cal" style={{ ["--cols" as string]: boardColumns.length }}>
             <div className="admin-cal__head">
               <div />
-              {days.map((day) => <div key={day.toISOString()}>{day.toLocaleDateString("es-MX", { weekday: "short", day: "numeric" })}</div>)}
+              {boardColumns.map((column) => <div key={column.key}>{column.label}</div>)}
             </div>
             {Array.from({ length: 12 }, (_, i) => i + 8).map((hour) => (
               <div className="admin-cal__row" key={hour}>
                 <div className="admin-cal__cell">{String(hour).padStart(2, "0")}:00</div>
-                {days.map((day) => (
-                  <HourCell key={`${dayKey(day)}-${hour}`} id={`${dayKey(day)}|${String(hour).padStart(2, "0")}`} appointments={rows.filter((row) => {
-                    const start = new Date(row.startsAt);
-                    return dayKey(start) === dayKey(day) && start.getHours() === hour;
-                  })} onOpen={(row) => setDraft({
+                {boardColumns.map((column) => (
+                  <HourCell key={`${column.key}-${hour}`} id={`${column.key}|${String(hour).padStart(2, "0")}`} appointments={rows.filter((row) => column.match(row, hour))} onOpen={(row) => setDraft({
                     id: row.id, patientId: "", serviceId: "", staffUserId: row.staffUserId, locationId: row.locationId,
                     startsAt: row.startsAt.slice(0, 16), status: row.status, notes: row.notes || "",
                   })} />
@@ -193,6 +236,20 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
           </div>
         )}
       </DndContext>
+      {waitlist.length ? (
+        <section style={{ marginTop: "1rem" }}>
+          <h2>Lista de espera</h2>
+          {waitlist.map((row) => <div key={row.id} className="admin-table__row">{[row.first_name, row.last_name].filter(Boolean).join(" ") || "Paciente"} · {row.service_name || "Servicio por confirmar"}</div>)}
+        </section>
+      ) : <p className="admin-header__desc">Lista de espera vacía.</p>}
+      {block ? (
+        <form className="admin-form-grid" onSubmit={addBlock} style={{ marginTop: "1rem" }}>
+          <label className="admin-field">Inicio del bloqueo<input type="datetime-local" required value={block.startsAt} onChange={(e) => setBlock({ ...block, startsAt: e.target.value })} /></label>
+          <label className="admin-field">Fin<input type="datetime-local" required value={block.endsAt} onChange={(e) => setBlock({ ...block, endsAt: e.target.value })} /></label>
+          <label className="admin-field">Motivo<input value={block.reason} onChange={(e) => setBlock({ ...block, reason: e.target.value })} /></label>
+          <div className="admin-toolbar"><button className="admin-btn admin-btn--primary" type="submit">Guardar bloqueo</button><button className="admin-btn" type="button" onClick={() => setBlock(null)}>Cancelar</button></div>
+        </form>
+      ) : null}
       {draft ? (
         <div className="admin-drawer" role="presentation" onClick={() => setDraft(null)}>
           <form className="admin-drawer__panel" onClick={(e) => e.stopPropagation()} onSubmit={(e) => { e.preventDefault(); saveDraft(); }}>

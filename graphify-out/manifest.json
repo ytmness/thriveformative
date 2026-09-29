@@ -570,9 +570,9 @@
     "semantic_hash": "a17591b6a6dd0ab7aa97c38e7edb0714"
   },
   "scripts/deploy-next-pm2.sh": {
-    "mtime": 1785526455.8826973,
-    "ast_hash": "9ed0dfac9def89a749641ba831ac6899",
-    "semantic_hash": "9ed0dfac9def89a749641ba831ac6899"
+    "mtime": 1790649487.9233363,
+    "ast_hash": "a84acd1636599b21cf6062831684d668",
+    "semantic_hash": ""
   },
   "scripts/deploy-ubuntu.sh": {
     "mtime": 1785526455.8839202,
@@ -2790,8 +2790,8 @@
     "semantic_hash": ""
   },
   "app/[locale]/admin/(panel)/configuracion/[section]/page.tsx": {
-    "mtime": 1790646910.0780282,
-    "ast_hash": "41fff061a823280b18ea3cecd0635801",
+    "mtime": 1790649315.6707575,
+    "ast_hash": "58dd307d9c130c8184c467e5545b89ae",
     "semantic_hash": ""
   },
   "app/[locale]/admin/(panel)/contenido/page.tsx": {
@@ -2830,8 +2830,8 @@
     "semantic_hash": ""
   },
   "app/[locale]/admin/(panel)/pacientes/page.tsx": {
-    "mtime": 1790646845.388454,
-    "ast_hash": "4b0df0377845fe024cca7db5628ffb38",
+    "mtime": 1790649450.4093726,
+    "ast_hash": "46ae1eaf966b764f8ddc6c7b206b5946",
     "semantic_hash": ""
   },
   "app/[locale]/admin/(panel)/page.tsx": {
@@ -2990,8 +2990,8 @@
     "semantic_hash": ""
   },
   "app/api/admin/products/route.ts": {
-    "mtime": 1790646615.6215143,
-    "ast_hash": "ec6bd5131915245acfa03122d8079961",
+    "mtime": 1790649278.8542564,
+    "ast_hash": "5a54ed4f4f85cb43c02ea560d0d5bd5b",
     "semantic_hash": ""
   },
   "app/api/admin/reports/[slug]/route.ts": {
@@ -3095,13 +3095,13 @@
     "semantic_hash": ""
   },
   "components/admin/calendar/CalendarBoard.tsx": {
-    "mtime": 1790646813.505843,
-    "ast_hash": "6f74cef236514e4f22773b365d78a921",
+    "mtime": 1790649440.0738852,
+    "ast_hash": "b8317e78d592789d9fdb50b894ef3cb1",
     "semantic_hash": ""
   },
   "components/admin/clinic/Modules.tsx": {
-    "mtime": 1790646900.6616302,
-    "ast_hash": "5bb5feba4ae272d792b60105657bc329",
+    "mtime": 1790649459.6110568,
+    "ast_hash": "28c3ab1f24a0a2f8e24161c8c3aaae2e",
     "semantic_hash": ""
   },
   "components/admin/clinic/client.ts": {
@@ -3115,13 +3115,13 @@
     "semantic_hash": ""
   },
   "components/admin/leads/LeadBoard.tsx": {
-    "mtime": 1790646858.7643082,
-    "ast_hash": "f8590b7ebf912de7eba82fd55cfc0bd0",
+    "mtime": 1790649388.1487875,
+    "ast_hash": "fbe407fc0f6c7f7b013ddebe41371308",
     "semantic_hash": ""
   },
   "components/admin/patients/PatientScreens.tsx": {
-    "mtime": 1790647146.1439943,
-    "ast_hash": "68af0138ff629e6e4657ee16aa7554be",
+    "mtime": 1790649470.3421948,
+    "ast_hash": "149215dd9fcf24b958b48da494e9af64",
     "semantic_hash": ""
   },
   "components/admin/pos/PosScreen.tsx": {
@@ -3130,8 +3130,8 @@
     "semantic_hash": ""
   },
   "components/admin/shell/AdminShell.tsx": {
-    "mtime": 1790646773.0773542,
-    "ast_hash": "4f5127980abaf5f5c2b2c0d168c0bad7",
+    "mtime": 1790649451.6043396,
+    "ast_hash": "6ae1071b492f17f4ba143741dacda91c",
     "semantic_hash": ""
   },
   "components/booking/BookingWizard.tsx": {
@@ -3250,8 +3250,8 @@
     "semantic_hash": ""
   },
   "lib/domain/leads.ts": {
-    "mtime": 1790647121.1514492,
-    "ast_hash": "22e48c73457b461de135338f8a904ecb",
+    "mtime": 1790649393.7705586,
+    "ast_hash": "f8d16214c7af90e0715d68d9386a664f",
     "semantic_hash": ""
   },
   "lib/domain/patients.ts": {
@@ -3275,8 +3275,8 @@
     "semantic_hash": ""
   },
   "lib/domain/settings.ts": {
-    "mtime": 1790646497.9580412,
-    "ast_hash": "438b473ce9ecc880ccc129d6363d90e2",
+    "mtime": 1790649277.7296631,
+    "ast_hash": "a05f09b91b6696615891d0ac9070e200",
     "semantic_hash": ""
   },
   "lib/files/privateStore.ts": {
@@ -3317,6 +3317,16 @@
   "scripts/migrate.mjs": {
     "mtime": 1790646092.3134742,
     "ast_hash": "5ec6c80143c3804ad60d581cc7e627a5",
+    "semantic_hash": ""
+  },
+  "app/api/admin/waitlist/route.ts": {
+    "mtime": 1790649280.46582,
+    "ast_hash": "cb8fdcf27840785ada4619377ab7ec36",
+    "semantic_hash": ""
+  },
+  "components/admin/clinic/SettingsPanel.tsx": {
+    "mtime": 1790649311.3208303,
+    "ast_hash": "3ead1402a4f60542e98d8153679e5a38",
     "semantic_hash": ""
   }
 }

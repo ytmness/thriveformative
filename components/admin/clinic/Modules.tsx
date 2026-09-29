@@ -3,6 +3,11 @@
 import { useEffect, useState } from "react";
 import { api } from "@/components/admin/clinic/client";
 
+function statusLabel(value: string) {
+  const labels: Record<string, string> = { draft: "Borrador", issued: "Emitida", paid: "Pagada", partial: "Parcial", void: "Anulada", open: "Abierta", sent: "Enviada" };
+  return labels[value] || value || "—";
+}
+
 export function InvoiceCenter() {
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [kind, setKind] = useState("invoices");
@@ -17,36 +22,34 @@ export function InvoiceCenter() {
       <div className="admin-tabs">
         {[["invoices", "Facturas"], ["quotes", "Cotizaciones"], ["credits", "Notas de crédito"]].map(([id, label]) => <button key={id} className={kind === id ? "is-active" : ""} type="button" onClick={() => setKind(id)}>{label}</button>)}
       </div>
-      <form className="admin-toolbar" onSubmit={async (e) => {
-        e.preventDefault();
-        const data = new FormData(e.currentTarget);
-        if (kind === "quotes") {
-          await api("/api/admin/invoices", { method: "POST", body: JSON.stringify({ kind: "quote", items: [{ description: String(data.get("desc")), quantity: 1, unitPrice: Number(data.get("amount")) }] }) });
-        } else {
-          await api("/api/admin/invoices", { method: "POST", body: JSON.stringify({ kind: "credit", invoiceId: String(data.get("invoice")), amount: Number(data.get("amount")), reason: String(data.get("desc")) }) });
-        }
-        location.reload();
-      }}>
-        <input name="desc" placeholder="Descripción o motivo" required />
-        <input name="amount" type="number" step="0.01" placeholder="Monto" required />
-        {kind !== "quotes" ? <input name="invoice" placeholder="ID de factura" required /> : null}
-        <button className="admin-btn admin-btn--primary" type="submit">{kind === "quotes" ? "Nueva cotización" : "Nota de crédito"}</button>
-      </form>
+      {kind !== "invoices" ? (
+        <form className="admin-toolbar" onSubmit={async (e) => {
+          e.preventDefault();
+          const data = new FormData(e.currentTarget);
+          if (kind === "quotes") {
+            await api("/api/admin/invoices", { method: "POST", body: JSON.stringify({ kind: "quote", items: [{ description: String(data.get("desc")), quantity: 1, unitPrice: Number(data.get("amount")) }] }) });
+          } else {
+            await api("/api/admin/invoices", { method: "POST", body: JSON.stringify({ kind: "credit", invoiceId: String(data.get("invoice")), amount: Number(data.get("amount")), reason: String(data.get("desc")) }) });
+          }
+          location.reload();
+        }}>
+          <input name="desc" placeholder={kind === "quotes" ? "Descripción" : "Motivo"} required />
+          <input name="amount" type="number" step="0.01" placeholder="Monto" required />
+          {kind === "credits" ? <input name="invoice" placeholder="ID de factura" required /> : null}
+          <button className="admin-btn admin-btn--primary" type="submit">{kind === "quotes" ? "Nueva cotización" : "Nota de crédito"}</button>
+        </form>
+      ) : null}
       <div className="admin-table-wrap">
+        <div className="admin-table__row admin-table__head"><span>Número</span><span>Paciente</span><span>Estado</span><span>Total</span></div>
         {rows.map((row) => (
           <div key={String(row.id)} className="admin-table__row">
-            <div>
-              <div className="admin-table__cell-title">{String(row.invoice_number || row.quote_number || row.credit_number)}</div>
-              <div className="admin-table__cell-sub">{String(row.status || "")} · ${Number(row.total || row.amount || 0).toFixed(2)} · pagado ${Number(row.paid_total || 0).toFixed(2)}</div>
-            </div>
-            {row.sale_id ? <button className="admin-btn admin-btn--danger" type="button" onClick={async () => {
-              const paymentId = prompt("ID del pago a anular");
-              if (!paymentId) return;
-              await api(`/api/admin/payments/${paymentId}/void`, { method: "POST", body: JSON.stringify({ reason: "Anulación en facturación" }) });
-              location.reload();
-            }}>Anular pago</button> : null}
+            <div className="admin-table__cell-title">{String(row.invoice_number || row.quote_number || row.credit_number || "—")}</div>
+            <div>{[row.first_name, row.last_name].filter(Boolean).join(" ") || "—"}</div>
+            <div>{statusLabel(String(row.status || ""))}</div>
+            <div>${Number(row.total || row.amount || 0).toFixed(2)}</div>
           </div>
         ))}
+        {!rows.length ? <div className="admin-table__empty">{kind === "quotes" ? "No hay cotizaciones." : kind === "credits" ? "No hay notas de crédito." : "No hay facturas emitidas. Se crean al cobrar en Ventas."}</div> : null}
       </div>
     </>
   );
@@ -54,8 +57,18 @@ export function InvoiceCenter() {
 
 export function ProductAdmin() {
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
-  const [form, setForm] = useState({ name: "", sku: "", barcode: "", sizeLabel: "", price: "", cost: "", description: "" });
-  useEffect(() => { api<{ rows: Record<string, unknown>[] }>("/api/admin/products").then((r) => setRows(r.rows)); }, []);
+  const [moves, setMoves] = useState<Record<string, unknown>[]>([]);
+  const [locations, setLocations] = useState<{ id: string; name: string }[]>([]);
+  const [suppliers, setSuppliers] = useState<{ id: string; name: string }[]>([]);
+  const [form, setForm] = useState({ name: "", sku: "", barcode: "", sizeLabel: "", price: "", cost: "", description: "", supplierId: "" });
+  const [supplierName, setSupplierName] = useState("");
+  const [stock, setStock] = useState({ productId: "", locationId: "", quantity: "", reason: "Ajuste" });
+  useEffect(() => {
+    api<{ rows: Record<string, unknown>[] }>("/api/admin/products").then((r) => setRows(r.rows));
+    api<{ rows: Record<string, unknown>[] }>("/api/admin/products?kind=movements").then((r) => setMoves(r.rows)).catch(() => undefined);
+    api<{ rows: { id: string; name: string }[] }>("/api/admin/settings/locations").then((r) => setLocations(r.rows)).catch(() => undefined);
+    api<{ rows: { id: string; name: string }[] }>("/api/admin/settings/suppliers").then((r) => setSuppliers(r.rows)).catch(() => undefined);
+  }, []);
   return (
     <>
       <header className="admin-header"><p className="admin-header__eyebrow">Inventario</p><h1 className="admin-header__title">Productos</h1></header>
@@ -70,23 +83,48 @@ export function ProductAdmin() {
         <label className="admin-field">Tamaño<input value={form.sizeLabel} onChange={(e) => setForm({ ...form, sizeLabel: e.target.value })} /></label>
         <label className="admin-field">Costo<input value={form.cost} onChange={(e) => setForm({ ...form, cost: e.target.value })} /></label>
         <label className="admin-field">Precio<input value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} /></label>
+        <label className="admin-field">Proveedor<select value={form.supplierId} onChange={(e) => setForm({ ...form, supplierId: e.target.value })}><option value="">—</option>{suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
         <label className="admin-field span-2">Descripción<textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></label>
         <button className="admin-btn admin-btn--primary" type="submit">Guardar producto</button>
       </form>
+      <form className="admin-toolbar" style={{ marginTop: "1rem" }} onSubmit={async (e) => { e.preventDefault(); await api("/api/admin/settings/suppliers", { method: "POST", body: JSON.stringify({ name: supplierName }) }); setSupplierName(""); location.reload(); }}>
+        <input value={supplierName} onChange={(e) => setSupplierName(e.target.value)} placeholder="Nuevo proveedor" required />
+        <button className="admin-btn" type="submit">Agregar proveedor</button>
+      </form>
       <div className="admin-table-wrap" style={{ marginTop: "1rem" }}>
-        {rows.map((row) => (
+        <div className="admin-table__row admin-table__head"><span>Producto</span><span>SKU</span><span>Precio</span><span>Stock</span></div>
+        {rows.map((row) => {
+          const stockRows = (row.stock as { quantity: number; location_name: string }[]) || [];
+          return (
+            <div key={String(row.id)} className="admin-table__row">
+              <div className="admin-table__cell-title">{String(row.name)}{row.lowStock ? " · stock bajo" : ""}</div>
+              <div>{String(row.sku || "—")}</div>
+              <div>${Number(row.price || 0).toFixed(2)}</div>
+              <div>{stockRows.length ? stockRows.map((item) => `${item.location_name}: ${item.quantity}`).join(" · ") : "Sin existencias"}</div>
+            </div>
+          );
+        })}
+        {!rows.length ? <div className="admin-table__empty">No hay productos. Crea el primero con el formulario.</div> : null}
+      </div>
+      <h2 style={{ marginTop: "1.5rem" }}>Ajuste de inventario</h2>
+      <form className="admin-toolbar" onSubmit={async (e) => { e.preventDefault(); await api("/api/admin/products", { method: "POST", body: JSON.stringify({ kind: "stock", productId: stock.productId, locationId: stock.locationId, quantity: Number(stock.quantity), movementType: "adjust", reason: stock.reason }) }); location.reload(); }}>
+        <select required value={stock.productId} onChange={(e) => setStock({ ...stock, productId: e.target.value })}><option value="">Producto</option>{rows.map((row) => <option key={String(row.id)} value={String(row.id)}>{String(row.name)}</option>)}</select>
+        <select required value={stock.locationId} onChange={(e) => setStock({ ...stock, locationId: e.target.value })}><option value="">Sede</option>{locations.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}</select>
+        <input required type="number" step="1" placeholder="Cantidad (+/−)" value={stock.quantity} onChange={(e) => setStock({ ...stock, quantity: e.target.value })} />
+        <input value={stock.reason} onChange={(e) => setStock({ ...stock, reason: e.target.value })} placeholder="Motivo" />
+        <button className="admin-btn admin-btn--primary" type="submit">Registrar movimiento</button>
+      </form>
+      <div className="admin-table-wrap" style={{ marginTop: "1rem" }}>
+        <div className="admin-table__row admin-table__head"><span>Movimiento</span><span>Producto</span><span>Sede</span><span>Cantidad</span></div>
+        {moves.map((row) => (
           <div key={String(row.id)} className="admin-table__row">
-            <div className="admin-table__cell-title">{String(row.name)} {row.lowStock ? "· stock bajo" : ""}</div>
-            <div className="admin-table__cell-sub">SKU {String(row.sku || "—")} · ${Number(row.price || 0)}</div>
-            <button className="admin-btn" type="button" onClick={async () => {
-              const locationId = prompt("ID de sede");
-              const quantity = prompt("Cantidad (+ compra / - merma)");
-              if (!locationId || !quantity) return;
-              await api("/api/admin/products", { method: "POST", body: JSON.stringify({ kind: "stock", productId: row.id, locationId, quantity: Number(quantity), movementType: "adjust", reason: "Ajuste manual" }) });
-              location.reload();
-            }}>Ajustar stock</button>
+            <div>{String(row.movement_type)}</div>
+            <div>{String(row.product_name)}</div>
+            <div>{String(row.location_name)}</div>
+            <div>{String(row.quantity)} · {String(row.reason || "")}</div>
           </div>
         ))}
+        {!moves.length ? <div className="admin-table__empty">Sin movimientos de inventario.</div> : null}
       </div>
     </>
   );
@@ -101,17 +139,32 @@ export function FormBuilder() {
   return (
     <>
       <header className="admin-header"><p className="admin-header__eyebrow">Clínico</p><h1 className="admin-header__title">Formularios</h1></header>
-      <form className="admin-form-grid" onSubmit={async (e) => { e.preventDefault(); await api("/api/admin/forms", { method: "POST", body: JSON.stringify({ name, formType, requiresSignature: formType === "consent", schema: fields }) }); location.reload(); }}>
+      <form className="admin-form-grid" onSubmit={async (e) => { e.preventDefault(); await api("/api/admin/forms", { method: "POST", body: JSON.stringify({ name, formType, requiresSignature: formType === "consent" || fields.some((field) => field.type === "signature"), schema: fields }) }); location.reload(); }}>
         <label className="admin-field">Nombre<input required value={name} onChange={(e) => setName(e.target.value)} /></label>
         <label className="admin-field">Tipo<select value={formType} onChange={(e) => setFormType(e.target.value)}><option value="intake">Ingreso</option><option value="consent">Consentimiento</option><option value="soap">SOAP</option><option value="custom">Personalizado</option></select></label>
         <button className="admin-btn" type="button" onClick={() => setFields([...fields, { id: crypto.randomUUID(), label: "Campo", type: "text", required: false }])}>Agregar campo</button>
         {fields.map((field, index) => (
-          <label key={field.id} className="admin-field">Etiqueta<input value={field.label} onChange={(e) => setFields(fields.map((item, i) => i === index ? { ...item, label: e.target.value } : item))} /></label>
+          <div key={field.id} className="admin-toolbar span-2">
+            <label className="admin-field">Etiqueta<input value={field.label} onChange={(e) => setFields(fields.map((item, i) => i === index ? { ...item, label: e.target.value } : item))} /></label>
+            <label className="admin-field">Tipo
+              <select value={field.type} onChange={(e) => setFields(fields.map((item, i) => i === index ? { ...item, type: e.target.value } : item))}>
+                <option value="text">Texto</option>
+                <option value="textarea">Párrafo</option>
+                <option value="date">Fecha</option>
+                <option value="checkbox">Casilla</option>
+                <option value="select">Lista</option>
+                <option value="signature">Firma</option>
+              </select>
+            </label>
+            <label className="admin-check"><input type="checkbox" checked={field.required} onChange={(e) => setFields(fields.map((item, i) => i === index ? { ...item, required: e.target.checked } : item))} />Obligatorio</label>
+          </div>
         ))}
         <button className="admin-btn admin-btn--primary" type="submit">Guardar plantilla</button>
       </form>
       <div className="admin-table-wrap" style={{ marginTop: "1rem" }}>
-        {rows.map((row) => <div key={String(row.id)} className="admin-table__row">{String(row.name)} · {String(row.form_type)} · v{String(row.version)}</div>)}
+        <div className="admin-table__row admin-table__head"><span>Plantilla</span><span>Tipo</span><span>Versión</span></div>
+        {rows.map((row) => <div key={String(row.id)} className="admin-table__row"><div>{String(row.name)}</div><div>{String(row.form_type)}{row.requires_signature ? " · con firma" : ""}</div><div>v{String(row.version)}</div></div>)}
+        {!rows.length ? <div className="admin-table__empty">No hay plantillas. Crea un consentimiento o un ingreso.</div> : null}
       </div>
     </>
   );
@@ -120,18 +173,42 @@ export function FormBuilder() {
 export function CommsAdmin() {
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [templates, setTemplates] = useState<Record<string, unknown>[]>([]);
+  const [draft, setDraft] = useState<Record<string, unknown> | null>(null);
   useEffect(() => {
     api<{ rows: Record<string, unknown>[] }>("/api/admin/messages").then((r) => setRows(r.rows));
     api<{ rows: Record<string, unknown>[] }>("/api/admin/settings/message-templates").then((r) => setTemplates(r.rows));
   }, []);
   return (
     <>
-      <header className="admin-header"><p className="admin-header__eyebrow">Mensajes</p><h1 className="admin-header__title">Comunicaciones</h1><p className="admin-header__desc">Recordatorios por SMS (Twilio) y email (Resend o el correo del servidor).</p></header>
-      <button className="admin-btn" type="button" onClick={() => api("/api/admin/messages", { method: "POST", body: JSON.stringify({ action: "dispatch" }) }).then(() => location.reload())}>Enviar cola</button>
-      <h2 style={{ marginTop: "1rem" }}>Plantillas</h2>
-      {templates.map((row) => <p key={String(row.id)}>{String(row.channel)} · {String(row.template_key)} · {String(row.subject || "")}</p>)}
-      <div className="admin-table-wrap" style={{ marginTop: "1rem" }}>
-        {rows.map((row) => <div key={String(row.id)} className="admin-table__row">{String(row.channel)} · {String(row.status)} · {String(row.subject || row.body || "")}</div>)}
+      <header className="admin-header"><p className="admin-header__eyebrow">Mensajes</p><h1 className="admin-header__title">Comunicaciones</h1><p className="admin-header__desc">Recordatorios por SMS y email. Variables: {"{{nombre}}"}, {"{{servicio}}"}, {"{{fecha}}"}, {"{{hora}}"}, {"{{sede}}"}.</p></header>
+      <button className="admin-btn" type="button" onClick={() => api("/api/admin/messages", { method: "POST", body: JSON.stringify({ action: "dispatch" }) }).then(() => location.reload())}>Enviar cola pendiente</button>
+      <h2 style={{ marginTop: "1.25rem" }}>Plantillas</h2>
+      <div className="admin-table-wrap">
+        {templates.map((row) => (
+          <button key={String(row.id)} type="button" className="admin-table__row" onClick={() => setDraft(row)}>
+            <div className="admin-table__cell-title">{String(row.channel) === "sms" ? "SMS" : "Email"} · {String(row.template_key)}</div>
+            <div className="admin-table__cell-sub">{String(row.body || row.subject || "Sin texto")}</div>
+          </button>
+        ))}
+        {!templates.length ? <div className="admin-table__empty">No hay plantillas.</div> : null}
+      </div>
+      {draft ? (
+        <form className="admin-form-grid" style={{ marginTop: "1rem" }} onSubmit={async (e) => {
+          e.preventDefault();
+          await api(`/api/admin/settings/message-templates/${draft.id}`, { method: "PATCH", body: JSON.stringify({ channel: draft.channel, templateKey: draft.template_key, locale: draft.locale || "es", subject: draft.subject, body: draft.body, isActive: draft.is_active !== false }) });
+          setDraft(null);
+          location.reload();
+        }}>
+          <label className="admin-field">Asunto<input value={String(draft.subject || "")} onChange={(e) => setDraft({ ...draft, subject: e.target.value })} /></label>
+          <label className="admin-field span-2">Mensaje<textarea required rows={5} value={String(draft.body || "")} onChange={(e) => setDraft({ ...draft, body: e.target.value })} /></label>
+          <button className="admin-btn admin-btn--primary" type="submit">Guardar plantilla</button>
+        </form>
+      ) : null}
+      <h2 style={{ marginTop: "1.25rem" }}>Cola</h2>
+      <div className="admin-table-wrap">
+        <div className="admin-table__row admin-table__head"><span>Canal</span><span>Estado</span><span>Texto</span></div>
+        {rows.map((row) => <div key={String(row.id)} className="admin-table__row"><div>{String(row.channel)}</div><div>{String(row.status)}</div><div>{String(row.body || row.subject || "")}</div></div>)}
+        {!rows.length ? <div className="admin-table__empty">La cola está vacía. Los recordatorios se crean al agendar una cita.</div> : null}
       </div>
     </>
   );
@@ -142,35 +219,38 @@ export function ReportView({ slug }: { slug?: string }) {
   const active = slug || "citas";
   useEffect(() => { api<{ rows: Record<string, unknown>[] }>(`/api/admin/reports/${active}`).then(setData); }, [active]);
   const links = [["citas", "Citas"], ["ingresos", "Ingresos"], ["servicios", "Servicios"], ["profesionales", "Profesionales"], ["marketing", "Marketing"], ["no-shows", "No-shows"]];
+  const labels: Record<string, string> = {
+    status: "Estado", total: "Total", day: "Día", description: "Concepto", quantity: "Cantidad",
+    first_name: "Nombre", last_name: "Apellido", completed: "Completadas", no_shows: "Inasistencias",
+    revenue: "Ingresos", source: "Fuente", week: "Semana",
+  };
+  const rows = data?.rows || [];
+  const keys = rows[0] ? Object.keys(rows[0]) : [];
   return (
     <>
-      <header className="admin-header"><h1 className="admin-header__title">Reportes</h1></header>
-      <nav className="admin-tabs">{links.map(([id, label]) => <a key={id} className={active === id ? "is-active" : ""} href={`/admin/reportes/${id}`}>{label}</a>)}</nav>
-      <div className="admin-table-wrap">{(data?.rows || []).map((row, index) => <div key={index} className="admin-table__row">{Object.entries(row).map(([key, value]) => <span key={key}>{key}: {String(value)} </span>)}</div>)}</div>
-    </>
-  );
-}
-
-const SECTIONS = ["sedes", "salas", "servicios", "categorias", "equipo", "horarios", "impuestos", "pagos", "campos", "politicas", "facturacion"];
-const MAP: Record<string, string> = { sedes: "locations", salas: "rooms", servicios: "services", categorias: "service-categories", equipo: "staff", horarios: "schedules", impuestos: "taxes", pagos: "payment-methods", campos: "custom-fields", politicas: "booking", facturacion: "clinic" };
-
-export function SettingsManager({ section }: { section: string }) {
-  const apiSection = MAP[section] || "locations";
-  const [rows, setRows] = useState<Record<string, unknown>[]>([]);
-  const [raw, setRaw] = useState("{}");
-  useEffect(() => { api<{ rows: Record<string, unknown>[] }>(`/api/admin/settings/${apiSection}`).then((r) => setRows(r.rows)).catch(() => setRows([])); }, [apiSection]);
-  return (
-    <>
-      <header className="admin-header"><h1 className="admin-header__title">Configuración</h1></header>
-      <nav className="admin-tabs">{SECTIONS.map((item) => <a key={item} className={section === item ? "is-active" : ""} href={`/admin/configuracion/${item}`}>{item}</a>)}</nav>
-      <form onSubmit={async (e) => { e.preventDefault(); await api(`/api/admin/settings/${apiSection}`, { method: "POST", body: raw }); location.reload(); }}>
-        <label className="admin-field">JSON del registro<textarea rows={8} value={raw} onChange={(e) => setRaw(e.target.value)} /></label>
-        <button className="admin-btn admin-btn--primary" type="submit">Crear o guardar política</button>
-      </form>
-      <div className="admin-table-wrap" style={{ marginTop: "1rem" }}>
-        {rows.map((row) => <pre key={String(row.id || row.key)} className="admin-table__row" style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify(row, null, 2)}</pre>)}
+      <header className="admin-header"><h1 className="admin-header__title">Reportes</h1><p className="admin-header__desc">Últimos 30 días.</p></header>
+      <nav className="admin-tabs admin-tabs--wrap">{links.map(([id, label]) => <a key={id} className={active === id ? "is-active" : ""} href={`/admin/reportes/${id}`}>{label}</a>)}</nav>
+      <div className="admin-table-wrap">
+        <div className="admin-table__row admin-table__head">{keys.length ? keys.map((key) => <span key={key}>{labels[key] || key}</span>) : <span>Resultado</span>}</div>
+        {rows.map((row, index) => (
+          <div key={index} className="admin-table__row">
+            {Object.entries(row).map(([key, value]) => <span key={key}>{formatReport(key, value)}</span>)}
+          </div>
+        ))}
+        {!rows.length ? <div className="admin-table__empty">No hay datos en este periodo. Aparecerán cuando haya citas, cobros o pacientes nuevos.</div> : null}
       </div>
-      <p className="admin-header__desc">Para el equipo, incluye email, firstName, lastName, password y roles: admin, doctor o reception. La verificación en dos pasos se activa en /api/admin/mfa.</p>
     </>
   );
 }
+
+function formatReport(key: string, value: unknown) {
+  if (value == null || value === "") return "—";
+  if (key === "status") return statusLabel(String(value));
+  if (key === "revenue") return `$${Number(value).toFixed(2)}`;
+  if (typeof value === "string" && value.includes("T")) {
+    const date = new Date(value);
+    if (!Number.isNaN(date.getTime())) return date.toLocaleDateString("es-MX");
+  }
+  return String(value);
+}
+

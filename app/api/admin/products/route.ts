@@ -16,6 +16,17 @@ export async function GET(req: Request) {
     });
   }
   const kind = url.searchParams.get("kind");
+  if (kind === "movements") {
+    const { query } = await import("@/lib/db");
+    const rows = await query(
+      `SELECT m.id, m.movement_type, m.quantity, m.reason, m.created_at, p.name AS product_name, l.name AS location_name
+       FROM stock_movements m
+       JOIN products p ON p.id = m.product_id
+       JOIN locations l ON l.id = m.location_id
+       ORDER BY m.created_at DESC LIMIT 40`
+    );
+    return Response.json({ rows: rows.rows });
+  }
   if (kind === "packages" || kind === "memberships") {
     const { listSection } = await import("@/lib/domain/settings");
     return Response.json({ rows: await listSection(kind) });

@@ -1,6 +1,6 @@
 import { PatientList } from "@/components/admin/patients/PatientScreens";
 
-export default async function PatientsPage({ searchParams }: { searchParams: Promise<{ nuevo?: string }> }) {
+export default async function PatientsPage({ searchParams }: { searchParams: Promise<{ nuevo?: string; q?: string }> }) {
   const query = await searchParams;
-  return <PatientList startNew={query.nuevo === "1"} />;
+  return <PatientList startNew={query.nuevo === "1"} initialQuery={query.q || ""} />;
 }

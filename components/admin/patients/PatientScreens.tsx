@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { api } from "@/components/admin/clinic/client";
 
 type Patient = Record<string, unknown> & { id: string; firstName: string; lastName: string; clientCode: string; email?: string; mobile?: string };
@@ -13,15 +14,16 @@ const EMPTY = {
   consentSms: false, consentEmail: false, consentPhone: false, consentPostal: false,
 };
 
-export function PatientList({ startNew }: { startNew?: boolean }) {
+export function PatientList({ startNew, initialQuery = "" }: { startNew?: boolean; initialQuery?: string }) {
   const [rows, setRows] = useState<Patient[]>([]);
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(initialQuery);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [open, setOpen] = useState(startNew || false);
   const [form, setForm] = useState<Record<string, unknown>>(EMPTY);
   const [error, setError] = useState<string | null>(null);
   const [options, setOptions] = useState<{ locations: { id: string; name: string }[]; staff: { id: string; first_name: string; last_name: string }[]; sources: { id: string; name: string }[] }>({ locations: [], staff: [], sources: [] });
+  const router = useRouter();
 
   async function load(nextPage = page, query = q) {
     const data = await api<{ rows: Patient[]; total: number }>(`/api/admin/patients?q=${encodeURIComponent(query)}&page=${nextPage}`);
@@ -29,21 +31,20 @@ export function PatientList({ startNew }: { startNew?: boolean }) {
     setTotal(data.total);
   }
   useEffect(() => {
-    load().catch((e) => setError(e.message));
+    setQ(initialQuery);
+    load(1, initialQuery).catch((e) => setError(e.message));
     Promise.all([
       api<{ rows: { id: string; name: string }[] }>("/api/admin/settings/locations"),
       api<{ rows: { id: string; first_name: string; last_name: string }[] }>("/api/admin/settings/staff"),
       api<{ rows: { id: string; name: string }[] }>("/api/admin/settings/marketing-sources"),
     ]).then(([locations, staff, sources]) => setOptions({ locations: locations.rows, staff: staff.rows, sources: sources.rows })).catch(() => undefined);
-  }, []);
+  }, [initialQuery]);
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
     try {
-      await api("/api/admin/patients", { method: "POST", body: JSON.stringify(form) });
-      setOpen(false);
-      setForm(EMPTY);
-      await load(1, q);
+      const created = await api<{ patient: { id: string } }>("/api/admin/patients", { method: "POST", body: JSON.stringify(form) });
+      router.push(`/admin/pacientes/${created.patient.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error");
     }
@@ -64,7 +65,7 @@ export function PatientList({ startNew }: { startNew?: boolean }) {
             <div><div className="admin-table__cell-title">{row.firstName} {row.lastName}</div><div className="admin-table__cell-sub">{row.clientCode} · {row.email || "sin email"} · {row.mobile || ""}</div></div>
           </Link>
         ))}
-        {!rows.length ? <div className="admin-table__empty">No hay pacientes con ese filtro.</div> : null}
+        {!rows.length ? <div className="admin-table__empty">{q ? "Ningún paciente coincide con la búsqueda." : "Aún no hay pacientes. Crea el primero con + Paciente."}</div> : null}
       </div>
       <div className="admin-toolbar">
         <button className="admin-btn" type="button" disabled={page <= 1} onClick={() => { const n = page - 1; setPage(n); load(n); }}>Anterior</button>
@@ -115,7 +116,17 @@ export function PatientFields({ form, setForm, options }: { form: Record<string,
   );
 }
 
-const TABS = ["resumen", "citas", "expediente", "formularios", "alergias", "fotos", "documentos", "ventas", "comunicaciones"] as const;
+const TABS = [
+  ["resumen", "Resumen"],
+  ["citas", "Citas"],
+  ["expediente", "Expediente"],
+  ["formularios", "Formularios"],
+  ["alergias", "Alergias"],
+  ["fotos", "Fotos"],
+  ["documentos", "Documentos"],
+  ["ventas", "Ventas"],
+  ["comunicaciones", "Comunicaciones"],
+] as const;
 
 export function PatientChart({ id, tab }: { id: string; tab: string }) {
   const [patient, setPatient] = useState<Patient | null>(null);
@@ -151,7 +162,7 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
       </header>
       {error ? <div className="admin-alert">{error}</div> : null}
       <nav className="admin-tabs">
-        {TABS.map((item) => <Link key={item} className={active === item ? "is-active" : ""} href={item === "resumen" ? `/admin/pacientes/${id}` : `/admin/pacientes/${id}/${item}`}>{item}</Link>)}
+        {TABS.map(([item, label]) => <Link key={item} className={active === item ? "is-active" : ""} href={item === "resumen" ? `/admin/pacientes/${id}` : `/admin/pacientes/${id}/${item}`}>{label}</Link>)}
       </nav>
       {active === "resumen" ? <pre className="admin-table-wrap" style={{ padding: "1rem", whiteSpace: "pre-wrap" }}>{JSON.stringify({ ...patient, customFields: undefined }, null, 2)}</pre> : null}
       {active === "expediente" ? (

@@ -200,6 +200,7 @@ export async function listSection(section: string) {
   }
   if (section === "memberships") return (await query(`SELECT * FROM memberships ORDER BY name`)).rows;
   if (section === "gift-cards") return (await query(`SELECT * FROM gift_cards ORDER BY created_at DESC`)).rows;
+  if (section === "lead-stages") return (await query(`SELECT * FROM lead_stages ORDER BY sort_order, name`)).rows;
   const spec = SIMPLE[section];
   if (!spec) throw new DomainError("Sección no encontrada.", 404);
   const rows = await query(`SELECT * FROM ${spec.table} ORDER BY 1`);
