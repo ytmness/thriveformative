@@ -233,8 +233,6 @@ export default function Header({ preview }: HeaderProps = {}) {
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
                     href={PABAU_BOOKING_URL}
-                    target="_blank"
-                    rel="noreferrer"
                     className="type-ui text-xs font-medium text-[rgb(var(--primary))] hover:opacity-80 hidden xl:inline"
                   >
                     {t("nav.booking")}
@@ -274,8 +272,6 @@ export default function Header({ preview }: HeaderProps = {}) {
                 whileTap={{ scale: 0.98 }}
                 className="site-nav__cta"
                 href={PABAU_BOOKING_URL}
-                target="_blank"
-                rel="noreferrer"
               >
                 {t("nav.schedule")}
               </motion.a>
@@ -358,8 +354,6 @@ export default function Header({ preview }: HeaderProps = {}) {
                     )}
                     <a
                       href={PABAU_BOOKING_URL}
-                      target="_blank"
-                      rel="noreferrer"
                       onClick={() => setMobileMenuOpen(false)}
                       className="type-ui font-medium text-[rgb(var(--primary))] text-sm"
                     >
@@ -397,8 +391,6 @@ export default function Header({ preview }: HeaderProps = {}) {
               <a
                 className="site-nav__cta text-center py-3"
                 href={PABAU_BOOKING_URL}
-                target="_blank"
-                rel="noreferrer"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {t("nav.schedule")}

@@ -57,8 +57,6 @@ export default function BookingSection() {
           <p className="booking-section__cta-hint">{portalHint}</p>
           <BrandCtaLink
             href={PABAU_BOOKING_URL}
-            target="_blank"
-            rel="noreferrer"
             className="booking-section__portal-btn"
           >
             {portalCta}

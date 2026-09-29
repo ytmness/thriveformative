@@ -55,8 +55,6 @@ function ShapeScaleContent() {
           >
             <BrandCtaLink
               href={PABAU_BOOKING_SHAPESCALE_URL}
-              target="_blank"
-              rel="noreferrer"
             >
               {t("scheduleBtn")}
             </BrandCtaLink>

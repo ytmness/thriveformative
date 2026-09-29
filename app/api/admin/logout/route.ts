@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { clearAdminSessionCookie } from "@/lib/adminSession";
+import { clearStaffSession } from "@/lib/auth/session";
 
 export async function POST() {
-  await clearAdminSessionCookie();
+  await clearStaffSession();
   return NextResponse.json({ ok: true });
 }

@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
+import { getStaffSession } from "@/lib/auth/session";
 
 const COOKIE = "thrive_admin_session";
 const MAX_AGE_SEC = 60 * 60 * 24 * 7; // 7 days
@@ -68,12 +69,8 @@ export async function clearAdminSessionCookie(): Promise<void> {
 }
 
 export async function isAdminAuthenticated(): Promise<boolean> {
-  try {
-    const jar = await cookies();
-    return verifyAdminSessionToken(jar.get(COOKIE)?.value);
-  } catch {
-    return false;
-  }
+  const session = await getStaffSession();
+  return Boolean(session);
 }
 
 export function checkAdminPassword(password: string): boolean {

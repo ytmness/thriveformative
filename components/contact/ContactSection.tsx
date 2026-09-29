@@ -34,7 +34,7 @@ export default function ContactSection() {
             <h3 className="contact-section__card-title">{t("contact.schedule")}</h3>
             <p className="contact-section__card-lead">{t("contact.scheduleDesc")}</p>
             <div className="contact-section__cta-wrap">
-              <BrandCtaLink href={PABAU_BOOKING_URL} target="_blank" rel="noreferrer" block>
+              <BrandCtaLink href={PABAU_BOOKING_URL} block>
                 {t("contact.scheduleBtn")}
               </BrandCtaLink>
               <a

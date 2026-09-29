@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-import { isAdminAuthenticated } from "@/lib/adminSession";
+import { requireStaff, isSession } from "@/lib/auth/guard";
 
 export async function GET() {
-  return NextResponse.json({ authenticated: await isAdminAuthenticated() });
+  const session = await requireStaff();
+  if (!isSession(session)) return session;
+  return NextResponse.json({ staff: session.staff, permissions: session.permissions });
 }

@@ -73,7 +73,7 @@ export default function Footer() {
               <div>{CLINIC_ADDRESS_LINE}</div>
             </div>
             <div className="mt-5">
-              <BrandCtaLink href={PABAU_BOOKING_URL} target="_blank" rel="noreferrer">
+              <BrandCtaLink href={PABAU_BOOKING_URL}>
                 {t("contact.scheduleBtn")}
               </BrandCtaLink>
             </div>

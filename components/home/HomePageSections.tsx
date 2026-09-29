@@ -225,7 +225,7 @@ export default function HomePageSections({
               "Botón del hero",
               [{ key: "hero.scheduleBtn", label: "Texto del botón" }],
               <div className="hero-editorial__cta">
-                <BrandCtaLink href={PABAU_BOOKING_URL} target="_blank" rel="noreferrer">
+                <BrandCtaLink href={PABAU_BOOKING_URL}>
                   {editable ? (
                     txt("hero.scheduleBtn", "hero.scheduleBtn")
                   ) : (

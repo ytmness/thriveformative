@@ -44,6 +44,9 @@ WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '${THRIVE_DB}')\gexec
 GRANT ALL PRIVILEGES ON DATABASE ${THRIVE_DB} TO ${THRIVE_USER};
 SQL
 
+echo "==> Extensiones clínicas (btree_gist, pg_trgm)"
+docker exec -i "$PG_CONTAINER" psql -U "$SUPER_USER" -d "$THRIVE_DB" -c "CREATE EXTENSION IF NOT EXISTS pgcrypto; CREATE EXTENSION IF NOT EXISTS btree_gist; CREATE EXTENSION IF NOT EXISTS pg_trgm;"
+
 echo "==> Aplicando schema…"
 docker exec -i "$PG_CONTAINER" psql -U "$SUPER_USER" -d "$THRIVE_DB" < "$SCHEMA"
 docker exec -i "$PG_CONTAINER" psql -U "$SUPER_USER" -d "$THRIVE_DB" <<SQL
@@ -78,3 +81,4 @@ echo ""
 echo "==> Listo."
 echo "DATABASE_URL=postgresql://${THRIVE_USER}:***@127.0.0.1:5432/${THRIVE_DB}"
 echo "Reinicia la app: pm2 restart thriveformative --update-env"
+echo "Migraciones clínicas: node scripts/migrate.mjs"

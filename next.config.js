@@ -16,6 +16,7 @@ const SUPABASE_HOST = (() => {
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
+  serverExternalPackages: ["bcryptjs", "exceljs", "pg"],
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'cdn.shopify.com' },
@@ -28,12 +29,12 @@ const nextConfig = {
   async headers() {
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://pabau.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://js.stripe.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data: https:",
-      `connect-src 'self' https://${SUPABASE_HOST} wss://${SUPABASE_HOST} https:`,
-      "frame-src 'self' https://partner-us.pabau.com https://partner.pabau.com",
+      `connect-src 'self' https://${SUPABASE_HOST} wss://${SUPABASE_HOST} https://api.stripe.com https:`,
+      "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
@@ -50,7 +51,7 @@ const nextConfig = {
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=(), payment=()',
+            value: 'camera=(), microphone=(), geolocation=(), payment=(self)',
           },
         ],
       },

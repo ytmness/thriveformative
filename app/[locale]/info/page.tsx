@@ -283,8 +283,6 @@ function InfoContent() {
               >
                 <BrandCtaLink
                   href={PABAU_BOOKING_URL}
-                  target="_blank"
-                  rel="noreferrer"
                 >
                   {t("cta.button")}
                 </BrandCtaLink>

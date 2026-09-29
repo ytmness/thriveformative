@@ -29,6 +29,9 @@ yarn-error.log*
 .env
 .env*.local
 
+# expedientes y archivos privados (nunca públicos)
+/data/private-uploads
+
 # vercel
 .vercel
 
