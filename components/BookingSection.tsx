@@ -4,9 +4,8 @@ import { useTranslations } from "next-intl";
 import AnimatedSection from "@/components/AnimatedSection";
 import { useCmsContext } from "@/components/cms/CmsProvider";
 import { resolveCmsText } from "@/lib/cms/fetch";
-import BrandCtaLink from "@/components/ui/BrandCtaLink";
 import { WHATSAPP_LINK } from "@/lib/branding";
-import { PABAU_BOOKING_URL } from "@/lib/pabau";
+import PublicCalendar from "@/components/booking/PublicCalendar";
 
 export default function BookingSection() {
   const t = useTranslations("booking");
@@ -17,16 +16,6 @@ export default function BookingSection() {
     textOverrides,
     "booking.subtitle",
     t("subtitle")
-  );
-  const portalHint = resolveCmsText(
-    textOverrides,
-    "booking.portalHint",
-    t("portalHint")
-  );
-  const portalCta = resolveCmsText(
-    textOverrides,
-    "booking.portalCta",
-    t("portalCta")
   );
   const durationNote = resolveCmsText(
     textOverrides,
@@ -53,15 +42,7 @@ export default function BookingSection() {
           <p className="booking-section__duration">{durationNote}</p>
         </header>
 
-        <div className="booking-section__cta">
-          <p className="booking-section__cta-hint">{portalHint}</p>
-          <BrandCtaLink
-            href={PABAU_BOOKING_URL}
-            className="booking-section__portal-btn"
-          >
-            {portalCta}
-          </BrandCtaLink>
-        </div>
+        <PublicCalendar />
 
         <div className="booking-section__secondary">
           <p className="booking-section__cta-hint booking-section__cta-hint--inline">
