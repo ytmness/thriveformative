@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { DndContext, PointerSensor, useDraggable, useDroppable, useSensor, useSensors } from "@dnd-kit/core";
+import { useEffect, useRef, useState } from "react";
+import { DndContext, DragOverlay, PointerSensor, pointerWithin, useDraggable, useDroppable, useSensor, useSensors } from "@dnd-kit/core";
 import { api } from "@/components/admin/clinic/client";
 
 type Lead = { id: string; first_name: string; last_name: string; stage_id: string | null; stage_name: string | null; status: string; email?: string; mobile?: string; lost_reason?: string | null; estimated_value?: string | number | null; owner_first?: string | null; owner_last?: string | null; source_name?: string | null };
@@ -19,7 +19,9 @@ export default function LeadBoard({ startNew }: { startNew?: boolean }) {
   const [notice, setNotice] = useState<string | null>(null);
   const [selected, setSelected] = useState<Lead | null>(null);
   const [activity, setActivity] = useState("");
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const skipClick = useRef(false);
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
   async function load() {
     const [leads, stageRows, staffRows, sourceRows] = await Promise.all([
@@ -49,9 +51,14 @@ export default function LeadBoard({ startNew }: { startNew?: boolean }) {
       {error ? <div className="admin-alert" role="alert">{error}</div> : null}
       {notice ? <p className="admin-notice" role="status">{notice}</p> : null}
       <div className="admin-toolbar"><button className="admin-btn admin-btn--primary" type="button" onClick={openNew}>+ Lead</button></div>
-      <DndContext sensors={sensors} onDragEnd={async (event) => {
+      <DndContext sensors={sensors} collisionDetection={pointerWithin} onDragStart={(event) => { skipClick.current = true; setDraggingId(String(event.active.id)); }} onDragCancel={() => { setDraggingId(null); skipClick.current = false; }} onDragEnd={async (event) => {
         const leadId = String(event.active.id);
-        const stageId = event.over ? String(event.over.id) : "";
+        const overId = event.over ? String(event.over.id) : "";
+        const stageId = stages.some((stage) => stage.id === overId)
+          ? overId
+          : overId.startsWith("card:") ? rows.find((row) => row.id === overId.slice(5))?.stage_id || "" : "";
+        setDraggingId(null);
+        window.setTimeout(() => { skipClick.current = false; }, 80);
         const lead = rows.find((row) => row.id === leadId);
         if (!lead || !stageId || lead.stage_id === stageId) return;
         const stage = stages.find((item) => item.id === stageId);
@@ -67,9 +74,12 @@ export default function LeadBoard({ startNew }: { startNew?: boolean }) {
       }}>
         <div className="admin-kanban">
           {stages.map((stage) => (
-            <StageColumn key={stage.id} stage={stage} leads={rows.filter((row) => row.stage_id === stage.id || (!row.stage_id && stage.id === stages[0]?.id))} onOpen={setSelected} />
+            <StageColumn key={stage.id} stage={stage} leads={rows.filter((row) => row.stage_id === stage.id || (!row.stage_id && stage.id === stages[0]?.id))} onOpen={(lead) => { if (!skipClick.current) setSelected(lead); }} />
           ))}
         </div>
+        <DragOverlay>
+          {draggingId ? <div className="admin-metric admin-kanban__card"><LeadFace lead={rows.find((row) => row.id === draggingId) || null} /></div> : null}
+        </DragOverlay>
       </DndContext>
       {open ? (
         <div className="admin-drawer" onClick={() => setOpen(false)}>
@@ -142,20 +152,22 @@ function StageColumn({ stage, leads, onOpen }: { stage: { id: string; name: stri
   );
 }
 
-function LeadCard({ lead, onOpen }: { lead: Lead; onOpen: (lead: Lead) => void }) {
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({ id: lead.id });
+function LeadFace({ lead }: { lead: Lead | null }) {
+  if (!lead) return null;
   return (
-    <button
-      ref={setNodeRef}
-      type="button"
-      className="admin-metric"
-      style={{ transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined, cursor: "grab" }}
-      {...listeners}
-      {...attributes}
-      onClick={() => onOpen(lead)}
-    >
+    <>
       <div className="admin-metric__value" style={{ fontSize: "1rem" }}>{lead.first_name} {lead.last_name}</div>
       <div className="admin-metric__label">{[lead.owner_first, lead.owner_last].filter(Boolean).join(" ") || lead.status}{lead.estimated_value ? ` · $${Number(lead.estimated_value).toFixed(0)}` : ""}</div>
-    </button>
+    </>
+  );
+}
+
+function LeadCard({ lead, onOpen }: { lead: Lead; onOpen: (lead: Lead) => void }) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: lead.id });
+  const drop = useDroppable({ id: `card:${lead.id}` });
+  return (
+    <div ref={(node) => { setNodeRef(node); drop.setNodeRef(node); }} className="admin-metric admin-kanban__card" style={{ opacity: isDragging ? 0.35 : 1 }} {...listeners} {...attributes} onClick={() => onOpen(lead)} role="button" tabIndex={0}>
+      <LeadFace lead={lead} />
+    </div>
   );
 }

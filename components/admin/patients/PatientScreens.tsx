@@ -115,8 +115,8 @@ export function PatientFields({ form, setForm, options, section = "identidad" }:
       {section === "identidad" ? (
         <>
           <label className="admin-field">Saludo<input value={String(form.salutation || "")} onChange={(e) => set("salutation", e.target.value)} /></label>
-          <label className="admin-field">Nombre*<input required value={String(form.firstName || "")} onChange={(e) => set("firstName", e.target.value)} /></label>
-          <label className="admin-field">Apellido*<input required value={String(form.lastName || "")} onChange={(e) => set("lastName", e.target.value)} /></label>
+          <label className="admin-field">Nombre <span className="admin-req">*</span><input required value={String(form.firstName || "")} onChange={(e) => set("firstName", e.target.value)} /></label>
+          <label className="admin-field">Apellido <span className="admin-req">*</span><input required value={String(form.lastName || "")} onChange={(e) => set("lastName", e.target.value)} /></label>
           <label className="admin-field">Sexo<select value={String(form.sex || "")} onChange={(e) => set("sex", e.target.value)}><option value="">—</option><option value="masculino">Masculino</option><option value="femenino">Femenino</option><option value="otro">Otro</option></select></label>
           <label className="admin-field">Nacimiento<input type="date" value={String(form.birthDate || "").slice(0, 10)} onChange={(e) => set("birthDate", e.target.value)} /></label>
           <label className="admin-field">Idioma<select value={String(form.preferredLanguage || "es")} onChange={(e) => set("preferredLanguage", e.target.value)}><option value="es">Español</option><option value="en">Inglés</option></select></label>
@@ -159,40 +159,51 @@ const TABS = [
   ["resumen", "Resumen"],
   ["citas", "Citas"],
   ["expediente", "Expediente"],
-  ["formularios", "Formularios"],
-  ["alergias", "Alergias"],
-  ["fotos", "Fotos"],
-  ["documentos", "Documentos"],
-  ["ventas", "Ventas"],
+  ["finanzas", "Finanzas"],
   ["comunicaciones", "Comunicaciones"],
+  ["membresias", "Membresías"],
 ] as const;
+
+const TAB_ALIAS: Record<string, string> = {
+  ventas: "finanzas",
+  formularios: "expediente",
+  alergias: "expediente",
+  fotos: "expediente",
+  documentos: "expediente",
+};
 
 export function PatientChart({ id, tab }: { id: string; tab: string }) {
   const router = useRouter();
-  const created = useSearchParams().get("creado");
+  const params = useSearchParams();
   const [patient, setPatient] = useState<Patient | null>(null);
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(created ? "Paciente guardado." : null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [note, setNote] = useState({ subjective: "", objective: "", assessment: "", plan: "" });
   const [value, setValue] = useState("");
   const [kind, setKind] = useState<"allergies" | "conditions" | "medications">("allergies");
   const [clinical, setClinical] = useState<Record<string, Record<string, unknown>[]>>({});
-  const active = tab || "resumen";
+  const [folder, setFolder] = useState(tab === "formularios" || tab === "alergias" || tab === "fotos" || tab === "documentos" ? tab : "notas");
+  const active = TAB_ALIAS[tab] || tab || "resumen";
+
+  useEffect(() => {
+    if (params.get("creado") === "1") setNotice("Paciente guardado.");
+  }, [params]);
 
   useEffect(() => {
     api<{ patient: Patient }>(`/api/admin/patients/${id}`).then((r) => setPatient(r.patient)).catch((e) => setError(e.message));
   }, [id]);
   useEffect(() => {
-    const resource = active === "citas" ? "appointments" : active === "expediente" ? "notes" : active === "formularios" ? "forms" : active === "alergias" ? "allergies" : active === "fotos" || active === "documentos" ? "documents" : active === "ventas" ? "sales" : active === "comunicaciones" ? "messages" : "";
-    if (!resource) return;
-    api<{ rows: Record<string, unknown>[] }>(`/api/admin/patients/${id}/${resource}`).then((r) => setRows(r.rows)).catch((e) => setError(e.message));
-    if (active === "alergias") {
+    if (active === "expediente" && folder === "alergias") {
       Promise.all(["allergies", "conditions", "medications"].map((name) => api<{ rows: Record<string, unknown>[] }>(`/api/admin/patients/${id}/${name}`).then((r) => [name, r.rows] as const))).then((pairs) => {
         setClinical(Object.fromEntries(pairs));
       }).catch((e) => setError(e.message));
+      return;
     }
-  }, [id, active]);
+    const resource = active === "citas" ? "appointments" : active === "finanzas" ? "sales" : active === "comunicaciones" ? "messages" : active === "membresias" ? "memberships" : active === "expediente" && folder === "notas" ? "notes" : active === "expediente" && folder === "formularios" ? "forms" : active === "expediente" && (folder === "fotos" || folder === "documentos") ? "documents" : "";
+    if (!resource) return;
+    api<{ rows: Record<string, unknown>[] }>(`/api/admin/patients/${id}/${resource}`).then((r) => setRows(r.rows)).catch((e) => setError(e.message));
+  }, [id, active, folder]);
 
   if (!patient) return <div className="admin-skeleton" />;
   return (
@@ -212,44 +223,57 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
         }}>Archivar</button>
       </header>
       {error ? <div className="admin-alert" role="alert">{error}</div> : null}
-      {notice ? <p className="admin-notice" role="status">{notice}</p> : null}
-      <nav className="admin-tabs">
+      {notice ? <p className="admin-banner" role="status">{notice}</p> : null}
+      <nav className="admin-tabs" aria-label="Ficha del paciente">
         {TABS.map(([item, label]) => <Link key={item} className={active === item ? "is-active" : ""} href={item === "resumen" ? `/admin/pacientes/${id}` : `/admin/pacientes/${id}/${item}`}>{label}</Link>)}
       </nav>
       {active === "resumen" ? <PatientSummary patient={patient} /> : null}
       {active === "expediente" ? (
-        <form className="admin-form-grid" onSubmit={async (e) => { e.preventDefault(); await api(`/api/admin/patients/${id}/notes`, { method: "POST", body: JSON.stringify({ ...note, lock: true }) }); location.reload(); }}>
-          <label className="admin-field">Subjetivo<textarea value={note.subjective} onChange={(e) => setNote({ ...note, subjective: e.target.value })} /></label>
-          <label className="admin-field">Objetivo<textarea value={note.objective} onChange={(e) => setNote({ ...note, objective: e.target.value })} /></label>
-          <label className="admin-field">Evaluación<textarea value={note.assessment} onChange={(e) => setNote({ ...note, assessment: e.target.value })} /></label>
-          <label className="admin-field">Plan<textarea value={note.plan} onChange={(e) => setNote({ ...note, plan: e.target.value })} /></label>
-          <button className="admin-btn admin-btn--primary" type="submit">Firmar nota SOAP</button>
-          {rows.map((row) => <article key={String(row.id)} className="admin-metric span-2"><p>{String(row.subjective || row.body || "")}</p><p className="admin-metric__label">{row.lockedAt ? "Firmada" : "Borrador"} · {String(row.authorName || "")}</p></article>)}
-        </form>
-      ) : null}
-      {active === "alergias" ? (
-        <form onSubmit={async (e) => { e.preventDefault(); await api(`/api/admin/patients/${id}/${kind}`, { method: "POST", body: JSON.stringify({ value }) }); location.reload(); }}>
-          <div className="admin-toolbar">
-            <select value={kind} onChange={(e) => setKind(e.target.value as typeof kind)}><option value="allergies">Alergia</option><option value="conditions">Condición</option><option value="medications">Medicamento</option></select>
-            <input value={value} onChange={(e) => setValue(e.target.value)} placeholder="Descripción" />
-            <button className="admin-btn admin-btn--primary" type="submit">Agregar</button>
-          </div>
-          {(["allergies", "conditions", "medications"] as const).map((name) => (
-            <section key={name}><h2>{name === "allergies" ? "Alergias" : name === "conditions" ? "Condiciones" : "Medicamentos"}</h2>{(clinical[name] || []).map((row) => <div key={String(row.id)} className="admin-table__row">{String(row.value)}</div>)}</section>
-          ))}
-        </form>
-      ) : null}
-      {(active === "fotos" || active === "documentos") ? (
-        <form onSubmit={async (e) => {
-          e.preventDefault();
-          const data = new FormData(e.currentTarget);
-          if (active === "fotos") data.set("isPhoto", "1");
-          await api(`/api/admin/patients/${id}/documents`, { method: "POST", body: data });
-          location.reload();
-        }}>
-          <div className="admin-toolbar"><input name="title" placeholder="Título" /><input name="file" type="file" required /><button className="admin-btn admin-btn--primary" type="submit">Subir</button></div>
-          {rows.filter((row) => active === "fotos" ? row.is_photo : !row.is_photo).map((row) => <a key={String(row.id)} className="admin-table__row" href={`/api/admin/documents/${row.id}`}>{String(row.title)}</a>)}
-        </form>
+        <>
+          <nav className="admin-tabs" aria-label="Secciones del expediente">
+            {[["notas", "Notas"], ["alergias", "Alergias"], ["formularios", "Formularios"], ["fotos", "Fotos"], ["documentos", "Documentos"]].map(([item, label]) => (
+              <button key={item} type="button" className={folder === item ? "is-active" : ""} onClick={() => setFolder(item)}>{label}</button>
+            ))}
+          </nav>
+          {folder === "notas" ? (
+            <form className="admin-form-grid" onSubmit={async (e) => { e.preventDefault(); await api(`/api/admin/patients/${id}/notes`, { method: "POST", body: JSON.stringify({ ...note, lock: true }) }); setNotice("Nota guardada."); location.reload(); }}>
+              <label className="admin-field">Subjetivo<textarea value={note.subjective} onChange={(e) => setNote({ ...note, subjective: e.target.value })} /></label>
+              <label className="admin-field">Objetivo<textarea value={note.objective} onChange={(e) => setNote({ ...note, objective: e.target.value })} /></label>
+              <label className="admin-field">Evaluación<textarea value={note.assessment} onChange={(e) => setNote({ ...note, assessment: e.target.value })} /></label>
+              <label className="admin-field">Plan<textarea value={note.plan} onChange={(e) => setNote({ ...note, plan: e.target.value })} /></label>
+              <button className="admin-btn admin-btn--primary" type="submit">Firmar nota SOAP</button>
+              {rows.map((row) => <article key={String(row.id)} className="admin-metric span-2"><p>{String(row.subjective || row.body || "")}</p><p className="admin-metric__label">{row.lockedAt ? "Firmada" : "Borrador"} · {String(row.authorName || "")}</p></article>)}
+            </form>
+          ) : null}
+          {folder === "alergias" ? (
+            <form onSubmit={async (e) => { e.preventDefault(); await api(`/api/admin/patients/${id}/${kind}`, { method: "POST", body: JSON.stringify({ value }) }); setNotice("Registro guardado."); location.reload(); }}>
+              <div className="admin-toolbar">
+                <select value={kind} onChange={(e) => setKind(e.target.value as typeof kind)}><option value="allergies">Alergia</option><option value="conditions">Condición</option><option value="medications">Medicamento</option></select>
+                <input value={value} onChange={(e) => setValue(e.target.value)} placeholder="Descripción" />
+                <button className="admin-btn admin-btn--primary" type="submit">Agregar</button>
+              </div>
+              {(["allergies", "conditions", "medications"] as const).map((name) => (
+                <section key={name}><h2>{name === "allergies" ? "Alergias" : name === "conditions" ? "Condiciones" : "Medicamentos"}</h2>{(clinical[name] || []).map((row) => <div key={String(row.id)} className="admin-table__row">{String(row.value)}</div>)}</section>
+              ))}
+            </form>
+          ) : null}
+          {folder === "formularios" ? (
+            <div className="admin-table-wrap">{rows.map((row) => <div key={String(row.id)} className="admin-table__row"><div className="admin-table__cell-title">{String(row.name || "Formulario")}</div><div className="admin-table__cell-sub">{String(row.status || "")}</div></div>)}{!rows.length ? <div className="admin-table__empty">Sin formularios.</div> : null}</div>
+          ) : null}
+          {(folder === "fotos" || folder === "documentos") ? (
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              const data = new FormData(e.currentTarget);
+              if (folder === "fotos") data.set("isPhoto", "1");
+              await api(`/api/admin/patients/${id}/documents`, { method: "POST", body: data });
+              setNotice("Archivo guardado.");
+              location.reload();
+            }}>
+              <div className="admin-toolbar"><input name="title" placeholder="Título" /><input name="file" type="file" required /><button className="admin-btn admin-btn--primary" type="submit">Subir</button></div>
+              {rows.filter((row) => folder === "fotos" ? row.is_photo : !row.is_photo).map((row) => <a key={String(row.id)} className="admin-table__row" href={`/api/admin/documents/${row.id}`}>{String(row.title)}</a>)}
+            </form>
+          ) : null}
+        </>
       ) : null}
       {active === "citas" ? (
         <div className="admin-table-wrap">
@@ -274,7 +298,7 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
           {!rows.length ? <div className="admin-table__empty">Sin citas.</div> : null}
         </div>
       ) : null}
-      {active === "ventas" ? (
+      {active === "finanzas" ? (
         <div className="admin-table-wrap">
           {rows.map((row) => (
             <div key={String(row.id)} className="admin-table__row">
@@ -297,8 +321,19 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
           {!rows.length ? <div className="admin-table__empty">Sin ventas.</div> : null}
         </div>
       ) : null}
-      {active !== "resumen" && active !== "expediente" && active !== "alergias" && active !== "fotos" && active !== "documentos" && active !== "citas" && active !== "ventas" ? (
-        <div className="admin-table-wrap">{rows.map((row) => <div key={String(row.id)} className="admin-table__row"><div className="admin-table__cell-title">{String(row.serviceName || row.name || row.subject || row.sale_number || row.status || row.id)}</div><div className="admin-table__cell-sub">{String(row.startsAt || row.created_at || row.sentAt || row.status || "")}</div></div>)}{!rows.length ? <div className="admin-table__empty">Sin registros.</div> : null}</div>
+      {active === "membresias" ? (
+        <div className="admin-table-wrap">
+          {rows.map((row) => (
+            <div key={String(row.id)} className="admin-table__row">
+              <div className="admin-table__cell-title">{String(row.name || "Membresía")}</div>
+              <div className="admin-table__cell-sub">{String(row.status || "")}{row.current_period_end ? ` · hasta ${String(row.current_period_end).slice(0, 10)}` : ""}</div>
+            </div>
+          ))}
+          {!rows.length ? <div className="admin-table__empty">Sin membresías.</div> : null}
+        </div>
+      ) : null}
+      {active === "comunicaciones" ? (
+        <div className="admin-table-wrap">{rows.map((row) => <div key={String(row.id)} className="admin-table__row"><div className="admin-table__cell-title">{String(row.subject || row.status || "Mensaje")}</div><div className="admin-table__cell-sub">{String(row.sent_at || row.scheduled_for || row.status || "")}</div></div>)}{!rows.length ? <div className="admin-table__empty">Sin comunicaciones.</div> : null}</div>
       ) : null}
     </>
   );

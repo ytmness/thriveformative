@@ -43,6 +43,15 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string; res
       const rows = await query(`SELECT id, sale_number, status, total, paid_total, balance, created_at FROM sales WHERE patient_id = $1 ORDER BY created_at DESC`, [id]);
       return Response.json({ rows: rows.rows });
     }
+    if (resource === "memberships") {
+      const rows = await query(
+        `SELECT pm.id, pm.status, pm.current_period_end, m.name
+         FROM patient_memberships pm JOIN memberships m ON m.id = pm.membership_id
+         WHERE pm.patient_id = $1 ORDER BY pm.created_at DESC`,
+        [id]
+      );
+      return Response.json({ rows: rows.rows });
+    }
     throw new DomainError("Recurso no encontrado.", 404);
   } catch (error) {
     return toErrorResponse(error);
