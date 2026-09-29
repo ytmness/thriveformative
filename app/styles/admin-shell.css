@@ -391,12 +391,16 @@
 
 .admin-table__head {
   display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
   gap: 1rem;
+  align-items: center;
   padding: 0.85rem 1.25rem;
   font-size: 0.6875rem;
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  text-align: left;
   color: rgb(var(--muted));
   border-bottom: 1px solid rgb(var(--border) / 0.14);
   background: rgb(var(--bg) / 0.25);
@@ -426,7 +430,11 @@
 
 .admin-table__row {
   display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
   gap: 1rem;
+  align-items: center;
+  text-align: left;
   padding: 1rem 1.25rem;
   border-bottom: 1px solid rgb(var(--border) / 0.1);
   transition: background 0.15s ease;
@@ -478,7 +486,7 @@
 
 .admin-table__empty {
   padding: 2.5rem 1.25rem;
-  text-align: center;
+  text-align: left;
   color: rgb(var(--muted));
   font-size: 0.9375rem;
 }
@@ -556,9 +564,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.38rem 0.7rem;
-  border-radius: 0.55rem;
-  font-size: 0.75rem;
+  height: 40px;
+  padding: 0 0.9rem;
+  border-radius: 0.65rem;
+  font-size: 0.875rem;
   font-weight: 600;
   border: 1px solid rgb(var(--border) / 0.22);
   background: rgb(var(--surface) / 0.8);
@@ -577,13 +586,17 @@
 }
 
 .admin-btn--primary {
-  background: rgb(var(--primary) / 0.14);
-  border-color: rgb(var(--primary) / 0.32);
-  color: rgb(var(--primary));
+  background: rgb(122 62 40);
+  border-color: rgb(122 62 40);
+  color: #fff;
+  height: 40px;
+  padding: 0 1rem;
+  font-size: 0.875rem;
 }
 
 .admin-btn--primary:hover {
-  background: rgb(var(--primary) / 0.22);
+  background: rgb(98 48 30);
+  border-color: rgb(98 48 30);
 }
 
 .admin-btn--danger {

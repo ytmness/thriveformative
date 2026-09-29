@@ -2,20 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/components/admin/clinic/client";
+import { CloseButton, EmptyState, SegmentedControl } from "@/components/admin/ui";
 
-const SECTIONS = [
-  ["sedes", "Sedes"],
-  ["salas", "Salas"],
-  ["servicios", "Servicios"],
-  ["categorias", "Categorías"],
-  ["equipo", "Equipo"],
-  ["horarios", "Horarios"],
-  ["impuestos", "Impuestos"],
-  ["pagos", "Pagos"],
-  ["campos", "Campos"],
-  ["politicas", "Políticas"],
-  ["facturacion", "Facturación"],
-] as const;
+const GROUPS: [string, [string, string][]][] = [
+  ["Clínica", [["sedes", "Sedes"], ["salas", "Salas"], ["horarios", "Horarios"]]],
+  ["Servicios", [["servicios", "Servicios"], ["categorias", "Categorías"]]],
+  ["Equipo", [["equipo", "Equipo y roles"]]],
+  ["Finanzas", [["impuestos", "Impuestos"], ["pagos", "Métodos de pago"], ["facturacion", "Facturación"]]],
+  ["Pacientes", [["campos", "Campos personalizados"], ["politicas", "Políticas"]]],
+];
+const SECTIONS: [string, string][] = GROUPS.flatMap((group) => group[1]);
 
 const MAP: Record<string, string> = {
   sedes: "locations",
@@ -47,6 +43,7 @@ export default function SettingsPanel({ section }: { section: string }) {
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [serviceTab, setServiceTab] = useState("general");
+  const [openForm, setOpenForm] = useState(false);
   const [templates, setTemplates] = useState<Row[]>([]);
 
   async function load() {
@@ -66,6 +63,7 @@ export default function SettingsPanel({ section }: { section: string }) {
   useEffect(() => {
     setForm({});
     setEditing(null);
+    setOpenForm(false);
     setSaved(false);
     load().catch((e) => setError(e.message));
     api<{ rows: Row[] }>("/api/admin/settings/locations").then((r) => setLocations(r.rows)).catch(() => undefined);
@@ -97,6 +95,7 @@ export default function SettingsPanel({ section }: { section: string }) {
       }
       setForm(apiSection === "booking" || apiSection === "clinic" ? form : {});
       setEditing(null);
+      setOpenForm(false);
       setSaved(true);
       await load();
     } catch (err) {
@@ -105,54 +104,129 @@ export default function SettingsPanel({ section }: { section: string }) {
   }
 
   const title = SECTIONS.find((item) => item[0] === section)?.[1] || "Configuración";
+  const singleton = apiSection === "booking" || apiSection === "clinic";
+  const columns = tableColumns(apiSection);
+  const recordName = String(form.name || form.label || form.firstName || "");
+
+  useEffect(() => {
+    if (!openForm) return;
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpenForm(false);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [openForm]);
+
+  function openNew() {
+    setEditing(null);
+    setForm({});
+    setServiceTab("general");
+    setOpenForm(true);
+  }
+
+  function openEdit(row: Row) {
+    setEditing(String(row.id));
+    setServiceTab("general");
+    setForm(formFrom(apiSection, row));
+    setOpenForm(true);
+  }
+
+  const editor = (
+    <form id="settings-editor" className="admin-form-grid" onSubmit={submit}>
+      {apiSection === "services" ? (
+        <div className="span-2">
+          <SegmentedControl
+            label="Secciones del servicio"
+            value={serviceTab}
+            onChange={setServiceTab}
+            items={[["general", "General"], ["precios", "Precios"], ["reserva", "Reserva en línea"], ["formularios", "Formularios"]].map(([id, label]) => ({ id, label }))}
+          />
+        </div>
+      ) : null}
+      <Fields section={apiSection} form={form} set={set} locations={locations} staff={staff} categories={categories} taxes={taxes} templates={templates} serviceTab={serviceTab} editing={Boolean(editing)} />
+    </form>
+  );
 
   return (
-    <>
-      <header className="admin-header">
-        <p className="admin-header__eyebrow">Clínica</p>
-        <h1 className="admin-header__title">{title}</h1>
-      </header>
-      <nav className="admin-tabs admin-tabs--wrap" aria-label="Secciones de configuración">
-        {SECTIONS.map(([id, label]) => (
-          <a key={id} className={section === id ? "is-active" : ""} href={`/admin/configuracion/${id}`}>{label}</a>
+    <div className="admin-settings">
+      <nav className="admin-settings__nav" aria-label="Secciones de configuración">
+        {GROUPS.map(([group, items]) => (
+          <div key={group} className="admin-settings__group">
+            <p className="admin-settings__label">{group}</p>
+            {items.map(([id, label]) => (
+              <a key={id} className={section === id ? "is-active" : ""} href={`/admin/configuracion/${id}`}>{label}</a>
+            ))}
+          </div>
         ))}
       </nav>
-      {error ? <div className="admin-alert" role="alert">{error}</div> : null}
-      {saved ? <p className="admin-notice" role="status">Cambios guardados.</p> : null}
-      {apiSection === "services" ? (
-        <nav className="admin-tabs" aria-label="Secciones del servicio">
-          {[["general", "General"], ["precios", "Precios"], ["reserva", "Reserva en línea"], ["formularios", "Formularios"]].map(([id, label]) => (
-            <button key={id} type="button" className={serviceTab === id ? "is-active" : ""} onClick={() => setServiceTab(id)}>{label}</button>
-          ))}
-        </nav>
-      ) : null}
-      <form className="admin-form-grid" onSubmit={submit}>
-        <Fields section={apiSection} form={form} set={set} locations={locations} staff={staff} categories={categories} taxes={taxes} templates={templates} serviceTab={serviceTab} editing={Boolean(editing)} />
-        <div className="admin-toolbar span-2">
-          <button className="admin-btn admin-btn--primary" type="submit">{editing ? "Guardar cambios" : apiSection === "booking" || apiSection === "clinic" ? "Guardar" : "Crear"}</button>
-          {editing ? <button className="admin-btn" type="button" onClick={() => { setEditing(null); setForm({}); }}>Cancelar edición</button> : null}
-        </div>
-      </form>
-      {apiSection !== "booking" && apiSection !== "clinic" ? (
-        <div className="admin-table-wrap" style={{ marginTop: "1.25rem" }}>
-          <div className="admin-table__row admin-table__head"><span>Registro</span><span>Detalle</span><span /></div>
-          {rows.map((row) => (
-            <div key={String(row.id)} className="admin-table__row">
-              <div className="admin-table__cell-title">{labelOf(apiSection, row)}</div>
-              <div className="admin-table__cell-sub">{detailOf(apiSection, row)}</div>
-              <div className="admin-toolbar">
-                <button className="admin-btn" type="button" onClick={() => { setEditing(String(row.id)); setServiceTab("general"); setForm(formFrom(apiSection, row)); }}>Editar</button>
-                <button className="admin-btn admin-btn--danger" type="button" onClick={async () => {
-                  await api(`/api/admin/settings/${apiSection}/${row.id}`, { method: "DELETE" });
-                  await load();
-                }}>Quitar</button>
-              </div>
+      <div>
+        <p className="admin-crumb">
+          <a href="/admin/configuracion/sedes">Configuración</a>
+          {" › "}
+          <a href={`/admin/configuracion/${section}`}>{title}</a>
+          {openForm && recordName ? ` › ${recordName}` : null}
+        </p>
+        <header className="admin-header">
+          <h1 className="admin-header__title">{title}</h1>
+        </header>
+        {error ? <div className="admin-alert" role="alert">{error}</div> : null}
+        {saved ? <p className="admin-notice" role="status">Cambios guardados.</p> : null}
+        {singleton ? (
+          <section className="admin-card">
+            {editor}
+            <div className="admin-drawer__foot" style={{ marginTop: "1rem", padding: 0, border: 0 }}>
+              <button className="admin-btn admin-btn--primary" type="submit" form="settings-editor">Guardar</button>
             </div>
-          ))}
-          {!rows.length ? <div className="admin-table__empty">Todavía no hay registros. Usa el formulario de arriba para crear el primero.</div> : null}
+          </section>
+        ) : (
+          <>
+            <div className="admin-page-head">
+              <h2 style={{ margin: 0, fontSize: "1.05rem" }}>{title}</h2>
+              <button className="admin-btn admin-btn--primary" type="button" onClick={openNew}>+ Nuevo</button>
+            </div>
+            <div className="admin-table-wrap">
+              <div className="admin-table__row admin-table__head" style={{ gridTemplateColumns: columns.template }}>
+                {columns.labels.map((label) => <span key={label}>{label}</span>)}
+              </div>
+              {rows.map((row) => (
+                <div key={String(row.id)} className="admin-table__row" style={{ gridTemplateColumns: columns.template }}>
+                  {cellsOf(apiSection, row, categories).map((cell, index) => <div key={index}>{cell}</div>)}
+                  <details className="admin-menu">
+                    <summary aria-label="Acciones">⋯</summary>
+                    <div className="admin-menu__list">
+                      <button type="button" onClick={() => openEdit(row)}>Editar</button>
+                      <button type="button" onClick={async () => {
+                        if (!window.confirm(`¿Archivar «${labelOf(apiSection, row)}»?`)) return;
+                        await api(`/api/admin/settings/${apiSection}/${row.id}`, { method: "DELETE" });
+                        await load();
+                      }}>Archivar</button>
+                    </div>
+                  </details>
+                </div>
+              ))}
+              {!rows.length ? <EmptyState title="Sin registros" text="Crea el primero con + Nuevo." action={<button className="admin-btn admin-btn--primary" type="button" onClick={openNew}>+ Nuevo</button>} /> : null}
+            </div>
+          </>
+        )}
+      </div>
+      {openForm ? (
+        <div className="admin-drawer" onClick={() => setOpenForm(false)}>
+          <div className="admin-drawer__panel" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-drawer__head">
+              <h2 className="admin-header__title" style={{ margin: 0, fontSize: "1.25rem" }}>
+                {apiSection === "services" && editing ? `Editar servicio: ${recordName || "servicio"}` : editing ? `Editar ${title.toLowerCase()}` : `Nuevo: ${title.toLowerCase()}`}
+              </h2>
+              <CloseButton onClick={() => setOpenForm(false)} />
+            </div>
+            <div className="admin-drawer__body">{editor}</div>
+            <div className="admin-drawer__foot">
+              <button className="admin-btn" type="button" onClick={() => setOpenForm(false)}>Cancelar</button>
+              <button className="admin-btn admin-btn--primary" type="submit" form="settings-editor">Guardar</button>
+            </div>
+          </div>
         </div>
       ) : null}
-    </>
+    </div>
   );
 }
 
@@ -295,12 +369,18 @@ function Fields({ section, form, set, locations, staff, categories, taxes, templ
 }
 
 function Text({ label, value, onChange, required }: { label: string; value: unknown; onChange: (value: string) => void; required?: boolean }) {
-  return <label className="admin-field">{label}<input required={required} value={value == null ? "" : String(value)} onChange={(e) => onChange(e.target.value)} /></label>;
+  return (
+    <label className="admin-field">
+      <span className="admin-field__label">{label}{required ? <span className="admin-req"> *</span> : null}</span>
+      <input required={required} value={value == null ? "" : String(value)} onChange={(e) => onChange(e.target.value)} />
+    </label>
+  );
 }
 
 function Select({ label, value, onChange, options, required }: { label: string; value: unknown; onChange: (value: string) => void; options: string[][]; required?: boolean }) {
   return (
-    <label className="admin-field">{label}
+    <label className="admin-field">
+      <span className="admin-field__label">{label}{required ? <span className="admin-req"> *</span> : null}</span>
       <select required={required} value={value == null ? "" : String(value)} onChange={(e) => onChange(e.target.value)}>
         <option value="">—</option>
         {options.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
@@ -340,6 +420,21 @@ function formFrom(section: string, row: Row): Row {
   if (section === "payment-methods") return { key: row.key, name: row.name, isActive: row.is_active };
   if (section === "custom-fields") return { entity: row.entity, label: row.label, fieldKey: row.field_key, fieldType: row.field_type };
   return { name: row.name };
+}
+
+function tableColumns(section: string) {
+  if (section === "services") return { labels: ["Nombre", "Duración", "Precio", "Categoría", "Acciones"], template: "minmax(0,1.4fr) minmax(0,0.8fr) minmax(0,0.7fr) minmax(0,1fr) 4.5rem" };
+  if (section === "staff") return { labels: ["Nombre", "Email", "Rol", "Acciones"], template: "minmax(0,1.2fr) minmax(0,1.2fr) minmax(0,1fr) 4.5rem" };
+  return { labels: ["Nombre", "Detalle", "Acciones"], template: "minmax(0,1.4fr) minmax(0,1fr) 4.5rem" };
+}
+
+function cellsOf(section: string, row: Row, categories: Row[]) {
+  if (section === "services") {
+    const category = categories.find((item) => item.id === row.category_id);
+    return [String(row.name || ""), `${row.duration_minutes || "—"} min`, `$${Number(row.price || 0).toFixed(2)}`, String(category?.name || "—")];
+  }
+  if (section === "staff") return [`${row.first_name} ${row.last_name}`, String(row.email || "—"), (Array.isArray(row.roles) ? row.roles : []).join(", ") || "sin rol"];
+  return [labelOf(section, row), detailOf(section, row) || "—"];
 }
 
 function labelOf(section: string, row: Row) {

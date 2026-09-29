@@ -1,5 +1,5 @@
 import { isSession, requirePermission } from "@/lib/auth/guard";
-import { encryptPhi } from "@/lib/crypto/phi";
+import { encryptPhi, decryptPhi } from "@/lib/crypto/phi";
 import { query } from "@/lib/db";
 import { dispatchDueMessages } from "@/lib/messaging/queue";
 import { readJson, toErrorResponse, DomainError } from "@/lib/http";
@@ -8,10 +8,30 @@ export async function GET() {
   const session = await requirePermission("communications.read");
   if (!isSession(session)) return session;
   const rows = await query(
-    `SELECT id, channel, subject, status, scheduled_for, sent_at, error, patient_id, appointment_id
+    `SELECT id, channel, subject, body, status, scheduled_for, sent_at, error, recipient_enc
      FROM messages ORDER BY created_at DESC LIMIT 200`
   );
-  return Response.json({ rows: rows.rows });
+  return Response.json({
+    rows: rows.rows.map((row) => {
+      let recipient = "—";
+      try {
+        recipient = decryptPhi(row.recipient_enc as string | null) || "—";
+      } catch {
+        recipient = "—";
+      }
+      return {
+        id: row.id,
+        channel: row.channel,
+        subject: row.subject,
+        body: row.body,
+        status: row.status,
+        scheduled_for: row.scheduled_for,
+        sent_at: row.sent_at,
+        error: row.error,
+        recipient,
+      };
+    }),
+  });
 }
 
 export async function POST(req: Request) {

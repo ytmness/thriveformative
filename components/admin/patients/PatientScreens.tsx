@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/components/admin/clinic/client";
+import { Button, CloseButton, EmptyState, Tabs, Toast } from "@/components/admin/ui";
 
 type Patient = Record<string, unknown> & { id: string; firstName: string; lastName: string; clientCode: string; email?: string; mobile?: string };
 
@@ -24,8 +25,10 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(initialNotice);
   const [section, setSection] = useState("identidad");
+  const [attempted, setAttempted] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
   const [options, setOptions] = useState<{ locations: { id: string; name: string }[]; staff: { id: string; first_name: string; last_name: string }[]; sources: { id: string; name: string }[] }>({ locations: [], staff: [], sources: [] });
-  const router = useRouter();
+  const tabs = [["identidad", "Datos"], ["contacto", "Contacto"], ["direccion", "Dirección"], ["consentimiento", "Consentimientos"]] as const;
 
   async function load(nextPage = page, query = q) {
     const data = await api<{ rows: Patient[]; total: number }>(`/api/admin/patients?q=${encodeURIComponent(query)}&page=${nextPage}`);
@@ -42,11 +45,32 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
     ]).then(([locations, staff, sources]) => setOptions({ locations: locations.rows, staff: staff.rows, sources: sources.rows })).catch(() => undefined);
   }, [initialQuery]);
 
+  useEffect(() => {
+    if (!open) return;
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpen(false);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
   async function save(e: React.FormEvent) {
     e.preventDefault();
+    setAttempted(true);
+    if (!String(form.firstName || "").trim() || !String(form.lastName || "").trim()) {
+      setSection("identidad");
+      setError("Nombre y apellido son obligatorios.");
+      return;
+    }
     try {
       const created = await api<{ patient: { id: string } }>("/api/admin/patients", { method: "POST", body: JSON.stringify(form) });
-      router.push(`/admin/pacientes/${created.patient.id}?creado=1`);
+      setOpen(false);
+      setForm(EMPTY);
+      setSection("identidad");
+      setAttempted(false);
+      setError(null);
+      setToast(created.patient.id);
+      await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error");
     }
@@ -63,13 +87,17 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
         <button className="admin-btn admin-btn--primary" type="button" onClick={() => setOpen(true)}>+ Paciente</button>
       </div>
       <div className="admin-table-wrap">
+        <div className="admin-table__row admin-table__head" style={{ gridTemplateColumns: "minmax(0,1fr) 8rem" }}><span>Paciente</span><span>Acciones</span></div>
         {rows.map((row) => (
-          <div key={row.id} className="admin-table__row">
+          <div key={row.id} className="admin-table__row" style={{ gridTemplateColumns: "minmax(0,1fr) 8rem" }}>
             <Link href={`/admin/pacientes/${row.id}`}>
               <div className="admin-table__cell-title">{row.firstName} {row.lastName}</div>
               <div className="admin-table__cell-sub">{row.clientCode} · {row.email || "sin email"} · {row.mobile || ""}</div>
             </Link>
-            <button className="admin-btn" type="button" onClick={async () => {
+            <details className="admin-menu">
+              <summary aria-label="Acciones">⋯</summary>
+              <div className="admin-menu__list">
+            <button type="button" onClick={async () => {
               if (!window.confirm(`¿Archivar a ${row.firstName} ${row.lastName}? El expediente se conserva, pero dejará de aparecer en la lista.`)) return;
               try {
                 await api(`/api/admin/patients/${row.id}`, { method: "DELETE" });
@@ -80,9 +108,11 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
                 setError(err instanceof Error ? err.message : "No se pudo archivar el paciente.");
               }
             }}>Archivar</button>
+              </div>
+            </details>
           </div>
         ))}
-        {!rows.length ? <div className="admin-table__empty">{q ? "Ningún paciente coincide con la búsqueda." : "Aún no hay pacientes. Crea el primero con + Paciente."}</div> : null}
+        {!rows.length ? <EmptyState title={q ? "Sin coincidencias" : "Aún no hay pacientes"} text={q ? "Ningún paciente coincide con la búsqueda." : "Crea el primero para empezar el directorio."} action={<button className="admin-btn admin-btn--primary" type="button" onClick={() => setOpen(true)}>+ Paciente</button>} /> : null}
       </div>
       <div className="admin-toolbar">
         <button className="admin-btn" type="button" disabled={page <= 1} onClick={() => { const n = page - 1; setPage(n); load(n); }}>Anterior</button>
@@ -92,18 +122,32 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
       {open ? (
         <div className="admin-drawer" onClick={() => setOpen(false)}>
           <form className="admin-drawer__panel" onClick={(e) => e.stopPropagation()} onSubmit={save}>
-            <div className="admin-drawer__head"><h2 className="admin-header__title">Nuevo paciente</h2><button className="admin-btn" type="button" onClick={() => setOpen(false)}>Cerrar</button></div>
-            {error ? <div className="admin-alert" role="alert">{error}</div> : null}
-            <nav className="admin-tabs" aria-label="Secciones del paciente">
-              {[["identidad", "Datos"], ["contacto", "Contacto"], ["direccion", "Dirección"], ["consentimiento", "Consentimientos"]].map(([id, label]) => (
-                <button key={id} type="button" className={section === id ? "is-active" : ""} onClick={() => setSection(id)}>{label}</button>
-              ))}
-            </nav>
-            <PatientFields form={form} setForm={setForm} options={options} section={section} />
-            <button className="admin-btn admin-btn--primary" type="submit">Guardar</button>
+            <div className="admin-drawer__head">
+              <h2 className="admin-header__title" style={{ margin: 0, fontSize: "1.35rem" }}>Nuevo paciente</h2>
+              <CloseButton onClick={() => setOpen(false)} />
+            </div>
+            <div className="admin-drawer__body">
+              {error ? <div className="admin-alert" role="alert">{error}</div> : null}
+              <Tabs
+                label="Secciones del paciente"
+                value={section}
+                onChange={setSection}
+                items={tabs.map(([id, label]) => ({ id, label }))}
+                errors={attempted ? { identidad: !String(form.firstName || "").trim() || !String(form.lastName || "").trim() } : {}}
+              />
+              <PatientFields form={form} setForm={setForm} options={options} section={section} />
+            </div>
+            <div className="admin-drawer__foot">
+              <Button type="button" onClick={() => setOpen(false)}>Cancelar</Button>
+              {section !== "consentimiento" ? (
+                <Button type="button" onClick={() => setSection(tabs[tabs.findIndex((item) => item[0] === section) + 1][0])}>Siguiente</Button>
+              ) : null}
+              <Button variant="primary" type="submit">Guardar paciente</Button>
+            </div>
           </form>
         </div>
       ) : null}
+      {toast ? <Toast message="Paciente creado" href={`/admin/pacientes/${toast}`} onClose={() => setToast(null)} /> : null}
     </>
   );
 }
@@ -113,16 +157,24 @@ export function PatientFields({ form, setForm, options, section = "identidad" }:
   return (
     <div className="admin-form-grid" style={{ margin: "1rem 0" }}>
       {section === "identidad" ? (
-        <>
-          <label className="admin-field">Saludo<input value={String(form.salutation || "")} onChange={(e) => set("salutation", e.target.value)} /></label>
-          <label className="admin-field">Nombre <span className="admin-req">*</span><input required value={String(form.firstName || "")} onChange={(e) => set("firstName", e.target.value)} /></label>
-          <label className="admin-field">Apellido <span className="admin-req">*</span><input required value={String(form.lastName || "")} onChange={(e) => set("lastName", e.target.value)} /></label>
-          <label className="admin-field">Sexo<select value={String(form.sex || "")} onChange={(e) => set("sex", e.target.value)}><option value="">—</option><option value="masculino">Masculino</option><option value="femenino">Femenino</option><option value="otro">Otro</option></select></label>
-          <label className="admin-field">Nacimiento<input type="date" value={String(form.birthDate || "").slice(0, 10)} onChange={(e) => set("birthDate", e.target.value)} /></label>
-          <label className="admin-field">Idioma<select value={String(form.preferredLanguage || "es")} onChange={(e) => set("preferredLanguage", e.target.value)}><option value="es">Español</option><option value="en">Inglés</option></select></label>
-          <label className="admin-field">Sede<select value={String(form.locationId || "")} onChange={(e) => set("locationId", e.target.value)}><option value="">—</option>{options.locations.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
-          <label className="admin-field">Responsable<select value={String(form.ownerStaffId || "")} onChange={(e) => set("ownerStaffId", e.target.value)}><option value="">—</option>{options.staff.map((o) => <option key={o.id} value={o.id}>{o.first_name} {o.last_name}</option>)}</select></label>
-        </>
+        <div className="span-2">
+          <div className="admin-patient-row admin-patient-row--3">
+            <label className="admin-field"><span className="admin-field__label">Saludo</span><select value={String(form.salutation || "")} onChange={(e) => set("salutation", e.target.value)}><option value="">ninguno</option><option>Sr.</option><option>Sra.</option><option>Srta.</option><option>Dr.</option><option>Dra.</option></select></label>
+            <label className="admin-field"><span className="admin-field__label">Nombre<span className="admin-req"> *</span></span><input required value={String(form.firstName || "")} onChange={(e) => set("firstName", e.target.value)} /></label>
+            <label className="admin-field"><span className="admin-field__label">Apellido<span className="admin-req"> *</span></span><input required value={String(form.lastName || "")} onChange={(e) => set("lastName", e.target.value)} /></label>
+          </div>
+          <div className="admin-patient-row admin-patient-row--2">
+            <label className="admin-field"><span className="admin-field__label">Sexo</span><select value={String(form.sex || "")} onChange={(e) => set("sex", e.target.value)}><option value="">—</option><option value="masculino">Masculino</option><option value="femenino">Femenino</option><option value="otro">Otro</option></select></label>
+            <label className="admin-field"><span className="admin-field__label">Nacimiento</span><input type="date" value={String(form.birthDate || "").slice(0, 10)} onChange={(e) => set("birthDate", e.target.value)} /></label>
+          </div>
+          <div className="admin-patient-row admin-patient-row--2">
+            <label className="admin-field"><span className="admin-field__label">Idioma</span><select value={String(form.preferredLanguage || "es")} onChange={(e) => set("preferredLanguage", e.target.value)}><option value="es">Español</option><option value="en">Inglés</option></select></label>
+            <label className="admin-field"><span className="admin-field__label">Sede</span><select value={String(form.locationId || "")} onChange={(e) => set("locationId", e.target.value)}><option value="">—</option>{options.locations.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
+          </div>
+          <div className="admin-patient-row admin-patient-row--1">
+            <label className="admin-field"><span className="admin-field__label">Responsable</span><select value={String(form.ownerStaffId || "")} onChange={(e) => set("ownerStaffId", e.target.value)}><option value="">—</option>{options.staff.map((o) => <option key={o.id} value={o.id}>{o.first_name} {o.last_name}</option>)}</select></label>
+          </div>
+        </div>
       ) : null}
       {section === "contacto" ? (
         <>
