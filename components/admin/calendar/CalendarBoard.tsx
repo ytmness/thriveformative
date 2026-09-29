@@ -18,7 +18,42 @@ type Appt = {
   notes: string | null;
   durationMinutes: number;
 };
-type Opt = { id: string; name?: string; first_name?: string; last_name?: string };
+type Opt = { id: string; name?: string; first_name?: string; last_name?: string; timezone?: string };
+
+const CLINIC_TZ = "America/Chicago";
+
+function pad(n: number) {
+  return String(n).padStart(2, "0");
+}
+
+function localKey(date: Date) {
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+function clinicWall(iso: string, timeZone: string) {
+  const formatted = new Intl.DateTimeFormat("en-US", {
+    timeZone, hour12: false, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit",
+  }).formatToParts(new Date(iso));
+  const map: Record<string, string> = {};
+  for (const part of formatted) map[part.type] = part.value;
+  const hour = map.hour === "24" ? "00" : map.hour;
+  const date = `${map.year}-${map.month}-${map.day}`;
+  return { date, hour: Number(hour), input: `${date}T${hour}:${map.minute}` };
+}
+
+function nextClinicSlot(timeZone: string) {
+  const wall = clinicWall(new Date().toISOString(), timeZone);
+  let hour = wall.hour;
+  let date = wall.date;
+  if (hour < 8) hour = 9;
+  else if (hour >= 19) {
+    const [year, month, day] = date.split("-").map(Number);
+    const next = new Date(Date.UTC(year, month - 1, day + 1));
+    date = `${next.getUTCFullYear()}-${pad(next.getUTCMonth() + 1)}-${pad(next.getUTCDate())}`;
+    hour = 9;
+  }
+  return `${date}T${pad(hour)}:00`;
+}
 
 const STATUSES = [
   ["booked", "Reservada"],
@@ -28,10 +63,6 @@ const STATUSES = [
   ["cancelled", "Cancelada"],
   ["no_show", "No-show"],
 ] as const;
-
-function dayKey(date: Date) {
-  return date.toISOString().slice(0, 10);
-}
 
 export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) {
   const [view, setView] = useState<"day" | "week" | "month">("week");
@@ -47,7 +78,9 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
   const [waitlist, setWaitlist] = useState<{ id: string; first_name: string | null; last_name: string | null; service_name: string | null }[]>([]);
   const [block, setBlock] = useState<{ startsAt: string; endsAt: string; reason: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [draft, setDraft] = useState<Record<string, string> | null>(openCreate ? { status: "booked" } : null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [clinicTz, setClinicTz] = useState(CLINIC_TZ);
+  const [draft, setDraft] = useState<Record<string, string> | null>(openCreate ? { status: "booked", startsAt: nextClinicSlot(CLINIC_TZ) } : null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
   const range = useMemo(() => {
@@ -71,7 +104,7 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
     load().catch((e) => setError(e.message));
     api<{ rows: Opt[] }>("/api/admin/settings/staff").then((r) => setStaff(r.rows)).catch(() => undefined);
     api<{ rows: Opt[] }>("/api/admin/settings/services").then((r) => setServices(r.rows)).catch(() => undefined);
-    api<{ rows: Opt[] }>("/api/admin/settings/locations").then((r) => setLocations(r.rows)).catch(() => undefined);
+    api<{ rows: Opt[] }>("/api/admin/settings/locations").then((r) => { setLocations(r.rows); if (r.rows[0]?.timezone) setClinicTz(r.rows[0].timezone); }).catch(() => undefined);
     api<{ rows: Opt[] }>("/api/admin/settings/rooms").then((r) => setRooms(r.rows)).catch(() => undefined);
     api<{ rows: { id: string; first_name: string | null; last_name: string | null; service_name: string | null }[] }>("/api/admin/waitlist").then((r) => setWaitlist(r.rows)).catch(() => undefined);
     api<{ rows: { id: string; firstName: string; lastName: string }[] }>("/api/admin/patients?pageSize=100").then((r) => setPatients(r.rows)).catch(() => undefined);
@@ -98,27 +131,27 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
 
   const boardColumns = useMemo(() => {
     const day = days[0];
-    const sameDay = (row: Appt) => day && dayKey(new Date(row.startsAt)) === dayKey(day);
+    const sameDay = (row: Appt) => day && clinicWall(row.startsAt, clinicTz).date === localKey(day);
     if (view === "day" && columnsBy === "staff") {
       return staff.map((person) => ({
         key: person.id,
         label: `${person.first_name || ""} ${person.last_name || ""}`.trim(),
-        match: (row: Appt, hour: number) => sameDay(row) && row.staffUserId === person.id && new Date(row.startsAt).getHours() === hour,
+        match: (row: Appt, hour: number) => sameDay(row) && row.staffUserId === person.id && clinicWall(row.startsAt, clinicTz).hour === hour,
       }));
     }
     if (view === "day" && columnsBy === "room") {
       return rooms.map((room) => ({
         key: room.id,
         label: room.name || "Sala",
-        match: (row: Appt, hour: number) => sameDay(row) && row.roomId === room.id && new Date(row.startsAt).getHours() === hour,
+        match: (row: Appt, hour: number) => sameDay(row) && row.roomId === room.id && clinicWall(row.startsAt, clinicTz).hour === hour,
       }));
     }
     return days.map((item) => ({
-      key: dayKey(item),
+      key: localKey(item),
       label: item.toLocaleDateString("es-MX", { weekday: "short", day: "numeric" }),
-      match: (row: Appt, hour: number) => dayKey(new Date(row.startsAt)) === dayKey(item) && new Date(row.startsAt).getHours() === hour,
+      match: (row: Appt, hour: number) => clinicWall(row.startsAt, clinicTz).date === localKey(item) && clinicWall(row.startsAt, clinicTz).hour === hour,
     }));
-  }, [columnsBy, days, rooms, staff, view]);
+  }, [clinicTz, columnsBy, days, rooms, staff, view]);
 
   async function saveDraft() {
     if (!draft) return;
@@ -137,6 +170,7 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
         }) });
       }
       setDraft(null);
+      setNotice("Cita guardada.");
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error");
@@ -162,7 +196,8 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
         <h1 className="admin-header__title">Calendario</h1>
         <p className="admin-header__desc">Día, semana o mes. Arrastra una cita para moverla. El sistema impide dos reservas del mismo profesional o sala.</p>
       </header>
-      {error ? <div className="admin-alert">{error}</div> : null}
+      {error ? <div className="admin-alert" role="alert">{error}</div> : null}
+      {notice ? <p className="admin-notice" role="status">{notice}</p> : null}
       <div className="admin-toolbar">
         <button className="admin-btn" type="button" onClick={() => setAnchor(new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() - (view === "month" ? 30 : view === "week" ? 7 : 1)))}>Anterior</button>
         <button className="admin-btn" type="button" onClick={() => setAnchor(new Date())}>Hoy</button>
@@ -174,7 +209,7 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
           <option value="">Todos los profesionales</option>
           {staff.map((person) => <option key={person.id} value={person.id}>{person.first_name} {person.last_name}</option>)}
         </select>
-        <button className="admin-btn admin-btn--primary" type="button" onClick={() => setDraft({ status: "booked", startsAt: new Date().toISOString().slice(0, 16) })}>+ Cita</button>
+        <button className="admin-btn admin-btn--primary" type="button" onClick={() => setDraft({ status: "booked", startsAt: nextClinicSlot(clinicTz), locationId: locations[0]?.id || "", staffUserId: staffFilter })}>+ Cita</button>
         <button className="admin-btn" type="button" onClick={() => setBlock({ startsAt: "", endsAt: "", reason: "Bloqueo" })}>Bloqueo</button>
         {view === "day" ? (
           <select value={columnsBy} onChange={(e) => setColumnsBy(e.target.value as "day" | "staff" | "room")} aria-label="Columnas">
@@ -212,7 +247,7 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
             {days.map((day) => (
               <button key={day.toISOString()} type="button" className="admin-metric" onClick={() => { setAnchor(day); setView("day"); }}>
                 <div className="admin-metric__label">{day.getDate()}</div>
-                <div className="admin-metric__value" style={{ fontSize: "1rem" }}>{rows.filter((row) => dayKey(new Date(row.startsAt)) === dayKey(day)).length}</div>
+                <div className="admin-metric__value" style={{ fontSize: "1rem" }}>{rows.filter((row) => clinicWall(row.startsAt, clinicTz).date === localKey(day)).length}</div>
               </button>
             ))}
           </div>
@@ -226,9 +261,15 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
               <div className="admin-cal__row" key={hour}>
                 <div className="admin-cal__cell">{String(hour).padStart(2, "0")}:00</div>
                 {boardColumns.map((column) => (
-                  <HourCell key={`${column.key}-${hour}`} id={`${column.key}|${String(hour).padStart(2, "0")}`} appointments={rows.filter((row) => column.match(row, hour))} onOpen={(row) => setDraft({
+                  <HourCell key={`${column.key}-${hour}`} id={`${column.key}|${String(hour).padStart(2, "0")}`} appointments={rows.filter((row) => column.match(row, hour))} onCreate={() => {
+                    const day = view === "day" ? days[0] : days.find((item) => localKey(item) === column.key) || days[0];
+                    const next: Record<string, string> = { status: "booked", startsAt: day ? `${localKey(day)}T${pad(hour)}:00` : nextClinicSlot(clinicTz), locationId: locations[0]?.id || "" };
+                    if (view === "day" && columnsBy === "staff") next.staffUserId = column.key;
+                    else if (staffFilter) next.staffUserId = staffFilter;
+                    setDraft(next);
+                  }} onOpen={(row) => setDraft({
                     id: row.id, patientId: "", serviceId: "", staffUserId: row.staffUserId, locationId: row.locationId,
-                    startsAt: row.startsAt.slice(0, 16), status: row.status, notes: row.notes || "",
+                    startsAt: clinicWall(row.startsAt, clinicTz).input, status: row.status, notes: row.notes || "",
                   })} />
                 ))}
               </div>
@@ -276,10 +317,10 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
   );
 }
 
-function HourCell({ id, appointments, onOpen }: { id: string; appointments: Appt[]; onOpen: (row: Appt) => void }) {
+function HourCell({ id, appointments, onOpen, onCreate }: { id: string; appointments: Appt[]; onOpen: (row: Appt) => void; onCreate: () => void }) {
   const { setNodeRef, isOver } = useDroppable({ id });
   return (
-    <div ref={setNodeRef} className="admin-cal__cell" style={{ background: isOver ? "rgb(var(--primary) / 0.08)" : undefined }}>
+    <div ref={setNodeRef} className="admin-cal__cell" style={{ background: isOver ? "rgb(var(--primary) / 0.08)" : undefined }} onClick={onCreate} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter") onCreate(); }}>
       {appointments.map((row) => <DraggableAppt key={row.id} row={row} onOpen={onOpen} />)}
     </div>
   );
@@ -288,7 +329,7 @@ function HourCell({ id, appointments, onOpen }: { id: string; appointments: Appt
 function DraggableAppt({ row, onOpen }: { row: Appt; onOpen: (row: Appt) => void }) {
   const { attributes, listeners, setNodeRef } = useDraggable({ id: row.id });
   return (
-    <button ref={setNodeRef} type="button" className="admin-cal__event" {...listeners} {...attributes} onClick={() => onOpen(row)}>
+    <button ref={setNodeRef} type="button" className="admin-cal__event" {...listeners} {...attributes} onClick={(e) => { e.stopPropagation(); onOpen(row); }}>
       {(row.patientName || "Cita")} · {row.serviceName || row.status}
     </button>
   );

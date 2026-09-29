@@ -21,7 +21,20 @@
 .admin-tabs--wrap { flex-wrap: wrap; overflow: visible; }
 .admin-table__head { font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; color: rgb(var(--muted)); }
 .admin-topbar { display: flex; gap: 0.75rem; align-items: center; justify-content: flex-end; margin-bottom: 1rem; }
-.admin-topbar__search { flex: 1; max-width: 24rem; }
+.admin-drawer__head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.admin-notice { margin: 0.75rem 0; color: rgb(var(--primary)); font-weight: 600; }
+.admin-facts { display: grid; gap: 0.85rem; grid-template-columns: 1fr; margin: 0; }
+@media (min-width: 720px) { .admin-facts { grid-template-columns: 1fr 1fr; } }
+.admin-facts div { padding: 0.85rem 1rem; border-radius: 0.9rem; background: rgb(var(--surface) / 0.55); border: 1px solid rgb(var(--border) / 0.14); }
+.admin-facts dt { font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; color: rgb(var(--muted)); }
+.admin-facts dd { margin: 0.25rem 0 0; font-size: 1rem; }
+.admin-topbar__search { position: relative; flex: 1; max-width: 28rem; }
+.admin-palette { position: absolute; z-index: 30; top: calc(100% + 0.35rem); left: 0; right: 0; padding: 0.35rem; border-radius: 0.9rem; background: rgb(var(--bg)); border: 1px solid rgb(var(--border) / 0.18); box-shadow: 0 12px 40px rgba(0,0,0,.12); display: grid; }
+.admin-palette button { display: flex; justify-content: space-between; gap: 1rem; text-align: left; padding: 0.6rem 0.75rem; border: 0; border-radius: 0.65rem; background: transparent; color: inherit; cursor: pointer; }
+.admin-palette button:hover, .admin-palette button:focus { background: rgb(var(--primary) / 0.1); }
+.admin-palette span, .admin-palette p { color: rgb(var(--muted)); margin: 0.4rem 0.75rem; }
+.admin-review { display: grid; gap: 0.35rem; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgb(var(--border) / 0.16); }
+.admin-cal__cell { cursor: pointer; }
 .admin-topbar__search input { width: 100%; border-radius: 999px; border: 1px solid rgb(var(--border) / 0.22); background: rgb(var(--surface) / 0.6); color: rgb(var(--text)); padding: 0.55rem 0.9rem; }
 .admin-create { position: relative; }
 .admin-create__menu { position: absolute; right: 0; z-index: 20; min-width: 11rem; margin-top: 0.35rem; padding: 0.4rem; border-radius: 0.9rem; background: rgb(var(--bg)); border: 1px solid rgb(var(--border) / 0.18); box-shadow: 0 12px 40px rgba(0,0,0,.12); display: grid; }

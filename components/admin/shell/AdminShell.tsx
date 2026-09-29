@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import {
   Calendar,
   ClipboardList,
@@ -49,6 +50,33 @@ export default function AdminShell({
   const pathname = usePathname();
   const router = useRouter();
   const items = NAV.filter((item) => permissions.includes(item.perm));
+  const [query, setQuery] = useState("");
+  const [hits, setHits] = useState<{ id: string; firstName: string; lastName: string; clientCode: string }[]>([]);
+  const [palette, setPalette] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setPalette(true);
+        searchRef.current?.focus();
+      }
+      if (event.key === "Escape") setPalette(false);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  useEffect(() => {
+    if (query.trim().length < 2) { setHits([]); return; }
+    const timer = setTimeout(() => {
+      api<{ rows: { id: string; firstName: string; lastName: string; clientCode: string }[] }>(`/api/admin/patients?q=${encodeURIComponent(query)}&pageSize=8`)
+        .then((result) => setHits(result.rows))
+        .catch(() => setHits([]));
+    }, 180);
+    return () => clearTimeout(timer);
+  }, [query]);
 
   async function logout() {
     await api("/api/admin/logout", { method: "POST" });
@@ -84,9 +112,19 @@ export default function AdminShell({
         </aside>
         <main className="admin-main">
           <header className="admin-topbar">
-            <form className="admin-topbar__search" onSubmit={(e) => { e.preventDefault(); const data = new FormData(e.currentTarget); router.push(`/admin/pacientes?q=${encodeURIComponent(String(data.get("q") || ""))}`); }}>
+            <form className="admin-topbar__search" onSubmit={(e) => { e.preventDefault(); router.push(`/admin/pacientes?q=${encodeURIComponent(query)}`); setPalette(false); }}>
               <label className="sr-only" htmlFor="admin-search">Buscar pacientes</label>
-              <input id="admin-search" name="q" placeholder="Buscar pacientes" />
+              <input ref={searchRef} id="admin-search" name="q" value={query} placeholder="Buscar pacientes (Ctrl+K)" autoComplete="off" onChange={(e) => { setQuery(e.target.value); setPalette(true); }} onFocus={() => setPalette(true)} />
+              {palette && query.trim().length >= 2 ? (
+                <div className="admin-palette" role="listbox">
+                  {hits.map((hit) => (
+                    <button key={hit.id} type="button" onClick={() => { setPalette(false); setQuery(""); router.push(`/admin/pacientes/${hit.id}`); }}>
+                      {hit.firstName} {hit.lastName}<span>{hit.clientCode}</span>
+                    </button>
+                  ))}
+                  {!hits.length ? <p>Sin coincidencias</p> : null}
+                </div>
+              ) : null}
             </form>
             <details className="admin-create">
               <summary className="admin-btn admin-btn--primary">Crear</summary>

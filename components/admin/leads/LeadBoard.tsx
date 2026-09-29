@@ -13,6 +13,7 @@ export default function LeadBoard({ startNew }: { startNew?: boolean }) {
   const [staff, setStaff] = useState<{ id: string; first_name: string; last_name: string }[]>([]);
   const [sources, setSources] = useState<{ id: string; name: string }[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [selected, setSelected] = useState<Lead | null>(null);
   const [activity, setActivity] = useState("");
 
@@ -33,7 +34,8 @@ export default function LeadBoard({ startNew }: { startNew?: boolean }) {
   return (
     <>
       <header className="admin-header"><p className="admin-header__eyebrow">CRM</p><h1 className="admin-header__title">Leads</h1></header>
-      {error ? <div className="admin-alert">{error}</div> : null}
+      {error ? <div className="admin-alert" role="alert">{error}</div> : null}
+      {notice ? <p className="admin-notice" role="status">{notice}</p> : null}
       <div className="admin-toolbar"><button className="admin-btn admin-btn--primary" type="button" onClick={() => setOpen(true)}>+ Lead</button></div>
       <div className="admin-kanban">
         {stages.map((stage) => (
@@ -50,8 +52,21 @@ export default function LeadBoard({ startNew }: { startNew?: boolean }) {
       </div>
       {open ? (
         <div className="admin-drawer" onClick={() => setOpen(false)}>
-          <form className="admin-drawer__panel" onClick={(e) => e.stopPropagation()} onSubmit={async (e) => { e.preventDefault(); await api("/api/admin/leads", { method: "POST", body: JSON.stringify(form) }); setOpen(false); await load(); }}>
-            <h2 className="admin-header__title">Nuevo lead</h2>
+          <form className="admin-drawer__panel" onClick={(e) => e.stopPropagation()} onSubmit={async (e) => {
+            e.preventDefault();
+            setError(null);
+            try {
+              await api("/api/admin/leads", { method: "POST", body: JSON.stringify(form) });
+              setOpen(false);
+              setNotice("Lead guardado.");
+              setForm({ firstName: "", lastName: "", email: "", mobile: "", stageId: "", ownerStaffId: "", marketingSourceId: "", estimatedValue: "", lostReason: "" });
+              await load();
+            } catch (err) {
+              setError(err instanceof Error ? err.message : "No se pudo guardar el lead.");
+            }
+          }}>
+            <div className="admin-drawer__head"><h2 className="admin-header__title">Nuevo lead</h2><button className="admin-btn" type="button" onClick={() => setOpen(false)}>Cerrar</button></div>
+            {error ? <div className="admin-alert" role="alert">{error}</div> : null}
             <div className="admin-form-grid">
               <label className="admin-field">Nombre<input required value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} /></label>
               <label className="admin-field">Apellido<input required value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} /></label>

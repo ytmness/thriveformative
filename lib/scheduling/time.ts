@@ -38,6 +38,14 @@ export function zonedTimeToUtc(date: string, time: string, timeZone: string): Da
   return new Date(result);
 }
 
+/** Interpreta un datetime-local (sin zona) como hora de la sede, no como UTC del servidor. */
+export function parseClinicDateTime(value: string, timeZone: string): Date {
+  if (/[zZ]$|[+-]\d{2}:?\d{2}$/.test(value)) return new Date(value);
+  const match = value.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);
+  if (!match) return new Date(value);
+  return zonedTimeToUtc(match[1], match[2], timeZone);
+}
+
 export function formatHm(date: Date, timeZone: string): string {
   const wall = parts(date, timeZone);
   return `${String(wall.hour).padStart(2, "0")}:${String(wall.minute).padStart(2, "0")}`;

@@ -6,6 +6,13 @@ import { DomainError } from "@/lib/http";
 import { createPatient, type PatientInput } from "@/lib/domain/patients";
 import { emitWebhook } from "@/lib/webhooks/emit";
 
+function blankNumber(value: unknown) {
+  if (value == null || value === "") return null;
+  const amount = Number(value);
+  if (Number.isNaN(amount)) throw new DomainError("El valor estimado no es un número.");
+  return amount;
+}
+
 export async function listLeads() {
   const rows = await query(
     `SELECT l.*, s.name AS stage_name, s.is_won, s.is_lost, u.first_name AS owner_first, u.last_name AS owner_last,
@@ -54,7 +61,7 @@ export async function saveLead(id: string | null, body: Record<string, unknown>,
     body.state || null,
     body.country || null,
     body.postalCode || null,
-    body.estimatedValue ?? null,
+    blankNumber(body.estimatedValue),
     body.lostReason || null,
   ];
   if (!id) {

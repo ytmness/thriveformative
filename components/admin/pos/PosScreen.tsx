@@ -21,6 +21,7 @@ export default function PosScreen() {
   const [cart, setCart] = useState<Item[]>([]);
   const [method, setMethod] = useState("cash");
   const [message, setMessage] = useState<string | null>(null);
+  const [review, setReview] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [saleId, setSaleId] = useState<string | null>(null);
   const stripeRef = useRef<{ confirmPayment: (opts: { elements: unknown; redirect: string }) => Promise<{ error?: { message?: string }; paymentIntent?: { id: string } }> } | null>(null);
@@ -40,6 +41,15 @@ export default function PosScreen() {
   function add(item: Catalog) {
     const type = tab === "service" ? "service" : tab === "product" ? "product" : tab === "package" ? "package" : "membership";
     setCart([...cart, { itemType: type, referenceId: item.id, description: item.name, quantity: 1, unitPrice: Number(item.price || 0) }]);
+  }
+
+  function askCheckout() {
+    if (tab !== "gift_card" && tab !== "credit" && !cart.length) {
+      setMessage("Agrega al menos un servicio o producto antes de cobrar.");
+      return;
+    }
+    setMessage(null);
+    setReview(true);
   }
 
   async function checkout() {
@@ -64,6 +74,7 @@ export default function PosScreen() {
       } else {
         setMessage("Venta registrada.");
         setCart([]);
+        setReview(false);
       }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Error");
@@ -118,9 +129,19 @@ export default function PosScreen() {
           <label className="admin-field">Cobro<select value={method} onChange={(e) => setMethod(e.target.value)}><option value="cash">Efectivo</option><option value="card">Tarjeta</option><option value="transfer">Transferencia</option><option value="stripe">Stripe</option></select></label>
           {cart.map((item, index) => <p key={index}>{item.description} × {item.quantity}</p>)}
           <p className="admin-metric__value">${total.toFixed(2)}</p>
-          <button className="admin-btn admin-btn--primary" type="button" onClick={checkout}>Cobrar</button>
+          {review ? (
+            <div className="admin-review" role="region" aria-label="Revisar cobro">
+              <p>Revisa la venta antes de registrarla.</p>
+              <p>{patientId ? patients.find((p) => p.id === patientId)?.firstName : walkIn || "Mostrador"} · {method === "cash" ? "Efectivo" : method === "card" ? "Tarjeta" : method === "transfer" ? "Transferencia" : "Stripe"}</p>
+              {cart.map((item, index) => <p key={index}>{item.description} × {item.quantity} · ${((item.unitPrice || 0) * item.quantity).toFixed(2)}</p>)}
+              <div className="admin-toolbar">
+                <button className="admin-btn admin-btn--primary" type="button" onClick={checkout}>Confirmar cobro</button>
+                <button className="admin-btn" type="button" onClick={() => setReview(false)}>Volver</button>
+              </div>
+            </div>
+          ) : <button className="admin-btn admin-btn--primary" type="button" onClick={askCheckout}>Cobrar</button>}
           {clientSecret ? <><div id="stripe-payment" /><button className="admin-btn" type="button" onClick={confirmStripe}>Confirmar Stripe</button></> : null}
-          {message ? <p>{message}</p> : null}
+          {message ? <p className="admin-notice" role="status">{message}</p> : null}
         </aside>
       </div>
     </>

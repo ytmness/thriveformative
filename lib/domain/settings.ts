@@ -261,11 +261,11 @@ async function saveService(id: string | null, body: Record<string, unknown>) {
     body.durationMinutes || 30,
     body.bufferBeforeMinutes || 0,
     body.bufferAfterMinutes || 0,
-    body.price ?? 0,
+    body.price === "" || body.price == null ? 0 : body.price,
     body.taxId || null,
     body.color || "#d4a473",
     body.isOnlineBookable !== false,
-    body.depositAmount ?? null,
+    body.depositAmount === "" || body.depositAmount == null ? null : body.depositAmount,
     body.requiredFormTemplateId || null,
     body.isActive !== false,
   ];

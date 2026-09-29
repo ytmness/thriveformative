@@ -46,6 +46,8 @@ export default function SettingsPanel({ section }: { section: string }) {
   const [editing, setEditing] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [serviceTab, setServiceTab] = useState("general");
+  const [templates, setTemplates] = useState<Row[]>([]);
 
   async function load() {
     const data = await api<{ rows: Row[] }>(`/api/admin/settings/${apiSection}`);
@@ -70,6 +72,7 @@ export default function SettingsPanel({ section }: { section: string }) {
     api<{ rows: Row[] }>("/api/admin/settings/staff").then((r) => setStaff(r.rows)).catch(() => undefined);
     api<{ rows: Row[] }>("/api/admin/settings/service-categories").then((r) => setCategories(r.rows)).catch(() => undefined);
     api<{ rows: Row[] }>("/api/admin/settings/taxes").then((r) => setTaxes(r.rows)).catch(() => undefined);
+    if (apiSection === "services") api<{ rows: Row[] }>("/api/admin/forms").then((r) => setTemplates(r.rows)).catch(() => undefined);
   }, [apiSection]);
 
   function set(key: string, value: unknown) {
@@ -115,9 +118,16 @@ export default function SettingsPanel({ section }: { section: string }) {
         ))}
       </nav>
       {error ? <div className="admin-alert" role="alert">{error}</div> : null}
-      {saved ? <p className="admin-header__desc">Guardado.</p> : null}
+      {saved ? <p className="admin-notice" role="status">Cambios guardados.</p> : null}
+      {apiSection === "services" ? (
+        <nav className="admin-tabs" aria-label="Secciones del servicio">
+          {[["general", "General"], ["precios", "Precios"], ["reserva", "Reserva en línea"], ["formularios", "Formularios"]].map(([id, label]) => (
+            <button key={id} type="button" className={serviceTab === id ? "is-active" : ""} onClick={() => setServiceTab(id)}>{label}</button>
+          ))}
+        </nav>
+      ) : null}
       <form className="admin-form-grid" onSubmit={submit}>
-        <Fields section={apiSection} form={form} set={set} locations={locations} staff={staff} categories={categories} taxes={taxes} editing={Boolean(editing)} />
+        <Fields section={apiSection} form={form} set={set} locations={locations} staff={staff} categories={categories} taxes={taxes} templates={templates} serviceTab={serviceTab} editing={Boolean(editing)} />
         <div className="admin-toolbar span-2">
           <button className="admin-btn admin-btn--primary" type="submit">{editing ? "Guardar cambios" : apiSection === "booking" || apiSection === "clinic" ? "Guardar" : "Crear"}</button>
           {editing ? <button className="admin-btn" type="button" onClick={() => { setEditing(null); setForm({}); }}>Cancelar edición</button> : null}
@@ -131,7 +141,7 @@ export default function SettingsPanel({ section }: { section: string }) {
               <div className="admin-table__cell-title">{labelOf(apiSection, row)}</div>
               <div className="admin-table__cell-sub">{detailOf(apiSection, row)}</div>
               <div className="admin-toolbar">
-                <button className="admin-btn" type="button" onClick={() => { setEditing(String(row.id)); setForm(formFrom(apiSection, row)); }}>Editar</button>
+                <button className="admin-btn" type="button" onClick={() => { setEditing(String(row.id)); setServiceTab("general"); setForm(formFrom(apiSection, row)); }}>Editar</button>
                 <button className="admin-btn admin-btn--danger" type="button" onClick={async () => {
                   await api(`/api/admin/settings/${apiSection}/${row.id}`, { method: "DELETE" });
                   await load();
@@ -146,7 +156,7 @@ export default function SettingsPanel({ section }: { section: string }) {
   );
 }
 
-function Fields({ section, form, set, locations, staff, categories, taxes, editing }: {
+function Fields({ section, form, set, locations, staff, categories, taxes, templates, serviceTab, editing }: {
   section: string;
   form: Row;
   set: (key: string, value: unknown) => void;
@@ -154,6 +164,8 @@ function Fields({ section, form, set, locations, staff, categories, taxes, editi
   staff: Row[];
   categories: Row[];
   taxes: Row[];
+  templates: Row[];
+  serviceTab: string;
   editing: boolean;
 }) {
   if (section === "locations") return (
@@ -179,13 +191,31 @@ function Fields({ section, form, set, locations, staff, categories, taxes, editi
   );
   if (section === "services") return (
     <>
-      <Text label="Nombre" value={form.name} onChange={(v) => set("name", v)} required />
-      <Select label="Categoría" value={form.categoryId} onChange={(v) => set("categoryId", v)} options={categories.map((row) => [String(row.id), String(row.name)])} />
-      <Text label="Duración (min)" value={form.durationMinutes || "60"} onChange={(v) => set("durationMinutes", Number(v))} />
-      <Text label="Precio" value={form.price || ""} onChange={(v) => set("price", Number(v))} />
-      <Select label="Impuesto" value={form.taxId} onChange={(v) => set("taxId", v)} options={taxes.map((row) => [String(row.id), String(row.name)])} />
-      <Text label="Descripción" value={form.description} onChange={(v) => set("description", v)} />
-      <Check label="Se puede reservar en línea" checked={form.isOnlineBookable !== false} onChange={(v) => set("isOnlineBookable", v)} />
+      {serviceTab === "general" ? (
+        <>
+          <Text label="Nombre" value={form.name} onChange={(v) => set("name", v)} required />
+          <Select label="Categoría" value={form.categoryId} onChange={(v) => set("categoryId", v)} options={categories.map((row) => [String(row.id), String(row.name)])} />
+          <Text label="Duración (min)" value={form.durationMinutes || "60"} onChange={(v) => set("durationMinutes", Number(v))} />
+          <Text label="Descripción" value={form.description} onChange={(v) => set("description", v)} />
+        </>
+      ) : null}
+      {serviceTab === "precios" ? (
+        <>
+          <Text label="Precio" value={form.price || ""} onChange={(v) => set("price", v === "" ? "" : Number(v))} />
+          <Select label="Impuesto" value={form.taxId} onChange={(v) => set("taxId", v)} options={taxes.map((row) => [String(row.id), String(row.name)])} />
+          <Text label="Depósito" value={form.depositAmount || ""} onChange={(v) => set("depositAmount", v === "" ? "" : Number(v))} />
+        </>
+      ) : null}
+      {serviceTab === "reserva" ? (
+        <>
+          <Check label="Se puede reservar en línea" checked={form.isOnlineBookable !== false} onChange={(v) => set("isOnlineBookable", v)} />
+          <Text label="Margen antes (min)" value={form.bufferBeforeMinutes || "0"} onChange={(v) => set("bufferBeforeMinutes", Number(v))} />
+          <Text label="Margen después (min)" value={form.bufferAfterMinutes || "0"} onChange={(v) => set("bufferAfterMinutes", Number(v))} />
+        </>
+      ) : null}
+      {serviceTab === "formularios" ? (
+        <Select label="Formulario requerido" value={form.requiredFormTemplateId} onChange={(v) => set("requiredFormTemplateId", v)} options={templates.map((row) => [String(row.id), String(row.name)])} />
+      ) : null}
     </>
   );
   if (section === "service-categories") return <Text label="Nombre" value={form.name} onChange={(v) => set("name", v)} required />;
@@ -303,7 +333,7 @@ function bookingFrom(row: Row) {
 function formFrom(section: string, row: Row): Row {
   if (section === "locations") return { name: row.name, timezone: row.timezone, street: row.street, city: row.city, state: row.state, country: row.country, postalCode: row.postal_code, phone: row.phone, email: row.email };
   if (section === "rooms") return { locationId: row.location_id, name: row.name, color: row.color, capacity: row.capacity };
-  if (section === "services") return { name: row.name, categoryId: row.category_id, durationMinutes: row.duration_minutes, price: row.price, taxId: row.tax_id, description: row.description, isOnlineBookable: row.is_online_bookable };
+  if (section === "services") return { name: row.name, categoryId: row.category_id, durationMinutes: row.duration_minutes, price: row.price, taxId: row.tax_id, description: row.description, isOnlineBookable: row.is_online_bookable, depositAmount: row.deposit_amount, bufferBeforeMinutes: row.buffer_before_minutes, bufferAfterMinutes: row.buffer_after_minutes, requiredFormTemplateId: row.required_form_template_id };
   if (section === "staff") return { firstName: row.first_name, lastName: row.last_name, email: row.email, jobTitle: row.job_title, phone: row.phone, defaultLocationId: row.default_location_id, isBookable: row.is_bookable, roles: row.roles };
   if (section === "schedules") return { staffUserId: row.staff_user_id, locationId: row.location_id, dayOfWeek: row.day_of_week, startTime: String(row.start_time || "").slice(0, 5), endTime: String(row.end_time || "").slice(0, 5) };
   if (section === "taxes") return { name: row.name, rate: row.rate, isDefault: row.is_default };

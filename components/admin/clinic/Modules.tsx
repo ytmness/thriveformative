@@ -134,12 +134,35 @@ export function FormBuilder() {
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [name, setName] = useState("");
   const [formType, setFormType] = useState("consent");
+  const [templateId, setTemplateId] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [fields, setFields] = useState<{ id: string; label: string; type: string; required: boolean }[]>([]);
   useEffect(() => { api<{ rows: Record<string, unknown>[] }>("/api/admin/forms").then((r) => setRows(r.rows)); }, []);
+  function reset() {
+    setTemplateId(null);
+    setName("");
+    setFormType("consent");
+    setFields([]);
+  }
   return (
     <>
-      <header className="admin-header"><p className="admin-header__eyebrow">Clínico</p><h1 className="admin-header__title">Formularios</h1></header>
-      <form className="admin-form-grid" onSubmit={async (e) => { e.preventDefault(); await api("/api/admin/forms", { method: "POST", body: JSON.stringify({ name, formType, requiresSignature: formType === "consent" || fields.some((field) => field.type === "signature"), schema: fields }) }); location.reload(); }}>
+      <header className="admin-header"><p className="admin-header__eyebrow">Clínico</p><h1 className="admin-header__title">Formularios</h1><p className="admin-header__desc">Elige una plantilla de la lista para volver a abrirla.</p></header>
+      {error ? <div className="admin-alert" role="alert">{error}</div> : null}
+      {notice ? <p className="admin-notice" role="status">{notice}</p> : null}
+      <form className="admin-form-grid" onSubmit={async (e) => {
+        e.preventDefault();
+        setError(null);
+        try {
+          await api("/api/admin/forms", { method: "POST", body: JSON.stringify({ id: templateId, name, formType, requiresSignature: formType === "consent" || fields.some((field) => field.type === "signature"), schema: fields }) });
+          setNotice(templateId ? "Plantilla actualizada." : "Plantilla guardada.");
+          reset();
+          const next = await api<{ rows: Record<string, unknown>[] }>("/api/admin/forms");
+          setRows(next.rows);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : "No se pudo guardar la plantilla.");
+        }
+      }}>
         <label className="admin-field">Nombre<input required value={name} onChange={(e) => setName(e.target.value)} /></label>
         <label className="admin-field">Tipo<select value={formType} onChange={(e) => setFormType(e.target.value)}><option value="intake">Ingreso</option><option value="consent">Consentimiento</option><option value="soap">SOAP</option><option value="custom">Personalizado</option></select></label>
         <button className="admin-btn" type="button" onClick={() => setFields([...fields, { id: crypto.randomUUID(), label: "Campo", type: "text", required: false }])}>Agregar campo</button>
@@ -159,11 +182,25 @@ export function FormBuilder() {
             <label className="admin-check"><input type="checkbox" checked={field.required} onChange={(e) => setFields(fields.map((item, i) => i === index ? { ...item, required: e.target.checked } : item))} />Obligatorio</label>
           </div>
         ))}
-        <button className="admin-btn admin-btn--primary" type="submit">Guardar plantilla</button>
+        <div className="admin-toolbar span-2">
+          <button className="admin-btn admin-btn--primary" type="submit">{templateId ? "Guardar cambios" : "Guardar plantilla"}</button>
+          {templateId ? <button className="admin-btn" type="button" onClick={reset}>Nueva plantilla</button> : null}
+        </div>
       </form>
       <div className="admin-table-wrap" style={{ marginTop: "1rem" }}>
         <div className="admin-table__row admin-table__head"><span>Plantilla</span><span>Tipo</span><span>Versión</span></div>
-        {rows.map((row) => <div key={String(row.id)} className="admin-table__row"><div>{String(row.name)}</div><div>{String(row.form_type)}{row.requires_signature ? " · con firma" : ""}</div><div>v{String(row.version)}</div></div>)}
+        {rows.map((row) => (
+          <button key={String(row.id)} type="button" className="admin-table__row" onClick={() => {
+            setTemplateId(String(row.id));
+            setName(String(row.name || ""));
+            setFormType(String(row.form_type || "custom"));
+            setFields(Array.isArray(row.schema) ? row.schema as { id: string; label: string; type: string; required: boolean }[] : []);
+            setNotice(`Editando «${String(row.name || "plantilla")}».`);
+            setError(null);
+          }}>
+            <div>{String(row.name)}</div><div>{String(row.form_type)}{row.requires_signature ? " · con firma" : ""}</div><div>v{String(row.version)}</div>
+          </button>
+        ))}
         {!rows.length ? <div className="admin-table__empty">No hay plantillas. Crea un consentimiento o un ingreso.</div> : null}
       </div>
     </>

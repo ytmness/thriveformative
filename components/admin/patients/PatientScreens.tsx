@@ -22,6 +22,7 @@ export function PatientList({ startNew, initialQuery = "" }: { startNew?: boolea
   const [open, setOpen] = useState(startNew || false);
   const [form, setForm] = useState<Record<string, unknown>>(EMPTY);
   const [error, setError] = useState<string | null>(null);
+  const [section, setSection] = useState("identidad");
   const [options, setOptions] = useState<{ locations: { id: string; name: string }[]; staff: { id: string; first_name: string; last_name: string }[]; sources: { id: string; name: string }[] }>({ locations: [], staff: [], sources: [] });
   const router = useRouter();
 
@@ -75,8 +76,14 @@ export function PatientList({ startNew, initialQuery = "" }: { startNew?: boolea
       {open ? (
         <div className="admin-drawer" onClick={() => setOpen(false)}>
           <form className="admin-drawer__panel" onClick={(e) => e.stopPropagation()} onSubmit={save}>
-            <h2 className="admin-header__title">Nuevo paciente</h2>
-            <PatientFields form={form} setForm={setForm} options={options} />
+            <div className="admin-drawer__head"><h2 className="admin-header__title">Nuevo paciente</h2><button className="admin-btn" type="button" onClick={() => setOpen(false)}>Cerrar</button></div>
+            {error ? <div className="admin-alert" role="alert">{error}</div> : null}
+            <nav className="admin-tabs" aria-label="Secciones del paciente">
+              {[["identidad", "Datos"], ["contacto", "Contacto"], ["direccion", "Dirección"], ["consentimiento", "Consentimientos"]].map(([id, label]) => (
+                <button key={id} type="button" className={section === id ? "is-active" : ""} onClick={() => setSection(id)}>{label}</button>
+              ))}
+            </nav>
+            <PatientFields form={form} setForm={setForm} options={options} section={section} />
             <button className="admin-btn admin-btn--primary" type="submit">Guardar</button>
           </form>
         </div>
@@ -85,33 +92,49 @@ export function PatientList({ startNew, initialQuery = "" }: { startNew?: boolea
   );
 }
 
-export function PatientFields({ form, setForm, options }: { form: Record<string, unknown>; setForm: (v: Record<string, unknown>) => void; options: { locations: { id: string; name: string }[]; staff: { id: string; first_name: string; last_name: string }[]; sources: { id: string; name: string }[] } }) {
+export function PatientFields({ form, setForm, options, section = "identidad" }: { form: Record<string, unknown>; setForm: (v: Record<string, unknown>) => void; options: { locations: { id: string; name: string }[]; staff: { id: string; first_name: string; last_name: string }[]; sources: { id: string; name: string }[] }; section?: string }) {
   const set = (key: string, value: unknown) => setForm({ ...form, [key]: value });
   return (
     <div className="admin-form-grid" style={{ margin: "1rem 0" }}>
-      <label className="admin-field">Saludo<input value={String(form.salutation || "")} onChange={(e) => set("salutation", e.target.value)} /></label>
-      <label className="admin-field">Nombre*<input required value={String(form.firstName || "")} onChange={(e) => set("firstName", e.target.value)} /></label>
-      <label className="admin-field">Apellido*<input required value={String(form.lastName || "")} onChange={(e) => set("lastName", e.target.value)} /></label>
-      <label className="admin-field">Sexo<select value={String(form.sex || "")} onChange={(e) => set("sex", e.target.value)}><option value="">—</option><option value="masculino">Masculino</option><option value="femenino">Femenino</option><option value="otro">Otro</option></select></label>
-      <label className="admin-field">Nacimiento<input type="date" value={String(form.birthDate || "").slice(0, 10)} onChange={(e) => set("birthDate", e.target.value)} /></label>
-      <label className="admin-field">Idioma<select value={String(form.preferredLanguage || "es")} onChange={(e) => set("preferredLanguage", e.target.value)}><option value="es">Español</option><option value="en">Inglés</option></select></label>
-      <label className="admin-field">Sede<select value={String(form.locationId || "")} onChange={(e) => set("locationId", e.target.value)}><option value="">—</option>{options.locations.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
-      <label className="admin-field">Responsable<select value={String(form.ownerStaffId || "")} onChange={(e) => set("ownerStaffId", e.target.value)}><option value="">—</option>{options.staff.map((o) => <option key={o.id} value={o.id}>{o.first_name} {o.last_name}</option>)}</select></label>
-      <label className="admin-field">Fuente<select value={String(form.marketingSourceId || "")} onChange={(e) => set("marketingSourceId", e.target.value)}><option value="">—</option>{options.sources.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
-      <label className="admin-field">Referido por<input value={String(form.referredByName || "")} onChange={(e) => set("referredByName", e.target.value)} /></label>
-      <label className="admin-field">Email<input type="email" value={String(form.email || "")} onChange={(e) => set("email", e.target.value)} /></label>
-      <label className="admin-field">Móvil<input value={String(form.mobile || "")} onChange={(e) => set("mobile", e.target.value)} /></label>
-      <label className="admin-field">Teléfono<input value={String(form.phone || "")} onChange={(e) => set("phone", e.target.value)} /></label>
-      <label className="admin-field span-2">Calle<input value={String(form.street || "")} onChange={(e) => set("street", e.target.value)} /></label>
-      <label className="admin-field">Ciudad<input value={String(form.city || "")} onChange={(e) => set("city", e.target.value)} /></label>
-      <label className="admin-field">Estado<input value={String(form.state || "")} onChange={(e) => set("state", e.target.value)} /></label>
-      <label className="admin-field">País<input value={String(form.country || "")} onChange={(e) => set("country", e.target.value)} /></label>
-      <label className="admin-field">Código postal<input value={String(form.postalCode || "")} onChange={(e) => set("postalCode", e.target.value)} /></label>
-      <label className="admin-field">Aviso de privacidad<select value={String(form.privacyPolicyStatus || "sin_respuesta")} onChange={(e) => set("privacyPolicyStatus", e.target.value)}><option value="sin_respuesta">Sin respuesta</option><option value="aceptado">Aceptado</option><option value="rechazado">Rechazado</option></select></label>
-      <label className="admin-check"><input type="checkbox" checked={Boolean(form.consentSms)} onChange={(e) => set("consentSms", e.target.checked)} />SMS</label>
-      <label className="admin-check"><input type="checkbox" checked={Boolean(form.consentEmail)} onChange={(e) => set("consentEmail", e.target.checked)} />Email</label>
-      <label className="admin-check"><input type="checkbox" checked={Boolean(form.consentPhone)} onChange={(e) => set("consentPhone", e.target.checked)} />Teléfono</label>
-      <label className="admin-check"><input type="checkbox" checked={Boolean(form.consentPostal)} onChange={(e) => set("consentPostal", e.target.checked)} />Correo postal</label>
+      {section === "identidad" ? (
+        <>
+          <label className="admin-field">Saludo<input value={String(form.salutation || "")} onChange={(e) => set("salutation", e.target.value)} /></label>
+          <label className="admin-field">Nombre*<input required value={String(form.firstName || "")} onChange={(e) => set("firstName", e.target.value)} /></label>
+          <label className="admin-field">Apellido*<input required value={String(form.lastName || "")} onChange={(e) => set("lastName", e.target.value)} /></label>
+          <label className="admin-field">Sexo<select value={String(form.sex || "")} onChange={(e) => set("sex", e.target.value)}><option value="">—</option><option value="masculino">Masculino</option><option value="femenino">Femenino</option><option value="otro">Otro</option></select></label>
+          <label className="admin-field">Nacimiento<input type="date" value={String(form.birthDate || "").slice(0, 10)} onChange={(e) => set("birthDate", e.target.value)} /></label>
+          <label className="admin-field">Idioma<select value={String(form.preferredLanguage || "es")} onChange={(e) => set("preferredLanguage", e.target.value)}><option value="es">Español</option><option value="en">Inglés</option></select></label>
+          <label className="admin-field">Sede<select value={String(form.locationId || "")} onChange={(e) => set("locationId", e.target.value)}><option value="">—</option>{options.locations.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
+          <label className="admin-field">Responsable<select value={String(form.ownerStaffId || "")} onChange={(e) => set("ownerStaffId", e.target.value)}><option value="">—</option>{options.staff.map((o) => <option key={o.id} value={o.id}>{o.first_name} {o.last_name}</option>)}</select></label>
+        </>
+      ) : null}
+      {section === "contacto" ? (
+        <>
+          <label className="admin-field">Fuente<select value={String(form.marketingSourceId || "")} onChange={(e) => set("marketingSourceId", e.target.value)}><option value="">—</option>{options.sources.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
+          <label className="admin-field">Referido por<input value={String(form.referredByName || "")} onChange={(e) => set("referredByName", e.target.value)} /></label>
+          <label className="admin-field">Email<input type="email" value={String(form.email || "")} onChange={(e) => set("email", e.target.value)} /></label>
+          <label className="admin-field">Móvil<input value={String(form.mobile || "")} onChange={(e) => set("mobile", e.target.value)} /></label>
+          <label className="admin-field">Teléfono<input value={String(form.phone || "")} onChange={(e) => set("phone", e.target.value)} /></label>
+        </>
+      ) : null}
+      {section === "direccion" ? (
+        <>
+          <label className="admin-field span-2">Calle<input value={String(form.street || "")} onChange={(e) => set("street", e.target.value)} /></label>
+          <label className="admin-field">Ciudad<input value={String(form.city || "")} onChange={(e) => set("city", e.target.value)} /></label>
+          <label className="admin-field">Estado<input value={String(form.state || "")} onChange={(e) => set("state", e.target.value)} /></label>
+          <label className="admin-field">País<input value={String(form.country || "")} onChange={(e) => set("country", e.target.value)} /></label>
+          <label className="admin-field">Código postal<input value={String(form.postalCode || "")} onChange={(e) => set("postalCode", e.target.value)} /></label>
+        </>
+      ) : null}
+      {section === "consentimiento" ? (
+        <>
+          <label className="admin-field">Aviso de privacidad<select value={String(form.privacyPolicyStatus || "sin_respuesta")} onChange={(e) => set("privacyPolicyStatus", e.target.value)}><option value="sin_respuesta">Sin respuesta</option><option value="aceptado">Aceptado</option><option value="rechazado">Rechazado</option></select></label>
+          <label className="admin-check"><input type="checkbox" checked={Boolean(form.consentSms)} onChange={(e) => set("consentSms", e.target.checked)} />SMS</label>
+          <label className="admin-check"><input type="checkbox" checked={Boolean(form.consentEmail)} onChange={(e) => set("consentEmail", e.target.checked)} />Email</label>
+          <label className="admin-check"><input type="checkbox" checked={Boolean(form.consentPhone)} onChange={(e) => set("consentPhone", e.target.checked)} />Teléfono</label>
+          <label className="admin-check"><input type="checkbox" checked={Boolean(form.consentPostal)} onChange={(e) => set("consentPostal", e.target.checked)} />Correo postal</label>
+        </>
+      ) : null}
     </div>
   );
 }
@@ -164,7 +187,7 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
       <nav className="admin-tabs">
         {TABS.map(([item, label]) => <Link key={item} className={active === item ? "is-active" : ""} href={item === "resumen" ? `/admin/pacientes/${id}` : `/admin/pacientes/${id}/${item}`}>{label}</Link>)}
       </nav>
-      {active === "resumen" ? <pre className="admin-table-wrap" style={{ padding: "1rem", whiteSpace: "pre-wrap" }}>{JSON.stringify({ ...patient, customFields: undefined }, null, 2)}</pre> : null}
+      {active === "resumen" ? <PatientSummary patient={patient} /> : null}
       {active === "expediente" ? (
         <form className="admin-form-grid" onSubmit={async (e) => { e.preventDefault(); await api(`/api/admin/patients/${id}/notes`, { method: "POST", body: JSON.stringify({ ...note, lock: true }) }); location.reload(); }}>
           <label className="admin-field">Subjetivo<textarea value={note.subjective} onChange={(e) => setNote({ ...note, subjective: e.target.value })} /></label>
@@ -203,5 +226,32 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
         <div className="admin-table-wrap">{rows.map((row) => <div key={String(row.id)} className="admin-table__row"><div className="admin-table__cell-title">{String(row.serviceName || row.name || row.subject || row.sale_number || row.status || row.id)}</div><div className="admin-table__cell-sub">{String(row.startsAt || row.created_at || row.sentAt || row.status || "")}</div></div>)}{!rows.length ? <div className="admin-table__empty">Sin registros.</div> : null}</div>
       ) : null}
     </>
+  );
+}
+
+function PatientSummary({ patient }: { patient: Patient }) {
+  const address = [patient.street, patient.city, patient.state, patient.postalCode, patient.country].filter(Boolean).join(", ");
+  const facts: [string, unknown][] = [
+    ["Código", patient.clientCode],
+    ["Email", patient.email],
+    ["Móvil", patient.mobile],
+    ["Teléfono", patient.phone],
+    ["Nacimiento", patient.birthDate],
+    ["Sexo", patient.sex],
+    ["Idioma", patient.preferredLanguage],
+    ["Dirección", address],
+    ["Aviso de privacidad", patient.privacyPolicyStatus],
+    ["SMS", patient.consentSms ? "Autorizado" : "Sin autorización"],
+    ["Email comercial", patient.consentEmail ? "Autorizado" : "Sin autorización"],
+  ];
+  return (
+    <dl className="admin-facts">
+      {facts.map(([label, value]) => (
+        <div key={label}>
+          <dt>{label}</dt>
+          <dd>{value ? String(value) : "—"}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }

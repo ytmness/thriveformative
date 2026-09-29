@@ -6,7 +6,7 @@ import type { TxQuery } from "@/lib/dbTx";
 import { withTx } from "@/lib/dbTx";
 import { DomainError } from "@/lib/http";
 import { enqueueForAppointment } from "@/lib/messaging/queue";
-import { addDaysToDateKey, addMonthsToDateKey, formatDate, formatHm, zonedTimeToUtc } from "@/lib/scheduling/time";
+import { addDaysToDateKey, addMonthsToDateKey, formatDate, formatHm, parseClinicDateTime, zonedTimeToUtc } from "@/lib/scheduling/time";
 import { emitWebhook } from "@/lib/webhooks/emit";
 
 const STATUSES = ["booked", "confirmed", "arrived", "completed", "cancelled", "no_show"] as const;
@@ -153,10 +153,14 @@ function shiftStart(start: Date, timeZone: string, freq: "DAILY" | "WEEKLY" | "M
 }
 
 export async function createAppointment(input: AppointmentInput, actor: StaffSession | null, meta?: { ip?: string | null; userAgent?: string | null }) {
-  const base = await resolveWindow(input);
   const location = await query<{ timezone: string }>(`SELECT timezone FROM locations WHERE id = $1`, [input.locationId]);
   if (!location.rows[0]) throw new DomainError("Sede no encontrada.");
-  const tz = location.rows[0].timezone;
+  const tz = location.rows[0].timezone || "America/Chicago";
+  const base = await resolveWindow({
+    ...input,
+    startsAt: parseClinicDateTime(input.startsAt, tz).toISOString(),
+    endsAt: input.endsAt ? parseClinicDateTime(input.endsAt, tz).toISOString() : null,
+  });
   const rule = input.recurrence;
   const count = rule ? Math.min(Math.max(rule.count || 8, 1), 52) : 1;
   const interval = rule?.interval || 1;
@@ -254,6 +258,10 @@ export async function updateAppointment(
     notes: patch.notes === undefined ? (row.notes as string | null) : patch.notes,
     bookedOnline: Boolean(row.booked_online),
   };
+  const location = await query<{ timezone: string }>(`SELECT timezone FROM locations WHERE id = $1`, [next.locationId]);
+  const tz = location.rows[0]?.timezone || "America/Chicago";
+  if (patch.startsAt) next.startsAt = parseClinicDateTime(patch.startsAt, tz).toISOString();
+  if (patch.endsAt) next.endsAt = parseClinicDateTime(patch.endsAt, tz).toISOString();
   const window = await resolveWindow(next);
   await query(
     `UPDATE appointments SET

@@ -22,6 +22,7 @@ export function toErrorResponse(error: unknown) {
   if (isPgError(error, "23P01")) return apiError(409, "Ese horario ya está ocupado.");
   if (isPgError(error, "23505")) return apiError(409, "Ya existe un registro con esos datos.");
   if (isPgError(error, "23503")) return apiError(409, "No se puede completar porque hay datos relacionados.");
+  if (isPgError(error, "22P02")) return apiError(400, "Hay un dato con formato incorrecto. Revisa números, fechas y listas.");
   const code =
     typeof error === "object" && error && "code" in error ? String((error as { code: unknown }).code) : "";
   log.error("api", "operación fallida", { code: code || (error instanceof Error ? error.name : "error") });
