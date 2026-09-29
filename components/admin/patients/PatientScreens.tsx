@@ -27,7 +27,7 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
   const [section, setSection] = useState("identidad");
   const [attempted, setAttempted] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
-  const [options, setOptions] = useState<{ locations: { id: string; name: string }[]; staff: { id: string; first_name: string; last_name: string }[]; sources: { id: string; name: string }[] }>({ locations: [], staff: [], sources: [] });
+  const [options, setOptions] = useState<{ locations: { id: string; name: string }[]; staff: { id: string; first_name: string; last_name: string }[]; sources: { id: string; name: string }[]; fields: { id: string; label: string; field_type: string; is_required?: boolean }[] }>({ locations: [], staff: [], sources: [], fields: [] });
   const tabs = [["identidad", "Datos"], ["contacto", "Contacto"], ["direccion", "Dirección"], ["consentimiento", "Consentimientos"]] as const;
 
   async function load(nextPage = page, query = q) {
@@ -42,7 +42,13 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
       api<{ rows: { id: string; name: string }[] }>("/api/admin/settings/locations"),
       api<{ rows: { id: string; first_name: string; last_name: string }[] }>("/api/admin/settings/staff"),
       api<{ rows: { id: string; name: string }[] }>("/api/admin/settings/marketing-sources"),
-    ]).then(([locations, staff, sources]) => setOptions({ locations: locations.rows, staff: staff.rows, sources: sources.rows })).catch(() => undefined);
+      api<{ rows: { id: string; label: string; field_type: string; entity: string; is_required?: boolean }[] }>("/api/admin/settings/custom-fields"),
+    ]).then(([locations, staff, sources, fields]) => setOptions({
+      locations: locations.rows,
+      staff: staff.rows,
+      sources: sources.rows,
+      fields: fields.rows.filter((row) => row.entity === "patient"),
+    })).catch(() => undefined);
   }, [initialQuery]);
 
   useEffect(() => {
@@ -63,7 +69,8 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
       return;
     }
     try {
-      const created = await api<{ patient: { id: string } }>("/api/admin/patients", { method: "POST", body: JSON.stringify(form) });
+      const customFields = options.fields.map((field) => ({ fieldId: field.id, value: form[`cf_${field.id}`] ?? "" }));
+      const created = await api<{ patient: { id: string } }>("/api/admin/patients", { method: "POST", body: JSON.stringify({ ...form, customFields }) });
       setOpen(false);
       setForm(EMPTY);
       setSection("identidad");
@@ -153,7 +160,7 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
   );
 }
 
-export function PatientFields({ form, setForm, options, section = "identidad" }: { form: Record<string, unknown>; setForm: (v: Record<string, unknown>) => void; options: { locations: { id: string; name: string }[]; staff: { id: string; first_name: string; last_name: string }[]; sources: { id: string; name: string }[] }; section?: string }) {
+export function PatientFields({ form, setForm, options, section = "identidad" }: { form: Record<string, unknown>; setForm: (v: Record<string, unknown>) => void; options: { locations: { id: string; name: string }[]; staff: { id: string; first_name: string; last_name: string }[]; sources: { id: string; name: string }[]; fields?: { id: string; label: string; field_type: string; is_required?: boolean }[] }; section?: string }) {
   const set = (key: string, value: unknown) => setForm({ ...form, [key]: value });
   return (
     <div className="admin-form-grid" style={{ margin: "1rem 0" }}>
@@ -202,6 +209,12 @@ export function PatientFields({ form, setForm, options, section = "identidad" }:
           <label className="admin-check"><input type="checkbox" checked={Boolean(form.consentEmail)} onChange={(e) => set("consentEmail", e.target.checked)} />Email</label>
           <label className="admin-check"><input type="checkbox" checked={Boolean(form.consentPhone)} onChange={(e) => set("consentPhone", e.target.checked)} />Teléfono</label>
           <label className="admin-check"><input type="checkbox" checked={Boolean(form.consentPostal)} onChange={(e) => set("consentPostal", e.target.checked)} />Correo postal</label>
+          {(options.fields || []).map((field) => (
+            <label key={field.id} className="admin-field">
+              <span className="admin-field__label">{field.label}{field.is_required ? <span className="admin-req"> *</span> : null}</span>
+              <input required={Boolean(field.is_required)} type={field.field_type === "number" ? "number" : field.field_type === "date" ? "date" : "text"} value={String(form[`cf_${field.id}`] || "")} onChange={(e) => set(`cf_${field.id}`, e.target.value)} />
+            </label>
+          ))}
         </>
       ) : null}
     </div>
@@ -236,6 +249,8 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
   const [value, setValue] = useState("");
   const [kind, setKind] = useState<"allergies" | "conditions" | "medications">("allergies");
   const [clinical, setClinical] = useState<Record<string, Record<string, unknown>[]>>({});
+  const [templates, setTemplates] = useState<{ id: string; name: string }[]>([]);
+  const [templateId, setTemplateId] = useState("");
   const [folder, setFolder] = useState(tab === "formularios" || tab === "alergias" || tab === "fotos" || tab === "documentos" ? tab : "notas");
   const active = TAB_ALIAS[tab] || tab || "resumen";
 
@@ -245,6 +260,7 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
 
   useEffect(() => {
     api<{ patient: Patient }>(`/api/admin/patients/${id}`).then((r) => setPatient(r.patient)).catch((e) => setError(e.message));
+    api<{ rows: { id: string; name: string }[] }>("/api/admin/forms").then((r) => setTemplates(r.rows)).catch(() => undefined);
   }, [id]);
   useEffect(() => {
     if (active === "expediente" && folder === "alergias") {
@@ -312,7 +328,20 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
             </form>
           ) : null}
           {folder === "formularios" ? (
-            <div className="admin-table-wrap">{rows.map((row) => <div key={String(row.id)} className="admin-table__row"><div className="admin-table__cell-title">{String(row.name || "Formulario")}</div><div className="admin-table__cell-sub">{String(row.status || "")}</div></div>)}{!rows.length ? <div className="admin-table__empty">Sin formularios.</div> : null}</div>
+            <div className="admin-table-wrap">
+              <form className="admin-toolbar" onSubmit={async (e) => {
+                e.preventDefault();
+                await api("/api/admin/forms", { method: "POST", body: JSON.stringify({ action: "assign", templateId, patientId: id }) });
+                setNotice("Formulario asignado. El paciente puede abrirlo desde el enlace del portal.");
+                const next = await api<{ rows: Record<string, unknown>[] }>(`/api/admin/patients/${id}/forms`);
+                setRows(next.rows);
+              }}>
+                <select required value={templateId} onChange={(e) => setTemplateId(e.target.value)}><option value="">Plantilla</option>{templates.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
+                <button className="admin-btn admin-btn--primary" type="submit">Asignar</button>
+              </form>
+              {rows.map((row) => <div key={String(row.id)} className="admin-table__row"><div className="admin-table__cell-title">{String(row.name || "Formulario")}</div><div className="admin-table__cell-sub">{String(row.status || "")}</div></div>)}
+              {!rows.length ? <div className="admin-table__empty">Sin formularios.</div> : null}
+            </div>
           ) : null}
           {(folder === "fotos" || folder === "documentos") ? (
             <form onSubmit={async (e) => {

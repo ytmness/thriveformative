@@ -80,6 +80,7 @@ export async function saveLead(id: string | null, body: Record<string, unknown>,
        RETURNING id`,
       [...values, actor.staff.email === "api" ? actor.staff.id || null : actor.staff.id]
     );
+    await saveLeadCustom(inserted.rows[0].id, body.customFields);
     await emitWebhook("lead.created", { leadId: inserted.rows[0].id });
     return { id: inserted.rows[0].id };
   }
@@ -94,8 +95,22 @@ export async function saveLead(id: string | null, body: Record<string, unknown>,
      WHERE id = $1`,
     [id, ...values]
   );
+  await saveLeadCustom(id, body.customFields);
   await emitWebhook("lead.updated", { leadId: id });
   return { id };
+}
+
+async function saveLeadCustom(leadId: string, fields: unknown) {
+  if (!Array.isArray(fields)) return;
+  for (const field of fields as { fieldId?: string; value?: unknown }[]) {
+    if (!field?.fieldId) continue;
+    await query(
+      `INSERT INTO custom_field_values (field_id, entity_id, value)
+       VALUES ($1, $2, $3::jsonb)
+       ON CONFLICT (field_id, entity_id) DO UPDATE SET value = EXCLUDED.value`,
+      [field.fieldId, leadId, JSON.stringify(field.value ?? null)]
+    );
+  }
 }
 
 export async function moveLead(id: string, stageId: string, actor: StaffSession) {

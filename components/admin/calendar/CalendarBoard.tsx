@@ -285,6 +285,24 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
           {waitlist.map((row) => <div key={row.id} className="admin-table__row">{[row.first_name, row.last_name].filter(Boolean).join(" ") || "Paciente"} · {row.service_name || "Servicio por confirmar"}</div>)}
         </section>
       ) : <p className="admin-header__desc">Lista de espera vacía.</p>}
+      <form className="admin-toolbar" style={{ marginTop: "0.75rem" }} onSubmit={async (e) => {
+        e.preventDefault();
+        const data = new FormData(e.currentTarget);
+        try {
+          await api("/api/admin/waitlist", { method: "POST", body: JSON.stringify({ patientId: String(data.get("patient") || ""), serviceId: String(data.get("service") || "") || null, staffUserId: staffFilter || null, locationId: locations[0]?.id || null, notes: String(data.get("notes") || "") }) });
+          setNotice("Paciente agregado a la lista de espera.");
+          e.currentTarget.reset();
+          const next = await api<{ rows: { id: string; first_name: string | null; last_name: string | null; service_name: string | null }[] }>("/api/admin/waitlist");
+          setWaitlist(next.rows);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : "No se pudo agregar a la lista de espera.");
+        }
+      }}>
+        <select name="patient" required><option value="">Paciente en espera</option>{patients.map((p) => <option key={p.id} value={p.id}>{p.firstName} {p.lastName}</option>)}</select>
+        <select name="service"><option value="">Servicio</option>{services.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select>
+        <input name="notes" placeholder="Nota" />
+        <button className="admin-btn" type="submit">Agregar a la espera</button>
+      </form>
       {block ? (
         <form className="admin-form-grid" onSubmit={addBlock} style={{ marginTop: "1rem" }}>
           <label className="admin-field">Inicio del bloqueo<input type="datetime-local" required value={block.startsAt} onChange={(e) => setBlock({ ...block, startsAt: e.target.value })} /></label>

@@ -26,6 +26,9 @@ export default function PosScreen() {
   const [sales, setSales] = useState<{ id: string; sale_number: string; status: string; total: string | number; first_name?: string | null; last_name?: string | null }[]>([]);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [saleId, setSaleId] = useState<string | null>(null);
+  const [locationId, setLocationId] = useState("");
+  const [moneyAmount, setMoneyAmount] = useState("");
+  const [locations, setLocations] = useState<{ id: string; name: string }[]>([]);
   const [catalogReady, setCatalogReady] = useState(false);
   const stripeRef = useRef<{ confirmPayment: (opts: { elements: unknown; redirect: string }) => Promise<{ error?: { message?: string }; paymentIntent?: { id: string } }> } | null>(null);
   const elementsRef = useRef<unknown>(null);
@@ -37,10 +40,17 @@ export default function PosScreen() {
     api<{ rows: Catalog[] }>("/api/admin/products?kind=memberships").then((r) => setMemberships(r.rows)).catch(() => undefined);
     api<{ rows: { id: string; firstName: string; lastName: string }[] }>("/api/admin/patients?pageSize=100").then((r) => setPatients(r.rows)).catch(() => undefined);
     api<{ rows: { id: string; sale_number: string; status: string; total: string | number; first_name?: string | null; last_name?: string | null }[] }>("/api/admin/sales").then((r) => setSales(r.rows)).catch(() => undefined);
+    api<{ rows: { id: string; name: string }[] }>("/api/admin/settings/locations").then((r) => {
+      setLocations(r.rows);
+      if (r.rows[0]) setLocationId((current) => current || r.rows[0].id);
+    }).catch(() => undefined);
   }, []);
 
   const catalog = tab === "service" ? services : tab === "product" ? products : tab === "package" ? packages : tab === "membership" ? memberships : [];
-  const total = useMemo(() => cart.reduce((sum, item) => sum + (item.unitPrice || 0) * item.quantity, 0), [cart]);
+  const total = useMemo(() => {
+    if (tab === "gift_card" || tab === "credit") return Number(moneyAmount) || 0;
+    return cart.reduce((sum, item) => sum + (item.unitPrice || 0) * item.quantity, 0);
+  }, [cart, tab, moneyAmount]);
 
   function add(item: Catalog) {
     const type = tab === "service" ? "service" : tab === "product" ? "product" : tab === "package" ? "package" : "membership";
@@ -48,8 +58,21 @@ export default function PosScreen() {
   }
 
   function askCheckout() {
+    const amount = Number(moneyAmount);
+    if ((tab === "gift_card" || tab === "credit") && !(amount > 0)) {
+      setMessage("Escribe el monto antes de cobrar.");
+      return;
+    }
     if (tab !== "gift_card" && tab !== "credit" && !cart.length) {
       setMessage("Agrega al menos un servicio o producto antes de cobrar.");
+      return;
+    }
+    if (cart.some((item) => item.itemType === "product") && !locationId) {
+      setMessage("Elige la sede para descontar el inventario.");
+      return;
+    }
+    if ((tab === "membership" || tab === "credit") && !patientId && !newPatient) {
+      setMessage("La membresía y el abono necesitan un paciente.");
       return;
     }
     setMessage(null);
@@ -64,12 +87,13 @@ export default function PosScreen() {
         const created = await api<{ patient: { id: string } }>("/api/admin/patients", { method: "POST", body: JSON.stringify({ firstName, lastName }) });
         buyer = created.patient.id;
       }
+      const amount = Number(moneyAmount);
       const items = tab === "gift_card" || tab === "credit"
-        ? [{ itemType: tab, description: tab === "gift_card" ? "Tarjeta de regalo" : "Abono a cuenta", quantity: 1, unitPrice: total || Number(prompt("Monto") || 0) }]
+        ? [{ itemType: tab, description: tab === "gift_card" ? "Tarjeta de regalo" : "Abono a cuenta", quantity: 1, unitPrice: amount }]
         : cart;
       const result = await api<{ sale: { id: string }; stripe: { clientSecret: string | null; paymentIntentId: string | null } | null }>("/api/admin/sales", {
         method: "POST",
-        body: JSON.stringify({ patientId: buyer, walkInName: walkIn || null, items, payment: { methodKey: method, amount: items.reduce((s, i) => s + (i.unitPrice || 0) * i.quantity, 0) } }),
+        body: JSON.stringify({ patientId: buyer, walkInName: walkIn || null, locationId: locationId || null, items, payment: { methodKey: method, amount: items.reduce((s, i) => s + (i.unitPrice || 0) * i.quantity, 0) } }),
       });
       setSaleId(result.sale.id);
       if (result.stripe?.clientSecret) {
@@ -138,6 +162,8 @@ export default function PosScreen() {
         </div>
         <aside className="admin-metric" data-tour="sales-pay">
           <label className="admin-field">Paciente<select value={patientId} onChange={(e) => setPatientId(e.target.value)}><option value="">Mostrador</option>{patients.map((p) => <option key={p.id} value={p.id}>{p.firstName} {p.lastName}</option>)}</select></label>
+          <label className="admin-field">Sede<select value={locationId} onChange={(e) => setLocationId(e.target.value)}><option value="">—</option>{locations.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}</select></label>
+          {tab === "gift_card" || tab === "credit" ? <label className="admin-field">Monto<input type="number" min="0.01" step="0.01" value={moneyAmount} onChange={(e) => setMoneyAmount(e.target.value)} /></label> : null}
           <label className="admin-field">Sin paciente<input value={walkIn} placeholder="Nombre walk-in" onChange={(e) => setWalkIn(e.target.value)} /></label>
           <label className="admin-check"><input type="checkbox" checked={newPatient} onChange={(e) => setNewPatient(e.target.checked)} />Crear paciente ahora</label>
           {newPatient ? <><label className="admin-field">Nombre<input value={firstName} onChange={(e) => setFirstName(e.target.value)} /></label><label className="admin-field">Apellido<input value={lastName} onChange={(e) => setLastName(e.target.value)} /></label></> : null}

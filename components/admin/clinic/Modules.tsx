@@ -66,6 +66,8 @@ export function ProductAdmin() {
   const [form, setForm] = useState({ name: "", sku: "", barcode: "", sizeLabel: "", price: "", cost: "", description: "", supplierId: "" });
   const [supplierName, setSupplierName] = useState("");
   const [stock, setStock] = useState({ productId: "", locationId: "", quantity: "", reason: "Ajuste" });
+  const [pack, setPack] = useState({ name: "", price: "", description: "" });
+  const [member, setMember] = useState({ name: "", price: "", interval: "month" });
   useEffect(() => {
     api<{ rows: Record<string, unknown>[] }>("/api/admin/products").then((r) => setRows(r.rows));
     api<{ rows: Record<string, unknown>[] }>("/api/admin/products?kind=movements").then((r) => setMoves(r.rows)).catch(() => undefined);
@@ -89,6 +91,20 @@ export function ProductAdmin() {
         <label className="admin-field">Proveedor<select value={form.supplierId} onChange={(e) => setForm({ ...form, supplierId: e.target.value })}><option value="">—</option>{suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
         <label className="admin-field span-2">Descripción<textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></label>
         <button className="admin-btn admin-btn--primary" type="submit">Guardar producto</button>
+      </form>
+      <h2 style={{ marginTop: "1.5rem" }}>Paquetes</h2>
+      <form className="admin-toolbar" onSubmit={async (e) => { e.preventDefault(); await api("/api/admin/products", { method: "POST", body: JSON.stringify({ kind: "package", name: pack.name, price: Number(pack.price || 0), description: pack.description }) }); location.reload(); }}>
+        <input required placeholder="Nombre del paquete" value={pack.name} onChange={(e) => setPack({ ...pack, name: e.target.value })} />
+        <input required type="number" min="0" step="0.01" placeholder="Precio" value={pack.price} onChange={(e) => setPack({ ...pack, price: e.target.value })} />
+        <input placeholder="Descripción" value={pack.description} onChange={(e) => setPack({ ...pack, description: e.target.value })} />
+        <button className="admin-btn admin-btn--primary" type="submit">Guardar paquete</button>
+      </form>
+      <h2 style={{ marginTop: "1.5rem" }}>Membresías</h2>
+      <form className="admin-toolbar" onSubmit={async (e) => { e.preventDefault(); await api("/api/admin/products", { method: "POST", body: JSON.stringify({ kind: "membership", name: member.name, price: Number(member.price || 0), intervalUnit: member.interval }) }); location.reload(); }}>
+        <input required placeholder="Nombre de la membresía" value={member.name} onChange={(e) => setMember({ ...member, name: e.target.value })} />
+        <input required type="number" min="0" step="0.01" placeholder="Precio" value={member.price} onChange={(e) => setMember({ ...member, price: e.target.value })} />
+        <select value={member.interval} onChange={(e) => setMember({ ...member, interval: e.target.value })}><option value="month">Mensual</option><option value="year">Anual</option></select>
+        <button className="admin-btn admin-btn--primary" type="submit">Guardar membresía</button>
       </form>
       <form className="admin-toolbar" style={{ marginTop: "1rem" }} onSubmit={async (e) => { e.preventDefault(); await api("/api/admin/settings/suppliers", { method: "POST", body: JSON.stringify({ name: supplierName }) }); setSupplierName(""); location.reload(); }}>
         <input value={supplierName} onChange={(e) => setSupplierName(e.target.value)} placeholder="Nuevo proveedor" required />

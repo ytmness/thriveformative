@@ -40,6 +40,7 @@ export default function SettingsPanel({ section }: { section: string }) {
   const [staff, setStaff] = useState<Row[]>([]);
   const [categories, setCategories] = useState<Row[]>([]);
   const [taxes, setTaxes] = useState<Row[]>([]);
+  const [rooms, setRooms] = useState<Row[]>([]);
   const [form, setForm] = useState<Row>({});
   const [editing, setEditing] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -76,11 +77,13 @@ export default function SettingsPanel({ section }: { section: string }) {
       api<{ rows: Row[] }>("/api/admin/settings/staff"),
       api<{ rows: Row[] }>("/api/admin/settings/service-categories"),
       api<{ rows: Row[] }>("/api/admin/settings/taxes"),
-    ]).then(([locationsResult, staffResult, categoriesResult, taxesResult]) => {
+      api<{ rows: Row[] }>("/api/admin/settings/rooms"),
+    ]).then(([locationsResult, staffResult, categoriesResult, taxesResult, roomsResult]) => {
       setLocations(locationsResult.rows);
       setStaff(staffResult.rows);
       setCategories(categoriesResult.rows);
       setTaxes(taxesResult.rows);
+      setRooms(roomsResult.rows);
       setDepsReady(true);
     }).catch(() => setDepsReady(true));
     if (apiSection === "services") api<{ rows: Row[] }>("/api/admin/forms").then((r) => setTemplates(r.rows)).catch(() => undefined);
@@ -157,7 +160,7 @@ export default function SettingsPanel({ section }: { section: string }) {
           />
         </div>
       ) : null}
-      <Fields section={apiSection} form={form} set={set} locations={locations} staff={staff} categories={categories} taxes={taxes} templates={templates} serviceTab={serviceTab} editing={Boolean(editing)} ready={depsReady} />
+      <Fields section={apiSection} form={form} set={set} locations={locations} staff={staff} categories={categories} taxes={taxes} rooms={rooms} templates={templates} serviceTab={serviceTab} editing={Boolean(editing)} ready={depsReady} />
     </form>
   );
 
@@ -244,7 +247,7 @@ export default function SettingsPanel({ section }: { section: string }) {
   );
 }
 
-function Fields({ section, form, set, locations, staff, categories, taxes, templates, serviceTab, editing, ready }: {
+function Fields({ section, form, set, locations, staff, categories, taxes, rooms, templates, serviceTab, editing, ready }: {
   section: string;
   form: Row;
   set: (key: string, value: unknown) => void;
@@ -252,6 +255,7 @@ function Fields({ section, form, set, locations, staff, categories, taxes, templ
   staff: Row[];
   categories: Row[];
   taxes: Row[];
+  rooms: Row[];
   templates: Row[];
   serviceTab: string;
   editing: boolean;
@@ -300,6 +304,9 @@ function Fields({ section, form, set, locations, staff, categories, taxes, templ
           <Check label="Se puede reservar en línea" checked={form.isOnlineBookable !== false} onChange={(v) => set("isOnlineBookable", v)} />
           <Text label="Margen antes (min)" value={form.bufferBeforeMinutes || "0"} onChange={(v) => set("bufferBeforeMinutes", Number(v))} />
           <Text label="Margen después (min)" value={form.bufferAfterMinutes || "0"} onChange={(v) => set("bufferAfterMinutes", Number(v))} />
+          <Checks label="Sedes" value={form.locationIds} options={locations.map((row) => [String(row.id), String(row.name)])} onChange={(v) => set("locationIds", v)} />
+          <Checks label="Profesionales" value={form.staffIds} options={staff.map((row) => [String(row.id), `${row.first_name} ${row.last_name}`])} onChange={(v) => set("staffIds", v)} />
+          <Checks label="Salas" value={form.roomIds} options={rooms.map((row) => [String(row.id), String(row.name)])} onChange={(v) => set("roomIds", v)} />
         </>
       ) : null}
       {serviceTab === "formularios" ? (
@@ -405,6 +412,22 @@ function Select({ label, value, onChange, options, required, empty, ready }: { l
   );
 }
 
+function Checks({ label, value, options, onChange }: { label: string; value: unknown; options: string[][]; onChange: (value: string[]) => void }) {
+  const selected = Array.isArray(value) ? value.map(String) : [];
+  if (!options.length) return null;
+  return (
+    <fieldset className="admin-field span-2">
+      <legend>{label}</legend>
+      {options.map(([id, name]) => (
+        <label key={id} className="admin-check">
+          <input type="checkbox" checked={selected.includes(id)} onChange={(e) => onChange(e.target.checked ? [...selected, id] : selected.filter((item) => item !== id))} />
+          {name}
+        </label>
+      ))}
+    </fieldset>
+  );
+}
+
 function Check({ label, checked, onChange }: { label: string; checked: boolean; onChange: (value: boolean) => void }) {
   return <label className="admin-check"><input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />{label}</label>;
 }
@@ -429,7 +452,7 @@ function bookingFrom(row: Row) {
 function formFrom(section: string, row: Row): Row {
   if (section === "locations") return { name: row.name, timezone: row.timezone, street: row.street, city: row.city, state: row.state, country: row.country, postalCode: row.postal_code, phone: row.phone, email: row.email };
   if (section === "rooms") return { locationId: row.location_id, name: row.name, color: row.color, capacity: row.capacity };
-  if (section === "services") return { name: row.name, categoryId: row.category_id, durationMinutes: row.duration_minutes, price: row.price, taxId: row.tax_id, description: row.description, isOnlineBookable: row.is_online_bookable, depositAmount: row.deposit_amount, bufferBeforeMinutes: row.buffer_before_minutes, bufferAfterMinutes: row.buffer_after_minutes, requiredFormTemplateId: row.required_form_template_id };
+  if (section === "services") return { name: row.name, categoryId: row.category_id, durationMinutes: row.duration_minutes, price: row.price, taxId: row.tax_id, description: row.description, isOnlineBookable: row.is_online_bookable, depositAmount: row.deposit_amount, bufferBeforeMinutes: row.buffer_before_minutes, bufferAfterMinutes: row.buffer_after_minutes, requiredFormTemplateId: row.required_form_template_id, locationIds: row.locationIds || [], staffIds: row.staffIds || [], roomIds: row.roomIds || [] };
   if (section === "staff") return { firstName: row.first_name, lastName: row.last_name, email: row.email, jobTitle: row.job_title, phone: row.phone, defaultLocationId: row.default_location_id, isBookable: row.is_bookable, roles: row.roles };
   if (section === "schedules") return { staffUserId: row.staff_user_id, locationId: row.location_id, dayOfWeek: row.day_of_week, startTime: String(row.start_time || "").slice(0, 5), endTime: String(row.end_time || "").slice(0, 5) };
   if (section === "taxes") return { name: row.name, rate: row.rate, isDefault: row.is_default };

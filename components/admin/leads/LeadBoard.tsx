@@ -15,6 +15,8 @@ export default function LeadBoard({ startNew }: { startNew?: boolean }) {
   const [form, setForm] = useState(EMPTY);
   const [staff, setStaff] = useState<{ id: string; first_name: string; last_name: string }[]>([]);
   const [sources, setSources] = useState<{ id: string; name: string }[]>([]);
+  const [fields, setFields] = useState<{ id: string; label: string; field_type: string }[]>([]);
+  const [extra, setExtra] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [selected, setSelected] = useState<Lead | null>(null);
@@ -24,17 +26,19 @@ export default function LeadBoard({ startNew }: { startNew?: boolean }) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
   async function load() {
-    const [leads, stageRows, staffRows, sourceRows] = await Promise.all([
+    const [leads, stageRows, staffRows, sourceRows, fieldRows] = await Promise.all([
       api<{ rows: Lead[] }>("/api/admin/leads"),
       api<{ rows: { id: string; name: string; sort_order?: number }[] }>("/api/admin/settings/lead-stages"),
       api<{ rows: { id: string; first_name: string; last_name: string }[] }>("/api/admin/settings/staff"),
       api<{ rows: { id: string; name: string }[] }>("/api/admin/settings/marketing-sources"),
+      api<{ rows: { id: string; label: string; field_type: string; entity: string }[] }>("/api/admin/settings/custom-fields"),
     ]);
     const nextStages = [...stageRows.rows].sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0));
     setRows(leads.rows);
     setStages(nextStages);
     setStaff(staffRows.rows);
     setSources(sourceRows.rows);
+    setFields(fieldRows.rows.filter((row) => row.entity === "lead"));
     setForm((current) => (current.stageId ? current : { ...current, stageId: nextStages[0]?.id || "" }));
   }
   useEffect(() => { load().catch((e) => setError(e.message)); }, []);
@@ -87,7 +91,7 @@ export default function LeadBoard({ startNew }: { startNew?: boolean }) {
             e.preventDefault();
             setError(null);
             try {
-              await api("/api/admin/leads", { method: "POST", body: JSON.stringify(form) });
+              await api("/api/admin/leads", { method: "POST", body: JSON.stringify({ ...form, customFields: fields.map((field) => ({ fieldId: field.id, value: extra[field.id] || "" })) }) });
               setOpen(false);
               setNotice("Lead guardado.");
               setForm({ ...EMPTY, stageId: stages[0]?.id || "" });
@@ -107,6 +111,9 @@ export default function LeadBoard({ startNew }: { startNew?: boolean }) {
               <label className="admin-field">Responsable<select value={form.ownerStaffId} onChange={(e) => setForm({ ...form, ownerStaffId: e.target.value })}><option value="">—</option>{staff.map((s) => <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>)}</select></label>
               <label className="admin-field">Fuente<select value={form.marketingSourceId} onChange={(e) => setForm({ ...form, marketingSourceId: e.target.value })}><option value="">—</option>{sources.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
               <label className="admin-field">Valor estimado<input type="number" min="0" step="1" value={form.estimatedValue} onChange={(e) => setForm({ ...form, estimatedValue: e.target.value })} /></label>
+              {fields.map((field) => (
+                <label key={field.id} className="admin-field">{field.label}<input type={field.field_type === "number" ? "number" : field.field_type === "date" ? "date" : "text"} value={extra[field.id] || ""} onChange={(e) => setExtra({ ...extra, [field.id]: e.target.value })} /></label>
+              ))}
             </div>
             <button className="admin-btn admin-btn--primary" type="submit">Guardar</button>
           </form>
