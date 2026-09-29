@@ -117,13 +117,13 @@ export default function PosScreen() {
   return (
     <>
       <header className="admin-header"><p className="admin-header__eyebrow">Punto de venta</p><h1 className="admin-header__title">Ventas</h1></header>
-      <div className="admin-tabs">
+      <div className="admin-tabs" data-tour="sales-tabs">
         {[["service", "Servicios"], ["product", "Productos"], ["package", "Paquetes"], ["membership", "Membresías"], ["gift_card", "Gift cards"], ["credit", "Abonos"]].map(([id, label]) => (
           <button key={id} type="button" className={tab === id ? "is-active" : ""} onClick={() => setTab(id)}>{label}</button>
         ))}
       </div>
       <div className="admin-pos">
-        <div>
+        <div data-tour="sales-catalog">
           {catalog.map((item) => <button key={item.id} type="button" className="admin-table__row" onClick={() => add(item)}><span className="admin-table__cell-title">{item.name}</span><span>${Number(item.price || 0)}</span></button>)}
           <CreateOffer
             show={catalogReady && !catalog.length && tab === "service"}
@@ -136,7 +136,7 @@ export default function PosScreen() {
             href="/admin/productos"
           />
         </div>
-        <aside className="admin-metric">
+        <aside className="admin-metric" data-tour="sales-pay">
           <label className="admin-field">Paciente<select value={patientId} onChange={(e) => setPatientId(e.target.value)}><option value="">Mostrador</option>{patients.map((p) => <option key={p.id} value={p.id}>{p.firstName} {p.lastName}</option>)}</select></label>
           <label className="admin-field">Sin paciente<input value={walkIn} placeholder="Nombre walk-in" onChange={(e) => setWalkIn(e.target.value)} /></label>
           <label className="admin-check"><input type="checkbox" checked={newPatient} onChange={(e) => setNewPatient(e.target.checked)} />Crear paciente ahora</label>

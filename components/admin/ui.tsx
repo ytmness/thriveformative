@@ -52,15 +52,17 @@ export function Tabs({
   onChange,
   errors,
   label,
+  tour,
 }: {
   items: { id: string; label: string }[];
   value: string;
   onChange: (id: string) => void;
   errors?: Record<string, boolean>;
   label: string;
+  tour?: string;
 }) {
   return (
-    <nav className="admin-tabs admin-tabs--line" aria-label={label}>
+    <nav className="admin-tabs admin-tabs--line" aria-label={label} data-tour={tour}>
       {items.map((item) => (
         <button key={item.id} type="button" className={value === item.id ? "is-active" : ""} onClick={() => onChange(item.id)}>
           {item.label}
@@ -76,14 +78,16 @@ export function SegmentedControl({
   value,
   onChange,
   label,
+  tour,
 }: {
   items: { id: string; label: string }[];
   value: string;
   onChange: (id: string) => void;
   label: string;
+  tour?: string;
 }) {
   return (
-    <div className="admin-segment" role="tablist" aria-label={label}>
+    <div className="admin-segment" role="tablist" aria-label={label} data-tour={tour}>
       {items.map((item) => (
         <button key={item.id} type="button" role="tab" aria-selected={value === item.id} className={value === item.id ? "is-active" : ""} onClick={() => onChange(item.id)}>
           {item.label}

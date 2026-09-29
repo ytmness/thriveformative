@@ -21,11 +21,11 @@ export function InvoiceCenter() {
     <>
       <header className="admin-header"><p className="admin-header__eyebrow">Cobros</p><h1 className="admin-header__title">Facturas y pagos</h1></header>
       {error ? <div className="admin-alert">{error}</div> : null}
-      <div className="admin-tabs">
+      <div className="admin-tabs" data-tour="invoice-tabs">
         {[["invoices", "Facturas"], ["quotes", "Cotizaciones"], ["credits", "Notas de crédito"]].map(([id, label]) => <button key={id} className={kind === id ? "is-active" : ""} type="button" onClick={() => setKind(id)}>{label}</button>)}
       </div>
       {kind !== "invoices" ? (
-        <form className="admin-toolbar" onSubmit={async (e) => {
+        <form className="admin-toolbar" data-tour="invoice-form" onSubmit={async (e) => {
           e.preventDefault();
           const data = new FormData(e.currentTarget);
           if (kind === "quotes") {
@@ -41,7 +41,7 @@ export function InvoiceCenter() {
           <button className="admin-btn admin-btn--primary" type="submit">{kind === "quotes" ? "Nueva cotización" : "Nota de crédito"}</button>
         </form>
       ) : null}
-      <div className="admin-table-wrap">
+      <div className="admin-table-wrap" data-tour="invoice-table">
         <div className="admin-table__row admin-table__head"><span>Número</span><span>Paciente</span><span>Estado</span><span>Total</span></div>
         {rows.map((row) => (
           <div key={String(row.id)} className="admin-table__row">
@@ -79,7 +79,7 @@ export function ProductAdmin() {
         <button type="button" className="admin-btn" onClick={() => { window.location.href = "/api/admin/products?export=1&format=csv"; }}>CSV</button>
         <button type="button" className="admin-btn" onClick={() => { window.location.href = "/api/admin/products?export=1&format=xlsx"; }}>Excel</button>
       </div>
-      <form className="admin-form-grid" onSubmit={async (e) => { e.preventDefault(); await api("/api/admin/products", { method: "POST", body: JSON.stringify({ ...form, price: Number(form.price || 0), cost: Number(form.cost || 0) }) }); location.reload(); }}>
+      <form className="admin-form-grid" data-tour="product-form" onSubmit={async (e) => { e.preventDefault(); await api("/api/admin/products", { method: "POST", body: JSON.stringify({ ...form, price: Number(form.price || 0), cost: Number(form.cost || 0) }) }); location.reload(); }}>
         <label className="admin-field">Nombre<input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
         <label className="admin-field">SKU<input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} /></label>
         <label className="admin-field">Código de barras<input value={form.barcode} onChange={(e) => setForm({ ...form, barcode: e.target.value })} /></label>
@@ -94,7 +94,7 @@ export function ProductAdmin() {
         <input value={supplierName} onChange={(e) => setSupplierName(e.target.value)} placeholder="Nuevo proveedor" required />
         <button className="admin-btn" type="submit">Agregar proveedor</button>
       </form>
-      <div className="admin-table-wrap" style={{ marginTop: "1rem" }}>
+      <div className="admin-table-wrap" data-tour="product-list" style={{ marginTop: "1rem" }}>
         <div className="admin-table__row admin-table__head"><span>Producto</span><span>SKU</span><span>Precio</span><span>Stock</span></div>
         {rows.map((row) => {
           const stockRows = (row.stock as { quantity: number; location_name: string }[]) || [];
@@ -110,7 +110,7 @@ export function ProductAdmin() {
         {!rows.length ? <div className="admin-table__empty">No hay productos. Crea el primero con el formulario.</div> : null}
       </div>
       <h2 style={{ marginTop: "1.5rem" }}>Ajuste de inventario</h2>
-      <form className="admin-toolbar" onSubmit={async (e) => { e.preventDefault(); await api("/api/admin/products", { method: "POST", body: JSON.stringify({ kind: "stock", productId: stock.productId, locationId: stock.locationId, quantity: Number(stock.quantity), movementType: "adjust", reason: stock.reason }) }); location.reload(); }}>
+      <form className="admin-toolbar" data-tour="product-stock" onSubmit={async (e) => { e.preventDefault(); await api("/api/admin/products", { method: "POST", body: JSON.stringify({ kind: "stock", productId: stock.productId, locationId: stock.locationId, quantity: Number(stock.quantity), movementType: "adjust", reason: stock.reason }) }); location.reload(); }}>
         <select required value={stock.productId} onChange={(e) => setStock({ ...stock, productId: e.target.value })}><option value="">Producto</option>{rows.map((row) => <option key={String(row.id)} value={String(row.id)}>{String(row.name)}</option>)}</select>
         <select required value={stock.locationId} onChange={(e) => setStock({ ...stock, locationId: e.target.value })}><option value="">Sede</option>{locations.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}</select>
         <input required type="number" step="1" placeholder="Cantidad (+/−)" value={stock.quantity} onChange={(e) => setStock({ ...stock, quantity: e.target.value })} />
@@ -154,7 +154,7 @@ export function FormBuilder() {
       <header className="admin-header"><p className="admin-header__eyebrow">Clínico</p><h1 className="admin-header__title">Formularios</h1><p className="admin-header__desc">Elige una plantilla de la lista para volver a abrirla.</p></header>
       {error ? <div className="admin-alert" role="alert">{error}</div> : null}
       {notice ? <p className="admin-notice" role="status">{notice}</p> : null}
-      <form className="admin-form-grid" onSubmit={async (e) => {
+      <form className="admin-form-grid" data-tour="form-builder" onSubmit={async (e) => {
         e.preventDefault();
         setError(null);
         try {
@@ -187,11 +187,11 @@ export function FormBuilder() {
           </div>
         ))}
         <div className="admin-toolbar span-2">
-          <button className="admin-btn admin-btn--primary" type="submit">{templateId ? "Guardar cambios" : "Guardar plantilla"}</button>
+          <button className="admin-btn admin-btn--primary" type="submit" data-tour="form-save">{templateId ? "Guardar cambios" : "Guardar plantilla"}</button>
           {templateId ? <button className="admin-btn" type="button" onClick={reset}>Nueva plantilla</button> : null}
         </div>
       </form>
-      <div className="admin-table-wrap" style={{ marginTop: "1rem" }}>
+      <div className="admin-table-wrap" data-tour="form-list" style={{ marginTop: "1rem" }}>
         <div className="admin-table__row admin-table__head"><span>Plantilla</span><span>Tipo</span><span>Versión</span></div>
         {rows.map((row) => (
           <div key={String(row.id)} className="admin-table__row" role="button" tabIndex={0} onClick={() => {
@@ -272,7 +272,7 @@ export function CommsAdmin() {
       </div>
       <div className="admin-page-head">
         <h2 style={{ margin: 0, fontSize: "1.05rem" }}>Plantillas</h2>
-        <button className="admin-btn admin-btn--primary" type="button" disabled={!pending} onClick={async () => {
+        <button className="admin-btn admin-btn--primary" type="button" data-tour="comms-send" disabled={!pending} onClick={async () => {
           if (!window.confirm(`¿Enviar ${pending} pendiente${pending === 1 ? "" : "s"}?`)) return;
           await api("/api/admin/messages", { method: "POST", body: JSON.stringify({ action: "dispatch" }) });
           setNotice(pending === 1 ? "Se envió 1 mensaje." : `Se enviaron ${pending} mensajes.`);
@@ -280,7 +280,7 @@ export function CommsAdmin() {
         }}>{pending ? `Enviar ${pending} pendiente${pending === 1 ? "" : "s"}` : "Enviar cola pendiente"}</button>
       </div>
       {notice ? <p className="admin-notice" role="status">{notice}</p> : null}
-      <div style={{ display: "grid", gap: "0.75rem" }}>
+      <div style={{ display: "grid", gap: "0.75rem" }} data-tour="comms-templates">
         {templates.map((row) => {
           const channel = String(row.channel) === "sms" ? "SMS" : "Email";
           return (
@@ -298,7 +298,7 @@ export function CommsAdmin() {
       </div>
       {draft ? (
         <div className="admin-drawer" onClick={() => setDraft(null)}>
-          <form className="admin-drawer__panel" onClick={(e) => e.stopPropagation()} onSubmit={async (e) => {
+          <form className="admin-drawer__panel" data-tour="comms-editor" onClick={(e) => e.stopPropagation()} onSubmit={async (e) => {
             e.preventDefault();
             await api(`/api/admin/settings/message-templates/${draft.id}`, { method: "PATCH", body: JSON.stringify({ channel: draft.channel, templateKey: draft.template_key, locale: draft.locale || "es", subject: draft.subject, body: draft.body, isActive: draft.is_active !== false }) });
             setDraft(null);
@@ -326,7 +326,7 @@ export function CommsAdmin() {
         </div>
       ) : null}
       <h2 style={{ margin: "1.5rem 0 0.75rem", textAlign: "left" }}>Cola</h2>
-      <div className="admin-table-wrap">
+      <div className="admin-table-wrap" data-tour="comms-queue">
         <div className="admin-table__row admin-table__head" style={{ gridTemplateColumns: "6rem minmax(0,1fr) 7rem minmax(0,1.4fr) 9rem" }}><span>Canal</span><span>Destinatario</span><span>Estado</span><span>Mensaje</span><span>Fecha</span></div>
         {rows.map((row) => {
           const badge = statusLabel[String(row.status)] || [String(row.status), "admin-badge admin-badge--muted"];
@@ -362,8 +362,8 @@ export function ReportView({ slug }: { slug?: string }) {
   return (
     <>
       <header className="admin-header"><h1 className="admin-header__title">Reportes</h1><p className="admin-header__desc">Últimos 30 días.</p></header>
-      <nav className="admin-tabs admin-tabs--wrap">{links.map(([id, label]) => <a key={id} className={active === id ? "is-active" : ""} href={`/admin/reportes/${id}`}>{label}</a>)}</nav>
-      <div className="admin-table-wrap">
+      <nav className="admin-tabs admin-tabs--wrap" data-tour="report-tabs">{links.map(([id, label]) => <a key={id} className={active === id ? "is-active" : ""} href={`/admin/reportes/${id}`}>{label}</a>)}</nav>
+      <div className="admin-table-wrap" data-tour="report-table">
         <div className="admin-table__row admin-table__head">{keys.length ? keys.map((key) => <span key={key}>{labels[key] || key}</span>) : <span>Resultado</span>}</div>
         {rows.map((row, index) => (
           <div key={index} className="admin-table__row">

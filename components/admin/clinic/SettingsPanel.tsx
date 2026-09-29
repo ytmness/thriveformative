@@ -145,10 +145,11 @@ export default function SettingsPanel({ section }: { section: string }) {
   }
 
   const editor = (
-    <form id="settings-editor" className="admin-form-grid" onSubmit={submit}>
+    <form id="settings-editor" className="admin-form-grid" data-tour="settings-form" onSubmit={submit}>
       {apiSection === "services" ? (
         <div className="span-2">
           <SegmentedControl
+            tour="service-tabs"
             label="Secciones del servicio"
             value={serviceTab}
             onChange={setServiceTab}
@@ -162,7 +163,7 @@ export default function SettingsPanel({ section }: { section: string }) {
 
   return (
     <div className="admin-settings">
-      <nav className="admin-settings__nav" aria-label="Secciones de configuración">
+      <nav className="admin-settings__nav" data-tour="settings-nav" aria-label="Secciones de configuración">
         {GROUPS.map(([group, items]) => (
           <div key={group} className="admin-settings__group">
             <p className="admin-settings__label">{group}</p>
@@ -188,16 +189,16 @@ export default function SettingsPanel({ section }: { section: string }) {
           <section className="admin-card">
             {editor}
             <div className="admin-drawer__foot" style={{ marginTop: "1rem", padding: 0, border: 0 }}>
-              <button className="admin-btn admin-btn--primary" type="submit" form="settings-editor">Guardar</button>
+              <button className="admin-btn admin-btn--primary" type="submit" form="settings-editor" data-tour="settings-save">Guardar</button>
             </div>
           </section>
         ) : (
           <>
             <div className="admin-page-head">
               <h2 style={{ margin: 0, fontSize: "1.05rem" }}>{title}</h2>
-              <button className="admin-btn admin-btn--primary" type="button" onClick={openNew}>+ Nuevo</button>
+              <button className="admin-btn admin-btn--primary" type="button" data-tour="settings-new" onClick={openNew}>+ Nuevo</button>
             </div>
-            <div className="admin-table-wrap">
+            <div className="admin-table-wrap" data-tour="settings-table">
               <div className="admin-table__row admin-table__head" style={{ gridTemplateColumns: columns.template }}>
                 {columns.labels.map((label) => <span key={label}>{label}</span>)}
               </div>
@@ -234,7 +235,7 @@ export default function SettingsPanel({ section }: { section: string }) {
             <div className="admin-drawer__body">{editor}</div>
             <div className="admin-drawer__foot">
               <button className="admin-btn" type="button" onClick={() => setOpenForm(false)}>Cancelar</button>
-              <button className="admin-btn admin-btn--primary" type="submit" form="settings-editor">Guardar</button>
+              <button className="admin-btn admin-btn--primary" type="submit" form="settings-editor" data-tour="settings-save">Guardar</button>
             </div>
           </div>
         </div>

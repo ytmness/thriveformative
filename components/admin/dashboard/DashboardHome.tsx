@@ -26,13 +26,13 @@ export default function DashboardHome() {
         <p className="admin-header__desc">Citas del día, ingresos, pacientes nuevos y leads abiertos.</p>
       </header>
       {error ? <div className="admin-alert">{error}</div> : null}
-      <section className="admin-metrics">
+      <section className="admin-metrics" data-tour="home-metrics">
         <div className="admin-metric"><div className="admin-metric__value">{data?.appointments ?? "—"}</div><div className="admin-metric__label">Citas de hoy</div></div>
         <div className="admin-metric"><div className="admin-metric__value">{data ? `$${Number(data.revenue).toFixed(0)}` : "—"}</div><div className="admin-metric__label">Ingresos de hoy</div></div>
         <div className="admin-metric"><div className="admin-metric__value">{data?.new_patients ?? "—"}</div><div className="admin-metric__label">Pacientes nuevos</div></div>
         <div className="admin-metric"><div className="admin-metric__value">{data?.open_leads ?? "—"}</div><div className="admin-metric__label">Leads abiertos</div></div>
       </section>
-      <div className="admin-toolbar">
+      <div className="admin-toolbar" data-tour="home-actions">
         <Link className="admin-btn admin-btn--primary" href="/admin/pacientes?nuevo=1">+ Paciente</Link>
         <Link className="admin-btn admin-btn--primary" href="/admin/leads?nuevo=1">+ Lead</Link>
         <Link className="admin-btn admin-btn--primary" href="/admin/calendario?nueva=1">+ Cita</Link>

@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocale } from "next-intl";
 import {
-  BarChart3, Calendar, Check, ChevronLeft, ChevronRight, CircleHelp, ClipboardList,
+  BarChart3, Calendar, ChevronLeft, ChevronRight, CircleHelp, ClipboardList,
   Clock, Contact, CreditCard, FileText, LayoutDashboard, MapPin, MessageSquare,
   Package, Percent, ShoppingBag, SlidersHorizontal, Store, Tags, UserRound, Users, Wallet, X,
 } from "lucide-react";
@@ -37,28 +37,28 @@ const GUIDES: Record<GuideId, Record<Lang, Pack>> = {
     ko: { title: "홈", steps: ["오늘의 예약, 매출, 리드를 확인합니다.", "만들기에서 환자, 리드, 예약을 엽니다.", "Ctrl+K로 환자를 찾습니다."] },
   },
   calendar: {
-    es: { title: "Calendario", steps: ["Haz clic en un hueco libre para abrir la cita.", "Elige paciente, servicio, profesional y sede.", "Arrastra la cita para moverla. Archivar la cancela."] },
-    en: { title: "Calendar", steps: ["Click an empty slot to open the visit.", "Choose patient, service, provider, and location.", "Drag a visit to move it. Archive cancels it."] },
-    it: { title: "Calendario", steps: ["Clicca uno spazio libero per aprire la visita.", "Scegli paziente, servizio, professionista e sede.", "Trascina per spostarla. Archivia annulla."] },
-    ko: { title: "달력", steps: ["빈 칸을 눌러 예약을 엽니다.", "환자, 서비스, 담당자, 지점을 고릅니다.", "끌어 옮깁니다. 보관은 취소입니다."] },
+    es: { title: "Calendario", steps: ["Esta barra cambia día, semana o mes, filtra al profesional y abre + Cita.", "Haz clic en un hueco libre o arrastra una cita para moverla.", "Elige paciente, servicio, profesional y sede, y guarda."] },
+    en: { title: "Calendar", steps: ["This bar switches day, week, or month, filters the provider, and opens + Visit.", "Click an empty slot, or drag a visit to move it.", "Choose patient, service, provider, and location, then save."] },
+    it: { title: "Calendario", steps: ["Questa barra cambia giorno, settimana o mese, filtra il professionista e apre + Visita.", "Clicca uno spazio libero o trascina una visita per spostarla.", "Scegli paziente, servizio, professionista e sede, e salva."] },
+    ko: { title: "달력", steps: ["이 막대에서 일·주·월, 담당자, + 예약을 고릅니다.", "빈 칸을 누르거나 예약을 끌어 옮깁니다.", "환자, 서비스, 담당자, 지점을 고르고 저장합니다."] },
   },
   chart: {
-    es: { title: "Ficha", steps: ["Resumen es la portada del paciente.", "Las pestañas son citas, expediente, finanzas y más.", "Archivar lo oculta de la lista. El expediente se queda."] },
-    en: { title: "Chart", steps: ["Summary is the patient cover.", "Tabs hold visits, chart, billing, and more.", "Archive hides the patient. The record stays."] },
-    it: { title: "Scheda", steps: ["Il riepilogo è la copertina.", "Le schede sono visite, cartella e pagamenti.", "Archivia nasconde il paziente. La cartella resta."] },
-    ko: { title: "차트", steps: ["요약이 환자 표지입니다.", "탭에 예약, 기록, 수납이 있습니다.", "보관하면 목록에서 숨고 기록은 남습니다."] },
+    es: { title: "Ficha", steps: ["Estas pestañas son resumen, citas, expediente, finanzas, comunicaciones y membresías.", "Aquí está el contenido de la pestaña que tienes abierta.", "Archivar oculta al paciente de la lista. El expediente se queda."] },
+    en: { title: "Chart", steps: ["These tabs are summary, visits, chart, billing, messages, and memberships.", "This is the content of the open tab.", "Archive hides the patient from the list. The record stays."] },
+    it: { title: "Scheda", steps: ["Queste schede sono riepilogo, visite, cartella, pagamenti, messaggi e abbonamenti.", "Qui c’è il contenuto della scheda aperta.", "Archivia nasconde il paziente dalla lista. La cartella resta."] },
+    ko: { title: "차트", steps: ["이 탭은 요약, 예약, 기록, 수납, 메시지, 멤버십입니다.", "열린 탭의 내용이 여기 있습니다.", "보관하면 목록에서 숨고 기록은 남습니다."] },
   },
   patients: {
-    es: { title: "Pacientes", steps: ["+ Paciente abre el panel. El * es obligatorio.", "Datos, Contacto, Dirección y Consentimientos son pestañas.", "Guardar cierra el panel y deja el enlace a la ficha."] },
-    en: { title: "Patients", steps: ["+ Patient opens the panel. * means required.", "Details, Contact, Address, and Consent are tabs.", "Save closes the panel and links to the chart."] },
-    it: { title: "Pazienti", steps: ["+ Paziente apre il pannello. * è obbligatorio.", "Dati, Contatto, Indirizzo e Consensi sono schede.", "Salva chiude il pannello e apre la scheda."] },
-    ko: { title: "환자", steps: ["+ 환자가 패널을 엽니다. * 는 필수입니다.", "정보, 연락처, 주소, 동의는 탭입니다.", "저장하면 패널이 닫히고 차트로 갑니다."] },
+    es: { title: "Pacientes", steps: ["Busca por nombre, código, email o teléfono y pulsa Buscar.", "Este botón abre el alta.", "Estas pestañas son Datos, Contacto, Dirección y Consentimientos. El * es obligatorio.", "Guardar cierra el panel y deja el aviso con enlace a la ficha.", "La lista muestra los pacientes. Abre una fila para ver la ficha."] },
+    en: { title: "Patients", steps: ["Search by name, code, email, or phone, then press Search.", "This button opens the new patient panel.", "These tabs are Details, Contact, Address, and Consent. * means required.", "Save closes the panel and leaves a link to the chart.", "The list shows patients. Open a row to see the chart."] },
+    it: { title: "Pazienti", steps: ["Cerca per nome, codice, email o telefono e premi Cerca.", "Questo bottone apre la scheda nuova.", "Queste schede sono Dati, Contatto, Indirizzo e Consensi. * è obbligatorio.", "Salva chiude il pannello e lascia il link alla scheda.", "La lista mostra i pazienti. Apri una riga per la scheda."] },
+    ko: { title: "환자", steps: ["이름, 코드, 이메일, 전화로 찾고 검색을 누릅니다.", "이 버튼이 신규 등록을 엽니다.", "이 탭은 정보, 연락처, 주소, 동의입니다. * 는 필수입니다.", "저장하면 패널이 닫히고 차트 링크가 남습니다.", "목록에 환자가 있습니다. 행을 열면 차트입니다."] },
   },
   leads: {
-    es: { title: "Leads", steps: ["Crea el lead con nombre, apellido y etapa.", "Arrastra la tarjeta a otra columna.", "Archivar lo quita del tablero."] },
-    en: { title: "Leads", steps: ["Create the lead with name and stage.", "Drag the card to another column.", "Archive removes it from the board."] },
-    it: { title: "Lead", steps: ["Crea il lead con nome e fase.", "Trascina la scheda in un’altra colonna.", "Archivia lo toglie dalla bacheca."] },
-    ko: { title: "리드", steps: ["이름과 단계로 리드를 만듭니다.", "카드를 다른 열로 끕니다.", "보관하면 보드에서 빠집니다."] },
+    es: { title: "Leads", steps: ["Este botón abre el alta del lead.", "Nombre, apellido y etapa son obligatorios. Luego guarda.", "Arrastra la tarjeta a otra columna. Ábrela para convertirla o archivarla."] },
+    en: { title: "Leads", steps: ["This button opens a new lead.", "First name, last name, and stage are required. Then save.", "Drag the card to another column. Open it to convert or archive."] },
+    it: { title: "Lead", steps: ["Questo bottone apre un lead nuovo.", "Nome, cognome e fase sono obbligatori. Poi salva.", "Trascina la scheda in un’altra colonna. Aprila per convertirla o archiviarla."] },
+    ko: { title: "리드", steps: ["이 버튼이 새 리드를 엽니다.", "이름, 성, 단계는 필수입니다. 그리고 저장합니다.", "카드를 다른 열로 끕니다. 열어서 환자로 바꾸거나 보관합니다."] },
   },
   sales: {
     es: { title: "Ventas", steps: ["Elige la pestaña y pulsa un ítem para sumarlo.", "Revisa el total y confirma el cobro.", "Si falta el catálogo, el aviso te lleva a crearlo."] },
@@ -67,34 +67,34 @@ const GUIDES: Record<GuideId, Record<Lang, Pack>> = {
     ko: { title: "판매", steps: ["탭에서 항목을 눌러 담습니다.", "합계를 확인하고 결제를 확정합니다.", "목록이 없으면 안내가 만들기로 보냅니다."] },
   },
   invoices: {
-    es: { title: "Facturas", steps: ["Las facturas nacen al cobrar en Ventas.", "Cambia a cotizaciones o notas de crédito.", "Si está vacío, crea primero una venta."] },
-    en: { title: "Invoices", steps: ["Invoices appear when you charge in Sales.", "Switch to quotes or credit notes.", "If empty, create a sale first."] },
-    it: { title: "Fatture", steps: ["Le fatture nascono incassando in Vendite.", "Passa a preventivi o note di credito.", "Se è vuoto, crea prima una vendita."] },
-    ko: { title: "청구", steps: ["청구서는 판매에서 결제할 때 생깁니다.", "견적과 신용 전표로 바꿉니다.", "비어 있으면 먼저 판매를 만듭니다."] },
+    es: { title: "Facturas", steps: ["Estas pestañas son facturas, cotizaciones y notas de crédito.", "En cotizaciones o notas, este formulario crea el documento.", "La tabla lista lo emitido. Las facturas nacen al cobrar en Ventas."] },
+    en: { title: "Invoices", steps: ["These tabs are invoices, quotes, and credit notes.", "On quotes or credits, this form creates the document.", "The table lists what was issued. Invoices appear when you charge in Sales."] },
+    it: { title: "Fatture", steps: ["Queste schede sono fatture, preventivi e note di credito.", "In preventivi o note, questo modulo crea il documento.", "La tabella elenca l’emesso. Le fatture nascono incassando in Vendite."] },
+    ko: { title: "청구", steps: ["이 탭은 청구서, 견적, 신용 전표입니다.", "견적이나 전표에서 이 양식이 문서를 만듭니다.", "표에 발행 내역이 있습니다. 청구서는 판매 결제 때 생깁니다."] },
   },
   products: {
-    es: { title: "Productos", steps: ["Arriba creas el producto con nombre y precio.", "Abajo sumas o restas stock por sede.", "Sin sede, el aviso te lleva a crearla."] },
-    en: { title: "Products", steps: ["Create the product with name and price.", "Adjust stock by location below.", "Without a location, the prompt creates one."] },
-    it: { title: "Prodotti", steps: ["In alto crei nome e prezzo.", "Sotto regoli lo stock per sede.", "Senza sede, l’avviso la crea."] },
-    ko: { title: "제품", steps: ["위에서 이름과 가격으로 제품을 만듭니다.", "아래에서 지점별 재고를 조정합니다.", "지점이 없으면 안내가 만들기로 보냅니다."] },
+    es: { title: "Productos", steps: ["Este formulario crea el producto: nombre, precio y proveedor.", "La tabla muestra SKU, precio y existencias.", "Aquí sumas o restas stock por sede. Sin sede, el aviso te lleva a crearla."] },
+    en: { title: "Products", steps: ["This form creates the product: name, price, and supplier.", "The table shows SKU, price, and stock.", "Here you add or remove stock by location. Without a location, the prompt creates one."] },
+    it: { title: "Prodotti", steps: ["Questo modulo crea il prodotto: nome, prezzo e fornitore.", "La tabella mostra SKU, prezzo e giacenza.", "Qui sommi o togli stock per sede. Senza sede, l’avviso la crea."] },
+    ko: { title: "제품", steps: ["이 양식이 이름, 가격, 공급자로 제품을 만듭니다.", "표에 SKU, 가격, 재고가 있습니다.", "여기서 지점별 재고를 더하거나 뺍니다. 지점이 없으면 안내가 만들기로 보냅니다."] },
   },
   forms: {
-    es: { title: "Formularios", steps: ["Crea ingreso, consentimiento, SOAP o personalizado.", "Agrega campos y marca los obligatorios.", "Pulsa la fila para reabrir. Archivar oculta."] },
-    en: { title: "Forms", steps: ["Create intake, consent, SOAP, or custom.", "Add fields and mark required ones.", "Open a row to edit. Archive hides it."] },
-    it: { title: "Moduli", steps: ["Crea ingresso, consenso, SOAP o personale.", "Aggiungi campi e segna gli obbligatori.", "Apri la riga per modificare. Archivia nasconde."] },
-    ko: { title: "서식", steps: ["접수, 동의, SOAP 또는 사용자 서식을 만듭니다.", "필드를 넣고 필수를 표시합니다.", "행을 눌러 다시 엽니다. 보관은 숨김입니다."] },
+    es: { title: "Formularios", steps: ["Elige el tipo, escribe el nombre y agrega campos. El asterisco marca lo obligatorio.", "Pulsa guardar para dejar la plantilla.", "Pulsa una fila de la lista para volver a abrirla."] },
+    en: { title: "Forms", steps: ["Pick the type, type the name, and add fields. The asterisk marks what is required.", "Press save to keep the template.", "Press a row in the list to open it again."] },
+    it: { title: "Moduli", steps: ["Scegli il tipo, scrivi il nome e aggiungi campi. L’asterisco segna l’obbligatorio.", "Premi salva per tenere il modello.", "Premi una riga della lista per riaprirlo."] },
+    ko: { title: "서식", steps: ["유형을 고르고 이름을 쓴 뒤 필드를 넣습니다. 별표가 필수입니다.", "저장을 눌러 서식을 남깁니다.", "목록의 행을 누르면 다시 엽니다."] },
   },
   comms: {
-    es: { title: "Comunicaciones", steps: ["Cada tarjeta es una plantilla con vista previa.", "En Editar, pulsa un chip para insertar la variable.", "La cola muestra estado. Enviar pide confirmación."] },
-    en: { title: "Messages", steps: ["Each card is a template with a preview.", "In Edit, tap a chip to insert a variable.", "The queue shows status. Send asks to confirm."] },
-    it: { title: "Messaggi", steps: ["Ogni scheda è un modello con anteprima.", "In Modifica, tocca un chip per la variabile.", "La coda mostra lo stato. Invia chiede conferma."] },
-    ko: { title: "메시지", steps: ["카드마다 미리보기가 있는 템플릿입니다.", "편집에서 칩을 눌러 변수를 넣습니다.", "대기열에 상태가 있습니다. 보내기는 확인을 묻습니다."] },
+    es: { title: "Comunicaciones", steps: ["Cada tarjeta es una plantilla. Pulsa Editar para abrirla.", "En el editor, pulsa un chip para insertar la variable y guarda.", "Este botón envía los pendientes y pide confirmación.", "La cola muestra canal, destinatario, estado, mensaje y fecha."] },
+    en: { title: "Messages", steps: ["Each card is a template. Press Edit to open it.", "In the editor, tap a chip to insert a variable, then save.", "This button sends the queue and asks you to confirm.", "The queue shows channel, recipient, status, message, and date."] },
+    it: { title: "Messaggi", steps: ["Ogni scheda è un modello. Premi Modifica per aprirlo.", "Nell’editor, tocca un chip per la variabile e salva.", "Questo bottone invia la coda e chiede conferma.", "La coda mostra canale, destinatario, stato, messaggio e data."] },
+    ko: { title: "메시지", steps: ["카드마다 템플릿입니다. 편집을 눌러 엽니다.", "편집기에서 칩을 눌러 변수를 넣고 저장합니다.", "이 버튼이 대기열을 보내고 확인을 묻습니다.", "대기열에 채널, 수신자, 상태, 메시지, 날짜가 있습니다."] },
   },
   reports: {
-    es: { title: "Reportes", steps: ["Cambia la pestaña: citas, ingresos, servicios…", "Los números son de los últimos 30 días.", "Si está vacío, faltan citas o cobros."] },
-    en: { title: "Reports", steps: ["Switch tabs: visits, revenue, services…", "Numbers cover the last 30 days.", "Empty means there are no visits or charges yet."] },
-    it: { title: "Report", steps: ["Cambia scheda: visite, incassi, servizi…", "I numeri sono degli ultimi 30 giorni.", "Vuoto significa che mancano visite o incassi."] },
-    ko: { title: "보고서", steps: ["탭을 바꿉니다: 예약, 매출, 서비스…", "숫자는 최근 30일입니다.", "비어 있으면 예약이나 결제가 없습니다."] },
+    es: { title: "Reportes", steps: ["Estas pestañas cambian el reporte: citas, ingresos, servicios y el resto.", "La tabla son los últimos 30 días. Si está vacía, faltan citas o cobros.", "El menú de la izquierda lleva a las demás secciones del panel."] },
+    en: { title: "Reports", steps: ["These tabs switch the report: visits, revenue, services, and the rest.", "The table is the last 30 days. Empty means there are no visits or charges yet.", "The left menu opens the other sections of the panel."] },
+    it: { title: "Report", steps: ["Queste schede cambiano il report: visite, incassi, servizi e il resto.", "La tabella sono gli ultimi 30 giorni. Vuota significa che mancano visite o incassi.", "Il menu a sinistra apre le altre sezioni."] },
+    ko: { title: "보고서", steps: ["이 탭이 보고서를 바꿉니다: 예약, 매출, 서비스와 나머지.", "표는 최근 30일입니다. 비어 있으면 예약이나 결제가 없습니다.", "왼쪽 메뉴가 패널의 다른 구역으로 갑니다."] },
   },
   locations: {
     es: { title: "Sedes", steps: ["Pulsa + Nuevo.", "Escribe nombre y zona horaria.", "Guarda. Salas, horarios y citas usan esta sede."] },
@@ -109,10 +109,10 @@ const GUIDES: Record<GuideId, Record<Lang, Pack>> = {
     ko: { title: "진료실", steps: ["먼저 지점이 필요합니다.", "+ 새로 만들기에서 지점과 이름을 고릅니다.", "저장하면 예약에 쓸 수 있습니다."] },
   },
   hours: {
-    es: { title: "Horarios", steps: ["Elige profesional, sede y día.", "Indica desde y hasta.", "Sin horario, la reserva pública no ofrece esas horas."] },
-    en: { title: "Hours", steps: ["Choose provider, location, and day.", "Set from and to.", "Without hours, online booking hides those times."] },
-    it: { title: "Orari", steps: ["Scegli professionista, sede e giorno.", "Indica da e a.", "Senza orario, la prenotazione online non li mostra."] },
-    ko: { title: "근무 시간", steps: ["담당자, 지점, 요일을 고릅니다.", "시작과 끝을 적습니다.", "시간이 없으면 온라인 예약에 안 나옵니다."] },
+    es: { title: "Horarios", steps: ["Pulsa + Nuevo para abrir el horario.", "Elige profesional, sede y día, e indica desde y hasta.", "La tabla lista los horarios. Sin horario, la reserva pública no ofrece esas horas."] },
+    en: { title: "Hours", steps: ["Press + New to open the hours form.", "Choose provider, location, and day, then set from and to.", "The table lists the hours. Without hours, online booking hides those times."] },
+    it: { title: "Orari", steps: ["Premi + Nuovo per aprire l’orario.", "Scegli professionista, sede e giorno, e indica da e a.", "La tabella elenca gli orari. Senza orario, la prenotazione online non li mostra."] },
+    ko: { title: "근무 시간", steps: ["+ 새로 만들기로 시간 양식을 엽니다.", "담당자, 지점, 요일과 시작·끝을 고릅니다.", "표에 시간이 있습니다. 없으면 온라인 예약에 안 나옵니다."] },
   },
   services: {
     es: { title: "Servicios", steps: ["Pulsa + Nuevo y pon el nombre.", "General, Precios, Reserva y Formularios son el control de arriba.", "Guarda. La tabla muestra duración y precio."] },
@@ -145,10 +145,10 @@ const GUIDES: Record<GuideId, Record<Lang, Pack>> = {
     ko: { title: "결제 수단", steps: ["+ 새로 만들기를 누릅니다.", "키는 내부용이고 이름은 직원이 봅니다.", "사용 중을 끄면 숨습니다."] },
   },
   billing: {
-    es: { title: "Facturación", steps: ["Escribe cancelación, pie de factura y privacidad.", "Guarda.", "Esos textos salen en la reserva y en los documentos."] },
-    en: { title: "Billing", steps: ["Write cancellation, invoice footer, and privacy.", "Save.", "Those texts show in booking and documents."] },
-    it: { title: "Fatturazione", steps: ["Scrivi cancellazione, piè di fattura e privacy.", "Salva.", "Quei testi escono in prenotazione e documenti."] },
-    ko: { title: "청구 문구", steps: ["취소, 청구서 하단, 개인정보를 적습니다.", "저장합니다.", "예약과 문서에 그 문구가 나옵니다."] },
+    es: { title: "Facturación", steps: ["Escribe cancelación, pie de factura y privacidad en este formulario.", "Este botón guarda los textos.", "El menú de la izquierda cambia a sedes, servicios o políticas."] },
+    en: { title: "Billing", steps: ["Write cancellation, invoice footer, and privacy in this form.", "This button saves the texts.", "The left menu switches to locations, services, or policies."] },
+    it: { title: "Fatturazione", steps: ["Scrivi cancellazione, piè di fattura e privacy in questo modulo.", "Questo bottone salva i testi.", "Il menu a sinistra passa a sedi, servizi o regole."] },
+    ko: { title: "청구 문구", steps: ["이 양식에 취소, 청구서 하단, 개인정보를 적습니다.", "이 버튼이 문구를 저장합니다.", "왼쪽 메뉴가 지점, 서비스, 예약 규칙으로 바뀝니다."] },
   },
   fields: {
     es: { title: "Campos", steps: ["Pulsa + Nuevo.", "Elige si es de paciente, lead, cita o producto.", "Etiqueta se lee. Clave identifica. Tipo es el control."] },
@@ -157,22 +157,22 @@ const GUIDES: Record<GuideId, Record<Lang, Pack>> = {
     ko: { title: "사용자 필드", steps: ["+ 새로 만들기를 누릅니다.", "환자, 리드, 예약, 제품 중 고릅니다.", "라벨은 표시, 키는 식별, 유형은 입력칸입니다."] },
   },
   policies: {
-    es: { title: "Políticas", steps: ["Ajusta intervalo y anticipación.", "Activa reprogramar, espera o términos.", "Guarda. La reserva pública usa estas reglas."] },
-    en: { title: "Policies", steps: ["Set the interval and how far ahead.", "Turn reschedule, waitlist, or terms on.", "Save. Public booking uses these rules."] },
-    it: { title: "Regole", steps: ["Regola intervallo e anticipo.", "Attiva riprogramma, attesa o termini.", "Salva. La prenotazione pubblica le usa."] },
-    ko: { title: "예약 규칙", steps: ["간격과 사전 예약 범위를 맞춥니다.", "변경, 대기, 약관을 켭니다.", "저장하면 공개 예약이 이 규칙을 씁니다."] },
+    es: { title: "Políticas", steps: ["Aquí ajustas intervalo, anticipación, reprogramar, espera y términos.", "Este botón guarda. La reserva pública usa estas reglas.", "El menú de la izquierda lleva al resto de la configuración."] },
+    en: { title: "Policies", steps: ["Here you set the interval, how far ahead, reschedule, waitlist, and terms.", "This button saves. Public booking uses these rules.", "The left menu opens the rest of settings."] },
+    it: { title: "Regole", steps: ["Qui regoli intervallo, anticipo, riprogramma, attesa e termini.", "Questo bottone salva. La prenotazione pubblica usa queste regole.", "Il menu a sinistra apre il resto della configurazione."] },
+    ko: { title: "예약 규칙", steps: ["여기서 간격, 사전 범위, 변경, 대기, 약관을 맞춥니다.", "이 버튼이 저장합니다. 공개 예약이 이 규칙을 씁니다.", "왼쪽 메뉴가 나머지 설정으로 갑니다."] },
   },
   content: {
-    es: { title: "Contenido", steps: ["Elige la sección del sitio.", "Cambia el texto o la imagen.", "Guarda y mira la vista previa."] },
-    en: { title: "Content", steps: ["Pick the page section.", "Change the text or image.", "Save and check the preview."] },
-    it: { title: "Contenuti", steps: ["Scegli la sezione del sito.", "Cambia testo o immagine.", "Salva e guarda l’anteprima."] },
-    ko: { title: "콘텐츠", steps: ["사이트 구역을 고릅니다.", "글이나 이미지를 바꿉니다.", "저장하고 미리보기를 봅니다."] },
+    es: { title: "Contenido", steps: ["Aquí eliges vista previa o lista, y el idioma que vas a editar.", "Haz clic en un bloque de la página para editar ese texto o esa imagen.", "El menú de la izquierda vuelve al resto del panel."] },
+    en: { title: "Content", steps: ["Here you pick preview or list, and the language you will edit.", "Click a block on the page to edit that text or image.", "The left menu returns to the rest of the panel."] },
+    it: { title: "Contenuti", steps: ["Qui scegli anteprima o lista, e la lingua da modificare.", "Clicca un blocco della pagina per modificare quel testo o quell’immagine.", "Il menu a sinistra torna al resto del pannello."] },
+    ko: { title: "콘텐츠", steps: ["여기서 미리보기나 목록, 그리고 편집할 언어를 고릅니다.", "페이지 블록을 눌러 그 글이나 이미지를 고칩니다.", "왼쪽 메뉴가 패널의 나머지로 돌아갑니다."] },
   },
   store: {
-    es: { title: "Tienda", steps: ["Crea o abre un producto.", "Precio, foto y categoría salen en el catálogo.", "Guarda para publicarlo."] },
-    en: { title: "Shop", steps: ["Create or open a product.", "Price, photo, and category show in the catalog.", "Save to publish it."] },
-    it: { title: "Negozio", steps: ["Crea o apri un prodotto.", "Prezzo, foto e categoria escono nel catalogo.", "Salva per pubblicarlo."] },
-    ko: { title: "스토어", steps: ["제품을 만들거나 엽니다.", "가격, 사진, 분류가 목록에 나옵니다.", "저장하면 공개됩니다."] },
+    es: { title: "Tienda", steps: ["Este formulario crea o edita el producto. Guarda para publicarlo.", "La lista de abajo son los productos ya cargados.", "Arriba creas las categorías que el producto puede usar."] },
+    en: { title: "Shop", steps: ["This form creates or edits the product. Save to publish it.", "The list below is the products already added.", "Above, you create the categories a product can use."] },
+    it: { title: "Negozio", steps: ["Questo modulo crea o modifica il prodotto. Salva per pubblicarlo.", "La lista sotto sono i prodotti già caricati.", "In alto crei le categorie che il prodotto può usare."] },
+    ko: { title: "스토어", steps: ["이 양식이 제품을 만들거나 고칩니다. 저장하면 공개됩니다.", "아래 목록이 이미 올린 제품입니다.", "위에서 제품에 쓸 분류를 만듭니다."] },
   },
   fallback: {
     es: { title: "Esta sección", steps: ["Recorre la pantalla de arriba abajo.", "El botón terracota guarda o crea.", "Si falta un dato, el aviso te lleva a crearlo."] },
@@ -292,31 +292,71 @@ function guideId(pathname: string): GuideId {
   return MATCH.find((item) => item.test(path))?.id || "fallback";
 }
 
-function StepArt({ index }: { index: number }) {
-  if (index === 1) {
-    return (
-      <div className="admin-tutorial__art" aria-hidden>
-        <span className="admin-tutorial__fake-label">Nombre *</span>
-        <span className="admin-tutorial__fake-input" />
-        <span className="admin-tutorial__fake-input admin-tutorial__fake-input--short" />
-      </div>
-    );
+const FOCUS: Record<GuideId, string[]> = {
+  home: ["home-metrics", "home-actions", "shell-search"],
+  calendar: ["cal-toolbar", "cal-grid", "cal-form"],
+  chart: ["chart-tabs", "chart-panel", "chart-archive"],
+  patients: ["patients-tools", "patients-new", "patient-tabs", "patient-save", "patients-list"],
+  leads: ["leads-new", "leads-form", "leads-board"],
+  sales: ["sales-tabs", "sales-catalog", "sales-pay"],
+  invoices: ["invoice-tabs", "invoice-form", "invoice-table"],
+  products: ["product-form", "product-list", "product-stock"],
+  forms: ["form-builder", "form-save", "form-list"],
+  comms: ["comms-templates", "comms-editor", "comms-send", "comms-queue"],
+  reports: ["report-tabs", "report-table", "shell-nav"],
+  locations: ["settings-new", "settings-form", "settings-table"],
+  rooms: ["settings-nav", "settings-new", "settings-form"],
+  hours: ["settings-new", "settings-form", "settings-table"],
+  services: ["settings-new", "service-tabs", "settings-table"],
+  categories: ["settings-new", "settings-form", "settings-table"],
+  team: ["settings-new", "settings-form", "settings-table"],
+  taxes: ["settings-new", "settings-form", "settings-table"],
+  payments: ["settings-new", "settings-form", "settings-table"],
+  billing: ["settings-form", "settings-save", "settings-nav"],
+  fields: ["settings-new", "settings-form", "settings-table"],
+  policies: ["settings-form", "settings-save", "settings-nav"],
+  content: ["content-nav", "content-preview", "shell-nav"],
+  store: ["store-form", "store-list", "store-cats"],
+  fallback: ["shell-nav", "shell-create", "shell-search"],
+};
+
+type Stop = { target: string; text: string };
+
+function plannedStops(id: GuideId, lang: Lang): Stop[] {
+  const texts = GUIDES[id][lang].steps;
+  const targets = FOCUS[id];
+  const count = Math.min(texts.length, targets.length);
+  return Array.from({ length: count }, (_, index) => ({ target: targets[index], text: texts[index] }));
+}
+
+function liveStops(id: GuideId, lang: Lang): Stop[] {
+  const planned = plannedStops(id, lang);
+  if (typeof document === "undefined") return planned;
+  const visible = planned.filter((stop) => document.querySelector(`[data-tour="${stop.target}"]`));
+  return visible.length ? visible : planned;
+}
+
+function sameRect(prev: DOMRect | null, next: DOMRect) {
+  return !!prev && Math.abs(prev.top - next.top) < 1 && Math.abs(prev.left - next.left) < 1 && Math.abs(prev.width - next.width) < 1 && Math.abs(prev.height - next.height) < 1;
+}
+
+function cardBox(rect: DOMRect | null) {
+  const width = 360;
+  const height = 300;
+  if (!rect) return { top: 72, left: 16, width };
+  const gap = 14;
+  let top = rect.bottom + gap;
+  let left = Math.min(Math.max(16, rect.left), window.innerWidth - width - 16);
+  if (top + height > window.innerHeight - 12) {
+    const above = rect.top - height - gap;
+    if (above > 12) top = above;
+    else {
+      top = Math.min(Math.max(12, rect.top), window.innerHeight - height - 12);
+      left = rect.right + gap;
+      if (left + width > window.innerWidth - 12) left = Math.max(12, rect.left - width - gap);
+    }
   }
-  if (index === 2) {
-    return (
-      <div className="admin-tutorial__art admin-tutorial__art--done" aria-hidden>
-        <Check size={28} />
-      </div>
-    );
-  }
-  return (
-    <div className="admin-tutorial__art" aria-hidden>
-      <span className="admin-tutorial__cell" />
-      <span className="admin-tutorial__cell admin-tutorial__cell--on" />
-      <span className="admin-tutorial__cell" />
-      <span className="admin-tutorial__cell" />
-    </div>
-  );
+  return { top, left, width };
 }
 
 export function TutorialButton({ pathname }: { pathname: string }) {
@@ -326,13 +366,39 @@ export function TutorialButton({ pathname }: { pathname: string }) {
   const Icon = ICONS[id];
   const ui = UI[lang];
   const [open, setOpen] = useState(false);
-  const [step, setStep] = useState(0);
+  const [current, setCurrent] = useState("");
+  const [tick, setTick] = useState(0);
+  const [rect, setRect] = useState<DOMRect | null>(null);
+
+  const stops = useMemo(() => (open ? liveStops(id, lang) : []), [id, lang, open, tick]);
+  const index = Math.max(0, stops.findIndex((stop) => stop.target === current));
+  const stop = stops[index] || stops[0];
+  const last = stops.length === 0 || index >= stops.length - 1;
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    setOpen(params.get("tutorial") === "1");
-    setStep(0);
+    const next = params.get("tutorial") === "1";
+    setOpen(next);
+    setCurrent("");
   }, [pathname]);
+
+  useEffect(() => {
+    if (!open) return;
+    const observer = new MutationObserver((mutations) => {
+      const changed = mutations.some((mutation) => [...mutation.addedNodes, ...mutation.removedNodes].some((node) => {
+        if (!(node instanceof Element)) return true;
+        return !node.classList.contains("admin-tour__shade") && !node.classList.contains("admin-tour__ring") && !node.classList.contains("admin-tutorial__panel");
+      }));
+      if (changed) setTick((value) => value + 1);
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [open]);
+
+  useEffect(() => {
+    if (!open || !stops.length) return;
+    if (!stops.some((item) => item.target === current)) setCurrent(stops[0].target);
+  }, [open, stops, current]);
 
   useEffect(() => {
     if (!open) return;
@@ -343,42 +409,89 @@ export function TutorialButton({ pathname }: { pathname: string }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
-  const last = step >= guide.steps.length - 1;
+  useEffect(() => {
+    if (!open || !stop) {
+      setRect(null);
+      return;
+    }
+    const selector = `[data-tour="${stop.target}"]`;
+    const node = document.querySelector(selector);
+    if (!node) {
+      setRect(null);
+      return;
+    }
+    node.scrollIntoView({ block: "center", inline: "nearest" });
+    const measure = () => {
+      const el = document.querySelector(selector);
+      if (!el) {
+        setRect(null);
+        return;
+      }
+      const next = el.getBoundingClientRect();
+      setRect((prev) => (sameRect(prev, next) ? prev : next));
+    };
+    const timer = window.setTimeout(measure, 280);
+    window.addEventListener("resize", measure);
+    window.addEventListener("scroll", measure, true);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("scroll", measure, true);
+    };
+  }, [open, stop, tick]);
+
+  function go(next: number) {
+    const item = stops[next];
+    if (item) setCurrent(item.target);
+  }
+
+  const box = cardBox(rect);
+  const pad = 8;
 
   return (
     <div className="admin-tutorial">
-      <button type="button" className="admin-tutorial__btn" aria-expanded={open} onClick={() => { setStep(0); setOpen((value) => !value); }}>
+      <button type="button" className="admin-tutorial__btn" aria-expanded={open} onClick={() => { setCurrent(""); setOpen((value) => !value); }}>
         <CircleHelp size={14} aria-hidden />
         {ui.tutorial}
       </button>
-      {open ? (
-        <div className="admin-tutorial__panel" role="dialog" aria-label={`${ui.tutorial}: ${guide.title}`}>
-          <div className="admin-tutorial__head">
-            <p><Icon size={16} aria-hidden /> {guide.title}</p>
-            <button type="button" className="admin-icon-btn" aria-label={ui.close} onClick={() => setOpen(false)}><X size={14} /></button>
+      {open && stop ? (
+        <>
+          {rect ? (
+            <>
+              <div className="admin-tour__shade" style={{ top: 0, left: 0, right: 0, height: Math.max(0, rect.top - pad) }} />
+              <div className="admin-tour__shade" style={{ top: rect.bottom + pad, left: 0, right: 0, bottom: 0 }} />
+              <div className="admin-tour__shade" style={{ top: rect.top - pad, left: 0, width: Math.max(0, rect.left - pad), height: rect.height + pad * 2 }} />
+              <div className="admin-tour__shade" style={{ top: rect.top - pad, left: rect.right + pad, right: 0, height: rect.height + pad * 2 }} />
+              <div className="admin-tour__ring" style={{ top: rect.top - 6, left: rect.left - 6, width: rect.width + 12, height: rect.height + 12 }} />
+            </>
+          ) : <div className="admin-tour__shade" style={{ inset: 0 }} />}
+          <div className="admin-tutorial__panel admin-tutorial__panel--coach" role="dialog" aria-label={`${ui.tutorial}: ${guide.title}`} style={{ top: box.top, left: box.left, width: box.width }}>
+            <div className="admin-tutorial__head">
+              <p><Icon size={16} aria-hidden /> {guide.title}</p>
+              <button type="button" className="admin-icon-btn" aria-label={ui.close} onClick={() => setOpen(false)}><X size={14} /></button>
+            </div>
+            <div className="admin-tutorial__langs" role="group" aria-label={ui.tutorial}>
+              {LANGS.map((code) => (
+                <button key={code} type="button" className={code === lang ? "is-active" : ""} onClick={() => choose(code)}>{LANG_LABEL[code]}</button>
+              ))}
+            </div>
+            <p className="admin-tutorial__kicker">{ui.step} {index + 1} / {stops.length}</p>
+            <p className="admin-tutorial__text" aria-live="polite">{stop.text}</p>
+            <div className="admin-tutorial__dots">
+              {stops.map((item, dot) => (
+                <button key={item.target} type="button" className={dot === index ? "is-active" : ""} aria-label={`${ui.step} ${dot + 1}`} onClick={() => go(dot)} />
+              ))}
+            </div>
+            <div className="admin-tutorial__nav">
+              <button type="button" className="admin-btn" disabled={index === 0} onClick={() => go(index - 1)}><ChevronLeft size={16} aria-hidden /> {ui.back}</button>
+              {last ? (
+                <button type="button" className="admin-btn admin-btn--primary" onClick={() => setOpen(false)}>{ui.done}</button>
+              ) : (
+                <button type="button" className="admin-btn admin-btn--primary" onClick={() => go(index + 1)}>{ui.next} <ChevronRight size={16} aria-hidden /></button>
+              )}
+            </div>
           </div>
-          <div className="admin-tutorial__langs" role="group" aria-label={ui.tutorial}>
-            {LANGS.map((code) => (
-              <button key={code} type="button" className={code === lang ? "is-active" : ""} onClick={() => choose(code)}>{LANG_LABEL[code]}</button>
-            ))}
-          </div>
-          <StepArt index={step} />
-          <p className="admin-tutorial__kicker">{ui.step} {step + 1} / {guide.steps.length}</p>
-          <p className="admin-tutorial__text">{guide.steps[step]}</p>
-          <div className="admin-tutorial__dots">
-            {guide.steps.map((_, index) => (
-              <button key={index} type="button" className={index === step ? "is-active" : ""} aria-label={`${ui.step} ${index + 1}`} onClick={() => setStep(index)} />
-            ))}
-          </div>
-          <div className="admin-tutorial__nav">
-            <button type="button" className="admin-btn" disabled={step === 0} onClick={() => setStep((value) => value - 1)}><ChevronLeft size={16} aria-hidden /> {ui.back}</button>
-            {last ? (
-              <button type="button" className="admin-btn admin-btn--primary" onClick={() => setOpen(false)}>{ui.done}</button>
-            ) : (
-              <button type="button" className="admin-btn admin-btn--primary" onClick={() => setStep((value) => value + 1)}>{ui.next} <ChevronRight size={16} aria-hidden /></button>
-            )}
-          </div>
-        </div>
+        </>
       ) : null}
     </div>
   );

@@ -93,7 +93,7 @@ export default function AdminShell({
             <p className="admin-sidebar__eyebrow">Thrive Formative</p>
             <p className="admin-sidebar__title">Clínica</p>
           </div>
-          <nav className="admin-nav">
+          <nav className="admin-nav" data-tour="shell-nav">
             {items.map((item) => {
               const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
               const Icon = item.icon;
@@ -113,7 +113,7 @@ export default function AdminShell({
         </aside>
         <main className="admin-main">
           <header className="admin-topbar">
-            <form className="admin-topbar__search" onSubmit={(e) => { e.preventDefault(); router.push(`/admin/pacientes?q=${encodeURIComponent(query)}`); setPalette(false); }}>
+            <form className="admin-topbar__search" data-tour="shell-search" onSubmit={(e) => { e.preventDefault(); router.push(`/admin/pacientes?q=${encodeURIComponent(query)}`); setPalette(false); }}>
               <label className="sr-only" htmlFor="admin-search">Buscar pacientes</label>
               <input ref={searchRef} id="admin-search" name="q" value={query} placeholder="Buscar pacientes (Ctrl+K)" autoComplete="off" onChange={(e) => { setQuery(e.target.value); setPalette(true); }} onFocus={() => setPalette(true)} />
               {palette && query.trim().length >= 2 ? (
@@ -128,7 +128,7 @@ export default function AdminShell({
               ) : null}
             </form>
             <TutorialButton pathname={pathname} />
-            <details className="admin-create">
+            <details className="admin-create" data-tour="shell-create">
               <summary className="admin-btn admin-btn--primary">Crear</summary>
               <div className="admin-create__menu">
                 <Link href="/admin/pacientes?nuevo=1">Paciente</Link>

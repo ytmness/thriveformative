@@ -81,12 +81,12 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
       <header className="admin-header"><p className="admin-header__eyebrow">Directorio</p><h1 className="admin-header__title">Pacientes</h1></header>
       {error ? <div className="admin-alert" role="alert">{error}</div> : null}
       {notice ? <p className="admin-notice" role="status">{notice}</p> : null}
-      <div className="admin-toolbar">
+      <div className="admin-toolbar" data-tour="patients-tools">
         <input value={q} placeholder="Buscar nombre, código, email o teléfono" onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { setPage(1); load(1, q); } }} />
         <button className="admin-btn" type="button" onClick={() => { setPage(1); load(1, q); }}>Buscar</button>
-        <button className="admin-btn admin-btn--primary" type="button" onClick={() => setOpen(true)}>+ Paciente</button>
+        <button className="admin-btn admin-btn--primary" type="button" data-tour="patients-new" onClick={() => setOpen(true)}>+ Paciente</button>
       </div>
-      <div className="admin-table-wrap">
+      <div className="admin-table-wrap" data-tour="patients-list">
         <div className="admin-table__row admin-table__head" style={{ gridTemplateColumns: "minmax(0,1fr) 8rem" }}><span>Paciente</span><span>Acciones</span></div>
         {rows.map((row) => (
           <div key={row.id} className="admin-table__row" style={{ gridTemplateColumns: "minmax(0,1fr) 8rem" }}>
@@ -129,6 +129,7 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
             <div className="admin-drawer__body">
               {error ? <div className="admin-alert" role="alert">{error}</div> : null}
               <Tabs
+                tour="patient-tabs"
                 label="Secciones del paciente"
                 value={section}
                 onChange={setSection}
@@ -137,7 +138,7 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
               />
               <PatientFields form={form} setForm={setForm} options={options} section={section} />
             </div>
-            <div className="admin-drawer__foot">
+            <div className="admin-drawer__foot" data-tour="patient-save">
               <Button type="button" onClick={() => setOpen(false)}>Cancelar</Button>
               {section !== "consentimiento" ? (
                 <Button type="button" onClick={() => setSection(tabs[tabs.findIndex((item) => item[0] === section) + 1][0])}>Siguiente</Button>
@@ -264,7 +265,7 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
         <p className="admin-header__eyebrow">{String(patient.clientCode || "")}</p>
         <h1 className="admin-header__title">{patient.firstName} {patient.lastName}</h1>
         <p className="admin-header__desc">Creado {patient.createdAt ? new Date(String(patient.createdAt)).toLocaleString("es-MX") : ""}</p>
-        <button className="admin-btn" type="button" onClick={async () => {
+        <button className="admin-btn" type="button" data-tour="chart-archive" onClick={async () => {
           if (!window.confirm(`¿Archivar a ${patient.firstName} ${patient.lastName}? El expediente se conserva, pero dejará de aparecer en la lista.`)) return;
           try {
             await api(`/api/admin/patients/${id}`, { method: "DELETE" });
@@ -276,9 +277,10 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
       </header>
       {error ? <div className="admin-alert" role="alert">{error}</div> : null}
       {notice ? <p className="admin-banner" role="status">{notice}</p> : null}
-      <nav className="admin-tabs" aria-label="Ficha del paciente">
+      <nav className="admin-tabs" data-tour="chart-tabs" aria-label="Ficha del paciente">
         {TABS.map(([item, label]) => <Link key={item} className={active === item ? "is-active" : ""} href={item === "resumen" ? `/admin/pacientes/${id}` : `/admin/pacientes/${id}/${item}`}>{label}</Link>)}
       </nav>
+      <div data-tour="chart-panel">
       {active === "resumen" ? <PatientSummary patient={patient} /> : null}
       {active === "expediente" ? (
         <>
@@ -387,6 +389,7 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
       {active === "comunicaciones" ? (
         <div className="admin-table-wrap">{rows.map((row) => <div key={String(row.id)} className="admin-table__row"><div className="admin-table__cell-title">{String(row.subject || row.status || "Mensaje")}</div><div className="admin-table__cell-sub">{String(row.sent_at || row.scheduled_for || row.status || "")}</div></div>)}{!rows.length ? <div className="admin-table__empty">Sin comunicaciones.</div> : null}</div>
       ) : null}
+      </div>
     </>
   );
 }

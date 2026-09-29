@@ -50,7 +50,7 @@ export default function LeadBoard({ startNew }: { startNew?: boolean }) {
       <header className="admin-header"><p className="admin-header__eyebrow">CRM</p><h1 className="admin-header__title">Leads</h1></header>
       {error ? <div className="admin-alert" role="alert">{error}</div> : null}
       {notice ? <p className="admin-notice" role="status">{notice}</p> : null}
-      <div className="admin-toolbar"><button className="admin-btn admin-btn--primary" type="button" onClick={openNew}>+ Lead</button></div>
+      <div className="admin-toolbar" data-tour="leads-new"><button className="admin-btn admin-btn--primary" type="button" onClick={openNew}>+ Lead</button></div>
       <DndContext sensors={sensors} collisionDetection={pointerWithin} onDragStart={(event) => { skipClick.current = true; setDraggingId(String(event.active.id)); }} onDragCancel={() => { setDraggingId(null); skipClick.current = false; }} onDragEnd={async (event) => {
         const leadId = String(event.active.id);
         const overId = event.over ? String(event.over.id) : "";
@@ -72,7 +72,7 @@ export default function LeadBoard({ startNew }: { startNew?: boolean }) {
           await load();
         }
       }}>
-        <div className="admin-kanban">
+        <div className="admin-kanban" data-tour="leads-board">
           {stages.map((stage) => (
             <StageColumn key={stage.id} stage={stage} leads={rows.filter((row) => row.stage_id === stage.id || (!row.stage_id && stage.id === stages[0]?.id))} onOpen={(lead) => { if (!skipClick.current) setSelected(lead); }} />
           ))}
@@ -98,7 +98,7 @@ export default function LeadBoard({ startNew }: { startNew?: boolean }) {
           }}>
             <div className="admin-drawer__head"><h2 className="admin-header__title">Nuevo lead</h2><button className="admin-btn" type="button" onClick={() => setOpen(false)}>Cerrar</button></div>
             {error ? <div className="admin-alert" role="alert">{error}</div> : null}
-            <div className="admin-form-grid">
+            <div className="admin-form-grid" data-tour="leads-form">
               <label className="admin-field">Nombre <span className="admin-req">*</span><input required value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} /></label>
               <label className="admin-field">Apellido <span className="admin-req">*</span><input required value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} /></label>
               <label className="admin-field">Email<input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></label>

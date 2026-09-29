@@ -200,7 +200,7 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
       </header>
       {error ? <div className="admin-alert" role="alert">{error}</div> : null}
       {notice ? <p className="admin-notice" role="status">{notice}</p> : null}
-      <div className="admin-toolbar">
+      <div className="admin-toolbar" data-tour="cal-toolbar">
         <button className="admin-btn" type="button" onClick={() => setAnchor(new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() - (view === "month" ? 30 : view === "week" ? 7 : 1)))}>Anterior</button>
         <button className="admin-btn" type="button" onClick={() => setAnchor(new Date())}>Hoy</button>
         <button className="admin-btn" type="button" onClick={() => setAnchor(new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() + (view === "month" ? 30 : view === "week" ? 7 : 1)))}>Siguiente</button>
@@ -211,7 +211,7 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
           <option value="">Todos los profesionales</option>
           {staff.map((person) => <option key={person.id} value={person.id}>{person.first_name} {person.last_name}</option>)}
         </select>
-        <button className="admin-btn admin-btn--primary" type="button" onClick={() => setDraft({ status: "booked", startsAt: nextClinicSlot(clinicTz), locationId: locations[0]?.id || "", staffUserId: staffFilter })}>+ Cita</button>
+        <button className="admin-btn admin-btn--primary" type="button" data-tour="cal-new" onClick={() => setDraft({ status: "booked", startsAt: nextClinicSlot(clinicTz), locationId: locations[0]?.id || "", staffUserId: staffFilter })}>+ Cita</button>
         <button className="admin-btn" type="button" onClick={() => setBlock({ startsAt: "", endsAt: "", reason: "Bloqueo" })}>Bloqueo</button>
         {view === "day" ? (
           <select value={columnsBy} onChange={(e) => setColumnsBy(e.target.value as "day" | "staff" | "room")} aria-label="Columnas">
@@ -254,7 +254,7 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
             ))}
           </div>
         ) : (
-          <div className="admin-cal" style={{ ["--cols" as string]: boardColumns.length }}>
+          <div className="admin-cal" data-tour="cal-grid" style={{ ["--cols" as string]: boardColumns.length }}>
             <div className="admin-cal__head">
               <div />
               {boardColumns.map((column) => <div key={column.key}>{column.label}</div>)}
@@ -297,7 +297,7 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
         <div className="admin-drawer" role="presentation" onClick={() => setDraft(null)}>
           <form className="admin-drawer__panel" onClick={(e) => e.stopPropagation()} onSubmit={(e) => { e.preventDefault(); saveDraft(); }}>
             <h2 className="admin-header__title">{draft.id ? "Editar cita" : "Nueva cita"}</h2>
-            <div className="admin-form-grid" style={{ marginTop: "1rem" }}>
+            <div className="admin-form-grid" data-tour="cal-form" style={{ marginTop: "1rem" }}>
               <label className="admin-field">Paciente<select value={draft.patientId || ""} onChange={(e) => setDraft({ ...draft, patientId: e.target.value })}><option value="">Sin paciente</option>{patients.map((p) => <option key={p.id} value={p.id}>{p.firstName} {p.lastName}</option>)}</select><CreateOffer show={catalogReady && !patients.length} kind="patient" href="/admin/pacientes?nuevo=1" /></label>
               <label className="admin-field">Servicio<select value={draft.serviceId || ""} onChange={(e) => setDraft({ ...draft, serviceId: e.target.value })}><option value="">—</option>{services.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select><CreateOffer show={catalogReady && !services.length} kind="service" href="/admin/configuracion/servicios?nuevo=1" /></label>
               <label className="admin-field">Profesional<select required value={draft.staffUserId || ""} onChange={(e) => setDraft({ ...draft, staffUserId: e.target.value })}><option value="">—</option>{staff.map((s) => <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>)}</select><CreateOffer show={catalogReady && !staff.length} kind="staff" href="/admin/configuracion/equipo?nuevo=1" /></label>

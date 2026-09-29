@@ -164,7 +164,7 @@ export default function CmsVisualPreview({ cms, siteLocale }: Props) {
   };
 
   return (
-    <div className="admin-cms-visual">
+    <div className="admin-cms-visual" data-tour="content-preview">
       <p className="admin-cms-visual__hint">
         Vista idéntica a la página pública. Haz clic en un bloque para editarlo; usa{" "}
         <strong>Ocultar</strong> para dejar de mostrarlo sin borrarlo. Al añadir servicios o

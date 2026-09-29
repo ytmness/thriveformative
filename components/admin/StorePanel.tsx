@@ -73,7 +73,7 @@ export default function StorePanel({ siteLocale }: Props) {
         <div className={`admin-cms__msg admin-cms__msg--${message.type}`}>{message.text}</div>
       )}
 
-      <div className="admin-cms__card">
+      <div className="admin-cms__card" data-tour="store-cats">
         <h2 className="text-lg font-semibold mb-4">Categorías ({categories.length})</h2>
 
         <div className="flex flex-wrap gap-2 mb-4">
@@ -128,7 +128,7 @@ export default function StorePanel({ siteLocale }: Props) {
         )}
       </div>
 
-      <div className="admin-cms__card mt-6">
+      <div className="admin-cms__card mt-6" data-tour="store-form">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <h2 className="text-lg font-semibold">
             {isEditing ? "Editar producto" : "Nuevo producto"}
@@ -152,7 +152,7 @@ export default function StorePanel({ siteLocale }: Props) {
         />
       </div>
 
-      <div className="admin-cms__card mt-6">
+      <div className="admin-cms__card mt-6" data-tour="store-list">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <h2 className="text-lg font-semibold">Productos ({products.length})</h2>
         </div>

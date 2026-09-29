@@ -92,9 +92,16 @@
 }
 .admin-tutorial__btn:hover { color: rgb(var(--text)); border-color: rgb(122 62 40 / 0.4); }
 .admin-tutorial__panel {
-  position: absolute; right: 0; top: calc(100% + 8px); z-index: 40; width: min(24rem, calc(100vw - 2rem));
   padding: 0.85rem 1rem 1rem; text-align: left; background: rgb(255 252 247);
-  border: 1px solid rgb(var(--border) / 0.16); border-radius: 0.9rem; box-shadow: 0 12px 32px rgb(0 0 0 / 0.12);
+  border: 1px solid rgb(var(--border) / 0.16); border-radius: 0.9rem; box-shadow: 0 12px 32px rgb(0 0 0 / 0.18);
+}
+.admin-tutorial__panel--coach {
+  position: fixed; z-index: 80; max-width: calc(100vw - 2rem);
+}
+.admin-tour__shade { position: fixed; z-index: 70; background: rgb(0 0 0 / 0.55); }
+.admin-tour__ring {
+  position: fixed; z-index: 71; pointer-events: none; border-radius: 0.7rem;
+  box-shadow: 0 0 0 3px #fff, 0 0 0 6px rgb(122 62 40);
 }
 [data-theme="nocturnal"] .admin-tutorial__panel { background: rgb(46 44 42); }
 .admin-tutorial__head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }

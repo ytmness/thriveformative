@@ -55,7 +55,7 @@ export default function CmsPanel({ siteLocale }: Props) {
 
   return (
     <section className="admin-cms mt-10" aria-label="CMS contenido">
-      <div className="admin-cms__toolbar">
+      <div className="admin-cms__toolbar" data-tour="content-nav">
         <div className="flex flex-wrap items-center gap-3">
           <div className="admin-cms__view-toggle" role="tablist" aria-label="Modo de edición">
             <button
