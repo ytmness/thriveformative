@@ -5,7 +5,9 @@ import { query } from "@/lib/db";
 import type { TxQuery } from "@/lib/dbTx";
 import { withTx } from "@/lib/dbTx";
 import { DomainError } from "@/lib/http";
-import { enqueueForAppointment } from "@/lib/messaging/queue";
+import { log } from "@/lib/log";
+import { notifyAppointment } from "@/lib/domain/clinicNotify";
+import { dispatchDueMessages, enqueueForAppointment } from "@/lib/messaging/queue";
 import { addDaysToDateKey, addMonthsToDateKey, formatDate, formatHm, parseClinicDateTime, zonedTimeToUtc } from "@/lib/scheduling/time";
 import { emitWebhook } from "@/lib/webhooks/emit";
 
@@ -198,11 +200,7 @@ export async function createAppointment(input: AppointmentInput, actor: StaffSes
 
   for (const id of ids) {
     const token = id === ids[0] ? manageToken : null;
-    await enqueueForAppointment(id, "cita_creada", token);
-    const rules = await query<{ trigger_key: string }>(
-      `SELECT DISTINCT trigger_key FROM message_rules WHERE is_active AND trigger_key = 'recordatorio'`
-    );
-    if (rules.rows.length) await enqueueForAppointment(id, "recordatorio", token);
+    await enqueueForAppointment(id, "recordatorio", token);
     await emitWebhook("appointment.created", { appointmentId: id });
     await writeAudit({
       actorType: actor ? "staff" : "system",
@@ -216,6 +214,13 @@ export async function createAppointment(input: AppointmentInput, actor: StaffSes
     });
   }
 
+  const notice = input.bookedOnline && base.status === "booked" ? "pending" : "confirmed";
+  try {
+    await notifyAppointment(ids[0], notice);
+    await dispatchDueMessages();
+  } catch (error) {
+    log.warn("appointments", "no se pudo avisar de la cita", { name: error instanceof Error ? error.name : "error" });
+  }
   const row = await query(`${SELECT} WHERE a.id = $1`, [ids[0]]);
   return { appointment: mapAppointment(row.rows[0], manageToken), ids };
 }
@@ -287,14 +292,22 @@ export async function updateAppointment(
       patch.cancelReason ?? (row.cancel_reason as string | null),
     ]
   );
-  if (window.status === "cancelled") {
+  const previous = String(row.status || "");
+  if (window.status === "cancelled" && previous !== "cancelled") {
     await query(
       `UPDATE messages SET status = 'skipped'
        WHERE appointment_id = $1 AND status = 'queued' AND scheduled_for > now()`,
       [id]
     );
-    await enqueueForAppointment(id, "cancelacion");
+    try { await notifyAppointment(id, "cancelled"); } catch (error) {
+      log.warn("appointments", "no se pudo avisar de la cancelación", { name: error instanceof Error ? error.name : "error" });
+    }
     await emitWebhook("appointment.cancelled", { appointmentId: id });
+  } else if (window.status === "confirmed" && previous === "booked" && row.booked_online) {
+    try { await notifyAppointment(id, "confirmed"); } catch (error) {
+      log.warn("appointments", "no se pudo avisar de la confirmación", { name: error instanceof Error ? error.name : "error" });
+    }
+    await emitWebhook("appointment.updated", { appointmentId: id });
   } else {
     await emitWebhook("appointment.updated", { appointmentId: id });
   }

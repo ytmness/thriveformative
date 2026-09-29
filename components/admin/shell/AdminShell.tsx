@@ -18,6 +18,7 @@ import {
   BarChart3,
   Contact,
 } from "lucide-react";
+import NotificationBell from "@/components/NotificationBell";
 import ThemeProvider from "@/components/theme/ThemeProvider";
 import ThemeSwitcher from "@/components/theme/ThemeSwitcher";
 import { api } from "@/components/admin/clinic/client";
@@ -127,6 +128,7 @@ export default function AdminShell({
                 </div>
               ) : null}
             </form>
+            <NotificationBell variant="admin" />
             <TutorialButton pathname={pathname} />
             <details className="admin-create" data-tour="shell-create">
               <summary className="admin-btn admin-btn--primary">Crear</summary>

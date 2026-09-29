@@ -51,6 +51,7 @@ module.exports = {
         ADMIN_PASSWORD: rootEnv.ADMIN_PASSWORD || "",
         ADMIN_SESSION_SECRET: rootEnv.ADMIN_SESSION_SECRET || "",
         NOTIFY_EMAIL: rootEnv.NOTIFY_EMAIL || "",
+        CRON_SECRET: rootEnv.CRON_SECRET || "",
         COMING_SOON_PASSWORD: rootEnv.COMING_SOON_PASSWORD || "",
         NEXT_PUBLIC_SITE_URL: rootEnv.NEXT_PUBLIC_SITE_URL || "",
         NEXT_PUBLIC_PABAU_COMPANY_SLUG: rootEnv.NEXT_PUBLIC_PABAU_COMPANY_SLUG || "",

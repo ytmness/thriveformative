@@ -26,6 +26,30 @@ function isValidEmail(s: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s || "");
 }
 
+async function deliverMail(to: string, subject: string, text: string, html: string) {
+  const transport = getTransport();
+  const info = await transport.sendMail({ from: FROM, to, subject, text, html });
+  return info.messageId;
+}
+
+/** Mismo correo de la clínica, para recordatorios y avisos que ya no pasan por el formulario público. */
+export async function sendClinicEmail(to: string, subject: string, text: string): Promise<{ ok: boolean; id?: string; error?: string }> {
+  if (!isValidEmail(to)) return { ok: false, error: "Email destinatario no válido" };
+  const paragraphs = text
+    .split(/\n{2,}/)
+    .filter(Boolean)
+    .map((block) => emailParagraph(escapeHtml(block).replace(/\n/g, "<br>")))
+    .join("");
+  try {
+    const id = await deliverMail(to, subject, text, buildThriveEmailHtml(`${paragraphs}${emailSignOff()}`));
+    return { ok: true, id };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    log.error("sendEmail", message, { kind: "clinic" });
+    return { ok: false, error: message };
+  }
+}
+
 export type EmailKind =
   | { kind: "appointment_pending"; to: string; date: string; timeSlot: string }
   | { kind: "appointment_confirmed"; to: string; date: string; timeSlot: string }
@@ -99,14 +123,7 @@ export async function sendEmailPayload(payload: EmailKind): Promise<{ ok: boolea
       return { ok: false, error: "Email destinatario no válido" };
     }
 
-    const transport = getTransport();
-    await transport.sendMail({
-      from: FROM,
-      to,
-      subject,
-      text,
-      html,
-    });
+    await deliverMail(to, subject, text, html);
     log.info("sendEmail", "sent", { kind: payload.kind });
     return { ok: true };
   } catch (err) {

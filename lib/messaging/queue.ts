@@ -1,5 +1,6 @@
 import { decryptPhi, encryptPhi } from "@/lib/crypto/phi";
 import { query } from "@/lib/db";
+import { sendClinicEmail } from "@/lib/emailServer";
 import { log } from "@/lib/log";
 import { formatDate, formatHm } from "@/lib/scheduling/time";
 import { getSiteUrl } from "@/lib/env/server";
@@ -90,41 +91,9 @@ export async function enqueueForAppointment(appointmentId: string, trigger: stri
 }
 
 async function sendEmail(to: string, subject: string, text: string) {
-  if (process.env.RESEND_API_KEY?.trim()) {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.RESEND_API_KEY.trim()}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: process.env.RESEND_FROM?.trim() || "Thrive Formative <info@thriveformative.com>",
-        to,
-        subject,
-        text,
-      }),
-    });
-    if (!res.ok) return { error: "No se pudo enviar el correo" };
-    const json = (await res.json()) as { id?: string };
-    return { id: json.id, provider: "resend" };
-  }
-  const { getSmtpEnv } = await import("@/lib/env/server");
-  const nodemailer = await import("nodemailer");
-  const smtp = getSmtpEnv();
-  const transport = nodemailer.createTransport({
-    host: smtp.host,
-    port: smtp.port,
-    secure: smtp.secure,
-    tls: { rejectUnauthorized: smtp.rejectUnauthorized },
-    ...(smtp.user && smtp.pass ? { auth: { user: smtp.user, pass: smtp.pass } } : {}),
-  });
-  const info = await transport.sendMail({
-    from: "Thrive Formative <info@thriveformative.com>",
-    to,
-    subject,
-    text,
-  });
-  return { id: info.messageId, provider: "smtp" };
+  const result = await sendClinicEmail(to, subject, text);
+  if (!result.ok) return { error: result.error || "No se pudo enviar el correo" };
+  return { id: result.id, provider: "smtp" };
 }
 
 async function sendSms(to: string, body: string) {
