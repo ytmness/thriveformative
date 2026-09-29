@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "@/components/admin/clinic/client";
 import { CloseButton, EmptyState } from "@/components/admin/ui";
+import { CreateOffer } from "@/components/admin/tutorial";
 
 function statusLabel(value: string) {
   const labels: Record<string, string> = { draft: "Borrador", issued: "Emitida", paid: "Pagada", partial: "Parcial", void: "Anulada", open: "Abierta", sent: "Enviada" };
@@ -50,7 +51,7 @@ export function InvoiceCenter() {
             <div>${Number(row.total || row.amount || 0).toFixed(2)}</div>
           </div>
         ))}
-        {!rows.length ? <div className="admin-table__empty">{kind === "quotes" ? "No hay cotizaciones." : kind === "credits" ? "No hay notas de crédito." : "No hay facturas emitidas. Se crean al cobrar en Ventas."}</div> : null}
+        {!rows.length ? <EmptyState title={kind === "quotes" ? "Sin cotizaciones" : kind === "credits" ? "Sin notas de crédito" : "Sin facturas"} text="Se crean al cobrar en Ventas." action={<CreateOffer show={kind === "invoices" || kind === "issued"} what="una venta" href="/admin/ventas" how="En Ventas, agrega un servicio o producto, revisa el cobro y confirma." />} /> : null}
       </div>
     </>
   );
@@ -60,6 +61,7 @@ export function ProductAdmin() {
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [moves, setMoves] = useState<Record<string, unknown>[]>([]);
   const [locations, setLocations] = useState<{ id: string; name: string }[]>([]);
+  const [locationsReady, setLocationsReady] = useState(false);
   const [suppliers, setSuppliers] = useState<{ id: string; name: string }[]>([]);
   const [form, setForm] = useState({ name: "", sku: "", barcode: "", sizeLabel: "", price: "", cost: "", description: "", supplierId: "" });
   const [supplierName, setSupplierName] = useState("");
@@ -67,7 +69,7 @@ export function ProductAdmin() {
   useEffect(() => {
     api<{ rows: Record<string, unknown>[] }>("/api/admin/products").then((r) => setRows(r.rows));
     api<{ rows: Record<string, unknown>[] }>("/api/admin/products?kind=movements").then((r) => setMoves(r.rows)).catch(() => undefined);
-    api<{ rows: { id: string; name: string }[] }>("/api/admin/settings/locations").then((r) => setLocations(r.rows)).catch(() => undefined);
+    api<{ rows: { id: string; name: string }[] }>("/api/admin/settings/locations").then((r) => setLocations(r.rows)).catch(() => undefined).finally(() => setLocationsReady(true));
     api<{ rows: { id: string; name: string }[] }>("/api/admin/settings/suppliers").then((r) => setSuppliers(r.rows)).catch(() => undefined);
   }, []);
   return (
@@ -115,6 +117,7 @@ export function ProductAdmin() {
         <input value={stock.reason} onChange={(e) => setStock({ ...stock, reason: e.target.value })} placeholder="Motivo" />
         <button className="admin-btn admin-btn--primary" type="submit">Registrar movimiento</button>
       </form>
+      <CreateOffer show={locationsReady && !locations.length} what="una sede" href="/admin/configuracion/sedes?nuevo=1" how="En Sedes, pulsa + Nuevo, escribe el nombre y guarda. Luego vuelve a Productos para ajustar el stock." />
       <div className="admin-table-wrap" style={{ marginTop: "1rem" }}>
         <div className="admin-table__row admin-table__head"><span>Movimiento</span><span>Producto</span><span>Sede</span><span>Cantidad</span></div>
         {moves.map((row) => (

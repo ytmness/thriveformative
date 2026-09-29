@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/components/admin/clinic/client";
+import { CreateOffer } from "@/components/admin/tutorial";
 
 type Item = { itemType: string; referenceId?: string; description: string; quantity: number; unitPrice?: number };
 type Catalog = { id: string; name: string; price?: string | number };
@@ -25,11 +26,12 @@ export default function PosScreen() {
   const [sales, setSales] = useState<{ id: string; sale_number: string; status: string; total: string | number; first_name?: string | null; last_name?: string | null }[]>([]);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [saleId, setSaleId] = useState<string | null>(null);
+  const [catalogReady, setCatalogReady] = useState(false);
   const stripeRef = useRef<{ confirmPayment: (opts: { elements: unknown; redirect: string }) => Promise<{ error?: { message?: string }; paymentIntent?: { id: string } }> } | null>(null);
   const elementsRef = useRef<unknown>(null);
 
   useEffect(() => {
-    api<{ rows: Catalog[] }>("/api/admin/settings/services").then((r) => setServices(r.rows)).catch(() => undefined);
+    api<{ rows: Catalog[] }>("/api/admin/settings/services").then((r) => setServices(r.rows)).catch(() => undefined).finally(() => setCatalogReady(true));
     api<{ rows: Catalog[] }>("/api/admin/products").then((r) => setProducts(r.rows)).catch(() => undefined);
     api<{ rows: Catalog[] }>("/api/admin/products?kind=packages").then((r) => setPackages(r.rows)).catch(() => undefined);
     api<{ rows: Catalog[] }>("/api/admin/products?kind=memberships").then((r) => setMemberships(r.rows)).catch(() => undefined);
@@ -123,6 +125,18 @@ export default function PosScreen() {
       <div className="admin-pos">
         <div>
           {catalog.map((item) => <button key={item.id} type="button" className="admin-table__row" onClick={() => add(item)}><span className="admin-table__cell-title">{item.name}</span><span>${Number(item.price || 0)}</span></button>)}
+          <CreateOffer
+            show={catalogReady && !catalog.length && tab === "service"}
+            what="un servicio"
+            href="/admin/configuracion/servicios?nuevo=1"
+            how="En Servicios, pulsa + Nuevo, completa nombre, duración y precio, y guarda. Luego vuelve a Ventas."
+          />
+          <CreateOffer
+            show={catalogReady && !catalog.length && tab === "product"}
+            what="un producto"
+            href="/admin/productos"
+            how="En Productos, completa el formulario de arriba y guarda. Luego vuelve a Ventas."
+          />
         </div>
         <aside className="admin-metric">
           <label className="admin-field">Paciente<select value={patientId} onChange={(e) => setPatientId(e.target.value)}><option value="">Mostrador</option>{patients.map((p) => <option key={p.id} value={p.id}>{p.firstName} {p.lastName}</option>)}</select></label>

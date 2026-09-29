@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { DndContext, PointerSensor, useDraggable, useDroppable, useSensor, useSensors } from "@dnd-kit/core";
 import { api } from "@/components/admin/clinic/client";
+import { CreateOffer } from "@/components/admin/tutorial";
 
 type Appt = {
   id: string;
@@ -72,6 +73,7 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
   const [services, setServices] = useState<Opt[]>([]);
   const [locations, setLocations] = useState<Opt[]>([]);
   const [patients, setPatients] = useState<{ id: string; firstName: string; lastName: string }[]>([]);
+  const [catalogReady, setCatalogReady] = useState(false);
   const [staffFilter, setStaffFilter] = useState("");
   const [columnsBy, setColumnsBy] = useState<"day" | "staff" | "room">("day");
   const [rooms, setRooms] = useState<Opt[]>([]);
@@ -107,7 +109,7 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
     api<{ rows: Opt[] }>("/api/admin/settings/locations").then((r) => { setLocations(r.rows); if (r.rows[0]?.timezone) setClinicTz(r.rows[0].timezone); }).catch(() => undefined);
     api<{ rows: Opt[] }>("/api/admin/settings/rooms").then((r) => setRooms(r.rows)).catch(() => undefined);
     api<{ rows: { id: string; first_name: string | null; last_name: string | null; service_name: string | null }[] }>("/api/admin/waitlist").then((r) => setWaitlist(r.rows)).catch(() => undefined);
-    api<{ rows: { id: string; firstName: string; lastName: string }[] }>("/api/admin/patients?pageSize=100").then((r) => setPatients(r.rows)).catch(() => undefined);
+    api<{ rows: { id: string; firstName: string; lastName: string }[] }>("/api/admin/patients?pageSize=100").then((r) => setPatients(r.rows)).catch(() => undefined).finally(() => setCatalogReady(true));
   }, [load]);
 
   const days = useMemo(() => {
@@ -296,10 +298,10 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
           <form className="admin-drawer__panel" onClick={(e) => e.stopPropagation()} onSubmit={(e) => { e.preventDefault(); saveDraft(); }}>
             <h2 className="admin-header__title">{draft.id ? "Editar cita" : "Nueva cita"}</h2>
             <div className="admin-form-grid" style={{ marginTop: "1rem" }}>
-              <label className="admin-field">Paciente<select value={draft.patientId || ""} onChange={(e) => setDraft({ ...draft, patientId: e.target.value })}><option value="">Sin paciente</option>{patients.map((p) => <option key={p.id} value={p.id}>{p.firstName} {p.lastName}</option>)}</select></label>
-              <label className="admin-field">Servicio<select value={draft.serviceId || ""} onChange={(e) => setDraft({ ...draft, serviceId: e.target.value })}><option value="">—</option>{services.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
-              <label className="admin-field">Profesional<select required value={draft.staffUserId || ""} onChange={(e) => setDraft({ ...draft, staffUserId: e.target.value })}><option value="">—</option>{staff.map((s) => <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>)}</select></label>
-              <label className="admin-field">Sede<select required value={draft.locationId || ""} onChange={(e) => setDraft({ ...draft, locationId: e.target.value })}><option value="">—</option>{locations.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
+              <label className="admin-field">Paciente<select value={draft.patientId || ""} onChange={(e) => setDraft({ ...draft, patientId: e.target.value })}><option value="">Sin paciente</option>{patients.map((p) => <option key={p.id} value={p.id}>{p.firstName} {p.lastName}</option>)}</select><CreateOffer show={catalogReady && !patients.length} what="un paciente" href="/admin/pacientes?nuevo=1" how="En Pacientes, pulsa + Paciente, completa nombre y apellido, y guarda." /></label>
+              <label className="admin-field">Servicio<select value={draft.serviceId || ""} onChange={(e) => setDraft({ ...draft, serviceId: e.target.value })}><option value="">—</option>{services.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select><CreateOffer show={catalogReady && !services.length} what="un servicio" href="/admin/configuracion/servicios?nuevo=1" how="En Servicios, pulsa + Nuevo, escribe nombre, duración y precio, y guarda." /></label>
+              <label className="admin-field">Profesional<select required value={draft.staffUserId || ""} onChange={(e) => setDraft({ ...draft, staffUserId: e.target.value })}><option value="">—</option>{staff.map((s) => <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>)}</select><CreateOffer show={catalogReady && !staff.length} what="un profesional" href="/admin/configuracion/equipo?nuevo=1" how="En Equipo y roles, pulsa + Nuevo y marca Atiende citas." /></label>
+              <label className="admin-field">Sede<select required value={draft.locationId || ""} onChange={(e) => setDraft({ ...draft, locationId: e.target.value })}><option value="">—</option>{locations.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select><CreateOffer show={catalogReady && !locations.length} what="una sede" href="/admin/configuracion/sedes?nuevo=1" how="En Sedes, pulsa + Nuevo, escribe el nombre y guarda." /></label>
               <label className="admin-field">Inicio<input type="datetime-local" required value={draft.startsAt || ""} onChange={(e) => setDraft({ ...draft, startsAt: e.target.value })} /></label>
               <label className="admin-field">Estado<select value={draft.status || "booked"} onChange={(e) => setDraft({ ...draft, status: e.target.value })}>{STATUSES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
               {!draft.id ? <label className="admin-field">Recurrencia<select value={draft.freq || ""} onChange={(e) => setDraft({ ...draft, freq: e.target.value })}><option value="">No se repite</option><option value="DAILY">Diaria</option><option value="WEEKLY">Semanal</option><option value="MONTHLY">Mensual</option></select></label> : null}

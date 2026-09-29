@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "@/components/admin/clinic/client";
 import { CloseButton, EmptyState, SegmentedControl } from "@/components/admin/ui";
+import { CreateOffer } from "@/components/admin/tutorial";
 
 const GROUPS: [string, [string, string][]][] = [
   ["Clínica", [["sedes", "Sedes"], ["salas", "Salas"], ["horarios", "Horarios"]]],
@@ -46,6 +47,7 @@ export default function SettingsPanel({ section }: { section: string }) {
   const [serviceTab, setServiceTab] = useState("general");
   const [openForm, setOpenForm] = useState(false);
   const [templates, setTemplates] = useState<Row[]>([]);
+  const [depsReady, setDepsReady] = useState(false);
 
   async function load() {
     const data = await api<{ rows: Row[] }>(`/api/admin/settings/${apiSection}`);
@@ -64,13 +66,23 @@ export default function SettingsPanel({ section }: { section: string }) {
   useEffect(() => {
     setForm({});
     setEditing(null);
-    setOpenForm(false);
+    const wantsNew = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("nuevo") === "1";
+    setOpenForm(wantsNew && apiSection !== "booking" && apiSection !== "clinic");
     setSaved(false);
+    setDepsReady(false);
     load().catch((e) => setError(e.message));
-    api<{ rows: Row[] }>("/api/admin/settings/locations").then((r) => setLocations(r.rows)).catch(() => undefined);
-    api<{ rows: Row[] }>("/api/admin/settings/staff").then((r) => setStaff(r.rows)).catch(() => undefined);
-    api<{ rows: Row[] }>("/api/admin/settings/service-categories").then((r) => setCategories(r.rows)).catch(() => undefined);
-    api<{ rows: Row[] }>("/api/admin/settings/taxes").then((r) => setTaxes(r.rows)).catch(() => undefined);
+    Promise.all([
+      api<{ rows: Row[] }>("/api/admin/settings/locations"),
+      api<{ rows: Row[] }>("/api/admin/settings/staff"),
+      api<{ rows: Row[] }>("/api/admin/settings/service-categories"),
+      api<{ rows: Row[] }>("/api/admin/settings/taxes"),
+    ]).then(([locationsResult, staffResult, categoriesResult, taxesResult]) => {
+      setLocations(locationsResult.rows);
+      setStaff(staffResult.rows);
+      setCategories(categoriesResult.rows);
+      setTaxes(taxesResult.rows);
+      setDepsReady(true);
+    }).catch(() => setDepsReady(true));
     if (apiSection === "services") api<{ rows: Row[] }>("/api/admin/forms").then((r) => setTemplates(r.rows)).catch(() => undefined);
   }, [apiSection]);
 
@@ -144,7 +156,7 @@ export default function SettingsPanel({ section }: { section: string }) {
           />
         </div>
       ) : null}
-      <Fields section={apiSection} form={form} set={set} locations={locations} staff={staff} categories={categories} taxes={taxes} templates={templates} serviceTab={serviceTab} editing={Boolean(editing)} />
+      <Fields section={apiSection} form={form} set={set} locations={locations} staff={staff} categories={categories} taxes={taxes} templates={templates} serviceTab={serviceTab} editing={Boolean(editing)} ready={depsReady} />
     </form>
   );
 
@@ -231,7 +243,7 @@ export default function SettingsPanel({ section }: { section: string }) {
   );
 }
 
-function Fields({ section, form, set, locations, staff, categories, taxes, templates, serviceTab, editing }: {
+function Fields({ section, form, set, locations, staff, categories, taxes, templates, serviceTab, editing, ready }: {
   section: string;
   form: Row;
   set: (key: string, value: unknown) => void;
@@ -242,6 +254,7 @@ function Fields({ section, form, set, locations, staff, categories, taxes, templ
   templates: Row[];
   serviceTab: string;
   editing: boolean;
+  ready: boolean;
 }) {
   if (section === "locations") return (
     <>
@@ -258,7 +271,7 @@ function Fields({ section, form, set, locations, staff, categories, taxes, templ
   );
   if (section === "rooms") return (
     <>
-      <Select label="Sede" value={form.locationId} onChange={(v) => set("locationId", v)} options={locations.map((row) => [String(row.id), String(row.name)])} required />
+      <Select label="Sede" value={form.locationId} onChange={(v) => set("locationId", v)} options={locations.map((row) => [String(row.id), String(row.name)])} required ready={ready} empty={{ what: "una sede", href: "/admin/configuracion/sedes?nuevo=1", how: "En Sedes, pulsa + Nuevo, escribe el nombre y guarda." }} />
       <Text label="Nombre" value={form.name} onChange={(v) => set("name", v)} required />
       <Text label="Color" value={form.color || "#d4a473"} onChange={(v) => set("color", v)} />
       <Text label="Capacidad" value={form.capacity || "1"} onChange={(v) => set("capacity", Number(v))} />
@@ -269,7 +282,7 @@ function Fields({ section, form, set, locations, staff, categories, taxes, templ
       {serviceTab === "general" ? (
         <>
           <Text label="Nombre" value={form.name} onChange={(v) => set("name", v)} required />
-          <Select label="Categoría" value={form.categoryId} onChange={(v) => set("categoryId", v)} options={categories.map((row) => [String(row.id), String(row.name)])} />
+          <Select label="Categoría" value={form.categoryId} onChange={(v) => set("categoryId", v)} options={categories.map((row) => [String(row.id), String(row.name)])} ready={ready} empty={{ what: "una categoría", href: "/admin/configuracion/categorias?nuevo=1", how: "En Categorías, pulsa + Nuevo, escribe el nombre y guarda." }} />
           <Text label="Duración (min)" value={form.durationMinutes || "60"} onChange={(v) => set("durationMinutes", Number(v))} />
           <Text label="Descripción" value={form.description} onChange={(v) => set("description", v)} />
         </>
@@ -320,8 +333,8 @@ function Fields({ section, form, set, locations, staff, categories, taxes, templ
   );
   if (section === "schedules") return (
     <>
-      <Select label="Profesional" value={form.staffUserId} onChange={(v) => set("staffUserId", v)} options={staff.map((row) => [String(row.id), `${row.first_name} ${row.last_name}`])} required />
-      <Select label="Sede" value={form.locationId} onChange={(v) => set("locationId", v)} options={locations.map((row) => [String(row.id), String(row.name)])} required />
+      <Select label="Profesional" value={form.staffUserId} onChange={(v) => set("staffUserId", v)} options={staff.map((row) => [String(row.id), `${row.first_name} ${row.last_name}`])} required ready={ready} empty={{ what: "un profesional", href: "/admin/configuracion/equipo?nuevo=1", how: "En Equipo y roles, pulsa + Nuevo, completa nombre, correo y marca Atiende citas." }} />
+      <Select label="Sede" value={form.locationId} onChange={(v) => set("locationId", v)} options={locations.map((row) => [String(row.id), String(row.name)])} required ready={ready} empty={{ what: "una sede", href: "/admin/configuracion/sedes?nuevo=1", how: "En Sedes, pulsa + Nuevo, escribe el nombre y guarda." }} />
       <Select label="Día" value={form.dayOfWeek ?? "1"} onChange={(v) => set("dayOfWeek", Number(v))} options={DAYS.map((name, index) => [String(index), name])} />
       <Text label="Desde" value={form.startTime || "09:00"} onChange={(v) => set("startTime", v)} />
       <Text label="Hasta" value={form.endTime || "17:00"} onChange={(v) => set("endTime", v)} />
@@ -378,7 +391,7 @@ function Text({ label, value, onChange, required }: { label: string; value: unkn
   );
 }
 
-function Select({ label, value, onChange, options, required }: { label: string; value: unknown; onChange: (value: string) => void; options: string[][]; required?: boolean }) {
+function Select({ label, value, onChange, options, required, empty, ready }: { label: string; value: unknown; onChange: (value: string) => void; options: string[][]; required?: boolean; empty?: { what: string; href: string; how: string }; ready?: boolean }) {
   return (
     <label className="admin-field">
       <span className="admin-field__label">{label}{required ? <span className="admin-req"> *</span> : null}</span>
@@ -386,6 +399,7 @@ function Select({ label, value, onChange, options, required }: { label: string; 
         <option value="">—</option>
         {options.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
       </select>
+      {empty && ready ? <CreateOffer show={!options.length} what={empty.what} href={empty.href} how={empty.how} /> : null}
     </label>
   );
 }

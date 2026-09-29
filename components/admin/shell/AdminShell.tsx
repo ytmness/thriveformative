@@ -21,6 +21,7 @@ import {
 import ThemeProvider from "@/components/theme/ThemeProvider";
 import ThemeSwitcher from "@/components/theme/ThemeSwitcher";
 import { api } from "@/components/admin/clinic/client";
+import { TutorialButton } from "@/components/admin/tutorial";
 
 const NAV = [
   { href: "/admin", label: "Dashboard", perm: "dashboard.read", icon: LayoutDashboard, exact: true },
@@ -126,6 +127,7 @@ export default function AdminShell({
                 </div>
               ) : null}
             </form>
+            <TutorialButton pathname={pathname} />
             <details className="admin-create">
               <summary className="admin-btn admin-btn--primary">Crear</summary>
               <div className="admin-create__menu">

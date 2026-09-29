@@ -84,6 +84,26 @@
 .admin-patient-row { display: grid; gap: 16px; align-items: start; margin-bottom: 16px; }
 .admin-patient-row--3 { grid-template-columns: 8.5rem minmax(0, 1fr) minmax(0, 1fr); }
 .admin-patient-row--2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.admin-tutorial { position: relative; flex: 0 0 auto; }
+.admin-tutorial__btn {
+  display: inline-flex; align-items: center; gap: 0.35rem; height: 32px; padding: 0 0.7rem;
+  border-radius: 999px; border: 1px solid rgb(var(--border) / 0.28); background: transparent;
+  color: rgb(var(--muted)); font-size: 0.75rem; font-weight: 600; cursor: pointer;
+}
+.admin-tutorial__btn:hover { color: rgb(var(--text)); border-color: rgb(122 62 40 / 0.4); }
+.admin-tutorial__panel {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 40; width: min(22rem, calc(100vw - 2rem));
+  padding: 0.85rem 1rem 1rem; text-align: left; background: rgb(255 252 247);
+  border: 1px solid rgb(var(--border) / 0.16); border-radius: 0.9rem; box-shadow: 0 12px 32px rgb(0 0 0 / 0.12);
+}
+[data-theme="nocturnal"] .admin-tutorial__panel { background: rgb(46 44 42); }
+.admin-tutorial__head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.admin-tutorial__head p { margin: 0; font-weight: 700; }
+.admin-tutorial__head .admin-icon-btn { width: 28px; height: 28px; }
+.admin-tutorial__panel ol { margin: 0.55rem 0 0; padding-left: 1.15rem; display: grid; gap: 0.4rem; font-size: 0.875rem; line-height: 1.45; }
+.admin-offer { display: block; margin: 6px 0 0; font-size: 0.8125rem; line-height: 1.4; color: rgb(var(--muted)); text-align: left; }
+.admin-offer a { color: rgb(122 62 40); font-weight: 700; }
+.admin-offer span { display: block; margin-top: 2px; }
 .admin-empty { display: grid; justify-items: start; gap: 0.35rem; padding: 1.5rem 1.25rem; text-align: left; }
 .admin-empty__mark { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 99px; border: 1px solid rgb(var(--border) / 0.3); color: rgb(var(--muted)); }
 .admin-empty__title { margin: 0; font-weight: 650; }
