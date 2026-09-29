@@ -301,7 +301,7 @@ export async function updateAppointment(
   await writeAudit({
     actorType: actor ? "staff" : "patient",
     actorId: actor?.staff.id ?? (next.patientId ?? null),
-    action: "appointment.update",
+    action: window.status === "cancelled" ? "appointment.cancel" : "appointment.update",
     entityType: "appointment",
     entityId: id,
     patientId: next.patientId ?? null,

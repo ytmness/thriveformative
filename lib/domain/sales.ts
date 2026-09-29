@@ -308,6 +308,31 @@ export async function markStripePaid(paymentIntentId: string) {
   if (payment.rows[0].sale_id) await recalcSale(payment.rows[0].sale_id);
 }
 
+export async function voidSale(saleId: string, reason: string, actor: StaffSession) {
+  const sale = await query<{ id: string; status: string; patient_id: string | null }>(
+    `SELECT id, status, patient_id FROM sales WHERE id = $1`,
+    [saleId]
+  );
+  if (!sale.rows[0]) throw new DomainError("Venta no encontrada.", 404);
+  if (sale.rows[0].status === "void") throw new DomainError("La venta ya está anulada.");
+  const note = reason.trim() || "Anulada en clínica";
+  await query(`UPDATE sales SET status = 'void' WHERE id = $1`, [saleId]);
+  await query(`UPDATE invoices SET status = 'void' WHERE sale_id = $1 AND status <> 'void'`, [saleId]);
+  await query(
+    `UPDATE payments SET status = 'void', voided_at = now(), void_reason = $2 WHERE sale_id = $1 AND status <> 'void'`,
+    [saleId, note]
+  );
+  await writeAudit({
+    actorType: "staff",
+    actorId: actor.staff.id,
+    action: "sale.void",
+    entityType: "sale",
+    entityId: saleId,
+    patientId: sale.rows[0].patient_id,
+    metadata: { reason: note },
+  });
+}
+
 export async function voidPayment(paymentId: string, reason: string, actor: StaffSession) {
   const payment = await query<{
     id: string;

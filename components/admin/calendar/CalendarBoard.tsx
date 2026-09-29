@@ -97,7 +97,7 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
 
   const load = useCallback(async () => {
     const data = await api<{ rows: Appt[] }>(`/api/admin/appointments?from=${range.start.toISOString()}&to=${range.end.toISOString()}${staffFilter ? `&staffUserId=${staffFilter}` : ""}`);
-    setRows(data.rows);
+    setRows(data.rows.filter((row) => row.status !== "cancelled"));
   }, [range, staffFilter]);
 
   useEffect(() => {
@@ -308,6 +308,17 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
             </div>
             <div className="admin-toolbar">
               <button className="admin-btn admin-btn--primary" type="submit">Guardar</button>
+              {draft.id ? <button className="admin-btn" type="button" onClick={async () => {
+                if (!window.confirm("¿Archivar esta cita? Quedará cancelada y saldrá del calendario. El registro se conserva.")) return;
+                try {
+                  await api(`/api/admin/appointments/${draft.id}`, { method: "PATCH", body: JSON.stringify({ status: "cancelled", cancelReason: "Archivada desde el calendario" }) });
+                  setDraft(null);
+                  setNotice("Cita archivada.");
+                  await load();
+                } catch (e) {
+                  setError(e instanceof Error ? e.message : "No se pudo archivar la cita.");
+                }
+              }}>Archivar</button> : null}
               <button className="admin-btn" type="button" onClick={() => setDraft(null)}>Cerrar</button>
             </div>
           </form>

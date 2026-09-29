@@ -11,7 +11,7 @@ function hashToken(token: string) {
 }
 
 export async function listTemplates() {
-  const rows = await query(`SELECT id, name, form_type, schema, requires_signature, version, is_active, updated_at FROM form_templates ORDER BY name`);
+  const rows = await query(`SELECT id, name, form_type, schema, requires_signature, version, is_active, updated_at FROM form_templates WHERE is_active ORDER BY name`);
   return rows.rows;
 }
 
@@ -32,6 +32,19 @@ export async function saveTemplate(id: string | null, body: Record<string, unkno
     `UPDATE form_templates SET name=$2, form_type=$3, schema=$4::jsonb, requires_signature=$5, is_active=$6, version=version+1 WHERE id=$1`,
     [id, name, body.formType || "custom", schema, Boolean(body.requiresSignature), body.isActive !== false]
   );
+  return { id };
+}
+
+export async function archiveTemplate(id: string, actor: StaffSession) {
+  const updated = await query(`UPDATE form_templates SET is_active = false, updated_at = now() WHERE id = $1 AND is_active RETURNING id`, [id]);
+  if (!updated.rows[0]) throw new DomainError("Plantilla no encontrada.", 404);
+  await writeAudit({
+    actorType: "staff",
+    actorId: actor.staff.id,
+    action: "form_template.archive",
+    entityType: "form_template",
+    entityId: id,
+  });
   return { id };
 }
 

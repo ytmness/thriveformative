@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/components/admin/clinic/client";
 
 type Patient = Record<string, unknown> & { id: string; firstName: string; lastName: string; clientCode: string; email?: string; mobile?: string };
@@ -14,7 +14,7 @@ const EMPTY = {
   consentSms: false, consentEmail: false, consentPhone: false, consentPostal: false,
 };
 
-export function PatientList({ startNew, initialQuery = "" }: { startNew?: boolean; initialQuery?: string }) {
+export function PatientList({ startNew, initialQuery = "", initialNotice = null }: { startNew?: boolean; initialQuery?: string; initialNotice?: string | null }) {
   const [rows, setRows] = useState<Patient[]>([]);
   const [q, setQ] = useState(initialQuery);
   const [page, setPage] = useState(1);
@@ -22,6 +22,7 @@ export function PatientList({ startNew, initialQuery = "" }: { startNew?: boolea
   const [open, setOpen] = useState(startNew || false);
   const [form, setForm] = useState<Record<string, unknown>>(EMPTY);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(initialNotice);
   const [section, setSection] = useState("identidad");
   const [options, setOptions] = useState<{ locations: { id: string; name: string }[]; staff: { id: string; first_name: string; last_name: string }[]; sources: { id: string; name: string }[] }>({ locations: [], staff: [], sources: [] });
   const router = useRouter();
@@ -45,7 +46,7 @@ export function PatientList({ startNew, initialQuery = "" }: { startNew?: boolea
     e.preventDefault();
     try {
       const created = await api<{ patient: { id: string } }>("/api/admin/patients", { method: "POST", body: JSON.stringify(form) });
-      router.push(`/admin/pacientes/${created.patient.id}`);
+      router.push(`/admin/pacientes/${created.patient.id}?creado=1`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error");
     }
@@ -54,7 +55,8 @@ export function PatientList({ startNew, initialQuery = "" }: { startNew?: boolea
   return (
     <>
       <header className="admin-header"><p className="admin-header__eyebrow">Directorio</p><h1 className="admin-header__title">Pacientes</h1></header>
-      {error ? <div className="admin-alert">{error}</div> : null}
+      {error ? <div className="admin-alert" role="alert">{error}</div> : null}
+      {notice ? <p className="admin-notice" role="status">{notice}</p> : null}
       <div className="admin-toolbar">
         <input value={q} placeholder="Buscar nombre, código, email o teléfono" onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { setPage(1); load(1, q); } }} />
         <button className="admin-btn" type="button" onClick={() => { setPage(1); load(1, q); }}>Buscar</button>
@@ -62,9 +64,23 @@ export function PatientList({ startNew, initialQuery = "" }: { startNew?: boolea
       </div>
       <div className="admin-table-wrap">
         {rows.map((row) => (
-          <Link key={row.id} href={`/admin/pacientes/${row.id}`} className="admin-table__row">
-            <div><div className="admin-table__cell-title">{row.firstName} {row.lastName}</div><div className="admin-table__cell-sub">{row.clientCode} · {row.email || "sin email"} · {row.mobile || ""}</div></div>
-          </Link>
+          <div key={row.id} className="admin-table__row">
+            <Link href={`/admin/pacientes/${row.id}`}>
+              <div className="admin-table__cell-title">{row.firstName} {row.lastName}</div>
+              <div className="admin-table__cell-sub">{row.clientCode} · {row.email || "sin email"} · {row.mobile || ""}</div>
+            </Link>
+            <button className="admin-btn" type="button" onClick={async () => {
+              if (!window.confirm(`¿Archivar a ${row.firstName} ${row.lastName}? El expediente se conserva, pero dejará de aparecer en la lista.`)) return;
+              try {
+                await api(`/api/admin/patients/${row.id}`, { method: "DELETE" });
+                setNotice("Paciente archivado. El expediente se conserva.");
+                setError(null);
+                await load();
+              } catch (err) {
+                setError(err instanceof Error ? err.message : "No se pudo archivar el paciente.");
+              }
+            }}>Archivar</button>
+          </div>
         ))}
         {!rows.length ? <div className="admin-table__empty">{q ? "Ningún paciente coincide con la búsqueda." : "Aún no hay pacientes. Crea el primero con + Paciente."}</div> : null}
       </div>
@@ -152,9 +168,12 @@ const TABS = [
 ] as const;
 
 export function PatientChart({ id, tab }: { id: string; tab: string }) {
+  const router = useRouter();
+  const created = useSearchParams().get("creado");
   const [patient, setPatient] = useState<Patient | null>(null);
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(created ? "Paciente guardado." : null);
   const [note, setNote] = useState({ subjective: "", objective: "", assessment: "", plan: "" });
   const [value, setValue] = useState("");
   const [kind, setKind] = useState<"allergies" | "conditions" | "medications">("allergies");
@@ -182,8 +201,18 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
         <p className="admin-header__eyebrow">{String(patient.clientCode || "")}</p>
         <h1 className="admin-header__title">{patient.firstName} {patient.lastName}</h1>
         <p className="admin-header__desc">Creado {patient.createdAt ? new Date(String(patient.createdAt)).toLocaleString("es-MX") : ""}</p>
+        <button className="admin-btn" type="button" onClick={async () => {
+          if (!window.confirm(`¿Archivar a ${patient.firstName} ${patient.lastName}? El expediente se conserva, pero dejará de aparecer en la lista.`)) return;
+          try {
+            await api(`/api/admin/patients/${id}`, { method: "DELETE" });
+            router.push("/admin/pacientes?archivado=1");
+          } catch (err) {
+            setError(err instanceof Error ? err.message : "No se pudo archivar el paciente.");
+          }
+        }}>Archivar</button>
       </header>
-      {error ? <div className="admin-alert">{error}</div> : null}
+      {error ? <div className="admin-alert" role="alert">{error}</div> : null}
+      {notice ? <p className="admin-notice" role="status">{notice}</p> : null}
       <nav className="admin-tabs">
         {TABS.map(([item, label]) => <Link key={item} className={active === item ? "is-active" : ""} href={item === "resumen" ? `/admin/pacientes/${id}` : `/admin/pacientes/${id}/${item}`}>{label}</Link>)}
       </nav>
@@ -222,7 +251,53 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
           {rows.filter((row) => active === "fotos" ? row.is_photo : !row.is_photo).map((row) => <a key={String(row.id)} className="admin-table__row" href={`/api/admin/documents/${row.id}`}>{String(row.title)}</a>)}
         </form>
       ) : null}
-      {active !== "resumen" && active !== "expediente" && active !== "alergias" && active !== "fotos" && active !== "documentos" ? (
+      {active === "citas" ? (
+        <div className="admin-table-wrap">
+          {rows.map((row) => (
+            <div key={String(row.id)} className="admin-table__row">
+              <div>
+                <div className="admin-table__cell-title">{String(row.serviceName || "Cita")}</div>
+                <div className="admin-table__cell-sub">{row.startsAt ? new Date(String(row.startsAt)).toLocaleString("es-MX") : ""} · {row.status === "cancelled" ? "Cancelada" : String(row.status || "")}</div>
+              </div>
+              {row.status !== "cancelled" ? <button className="admin-btn" type="button" onClick={async () => {
+                if (!window.confirm("¿Archivar esta cita? Quedará cancelada y seguirá en el expediente.")) return;
+                try {
+                  await api(`/api/admin/appointments/${row.id}`, { method: "PATCH", body: JSON.stringify({ status: "cancelled", cancelReason: "Archivada desde el expediente" }) });
+                  setNotice("Cita archivada.");
+                  setRows(rows.map((item) => item.id === row.id ? { ...item, status: "cancelled" } : item));
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "No se pudo archivar la cita.");
+                }
+              }}>Archivar</button> : null}
+            </div>
+          ))}
+          {!rows.length ? <div className="admin-table__empty">Sin citas.</div> : null}
+        </div>
+      ) : null}
+      {active === "ventas" ? (
+        <div className="admin-table-wrap">
+          {rows.map((row) => (
+            <div key={String(row.id)} className="admin-table__row">
+              <div>
+                <div className="admin-table__cell-title">{String(row.sale_number || "Venta")}</div>
+                <div className="admin-table__cell-sub">{row.status === "void" ? "Anulada" : String(row.status || "")} · ${Number(row.total || 0).toFixed(2)}</div>
+              </div>
+              {row.status !== "void" ? <button className="admin-btn admin-btn--danger" type="button" onClick={async () => {
+                if (!window.confirm("¿Anular esta venta? El registro se conserva, pero deja de contar como cobro.")) return;
+                try {
+                  await api(`/api/admin/sales/${row.id}`, { method: "POST", body: JSON.stringify({ action: "void", reason: "Anulada desde el expediente" }) });
+                  setNotice("Venta anulada.");
+                  setRows(rows.map((item) => item.id === row.id ? { ...item, status: "void" } : item));
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "No se pudo anular la venta.");
+                }
+              }}>Anular</button> : null}
+            </div>
+          ))}
+          {!rows.length ? <div className="admin-table__empty">Sin ventas.</div> : null}
+        </div>
+      ) : null}
+      {active !== "resumen" && active !== "expediente" && active !== "alergias" && active !== "fotos" && active !== "documentos" && active !== "citas" && active !== "ventas" ? (
         <div className="admin-table-wrap">{rows.map((row) => <div key={String(row.id)} className="admin-table__row"><div className="admin-table__cell-title">{String(row.serviceName || row.name || row.subject || row.sale_number || row.status || row.id)}</div><div className="admin-table__cell-sub">{String(row.startsAt || row.created_at || row.sentAt || row.status || "")}</div></div>)}{!rows.length ? <div className="admin-table__empty">Sin registros.</div> : null}</div>
       ) : null}
     </>

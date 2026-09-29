@@ -1,5 +1,5 @@
 import { isSession, requirePermission } from "@/lib/auth/guard";
-import { addPayment, getSale, markStripePaid } from "@/lib/domain/sales";
+import { addPayment, getSale, markStripePaid, voidSale } from "@/lib/domain/sales";
 import { getStripe } from "@/lib/payments/stripeClient";
 import { readJson, toErrorResponse, DomainError } from "@/lib/http";
 
@@ -20,6 +20,10 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   try {
     const { id } = await ctx.params;
     const body = await readJson(req);
+    if (body.action === "void") {
+      await voidSale(id, String(body.reason || ""), session);
+      return Response.json({ sale: await getSale(id) });
+    }
     if (body.action === "confirm" && body.paymentIntentId) {
       const stripe = getStripe();
       if (!stripe) throw new DomainError("Stripe no está configurado.", 503);

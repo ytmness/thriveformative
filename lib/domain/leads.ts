@@ -21,6 +21,7 @@ export async function listLeads() {
      LEFT JOIN lead_stages s ON s.id = l.stage_id
      LEFT JOIN staff_users u ON u.id = l.owner_staff_id
      LEFT JOIN marketing_sources ms ON ms.id = l.marketing_source_id
+     WHERE l.archived_at IS NULL
      ORDER BY l.created_at DESC`
   );
   return rows.rows.map((row) => ({
@@ -38,6 +39,11 @@ export async function saveLead(id: string | null, body: Record<string, unknown>,
   const firstName = String(body.firstName || "").trim();
   const lastName = String(body.lastName || "").trim();
   if (!firstName || !lastName) throw new DomainError("Nombre y apellido son obligatorios.");
+  if (!body.stageId) {
+    const first = await query<{ id: string }>(`SELECT id FROM lead_stages ORDER BY sort_order, name LIMIT 1`);
+    if (first.rows[0]) body.stageId = first.rows[0].id;
+  }
+  if (!body.stageId) throw new DomainError("La etapa es obligatoria.");
   const values = [
     body.locationId || null,
     body.ownerStaffId || null,
@@ -89,6 +95,34 @@ export async function saveLead(id: string | null, body: Record<string, unknown>,
     [id, ...values]
   );
   await emitWebhook("lead.updated", { leadId: id });
+  return { id };
+}
+
+export async function moveLead(id: string, stageId: string, actor: StaffSession) {
+  if (!stageId) throw new DomainError("La etapa es obligatoria.");
+  const updated = await query(`UPDATE leads SET stage_id = $2 WHERE id = $1 AND archived_at IS NULL RETURNING id`, [id, stageId]);
+  if (!updated.rows[0]) throw new DomainError("Lead no encontrado.", 404);
+  await writeAudit({
+    actorType: "staff",
+    actorId: actor.staff.id,
+    action: "lead.stage",
+    entityType: "lead",
+    entityId: id,
+    metadata: { stageId },
+  });
+  return { id };
+}
+
+export async function archiveLead(id: string, actor: StaffSession) {
+  const updated = await query(`UPDATE leads SET archived_at = now() WHERE id = $1 AND archived_at IS NULL RETURNING id`, [id]);
+  if (!updated.rows[0]) throw new DomainError("Lead no encontrado.", 404);
+  await writeAudit({
+    actorType: "staff",
+    actorId: actor.staff.id,
+    action: "lead.archive",
+    entityType: "lead",
+    entityId: id,
+  });
   return { id };
 }
 

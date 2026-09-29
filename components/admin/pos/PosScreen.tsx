@@ -22,6 +22,7 @@ export default function PosScreen() {
   const [method, setMethod] = useState("cash");
   const [message, setMessage] = useState<string | null>(null);
   const [review, setReview] = useState(false);
+  const [sales, setSales] = useState<{ id: string; sale_number: string; status: string; total: string | number; first_name?: string | null; last_name?: string | null }[]>([]);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [saleId, setSaleId] = useState<string | null>(null);
   const stripeRef = useRef<{ confirmPayment: (opts: { elements: unknown; redirect: string }) => Promise<{ error?: { message?: string }; paymentIntent?: { id: string } }> } | null>(null);
@@ -33,6 +34,7 @@ export default function PosScreen() {
     api<{ rows: Catalog[] }>("/api/admin/products?kind=packages").then((r) => setPackages(r.rows)).catch(() => undefined);
     api<{ rows: Catalog[] }>("/api/admin/products?kind=memberships").then((r) => setMemberships(r.rows)).catch(() => undefined);
     api<{ rows: { id: string; firstName: string; lastName: string }[] }>("/api/admin/patients?pageSize=100").then((r) => setPatients(r.rows)).catch(() => undefined);
+    api<{ rows: { id: string; sale_number: string; status: string; total: string | number; first_name?: string | null; last_name?: string | null }[] }>("/api/admin/sales").then((r) => setSales(r.rows)).catch(() => undefined);
   }, []);
 
   const catalog = tab === "service" ? services : tab === "product" ? products : tab === "package" ? packages : tab === "membership" ? memberships : [];
@@ -75,6 +77,7 @@ export default function PosScreen() {
         setMessage("Venta registrada.");
         setCart([]);
         setReview(false);
+        api<{ rows: { id: string; sale_number: string; status: string; total: string | number; first_name?: string | null; last_name?: string | null }[] }>("/api/admin/sales").then((r) => setSales(r.rows)).catch(() => undefined);
       }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Error");
@@ -144,6 +147,30 @@ export default function PosScreen() {
           {message ? <p className="admin-notice" role="status">{message}</p> : null}
         </aside>
       </div>
+      <section style={{ marginTop: "1.5rem" }}>
+        <h2>Ventas recientes</h2>
+        <div className="admin-table-wrap">
+          {sales.map((sale) => (
+            <div key={sale.id} className="admin-table__row">
+              <div>
+                <div className="admin-table__cell-title">{sale.sale_number}</div>
+                <div className="admin-table__cell-sub">{[sale.first_name, sale.last_name].filter(Boolean).join(" ") || "Mostrador"} · {sale.status === "void" ? "Anulada" : sale.status} · ${Number(sale.total || 0).toFixed(2)}</div>
+              </div>
+              {sale.status !== "void" ? <button className="admin-btn admin-btn--danger" type="button" onClick={async () => {
+                if (!window.confirm(`¿Anular ${sale.sale_number}? El registro se conserva, pero deja de contar como cobro.`)) return;
+                try {
+                  await api(`/api/admin/sales/${sale.id}`, { method: "POST", body: JSON.stringify({ action: "void", reason: "Anulada en ventas" }) });
+                  setMessage("Venta anulada.");
+                  setSales(sales.map((item) => item.id === sale.id ? { ...item, status: "void" } : item));
+                } catch (error) {
+                  setMessage(error instanceof Error ? error.message : "No se pudo anular la venta.");
+                }
+              }}>Anular</button> : null}
+            </div>
+          ))}
+          {!sales.length ? <div className="admin-table__empty">Todavía no hay ventas.</div> : null}
+        </div>
+      </section>
     </>
   );
 }

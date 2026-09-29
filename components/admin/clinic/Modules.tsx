@@ -190,16 +190,28 @@ export function FormBuilder() {
       <div className="admin-table-wrap" style={{ marginTop: "1rem" }}>
         <div className="admin-table__row admin-table__head"><span>Plantilla</span><span>Tipo</span><span>Versión</span></div>
         {rows.map((row) => (
-          <button key={String(row.id)} type="button" className="admin-table__row" onClick={() => {
+          <div key={String(row.id)} className="admin-table__row" role="button" tabIndex={0} onClick={() => {
             setTemplateId(String(row.id));
             setName(String(row.name || ""));
             setFormType(String(row.form_type || "custom"));
             setFields(Array.isArray(row.schema) ? row.schema as { id: string; label: string; type: string; required: boolean }[] : []);
             setNotice(`Editando «${String(row.name || "plantilla")}».`);
             setError(null);
-          }}>
+          }} onKeyDown={(event) => { if (event.key === "Enter") (event.currentTarget as HTMLDivElement).click(); }}>
             <div>{String(row.name)}</div><div>{String(row.form_type)}{row.requires_signature ? " · con firma" : ""}</div><div>v{String(row.version)}</div>
-          </button>
+            <button className="admin-btn" type="button" onClick={async (event) => {
+              event.stopPropagation();
+              if (!window.confirm(`¿Archivar «${String(row.name)}»? Dejará de aparecer en la lista. La plantilla se conserva.`)) return;
+              try {
+                await api("/api/admin/forms", { method: "POST", body: JSON.stringify({ action: "archive", id: row.id }) });
+                setNotice("Plantilla archivada.");
+                setRows(rows.filter((item) => item.id !== row.id));
+                if (templateId === row.id) reset();
+              } catch (err) {
+                setError(err instanceof Error ? err.message : "No se pudo archivar la plantilla.");
+              }
+            }}>Archivar</button>
+          </div>
         ))}
         {!rows.length ? <div className="admin-table__empty">No hay plantillas. Crea un consentimiento o un ingreso.</div> : null}
       </div>

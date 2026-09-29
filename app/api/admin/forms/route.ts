@@ -1,5 +1,5 @@
 import { isSession, requirePermission } from "@/lib/auth/guard";
-import { assignForm, listTemplates, saveTemplate } from "@/lib/domain/forms";
+import { archiveTemplate, assignForm, listTemplates, saveTemplate } from "@/lib/domain/forms";
 import { readJson, toErrorResponse } from "@/lib/http";
 
 export async function GET() {
@@ -14,6 +14,7 @@ export async function POST(req: Request) {
   try {
     const body = await readJson(req);
     if (body.action === "assign") return Response.json(await assignForm(body, session));
+    if (body.action === "archive") return Response.json(await archiveTemplate(String(body.id || ""), session));
     return Response.json(await saveTemplate(body.id ? String(body.id) : null, body, session));
   } catch (error) {
     return toErrorResponse(error);
