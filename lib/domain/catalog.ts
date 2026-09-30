@@ -12,6 +12,7 @@ export async function listProducts() {
      LEFT JOIN product_categories c ON c.id = p.category_id
      LEFT JOIN suppliers s ON s.id = p.supplier_id
      LEFT JOIN taxes t ON t.id = p.tax_id
+     WHERE p.is_active
      ORDER BY p.name`
   );
   const stock = await query(
@@ -54,6 +55,12 @@ export async function saveProduct(id: string | null, body: Record<string, unknow
       image_url=$9, cost=$10, price=$11, tax_id=$12, is_active=$13 WHERE id=$1`,
     [id, ...values]
   );
+  return { id };
+}
+
+export async function archiveCatalogItem(kind: "product" | "package" | "membership", id: string) {
+  const table = kind === "product" ? "products" : kind === "package" ? "packages" : "memberships";
+  await query(`UPDATE ${table} SET is_active = false WHERE id = $1`, [id]);
   return { id };
 }
 

@@ -8,19 +8,19 @@ import { CreateOffer } from "@/components/admin/tutorial";
 
 const GROUPS: [string, [string, string][]][] = [
   ["Clínica", [["sedes", "Sedes"], ["salas", "Salas"], ["horarios", "Horarios"]]],
-  ["Servicios", [["servicios", "Servicios"], ["categorias", "Categorías"]]],
   ["Equipo", [["equipo", "Equipo y roles"]]],
   ["Finanzas", [["impuestos", "Impuestos"], ["pagos", "Métodos de pago"], ["facturacion", "Facturación"]]],
-  ["Pacientes", [["campos", "Campos personalizados"], ["politicas", "Políticas"]]],
+  ["Marketing y ventas", [["fuentes", "Fuentes"], ["etapas", "Etapas de leads"]]],
+  ["Avanzado", [["campos", "Campos personalizados"], ["politicas", "Políticas"]]],
 ];
 const SECTIONS: [string, string][] = GROUPS.flatMap((group) => group[1]);
 
 const MAP: Record<string, string> = {
   sedes: "locations",
   salas: "rooms",
-  servicios: "services",
-  categorias: "service-categories",
   equipo: "staff",
+  fuentes: "marketing-sources",
+  etapas: "lead-stages",
   horarios: "schedules",
   impuestos: "taxes",
   pagos: "payment-methods",
@@ -99,9 +99,7 @@ export default function SettingsPanel({ section }: { section: string }) {
     setSaved(false);
     try {
       if (apiSection === "clinic") {
-        for (const key of ["cancellation_policy", "invoice_footer", "privacy_notice"]) {
-          await api("/api/admin/settings/clinic", { method: "POST", body: JSON.stringify({ key, value: { text: String(form[key] || "") } }) });
-        }
+        await api("/api/admin/settings/clinic", { method: "POST", body: JSON.stringify({ key: "cancellation_policy", value: { text: String(form.cancellation_policy || "") } }) });
       } else if (apiSection === "booking") {
         await api("/api/admin/settings/booking", { method: "POST", body: JSON.stringify(form) });
       } else if (editing) {
@@ -287,7 +285,7 @@ function Fields({ section, form, set, locations, staff, categories, taxes, rooms
       {serviceTab === "general" ? (
         <>
           <Text label="Nombre" value={form.name} onChange={(v) => set("name", v)} required />
-          <Select label="Categoría" value={form.categoryId} onChange={(v) => set("categoryId", v)} options={categories.map((row) => [String(row.id), String(row.name)])} ready={ready} empty={{ kind: "category", href: "/admin/configuracion/categorias?nuevo=1" }} />
+          <Select label="Categoría" value={form.categoryId} onChange={(v) => set("categoryId", v)} options={categories.map((row) => [String(row.id), String(row.name)])} ready={ready} empty={{ kind: "category", href: "/admin/catalogo/categorias?nuevo=1" }} />
           <Text label="Duración (min)" value={form.durationMinutes || "60"} onChange={(v) => set("durationMinutes", Number(v))} />
           <Text label="Descripción" value={form.description} onChange={(v) => set("description", v)} />
         </>
@@ -362,6 +360,20 @@ function Fields({ section, form, set, locations, staff, categories, taxes, rooms
       <Check label="Activo" checked={form.isActive !== false} onChange={(v) => set("isActive", v)} />
     </>
   );
+  if (section === "marketing-sources") return (
+    <>
+      <Text label="Nombre" value={form.name} onChange={(v) => set("name", v)} required />
+      <Check label="Activa" checked={form.isActive !== false} onChange={(v) => set("isActive", v)} />
+    </>
+  );
+  if (section === "lead-stages") return (
+    <>
+      <Text label="Nombre" value={form.name} onChange={(v) => set("name", v)} required />
+      <Text label="Orden" value={form.sortOrder ?? "0"} onChange={(v) => set("sortOrder", Number(v))} />
+      <Check label="Esta etapa significa ganado" checked={Boolean(form.isWon)} onChange={(v) => set("isWon", v)} />
+      <Check label="Esta etapa significa perdido" checked={Boolean(form.isLost)} onChange={(v) => set("isLost", v)} />
+    </>
+  );
   if (section === "custom-fields") return (
     <>
       <Select label="Aplica a" value={form.entity || "patient"} onChange={(v) => set("entity", v)} options={[["patient", "Paciente"], ["lead", "Lead"], ["appointment", "Cita"], ["product", "Producto"]]} />
@@ -382,11 +394,11 @@ function Fields({ section, form, set, locations, staff, categories, taxes, rooms
     </>
   );
   return (
-    <>
-      <label className="admin-field span-2">Política de cancelación<textarea value={String(form.cancellation_policy || "")} onChange={(e) => set("cancellation_policy", e.target.value)} /></label>
-      <label className="admin-field span-2">Pie de factura<textarea value={String(form.invoice_footer || "")} onChange={(e) => set("invoice_footer", e.target.value)} /></label>
-      <label className="admin-field span-2">Aviso de privacidad<textarea value={String(form.privacy_notice || "")} onChange={(e) => set("privacy_notice", e.target.value)} /></label>
-    </>
+    <label className="admin-field span-2">
+      <span className="admin-field__label">Política de cancelación</span>
+      <textarea value={String(form.cancellation_policy || "")} onChange={(e) => set("cancellation_policy", e.target.value)} />
+      <span className="admin-field__hint">La reserva pública muestra este texto.</span>
+    </label>
   );
 }
 
@@ -434,6 +446,8 @@ function Check({ label, checked, onChange }: { label: string; checked: boolean; 
 
 function payload(section: string, form: Row) {
   if (section === "staff") return { ...form, roles: form.roles || ["reception"] };
+  if (section === "marketing-sources") return { ...form, isActive: form.isActive !== false };
+  if (section === "lead-stages") return { ...form, sortOrder: form.sortOrder ?? 0, isWon: Boolean(form.isWon), isLost: Boolean(form.isLost) };
   return form;
 }
 
@@ -458,6 +472,8 @@ function formFrom(section: string, row: Row): Row {
   if (section === "taxes") return { name: row.name, rate: row.rate, isDefault: row.is_default };
   if (section === "payment-methods") return { key: row.key, name: row.name, isActive: row.is_active };
   if (section === "custom-fields") return { entity: row.entity, label: row.label, fieldKey: row.field_key, fieldType: row.field_type };
+  if (section === "marketing-sources") return { name: row.name, isActive: row.is_active !== false };
+  if (section === "lead-stages") return { name: row.name, sortOrder: row.sort_order ?? 0, isWon: row.is_won, isLost: row.is_lost };
   return { name: row.name };
 }
 
@@ -488,5 +504,7 @@ function detailOf(section: string, row: Row) {
   if (section === "staff") return `${row.email} · ${(Array.isArray(row.roles) ? row.roles : []).join(", ") || "sin rol"}`;
   if (section === "taxes") return `${row.rate}%`;
   if (section === "payment-methods") return String(row.key || "");
+  if (section === "lead-stages") return [row.is_won ? "Ganado" : null, row.is_lost ? "Perdido" : null, `Orden ${row.sort_order ?? 0}`].filter(Boolean).join(" · ");
+  if (section === "marketing-sources") return row.is_active === false ? "Inactiva" : "Activa";
   return String(row.email || row.city || row.entity || "");
 }

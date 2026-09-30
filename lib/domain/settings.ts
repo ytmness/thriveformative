@@ -166,7 +166,11 @@ export async function listSection(section: string) {
   }
   if (section === "services") {
     const rows = await query(
-      `SELECT s.*, c.name AS category_name FROM services s LEFT JOIN service_categories c ON c.id = s.category_id ORDER BY s.name`
+      `SELECT s.*, c.name AS category_name, t.rate AS tax_rate
+       FROM services s
+       LEFT JOIN service_categories c ON c.id = s.category_id
+       LEFT JOIN taxes t ON t.id = s.tax_id
+       ORDER BY s.name`
     );
     const links = await Promise.all([
       query(`SELECT * FROM service_locations`),
@@ -194,11 +198,11 @@ export async function listSection(section: string) {
     return rows.rows.map((row) => ({ ...row, mfa_secret_enc: undefined }));
   }
   if (section === "packages") {
-    const rows = await query(`SELECT * FROM packages ORDER BY name`);
+    const rows = await query(`SELECT * FROM packages WHERE is_active ORDER BY name`);
     const items = await query(`SELECT * FROM package_items`);
     return rows.rows.map((row) => ({ ...row, items: items.rows.filter((item) => item.package_id === row.id) }));
   }
-  if (section === "memberships") return (await query(`SELECT * FROM memberships ORDER BY name`)).rows;
+  if (section === "memberships") return (await query(`SELECT * FROM memberships WHERE is_active ORDER BY name`)).rows;
   if (section === "gift-cards") return (await query(`SELECT * FROM gift_cards ORDER BY created_at DESC`)).rows;
   if (section === "lead-stages") return (await query(`SELECT * FROM lead_stages ORDER BY sort_order, name`)).rows;
   const spec = SIMPLE[section];

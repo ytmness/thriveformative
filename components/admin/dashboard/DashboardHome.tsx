@@ -36,7 +36,7 @@ export default function DashboardHome() {
         <Link className="admin-btn admin-btn--primary" href="/admin/pacientes?nuevo=1">+ Paciente</Link>
         <Link className="admin-btn admin-btn--primary" href="/admin/leads?nuevo=1">+ Lead</Link>
         <Link className="admin-btn admin-btn--primary" href="/admin/calendario?nueva=1">+ Cita</Link>
-        <Link className="admin-btn admin-btn--primary" href="/admin/ventas">+ Venta</Link>
+        <Link className="admin-btn admin-btn--primary" href="/admin/cobrar">+ Cobro</Link>
       </div>
       <div className="admin-table-wrap">
         <div className="admin-table__head"><div>Próximas citas</div></div>

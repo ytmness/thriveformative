@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
 import {
   Calendar,
   ClipboardList,
+  CreditCard,
   FileText,
   LayoutDashboard,
   MessageSquare,
@@ -24,20 +24,31 @@ import ThemeSwitcher from "@/components/theme/ThemeSwitcher";
 import { api } from "@/components/admin/clinic/client";
 import { TutorialButton } from "@/components/admin/tutorial";
 
-const NAV = [
-  { href: "/admin", label: "Dashboard", perm: "dashboard.read", icon: LayoutDashboard, exact: true },
-  { href: "/admin/calendario", label: "Calendario", perm: "appointments.read", icon: Calendar },
-  { href: "/admin/pacientes", label: "Pacientes", perm: "patients.read", icon: Users },
-  { href: "/admin/leads", label: "Leads", perm: "leads.read", icon: Contact },
-  { href: "/admin/ventas", label: "Ventas", perm: "sales.read", icon: ShoppingBag },
-  { href: "/admin/facturas", label: "Facturas", perm: "invoices.read", icon: Wallet },
-  { href: "/admin/productos", label: "Productos", perm: "inventory.read", icon: Package },
-  { href: "/admin/formularios", label: "Formularios", perm: "forms.read", icon: ClipboardList },
-  { href: "/admin/comunicaciones", label: "Comunicaciones", perm: "communications.read", icon: MessageSquare },
-  { href: "/admin/reportes", label: "Reportes", perm: "reports.read", icon: BarChart3 },
-  { href: "/admin/configuracion/sedes", label: "Configuración", perm: "settings.read", icon: Settings },
-  { href: "/admin/contenido", label: "Contenido", perm: "settings.write", icon: FileText },
-  { href: "/admin/tienda", label: "Tienda", perm: "settings.write", icon: Store },
+type NavItem = {
+  group: string;
+  href: string;
+  label: string;
+  perms: string[];
+  icon: typeof LayoutDashboard;
+  exact?: boolean;
+  match?: string;
+};
+
+const NAV: NavItem[] = [
+  { group: "Día a día", href: "/admin", label: "Dashboard", perms: ["dashboard.read"], icon: LayoutDashboard, exact: true },
+  { group: "Día a día", href: "/admin/calendario", label: "Calendario", perms: ["appointments.read"], icon: Calendar },
+  { group: "Día a día", href: "/admin/pacientes", label: "Pacientes", perms: ["patients.read"], icon: Users },
+  { group: "Día a día", href: "/admin/leads", label: "Leads", perms: ["leads.read"], icon: Contact },
+  { group: "Dinero", href: "/admin/cobrar", label: "Cobrar", perms: ["sales.read"], icon: CreditCard },
+  { group: "Dinero", href: "/admin/ventas", label: "Ventas", perms: ["sales.read"], icon: ShoppingBag },
+  { group: "Dinero", href: "/admin/facturas", label: "Facturas", perms: ["invoices.read"], icon: Wallet },
+  { group: "Catálogo", href: "/admin/catalogo/servicios", label: "Servicios y productos", perms: ["inventory.read", "settings.read"], icon: Package, match: "/admin/catalogo" },
+  { group: "Sitio web", href: "/admin/tienda", label: "Tienda web", perms: ["settings.write"], icon: Store },
+  { group: "Sitio web", href: "/admin/contenido", label: "Contenido", perms: ["settings.write"], icon: FileText },
+  { group: "Clínica", href: "/admin/formularios", label: "Formularios", perms: ["forms.read"], icon: ClipboardList },
+  { group: "Clínica", href: "/admin/comunicaciones", label: "Comunicaciones", perms: ["communications.read"], icon: MessageSquare },
+  { group: "Clínica", href: "/admin/reportes", label: "Reportes", perms: ["reports.read"], icon: BarChart3, match: "/admin/reportes" },
+  { group: "Clínica", href: "/admin/configuracion/sedes", label: "Configuración", perms: ["settings.read"], icon: Settings, match: "/admin/configuracion" },
 ];
 
 export default function AdminShell({
@@ -51,34 +62,13 @@ export default function AdminShell({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const items = NAV.filter((item) => permissions.includes(item.perm));
-  const [query, setQuery] = useState("");
-  const [hits, setHits] = useState<{ id: string; firstName: string; lastName: string; clientCode: string }[]>([]);
-  const [palette, setPalette] = useState(false);
-  const searchRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    function onKey(event: KeyboardEvent) {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        setPalette(true);
-        searchRef.current?.focus();
-      }
-      if (event.key === "Escape") setPalette(false);
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
-  useEffect(() => {
-    if (query.trim().length < 2) { setHits([]); return; }
-    const timer = setTimeout(() => {
-      api<{ rows: { id: string; firstName: string; lastName: string; clientCode: string }[] }>(`/api/admin/patients?q=${encodeURIComponent(query)}&pageSize=8`)
-        .then((result) => setHits(result.rows))
-        .catch(() => setHits([]));
-    }, 180);
-    return () => clearTimeout(timer);
-  }, [query]);
+  const items = NAV.filter((item) => item.perms.some((perm) => permissions.includes(perm)));
+  const groups: { label: string; items: NavItem[] }[] = [];
+  for (const item of items) {
+    const last = groups[groups.length - 1];
+    if (!last || last.label !== item.group) groups.push({ label: item.group, items: [item] });
+    else last.items.push(item);
+  }
 
   async function logout() {
     await api("/api/admin/logout", { method: "POST" });
@@ -95,16 +85,21 @@ export default function AdminShell({
             <p className="admin-sidebar__title">Clínica</p>
           </div>
           <nav className="admin-nav" data-tour="shell-nav">
-            {items.map((item) => {
-              const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
-              const Icon = item.icon;
-              return (
-                <Link key={item.href} href={item.href} className={`admin-nav__item${active ? " admin-nav__item--active" : ""}`}>
-                  <Icon className="admin-nav__icon" size={17} strokeWidth={2} aria-hidden />
-                  {item.label}
-                </Link>
-              );
-            })}
+            {groups.map((group) => (
+              <div key={group.label} className="admin-nav__block">
+                <p className="admin-nav__group">{group.label}</p>
+                {group.items.map((item) => {
+                  const active = item.exact ? pathname === item.href : pathname.startsWith(item.match || item.href);
+                  const Icon = item.icon;
+                  return (
+                    <Link key={item.href} href={item.href} className={`admin-nav__item${active ? " admin-nav__item--active" : ""}`}>
+                      <Icon className="admin-nav__icon" size={17} strokeWidth={2} aria-hidden />
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            ))}
           </nav>
           <div className="admin-sidebar__footer">
             <p className="admin-sidebar__eyebrow">{staffName}</p>
@@ -114,20 +109,6 @@ export default function AdminShell({
         </aside>
         <main className="admin-main">
           <header className="admin-topbar">
-            <form className="admin-topbar__search" data-tour="shell-search" onSubmit={(e) => { e.preventDefault(); router.push(`/admin/pacientes?q=${encodeURIComponent(query)}`); setPalette(false); }}>
-              <label className="sr-only" htmlFor="admin-search">Buscar pacientes</label>
-              <input ref={searchRef} id="admin-search" name="q" value={query} placeholder="Buscar pacientes (Ctrl+K)" autoComplete="off" onChange={(e) => { setQuery(e.target.value); setPalette(true); }} onFocus={() => setPalette(true)} />
-              {palette && query.trim().length >= 2 ? (
-                <div className="admin-palette" role="listbox">
-                  {hits.map((hit) => (
-                    <button key={hit.id} type="button" onClick={() => { setPalette(false); setQuery(""); router.push(`/admin/pacientes/${hit.id}`); }}>
-                      {hit.firstName} {hit.lastName}<span>{hit.clientCode}</span>
-                    </button>
-                  ))}
-                  {!hits.length ? <p>Sin coincidencias</p> : null}
-                </div>
-              ) : null}
-            </form>
             <NotificationBell variant="admin" />
             <TutorialButton pathname={pathname} />
             <details className="admin-create" data-tour="shell-create">
@@ -136,7 +117,7 @@ export default function AdminShell({
                 <Link href="/admin/pacientes?nuevo=1">Paciente</Link>
                 <Link href="/admin/leads?nuevo=1">Lead</Link>
                 <Link href="/admin/calendario?nueva=1">Cita</Link>
-                <Link href="/admin/ventas">Venta</Link>
+                <Link href="/admin/cobrar">Cobro</Link>
               </div>
             </details>
           </header>

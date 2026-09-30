@@ -1,2 +1,5 @@
-import PosScreen from "@/components/admin/pos/PosScreen";
-export default function Page() { return <PosScreen />; }
+import SalesOverview from "@/components/admin/sales/SalesOverview";
+
+export default function Page() {
+  return <SalesOverview />;
+}

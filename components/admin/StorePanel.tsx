@@ -1,6 +1,7 @@
 "use client";
 
 import { CMS_LOCALES, type Locale } from "@/lib/cms/types";
+import { useState } from "react";
 import { useStoreAdmin } from "@/hooks/useStoreAdmin";
 import CmsImageField from "@/components/admin/cms/CmsImageField";
 import "@/app/styles/admin-cms.css";
@@ -33,12 +34,15 @@ export default function StorePanel({ siteLocale }: Props) {
     saveDraft,
     deleteProduct,
     deleteCategory,
+    renameCategory,
     addCategory,
     togglePublished,
     startNewProduct,
     startEditProduct,
     suggestRefFromName,
   } = useStoreAdmin(siteLocale as Locale);
+  const [editingCat, setEditingCat] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
 
   if (loading) {
     return <div className="mt-10 animate-pulse h-48 bg-surface rounded-2xl border border-theme" />;
@@ -47,7 +51,15 @@ export default function StorePanel({ siteLocale }: Props) {
   const isEditing = editingId !== null;
 
   return (
-    <section className="admin-cms mt-10" aria-label="Tienda">
+    <section className="admin-cms" aria-label="Tienda web">
+      <header className="admin-header">
+        <p className="admin-header__eyebrow">Sitio web</p>
+        <h1 className="admin-header__title">Tienda web</h1>
+        <p className="admin-header__desc">
+          Este es el catálogo público del sitio. Cada producto lleva un enlace a una tienda externa.
+          No es el inventario de la clínica: eso se administra en Servicios y productos.
+        </p>
+      </header>
       <div className="admin-cms__toolbar">
         <div className="admin-cms__locale-select">
           <label htmlFor="store-locale">Idioma a editar</label>
@@ -108,8 +120,37 @@ export default function StorePanel({ siteLocale }: Props) {
                 key={cat.id}
                 className="inline-flex items-center gap-2 rounded-full border border-theme bg-[rgb(var(--bg)/0.35)] px-3 py-1.5 text-sm"
               >
-                <span>{cat.name}</span>
+                {editingCat === cat.id ? (
+                  <input
+                    className="rounded-lg border border-theme bg-transparent px-2 py-0.5 text-sm"
+                    value={editingName}
+                    onChange={(e) => setEditingName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        void renameCategory(cat.id, editingName).then((ok) => { if (ok) setEditingCat(null); });
+                      }
+                    }}
+                  />
+                ) : (
+                  <span>{cat.name}</span>
+                )}
                 <span className="text-muted text-xs">/{cat.slug}</span>
+                <button
+                  type="button"
+                  className="text-xs font-medium"
+                  disabled={saving}
+                  onClick={() => {
+                    if (editingCat === cat.id) {
+                      void renameCategory(cat.id, editingName).then((ok) => { if (ok) setEditingCat(null); });
+                      return;
+                    }
+                    setEditingCat(cat.id);
+                    setEditingName(cat.name);
+                  }}
+                >
+                  {editingCat === cat.id ? "Guardar" : "Editar"}
+                </button>
                 <button
                   type="button"
                   className="text-red-600 hover:opacity-80 text-xs font-medium ml-1"

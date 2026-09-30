@@ -187,7 +187,16 @@
 .admin-kanban__card { cursor: grab; margin-bottom: 0.5rem; touch-action: none; }
 .admin-banner { margin: 0.75rem 0 1rem; padding: 0.85rem 1rem; border-radius: 0.85rem; font-weight: 600; background: rgb(var(--primary) / 0.16); border: 1px solid rgb(var(--primary) / 0.4); }
 .admin-pos { display: grid; gap: 1rem; }
-@media (min-width: 960px) { .admin-pos { grid-template-columns: 1.4fr 0.8fr; } }
+@media (min-width: 960px) { .admin-pos { grid-template-columns: minmax(0, 1.4fr) minmax(18rem, 0.8fr); } }
+.admin-checkout {
+  padding: 1rem 1.1rem; border-radius: 1rem; border: 1px solid rgb(var(--border) / 0.18);
+  background: rgb(var(--surface) / 0.72); display: grid; gap: 0.75rem; align-content: start;
+}
+.admin-checkout__total { display: grid; gap: 0.25rem; }
+.admin-checkout__line { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; margin: 0; color: rgb(var(--muted)); }
+.admin-checkout__line--total { color: rgb(var(--text)); font-size: 1.35rem; font-weight: 650; }
+.admin-patient-search { position: relative; flex: 1; min-width: 14rem; }
+.admin-patient-search input { width: 100%; }
 .admin-check { display: flex; align-items: center; gap: 0.45rem; font-size: 0.875rem; }
 .booking-wizard { max-width: 46rem; margin: 0 auto; padding: 2rem 1rem 4rem; }
 .portal-shell { max-width: 52rem; margin: 0 auto; padding: 2rem 1rem 4rem; }

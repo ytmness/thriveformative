@@ -285,6 +285,34 @@ export function useStoreAdmin(initialLocale: Locale) {
     }
   }
 
+  async function renameCategory(id: string, name: string) {
+    const validation = validateCategoryName(name);
+    if (validation) {
+      setMessage({ type: "err", text: validation });
+      return false;
+    }
+    setSaving(true);
+    setMessage(null);
+    try {
+      const { data } = await mutateStore<{ data: StoreCategory }>({
+        op: "saveCategory",
+        id,
+        locale,
+        name: name.trim(),
+      });
+      setCategories((prev) =>
+        prev.map((cat) => (cat.id === id ? data : cat)).sort((a, b) => a.sort_order - b.sort_order)
+      );
+      setMessage({ type: "ok", text: "Categoría actualizada." });
+      return true;
+    } catch (e) {
+      setMessage({ type: "err", text: e instanceof Error ? e.message : "Error" });
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function deleteCategory(id: string) {
     setMessage(null);
     setSaving(true);
@@ -326,6 +354,7 @@ export function useStoreAdmin(initialLocale: Locale) {
     saveDraft,
     deleteProduct,
     deleteCategory,
+    renameCategory,
     addCategory,
     togglePublished,
     startNewProduct,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/components/admin/clinic/client";
@@ -27,6 +27,10 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
   const [section, setSection] = useState("identidad");
   const [attempted, setAttempted] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [hits, setHits] = useState<Patient[]>([]);
+  const [palette, setPalette] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
   const [options, setOptions] = useState<{ locations: { id: string; name: string }[]; staff: { id: string; first_name: string; last_name: string }[]; sources: { id: string; name: string }[]; fields: { id: string; label: string; field_type: string; is_required?: boolean }[] }>({ locations: [], staff: [], sources: [], fields: [] });
   const tabs = [["identidad", "Datos"], ["contacto", "Contacto"], ["direccion", "Dirección"], ["consentimiento", "Consentimientos"]] as const;
 
@@ -60,6 +64,28 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        searchRef.current?.focus();
+        setPalette(true);
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  useEffect(() => {
+    if (q.trim().length < 2) { setHits([]); return; }
+    const timer = setTimeout(() => {
+      api<{ rows: Patient[] }>(`/api/admin/patients?q=${encodeURIComponent(q)}&pageSize=8`)
+        .then((result) => setHits(result.rows))
+        .catch(() => setHits([]));
+    }, 180);
+    return () => clearTimeout(timer);
+  }, [q]);
+
   async function save(e: React.FormEvent) {
     e.preventDefault();
     setAttempted(true);
@@ -89,8 +115,20 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
       {error ? <div className="admin-alert" role="alert">{error}</div> : null}
       {notice ? <p className="admin-notice" role="status">{notice}</p> : null}
       <div className="admin-toolbar" data-tour="patients-tools">
-        <input value={q} placeholder="Buscar nombre, código, email o teléfono" onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { setPage(1); load(1, q); } }} />
-        <button className="admin-btn" type="button" onClick={() => { setPage(1); load(1, q); }}>Buscar</button>
+        <div className="admin-patient-search">
+          <input ref={searchRef} value={q} placeholder="Buscar nombre, código, email o teléfono (Ctrl+K)" onChange={(e) => { setQ(e.target.value); setPalette(true); }} onFocus={() => setPalette(true)} onKeyDown={(e) => { if (e.key === "Enter") { setPalette(false); setPage(1); load(1, q); } if (e.key === "Escape") setPalette(false); }} />
+          {palette && q.trim().length >= 2 ? (
+            <div className="admin-palette" role="listbox">
+              {hits.map((hit) => (
+                <button key={hit.id} type="button" onClick={() => { setPalette(false); router.push(`/admin/pacientes/${hit.id}`); }}>
+                  {hit.firstName} {hit.lastName}<span>{hit.clientCode}</span>
+                </button>
+              ))}
+              {!hits.length ? <p>Sin coincidencias</p> : null}
+            </div>
+          ) : null}
+        </div>
+        <button className="admin-btn" type="button" onClick={() => { setPalette(false); setPage(1); load(1, q); }}>Buscar</button>
         <button className="admin-btn admin-btn--primary" type="button" data-tour="patients-new" onClick={() => setOpen(true)}>+ Paciente</button>
       </div>
       <div className="admin-table-wrap" data-tour="patients-list">

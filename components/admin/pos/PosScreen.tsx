@@ -4,8 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/components/admin/clinic/client";
 import { CreateOffer } from "@/components/admin/tutorial";
 
-type Item = { itemType: string; referenceId?: string; description: string; quantity: number; unitPrice?: number };
-type Catalog = { id: string; name: string; price?: string | number };
+type Item = { itemType: string; referenceId?: string; description: string; quantity: number; unitPrice?: number; taxRate?: number };
+type Catalog = { id: string; name: string; price?: string | number; tax_rate?: string | number | null };
+type Method = { id: string; key: string; name: string; is_active?: boolean };
 
 export default function PosScreen() {
   const [tab, setTab] = useState("service");
@@ -20,50 +21,51 @@ export default function PosScreen() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [cart, setCart] = useState<Item[]>([]);
-  const [method, setMethod] = useState("cash");
+  const [method, setMethod] = useState("");
+  const [methods, setMethods] = useState<Method[]>([]);
+  const [methodsReady, setMethodsReady] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [review, setReview] = useState(false);
-  const [sales, setSales] = useState<{ id: string; sale_number: string; status: string; total: string | number; first_name?: string | null; last_name?: string | null }[]>([]);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [saleId, setSaleId] = useState<string | null>(null);
   const [locationId, setLocationId] = useState("");
-  const [moneyAmount, setMoneyAmount] = useState("");
   const [locations, setLocations] = useState<{ id: string; name: string }[]>([]);
   const [catalogReady, setCatalogReady] = useState(false);
   const stripeRef = useRef<{ confirmPayment: (opts: { elements: unknown; redirect: string }) => Promise<{ error?: { message?: string }; paymentIntent?: { id: string } }> } | null>(null);
   const elementsRef = useRef<unknown>(null);
 
   useEffect(() => {
-    api<{ rows: Catalog[] }>("/api/admin/settings/services").then((r) => setServices(r.rows)).catch(() => undefined).finally(() => setCatalogReady(true));
+    api<{ rows: Catalog[] }>("/api/admin/settings/services").then((r) => setServices(r.rows.filter((row) => (row as { is_active?: boolean }).is_active !== false))).catch(() => undefined).finally(() => setCatalogReady(true));
     api<{ rows: Catalog[] }>("/api/admin/products").then((r) => setProducts(r.rows)).catch(() => undefined);
     api<{ rows: Catalog[] }>("/api/admin/products?kind=packages").then((r) => setPackages(r.rows)).catch(() => undefined);
     api<{ rows: Catalog[] }>("/api/admin/products?kind=memberships").then((r) => setMemberships(r.rows)).catch(() => undefined);
     api<{ rows: { id: string; firstName: string; lastName: string }[] }>("/api/admin/patients?pageSize=100").then((r) => setPatients(r.rows)).catch(() => undefined);
-    api<{ rows: { id: string; sale_number: string; status: string; total: string | number; first_name?: string | null; last_name?: string | null }[] }>("/api/admin/sales").then((r) => setSales(r.rows)).catch(() => undefined);
+    api<{ rows: Method[] }>("/api/admin/settings/payment-methods").then((r) => {
+      const active = r.rows.filter((row) => row.is_active !== false);
+      setMethods(active);
+      const preferred = active.find((row) => row.key === "cash") || active[0];
+      if (preferred) setMethod((current) => current || preferred.key);
+    }).catch(() => undefined).finally(() => setMethodsReady(true));
     api<{ rows: { id: string; name: string }[] }>("/api/admin/settings/locations").then((r) => {
       setLocations(r.rows);
       if (r.rows[0]) setLocationId((current) => current || r.rows[0].id);
     }).catch(() => undefined);
   }, []);
 
-  const catalog = tab === "service" ? services : tab === "product" ? products : tab === "package" ? packages : tab === "membership" ? memberships : [];
-  const total = useMemo(() => {
-    if (tab === "gift_card" || tab === "credit") return Number(moneyAmount) || 0;
-    return cart.reduce((sum, item) => sum + (item.unitPrice || 0) * item.quantity, 0);
-  }, [cart, tab, moneyAmount]);
+  const catalog = tab === "service" ? services : tab === "product" ? products : tab === "package" ? packages : memberships;
+  const subtotal = useMemo(() => cart.reduce((sum, item) => sum + (item.unitPrice || 0) * item.quantity, 0), [cart]);
+  const taxTotal = useMemo(() => cart.reduce((sum, item) => sum + (item.unitPrice || 0) * item.quantity * (item.taxRate || 0) / 100, 0), [cart]);
+  const total = subtotal + taxTotal;
+  const methodName = methods.find((row) => row.key === method)?.name || "Método de pago";
 
   function add(item: Catalog) {
     const type = tab === "service" ? "service" : tab === "product" ? "product" : tab === "package" ? "package" : "membership";
-    setCart([...cart, { itemType: type, referenceId: item.id, description: item.name, quantity: 1, unitPrice: Number(item.price || 0) }]);
+    setCart([...cart, { itemType: type, referenceId: item.id, description: item.name, quantity: 1, unitPrice: Number(item.price || 0), taxRate: Number(item.tax_rate || 0) }]);
+    setReview(false);
   }
 
   function askCheckout() {
-    const amount = Number(moneyAmount);
-    if ((tab === "gift_card" || tab === "credit") && !(amount > 0)) {
-      setMessage("Escribe el monto antes de cobrar.");
-      return;
-    }
-    if (tab !== "gift_card" && tab !== "credit" && !cart.length) {
+    if (!cart.length) {
       setMessage("Agrega al menos un servicio o producto antes de cobrar.");
       return;
     }
@@ -71,8 +73,12 @@ export default function PosScreen() {
       setMessage("Elige la sede para descontar el inventario.");
       return;
     }
-    if ((tab === "membership" || tab === "credit") && !patientId && !newPatient) {
-      setMessage("La membresía y el abono necesitan un paciente.");
+    if (cart.some((item) => item.itemType === "membership") && !patientId && !newPatient) {
+      setMessage("La membresía necesita un paciente.");
+      return;
+    }
+    if (!method) {
+      setMessage("Elige un método de pago.");
       return;
     }
     setMessage(null);
@@ -87,13 +93,11 @@ export default function PosScreen() {
         const created = await api<{ patient: { id: string } }>("/api/admin/patients", { method: "POST", body: JSON.stringify({ firstName, lastName }) });
         buyer = created.patient.id;
       }
-      const amount = Number(moneyAmount);
-      const items = tab === "gift_card" || tab === "credit"
-        ? [{ itemType: tab, description: tab === "gift_card" ? "Tarjeta de regalo" : "Abono a cuenta", quantity: 1, unitPrice: amount }]
-        : cart;
+      const items = cart.map(({ itemType, referenceId, description, quantity, unitPrice }) => ({ itemType, referenceId, description, quantity, unitPrice }));
+      const amount = Math.round(total * 100) / 100;
       const result = await api<{ sale: { id: string }; stripe: { clientSecret: string | null; paymentIntentId: string | null } | null }>("/api/admin/sales", {
         method: "POST",
-        body: JSON.stringify({ patientId: buyer, walkInName: walkIn || null, locationId: locationId || null, items, payment: { methodKey: method, amount: items.reduce((s, i) => s + (i.unitPrice || 0) * i.quantity, 0) } }),
+        body: JSON.stringify({ patientId: buyer, walkInName: walkIn || null, locationId: locationId || null, items, payment: { methodKey: method, amount } }),
       });
       setSaleId(result.sale.id);
       if (result.stripe?.clientSecret) {
@@ -103,7 +107,6 @@ export default function PosScreen() {
         setMessage("Venta registrada.");
         setCart([]);
         setReview(false);
-        api<{ rows: { id: string; sale_number: string; status: string; total: string | number; first_name?: string | null; last_name?: string | null }[] }>("/api/admin/sales").then((r) => setSales(r.rows)).catch(() => undefined);
       }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Error");
@@ -136,44 +139,64 @@ export default function PosScreen() {
     setMessage("Pago confirmado.");
     setClientSecret(null);
     setCart([]);
+    setReview(false);
   }
+
+  const buyerLabel = patientId ? `${patients.find((p) => p.id === patientId)?.firstName || ""} ${patients.find((p) => p.id === patientId)?.lastName || ""}`.trim() : walkIn || "Mostrador";
 
   return (
     <>
-      <header className="admin-header"><p className="admin-header__eyebrow">Punto de venta</p><h1 className="admin-header__title">Ventas</h1></header>
+      <header className="admin-header">
+        <p className="admin-header__eyebrow">Punto de venta</p>
+        <h1 className="admin-header__title">Cobrar</h1>
+        <p className="admin-header__desc">Elige un servicio o producto, revisa el total y confirma. Para crear o editar el catálogo, ve a Servicios y productos.</p>
+      </header>
       <div className="admin-tabs" data-tour="sales-tabs">
-        {[["service", "Servicios"], ["product", "Productos"], ["package", "Paquetes"], ["membership", "Membresías"], ["gift_card", "Gift cards"], ["credit", "Abonos"]].map(([id, label]) => (
+        {[["service", "Servicios"], ["product", "Productos"], ["package", "Paquetes"], ["membership", "Membresías"]].map(([id, label]) => (
           <button key={id} type="button" className={tab === id ? "is-active" : ""} onClick={() => setTab(id)}>{label}</button>
         ))}
       </div>
       <div className="admin-pos">
         <div data-tour="sales-catalog">
-          {catalog.map((item) => <button key={item.id} type="button" className="admin-table__row" onClick={() => add(item)}><span className="admin-table__cell-title">{item.name}</span><span>${Number(item.price || 0)}</span></button>)}
-          <CreateOffer
-            show={catalogReady && !catalog.length && tab === "service"}
-            kind="service"
-            href="/admin/configuracion/servicios?nuevo=1"
-          />
-          <CreateOffer
-            show={catalogReady && !catalog.length && tab === "product"}
-            kind="product"
-            href="/admin/productos"
-          />
+          {catalog.map((item) => (
+            <button key={item.id} type="button" className="admin-table__row" onClick={() => add(item)}>
+              <span className="admin-table__cell-title">{item.name}</span>
+              <span>${Number(item.price || 0).toFixed(2)}</span>
+            </button>
+          ))}
+          <CreateOffer show={catalogReady && !catalog.length && tab === "service"} kind="service" href="/admin/catalogo/servicios?nuevo=1" />
+          <CreateOffer show={catalogReady && !catalog.length && tab === "product"} kind="product" href="/admin/catalogo/productos?nuevo=1" />
+          {catalogReady && !catalog.length && tab === "package" ? <p className="admin-table__empty">No hay paquetes. Créalos en Servicios y productos.</p> : null}
+          {catalogReady && !catalog.length && tab === "membership" ? <p className="admin-table__empty">No hay membresías. Créalas en Servicios y productos.</p> : null}
         </div>
-        <aside className="admin-metric" data-tour="sales-pay">
+        <aside className="admin-checkout" data-tour="sales-pay">
           <label className="admin-field">Paciente<select value={patientId} onChange={(e) => setPatientId(e.target.value)}><option value="">Mostrador</option>{patients.map((p) => <option key={p.id} value={p.id}>{p.firstName} {p.lastName}</option>)}</select></label>
           <label className="admin-field">Sede<select value={locationId} onChange={(e) => setLocationId(e.target.value)}><option value="">—</option>{locations.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}</select></label>
-          {tab === "gift_card" || tab === "credit" ? <label className="admin-field">Monto<input type="number" min="0.01" step="0.01" value={moneyAmount} onChange={(e) => setMoneyAmount(e.target.value)} /></label> : null}
           <label className="admin-field">Sin paciente<input value={walkIn} placeholder="Nombre walk-in" onChange={(e) => setWalkIn(e.target.value)} /></label>
           <label className="admin-check"><input type="checkbox" checked={newPatient} onChange={(e) => setNewPatient(e.target.checked)} />Crear paciente ahora</label>
           {newPatient ? <><label className="admin-field">Nombre<input value={firstName} onChange={(e) => setFirstName(e.target.value)} /></label><label className="admin-field">Apellido<input value={lastName} onChange={(e) => setLastName(e.target.value)} /></label></> : null}
-          <label className="admin-field">Cobro<select value={method} onChange={(e) => setMethod(e.target.value)}><option value="cash">Efectivo</option><option value="card">Tarjeta</option><option value="transfer">Transferencia</option><option value="stripe">Stripe</option></select></label>
-          {cart.map((item, index) => <p key={index}>{item.description} × {item.quantity}</p>)}
-          <p className="admin-metric__value">${total.toFixed(2)}</p>
+          <label className="admin-field">Cobro
+            <select value={method} onChange={(e) => setMethod(e.target.value)}>
+              {!methods.length ? <option value="">Sin métodos</option> : null}
+              {methods.map((row) => <option key={row.id} value={row.key}>{row.name}</option>)}
+            </select>
+          </label>
+          {methodsReady && !methods.length ? <p className="admin-field__hint">Agrega un método en Configuración → Métodos de pago.</p> : null}
+          {cart.map((item, index) => (
+            <p key={index} className="admin-checkout__line">
+              <span>{item.description} × {item.quantity}</span>
+              <button type="button" className="admin-btn" onClick={() => { setCart(cart.filter((_, i) => i !== index)); setReview(false); }}>Quitar</button>
+            </p>
+          ))}
+          <div className="admin-checkout__total">
+            <p className="admin-checkout__line"><span>Subtotal</span><span>${subtotal.toFixed(2)}</span></p>
+            <p className="admin-checkout__line"><span>Impuestos</span><span>${taxTotal.toFixed(2)}</span></p>
+            <p className="admin-checkout__line admin-checkout__line--total"><span>Total</span><span>${total.toFixed(2)}</span></p>
+          </div>
           {review ? (
             <div className="admin-review" role="region" aria-label="Revisar cobro">
               <p>Revisa la venta antes de registrarla.</p>
-              <p>{patientId ? patients.find((p) => p.id === patientId)?.firstName : walkIn || "Mostrador"} · {method === "cash" ? "Efectivo" : method === "card" ? "Tarjeta" : method === "transfer" ? "Transferencia" : "Stripe"}</p>
+              <p>{buyerLabel} · {methodName}</p>
               {cart.map((item, index) => <p key={index}>{item.description} × {item.quantity} · ${((item.unitPrice || 0) * item.quantity).toFixed(2)}</p>)}
               <div className="admin-toolbar">
                 <button className="admin-btn admin-btn--primary" type="button" onClick={checkout}>Confirmar cobro</button>
@@ -185,30 +208,6 @@ export default function PosScreen() {
           {message ? <p className="admin-notice" role="status">{message}</p> : null}
         </aside>
       </div>
-      <section style={{ marginTop: "1.5rem" }}>
-        <h2>Ventas recientes</h2>
-        <div className="admin-table-wrap">
-          {sales.map((sale) => (
-            <div key={sale.id} className="admin-table__row">
-              <div>
-                <div className="admin-table__cell-title">{sale.sale_number}</div>
-                <div className="admin-table__cell-sub">{[sale.first_name, sale.last_name].filter(Boolean).join(" ") || "Mostrador"} · {sale.status === "void" ? "Anulada" : sale.status} · ${Number(sale.total || 0).toFixed(2)}</div>
-              </div>
-              {sale.status !== "void" ? <button className="admin-btn admin-btn--danger" type="button" onClick={async () => {
-                if (!window.confirm(`¿Anular ${sale.sale_number}? El registro se conserva, pero deja de contar como cobro.`)) return;
-                try {
-                  await api(`/api/admin/sales/${sale.id}`, { method: "POST", body: JSON.stringify({ action: "void", reason: "Anulada en ventas" }) });
-                  setMessage("Venta anulada.");
-                  setSales(sales.map((item) => item.id === sale.id ? { ...item, status: "void" } : item));
-                } catch (error) {
-                  setMessage(error instanceof Error ? error.message : "No se pudo anular la venta.");
-                }
-              }}>Anular</button> : null}
-            </div>
-          ))}
-          {!sales.length ? <div className="admin-table__empty">Todavía no hay ventas.</div> : null}
-        </div>
-      </section>
     </>
   );
 }

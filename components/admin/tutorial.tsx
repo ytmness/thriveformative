@@ -11,7 +11,7 @@ import {
 
 type Lang = "es" | "en" | "it" | "ko";
 type GuideId =
-  | "home" | "calendar" | "chart" | "patients" | "leads" | "sales" | "invoices" | "products"
+  | "home" | "calendar" | "chart" | "patients" | "leads" | "cobrar" | "sales" | "invoices" | "products" | "catalog"
   | "forms" | "comms" | "reports" | "locations" | "rooms" | "hours" | "services" | "categories"
   | "team" | "taxes" | "payments" | "billing" | "fields" | "policies" | "content" | "store" | "fallback";
 type OfferKind = "patient" | "service" | "staff" | "location" | "category" | "sale" | "product";
@@ -31,10 +31,10 @@ type Pack = { title: string; steps: string[] };
 
 const GUIDES: Record<GuideId, Record<Lang, Pack>> = {
   home: {
-    es: { title: "Inicio", steps: ["Mira las citas, los ingresos y los leads de hoy.", "Crear abre paciente, lead o cita.", "Ctrl+K busca un paciente."] },
-    en: { title: "Home", steps: ["See today’s appointments, revenue, and leads.", "Create starts a patient, lead, or visit.", "Ctrl+K searches patients."] },
-    it: { title: "Inizio", steps: ["Vedi visite, incassi e lead di oggi.", "Crea apre paziente, lead o visita.", "Ctrl+K cerca un paziente."] },
-    ko: { title: "홈", steps: ["오늘의 예약, 매출, 리드를 확인합니다.", "만들기에서 환자, 리드, 예약을 엽니다.", "Ctrl+K로 환자를 찾습니다."] },
+    es: { title: "Inicio", steps: ["Mira las citas, los ingresos y los leads de hoy.", "Crear abre paciente, lead, cita o cobro."] },
+    en: { title: "Home", steps: ["See today’s appointments, revenue, and leads.", "Create starts a patient, lead, visit, or charge."] },
+    it: { title: "Inizio", steps: ["Vedi visite, incassi e lead di oggi.", "Crea apre paziente, lead, visita o incasso."] },
+    ko: { title: "홈", steps: ["오늘의 예약, 매출, 리드를 확인합니다.", "만들기에서 환자, 리드, 예약, 결제를 엽니다."] },
   },
   calendar: {
     es: { title: "Calendario", steps: ["Esta barra cambia día, semana o mes, filtra al profesional y abre + Cita.", "Haz clic en un hueco libre o arrastra una cita para moverla.", "Elige paciente, servicio, profesional y sede, y guarda."] },
@@ -60,11 +60,17 @@ const GUIDES: Record<GuideId, Record<Lang, Pack>> = {
     it: { title: "Lead", steps: ["Questo bottone apre un lead nuovo.", "Nome, cognome e fase sono obbligatori. Poi salva.", "Trascina la scheda in un’altra colonna. Aprila per convertirla o archiviarla."] },
     ko: { title: "리드", steps: ["이 버튼이 새 리드를 엽니다.", "이름, 성, 단계는 필수입니다. 그리고 저장합니다.", "카드를 다른 열로 끕니다. 열어서 환자로 바꾸거나 보관합니다."] },
   },
+  cobrar: {
+    es: { title: "Cobrar", steps: ["Elige la pestaña y pulsa un ítem para sumarlo.", "Revisa subtotal, impuestos y total, y confirma el cobro.", "Si falta el catálogo, el aviso te lleva a crearlo."] },
+    en: { title: "Charge", steps: ["Pick a tab and tap an item to add it.", "Review subtotal, tax, and total, then confirm.", "If the catalog is empty, the prompt creates it."] },
+    it: { title: "Incassa", steps: ["Scegli la scheda e tocca una voce.", "Controlla subtotale, imposte e totale, e conferma.", "Se manca il catalogo, l’avviso lo crea."] },
+    ko: { title: "결제", steps: ["탭에서 항목을 눌러 담습니다.", "소계, 세금, 합계를 확인하고 확정합니다.", "목록이 없으면 안내가 만들기로 보냅니다."] },
+  },
   sales: {
-    es: { title: "Ventas", steps: ["Elige la pestaña y pulsa un ítem para sumarlo.", "Revisa el total y confirma el cobro.", "Si falta el catálogo, el aviso te lleva a crearlo."] },
-    en: { title: "Sales", steps: ["Pick a tab and tap an item to add it.", "Review the total and confirm payment.", "If the catalog is empty, the prompt creates it."] },
-    it: { title: "Vendite", steps: ["Scegli la scheda e tocca una voce.", "Controlla il totale e conferma.", "Se manca il catalogo, l’avviso lo crea."] },
-    ko: { title: "판매", steps: ["탭에서 항목을 눌러 담습니다.", "합계를 확인하고 결제를 확정합니다.", "목록이 없으면 안내가 만들기로 보냅니다."] },
+    es: { title: "Ventas", steps: ["Estas tarjetas son hoy, la semana, el mes y el ticket promedio.", "La tabla lista las ventas. Anular conserva el registro.", "Cobrar abre el punto de venta."] },
+    en: { title: "Sales", steps: ["These cards are today, this week, this month, and the average ticket.", "The table lists sales. Void keeps the record.", "Charge opens the register."] },
+    it: { title: "Vendite", steps: ["Queste schede sono oggi, la settimana, il mese e lo scontrino medio.", "La tabella elenca le vendite. Annullare conserva il registro.", "Incassa apre la cassa."] },
+    ko: { title: "판매", steps: ["이 카드는 오늘, 이번 주, 이번 달, 평균 결제입니다.", "표가 판매 목록입니다. 취소해도 기록은 남습니다.", "결제가 계산대를 엽니다."] },
   },
   invoices: {
     es: { title: "Facturas", steps: ["Estas pestañas son facturas, cotizaciones y notas de crédito.", "En cotizaciones o notas, este formulario crea el documento.", "La tabla lista lo emitido. Las facturas nacen al cobrar en Ventas."] },
@@ -73,10 +79,10 @@ const GUIDES: Record<GuideId, Record<Lang, Pack>> = {
     ko: { title: "청구", steps: ["이 탭은 청구서, 견적, 신용 전표입니다.", "견적이나 전표에서 이 양식이 문서를 만듭니다.", "표에 발행 내역이 있습니다. 청구서는 판매 결제 때 생깁니다."] },
   },
   products: {
-    es: { title: "Productos", steps: ["Este formulario crea el producto: nombre, precio y proveedor.", "La tabla muestra SKU, precio y existencias.", "Aquí sumas o restas stock por sede. Sin sede, el aviso te lleva a crearla."] },
-    en: { title: "Products", steps: ["This form creates the product: name, price, and supplier.", "The table shows SKU, price, and stock.", "Here you add or remove stock by location. Without a location, the prompt creates one."] },
-    it: { title: "Prodotti", steps: ["Questo modulo crea il prodotto: nome, prezzo e fornitore.", "La tabella mostra SKU, prezzo e giacenza.", "Qui sommi o togli stock per sede. Senza sede, l’avviso la crea."] },
-    ko: { title: "제품", steps: ["이 양식이 이름, 가격, 공급자로 제품을 만듭니다.", "표에 SKU, 가격, 재고가 있습니다.", "여기서 지점별 재고를 더하거나 뺍니다. 지점이 없으면 안내가 만들기로 보냅니다."] },
+    es: { title: "Productos", steps: ["Pulsa + Nuevo para crear el producto: nombre, precio y proveedor.", "La tabla muestra SKU, precio y existencias.", "Aquí sumas o restas stock por sede. Sin sede, el aviso te lleva a crearla."] },
+    en: { title: "Products", steps: ["Press + New to create the product: name, price, and supplier.", "The table shows SKU, price, and stock.", "Here you add or remove stock by location. Without a location, the prompt creates one."] },
+    it: { title: "Prodotti", steps: ["Premi + Nuovo per creare il prodotto: nome, prezzo e fornitore.", "La tabella mostra SKU, prezzo e giacenza.", "Qui sommi o togli stock per sede. Senza sede, l’avviso la crea."] },
+    ko: { title: "제품", steps: ["+ 새로 만들기로 이름, 가격, 공급자를 넣습니다.", "표에 SKU, 가격, 재고가 있습니다.", "여기서 지점별 재고를 더하거나 뺍니다. 지점이 없으면 안내가 만들기로 보냅니다."] },
   },
   forms: {
     es: { title: "Formularios", steps: ["Elige el tipo, escribe el nombre y agrega campos. El asterisco marca lo obligatorio.", "Pulsa guardar para dejar la plantilla.", "Pulsa una fila de la lista para volver a abrirla."] },
@@ -145,10 +151,10 @@ const GUIDES: Record<GuideId, Record<Lang, Pack>> = {
     ko: { title: "결제 수단", steps: ["+ 새로 만들기를 누릅니다.", "키는 내부용이고 이름은 직원이 봅니다.", "사용 중을 끄면 숨습니다."] },
   },
   billing: {
-    es: { title: "Facturación", steps: ["Escribe cancelación, pie de factura y privacidad en este formulario.", "Este botón guarda los textos.", "El menú de la izquierda cambia a sedes, servicios o políticas."] },
-    en: { title: "Billing", steps: ["Write cancellation, invoice footer, and privacy in this form.", "This button saves the texts.", "The left menu switches to locations, services, or policies."] },
-    it: { title: "Fatturazione", steps: ["Scrivi cancellazione, piè di fattura e privacy in questo modulo.", "Questo bottone salva i testi.", "Il menu a sinistra passa a sedi, servizi o regole."] },
-    ko: { title: "청구 문구", steps: ["이 양식에 취소, 청구서 하단, 개인정보를 적습니다.", "이 버튼이 문구를 저장합니다.", "왼쪽 메뉴가 지점, 서비스, 예약 규칙으로 바뀝니다."] },
+    es: { title: "Facturación", steps: ["Escribe la política de cancelación. La reserva pública la muestra.", "Este botón guarda el texto.", "El menú de la izquierda cambia de sección."] },
+    en: { title: "Billing", steps: ["Write the cancellation policy. Public booking shows it.", "This button saves the text.", "The left menu switches section."] },
+    it: { title: "Fatturazione", steps: ["Scrivi la politica di cancellazione. La prenotazione pubblica la mostra.", "Questo bottone salva il testo.", "Il menu a sinistra cambia sezione."] },
+    ko: { title: "청구 문구", steps: ["취소 정책을 적습니다. 공개 예약에 보입니다.", "이 버튼이 문구를 저장합니다.", "왼쪽 메뉴가 구역을 바꿉니다."] },
   },
   fields: {
     es: { title: "Campos", steps: ["Pulsa + Nuevo.", "Elige si es de paciente, lead, cita o producto.", "Etiqueta se lee. Clave identifica. Tipo es el control."] },
@@ -168,17 +174,23 @@ const GUIDES: Record<GuideId, Record<Lang, Pack>> = {
     it: { title: "Contenuti", steps: ["Qui scegli anteprima o lista, e la lingua da modificare.", "Clicca un blocco della pagina per modificare quel testo o quell’immagine.", "Il menu a sinistra torna al resto del pannello."] },
     ko: { title: "콘텐츠", steps: ["여기서 미리보기나 목록, 그리고 편집할 언어를 고릅니다.", "페이지 블록을 눌러 그 글이나 이미지를 고칩니다.", "왼쪽 메뉴가 패널의 나머지로 돌아갑니다."] },
   },
+  catalog: {
+    es: { title: "Catálogo", steps: ["El menú elige servicios, productos, paquetes, membresías, categorías o proveedores.", "Pulsa + Nuevo para crear.", "La tabla lista lo que ya existe. El menú ⋯ edita o archiva."] },
+    en: { title: "Catalog", steps: ["The menu picks services, products, packages, memberships, categories, or suppliers.", "Press + New to create.", "The table lists what exists. The ⋯ menu edits or archives."] },
+    it: { title: "Catalogo", steps: ["Il menu sceglie servizi, prodotti, pacchetti, abbonamenti, categorie o fornitori.", "Premi + Nuovo per creare.", "La tabella elenca ciò che esiste. Il menu ⋯ modifica o archivia."] },
+    ko: { title: "목록", steps: ["메뉴에서 서비스, 제품, 패키지, 멤버십, 분류, 공급자를 고릅니다.", "+ 새로 만들기로 만듭니다.", "표가 목록입니다. ⋯ 메뉴에서 고치거나 보관합니다."] },
+  },
   store: {
-    es: { title: "Tienda", steps: ["Este formulario crea o edita el producto. Guarda para publicarlo.", "La lista de abajo son los productos ya cargados.", "Arriba creas las categorías que el producto puede usar."] },
+    es: { title: "Tienda web", steps: ["Este formulario crea o edita el producto del sitio. Guarda para publicarlo.", "La lista de abajo son los productos ya cargados.", "Arriba creas o renombras las categorías."] },
     en: { title: "Shop", steps: ["This form creates or edits the product. Save to publish it.", "The list below is the products already added.", "Above, you create the categories a product can use."] },
     it: { title: "Negozio", steps: ["Questo modulo crea o modifica il prodotto. Salva per pubblicarlo.", "La lista sotto sono i prodotti già caricati.", "In alto crei le categorie che il prodotto può usare."] },
     ko: { title: "스토어", steps: ["이 양식이 제품을 만들거나 고칩니다. 저장하면 공개됩니다.", "아래 목록이 이미 올린 제품입니다.", "위에서 제품에 쓸 분류를 만듭니다."] },
   },
   fallback: {
-    es: { title: "Esta sección", steps: ["Recorre la pantalla de arriba abajo.", "El botón terracota guarda o crea.", "Si falta un dato, el aviso te lleva a crearlo."] },
-    en: { title: "This section", steps: ["Read the screen from top to bottom.", "The terracotta button saves or creates.", "If something is missing, the prompt takes you there."] },
-    it: { title: "Questa sezione", steps: ["Leggi la schermata dall’alto.", "Il bottone terracotta salva o crea.", "Se manca un dato, l’avviso ti porta a crearlo."] },
-    ko: { title: "이 화면", steps: ["위에서 아래로 봅니다.", "테라코타 버튼이 저장하거나 만듭니다.", "빠진 항목은 안내가 만드는 곳으로 보냅니다."] },
+    es: { title: "Esta sección", steps: ["El menú de la izquierda abre cada parte del panel.", "Crear abre paciente, lead, cita o cobro."] },
+    en: { title: "This section", steps: ["The left menu opens each part of the panel.", "Create starts a patient, lead, visit, or charge."] },
+    it: { title: "Questa sezione", steps: ["Il menu a sinistra apre ogni parte del pannello.", "Crea apre paziente, lead, visita o incasso."] },
+    ko: { title: "이 화면", steps: ["왼쪽 메뉴가 패널의 각 부분을 엽니다.", "만들기에서 환자, 리드, 예약, 결제를 엽니다."] },
   },
 };
 
@@ -190,10 +202,10 @@ const OFFERS: Record<OfferKind, Record<Lang, { what: string; how: string }>> = {
     ko: { what: "환자", how: "환자에서 + 환자를 누르고 이름을 적은 뒤 저장합니다." },
   },
   service: {
-    es: { what: "un servicio", how: "En Servicios, pulsa + Nuevo, escribe nombre, duración y precio, y guarda." },
-    en: { what: "a service", how: "In Services, press + New, enter name, length, and price, and save." },
-    it: { what: "un servizio", how: "In Servizi, premi + Nuovo, scrivi nome, durata e prezzo e salva." },
-    ko: { what: "서비스", how: "서비스에서 + 새로 만들기로 이름, 시간, 가격을 적고 저장합니다." },
+    es: { what: "un servicio", how: "En Servicios y productos, abre Servicios, pulsa + Nuevo y guarda." },
+    en: { what: "a service", how: "In Services and products, open Services, press + New, and save." },
+    it: { what: "un servizio", how: "In Servizi e prodotti, apri Servizi, premi + Nuovo e salva." },
+    ko: { what: "서비스", how: "서비스와 제품에서 서비스를 열고 + 새로 만들기로 저장합니다." },
   },
   staff: {
     es: { what: "un profesional", how: "En Equipo, pulsa + Nuevo y marca Atiende citas." },
@@ -208,28 +220,29 @@ const OFFERS: Record<OfferKind, Record<Lang, { what: string; how: string }>> = {
     ko: { what: "지점", how: "지점에서 + 새로 만들기로 이름을 적고 저장합니다." },
   },
   category: {
-    es: { what: "una categoría", how: "En Categorías, pulsa + Nuevo, escribe el nombre y guarda." },
-    en: { what: "a category", how: "In Categories, press + New, type the name, and save." },
-    it: { what: "una categoria", how: "In Categorie, premi + Nuovo, scrivi il nome e salva." },
-    ko: { what: "분류", how: "분류에서 + 새로 만들기로 이름을 적고 저장합니다." },
+    es: { what: "una categoría", how: "En Servicios y productos, abre Categorías, pulsa + Nuevo y guarda." },
+    en: { what: "a category", how: "In Services and products, open Categories, press + New, and save." },
+    it: { what: "una categoria", how: "In Servizi e prodotti, apri Categorie, premi + Nuovo e salva." },
+    ko: { what: "분류", how: "서비스와 제품에서 분류를 열고 + 새로 만들기로 저장합니다." },
   },
   sale: {
-    es: { what: "una venta", how: "En Ventas, agrega un servicio o producto, revisa y confirma." },
-    en: { what: "a sale", how: "In Sales, add a service or product, review, and confirm." },
-    it: { what: "una vendita", how: "In Vendite, aggiungi un servizio o prodotto, controlla e conferma." },
-    ko: { what: "판매", how: "판매에서 서비스나 제품을 담고 확인한 뒤 확정합니다." },
+    es: { what: "una venta", how: "En Cobrar, agrega un servicio o producto, revisa y confirma." },
+    en: { what: "a sale", how: "In Charge, add a service or product, review, and confirm." },
+    it: { what: "una vendita", how: "In Incassa, aggiungi un servizio o prodotto, controlla e conferma." },
+    ko: { what: "판매", how: "결제에서 서비스나 제품을 담고 확인한 뒤 확정합니다." },
   },
   product: {
-    es: { what: "un producto", how: "En Productos, completa el formulario de arriba y guarda." },
-    en: { what: "a product", how: "In Products, fill in the form above and save." },
-    it: { what: "un prodotto", how: "In Prodotti, compila il modulo in alto e salva." },
-    ko: { what: "제품", how: "제품에서 위 양식을 채우고 저장합니다." },
+    es: { what: "un producto", how: "En Servicios y productos, abre Productos, pulsa + Nuevo y guarda." },
+    en: { what: "a product", how: "In Services and products, open Products, press + New, and save." },
+    it: { what: "un prodotto", how: "In Servizi e prodotti, apri Prodotti, premi + Nuovo e salva." },
+    ko: { what: "제품", how: "서비스와 제품에서 제품을 열고 + 새로 만들기로 저장합니다." },
   },
 };
 
 const ICONS: Record<GuideId, typeof Calendar> = {
   home: LayoutDashboard, calendar: Calendar, chart: UserRound, patients: Users, leads: Contact,
-  sales: ShoppingBag, invoices: Wallet, products: Package, forms: ClipboardList, comms: MessageSquare,
+  cobrar: CreditCard, sales: ShoppingBag, invoices: Wallet, products: Package, catalog: Package,
+  forms: ClipboardList, comms: MessageSquare,
   reports: BarChart3, locations: MapPin, rooms: LayoutDashboard, hours: Clock, services: ClipboardList,
   categories: Tags, team: Users, taxes: Percent, payments: CreditCard, billing: FileText,
   fields: SlidersHorizontal, policies: SlidersHorizontal, content: FileText, store: Store, fallback: CircleHelp,
@@ -241,17 +254,19 @@ const MATCH: { id: GuideId; test: (path: string) => boolean }[] = [
   { id: "chart", test: (path) => /\/pacientes\/[^/]+/.test(path) },
   { id: "patients", test: (path) => path.includes("/pacientes") },
   { id: "leads", test: (path) => path.includes("/leads") },
+  { id: "cobrar", test: (path) => path.includes("/cobrar") },
   { id: "sales", test: (path) => path.includes("/ventas") },
   { id: "invoices", test: (path) => path.includes("/facturas") },
-  { id: "products", test: (path) => path.includes("/productos") },
+  { id: "services", test: (path) => path.includes("/catalogo/servicios") },
+  { id: "categories", test: (path) => path.includes("/catalogo/categorias") },
+  { id: "products", test: (path) => path.includes("/catalogo/productos") },
+  { id: "catalog", test: (path) => path.includes("/catalogo") },
   { id: "forms", test: (path) => path.includes("/formularios") },
   { id: "comms", test: (path) => path.includes("/comunicaciones") },
   { id: "reports", test: (path) => path.includes("/reportes") },
   { id: "locations", test: (path) => path.includes("/configuracion/sedes") },
   { id: "rooms", test: (path) => path.includes("/configuracion/salas") },
   { id: "hours", test: (path) => path.includes("/configuracion/horarios") },
-  { id: "services", test: (path) => path.includes("/configuracion/servicios") },
-  { id: "categories", test: (path) => path.includes("/configuracion/categorias") },
   { id: "team", test: (path) => path.includes("/configuracion/equipo") },
   { id: "taxes", test: (path) => path.includes("/configuracion/impuestos") },
   { id: "payments", test: (path) => path.includes("/configuracion/pagos") },
@@ -293,22 +308,24 @@ function guideId(pathname: string): GuideId {
 }
 
 const FOCUS: Record<GuideId, string[]> = {
-  home: ["home-metrics", "home-actions", "shell-search"],
+  home: ["home-metrics", "home-actions"],
   calendar: ["cal-toolbar", "cal-grid", "cal-form"],
   chart: ["chart-tabs", "chart-panel", "chart-archive"],
   patients: ["patients-tools", "patients-new", "patient-tabs", "patient-save", "patients-list"],
   leads: ["leads-new", "leads-form", "leads-board"],
-  sales: ["sales-tabs", "sales-catalog", "sales-pay"],
+  cobrar: ["sales-tabs", "sales-catalog", "sales-pay"],
+  sales: ["sales-metrics", "sales-history", "sales-charge"],
   invoices: ["invoice-tabs", "invoice-form", "invoice-table"],
-  products: ["product-form", "product-list", "product-stock"],
+  products: ["catalog-new", "product-list", "product-stock"],
+  catalog: ["catalog-nav", "catalog-new", "catalog-table"],
   forms: ["form-builder", "form-save", "form-list"],
   comms: ["comms-templates", "comms-editor", "comms-send", "comms-queue"],
   reports: ["report-tabs", "report-table", "shell-nav"],
   locations: ["settings-new", "settings-form", "settings-table"],
   rooms: ["settings-nav", "settings-new", "settings-form"],
   hours: ["settings-new", "settings-form", "settings-table"],
-  services: ["settings-new", "service-tabs", "settings-table"],
-  categories: ["settings-new", "settings-form", "settings-table"],
+  services: ["catalog-new", "service-tabs", "catalog-table"],
+  categories: ["catalog-new", "catalog-table", "catalog-nav"],
   team: ["settings-new", "settings-form", "settings-table"],
   taxes: ["settings-new", "settings-form", "settings-table"],
   payments: ["settings-new", "settings-form", "settings-table"],
@@ -317,7 +334,7 @@ const FOCUS: Record<GuideId, string[]> = {
   policies: ["settings-form", "settings-save", "settings-nav"],
   content: ["content-nav", "content-preview", "shell-nav"],
   store: ["store-form", "store-list", "store-cats"],
-  fallback: ["shell-nav", "shell-create", "shell-search"],
+  fallback: ["shell-nav", "shell-create"],
 };
 
 type Stop = { target: string; text: string };

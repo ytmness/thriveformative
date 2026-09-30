@@ -99,6 +99,14 @@ export async function POST(req: Request) {
       const locale = body.locale as Locale;
       const name = String(body.name ?? "").trim();
       const slug = slugifyRef(name);
+      if (body.id) {
+        const updated = await query(
+          `UPDATE store_categories SET name=$2, slug=$3, updated_at=now() WHERE id=$1
+           RETURNING id, locale, name, slug, sort_order`,
+          [body.id, name, slug]
+        );
+        return NextResponse.json({ data: updated.rows[0] });
+      }
       const sortRes = await query<{ m: number }>(
         `SELECT COALESCE(MAX(sort_order), -1) + 1 AS m FROM store_categories WHERE locale=$1`,
         [locale]

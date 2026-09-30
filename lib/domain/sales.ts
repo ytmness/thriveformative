@@ -18,7 +18,14 @@ export type SaleItemInput = {
 };
 
 async function priceOf(item: SaleItemInput) {
-  if (item.unitPrice != null) return { price: item.unitPrice, name: item.description || item.itemType, taxRate: 0 };
+  if (item.unitPrice != null && !item.referenceId) {
+    return { price: item.unitPrice, name: item.description || item.itemType, taxRate: 0 };
+  }
+  const meta = await catalogPrice(item);
+  return { price: item.unitPrice ?? meta.price, name: item.description || meta.name, taxRate: meta.taxRate };
+}
+
+async function catalogPrice(item: SaleItemInput) {
   if (item.itemType === "service" && item.referenceId) {
     const row = await query<{ name: string; price: string; rate: string | null }>(
       `SELECT s.name, s.price, t.rate FROM services s LEFT JOIN taxes t ON t.id = s.tax_id WHERE s.id = $1`,
@@ -247,7 +254,15 @@ export async function listSales(url: URL) {
     [pageSize, offset]
   );
   const total = await query<{ n: number }>(`SELECT count(*)::int AS n FROM sales`);
-  return { rows: rows.rows, total: total.rows[0].n, page, pageSize };
+  const summary = await query<{ today: number; week: number; month: number; avg_ticket: number }>(
+    `SELECT
+       coalesce(sum(total) FILTER (WHERE status <> 'void' AND (created_at AT TIME ZONE 'America/Chicago')::date = (now() AT TIME ZONE 'America/Chicago')::date), 0)::float AS today,
+       coalesce(sum(total) FILTER (WHERE status <> 'void' AND (created_at AT TIME ZONE 'America/Chicago')::date >= date_trunc('week', now() AT TIME ZONE 'America/Chicago')::date), 0)::float AS week,
+       coalesce(sum(total) FILTER (WHERE status <> 'void' AND (created_at AT TIME ZONE 'America/Chicago')::date >= date_trunc('month', now() AT TIME ZONE 'America/Chicago')::date), 0)::float AS month,
+       coalesce(avg(total) FILTER (WHERE status <> 'void' AND (created_at AT TIME ZONE 'America/Chicago')::date >= date_trunc('month', now() AT TIME ZONE 'America/Chicago')::date), 0)::float AS avg_ticket
+     FROM sales`
+  );
+  return { rows: rows.rows, total: total.rows[0].n, page, pageSize, summary: summary.rows[0] };
 }
 
 export async function addPayment(saleId: string, methodKey: string, amount: number, actor: StaffSession) {
