@@ -60,18 +60,20 @@ CREATE INDEX IF NOT EXISTS idx_cms_text_entries_locale ON cms_text_entries (loca
 CREATE TABLE IF NOT EXISTS store_categories (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   locale text NOT NULL CHECK (locale IN ('es', 'en', 'ko', 'it')),
+  country text NOT NULL DEFAULT 'MX' CHECK (country IN ('MX', 'US')),
   name text NOT NULL,
   slug text NOT NULL,
   sort_order int NOT NULL DEFAULT 0,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
-  UNIQUE (locale, slug)
+  UNIQUE (locale, country, slug)
 );
 CREATE INDEX IF NOT EXISTS idx_store_categories_locale_sort ON store_categories (locale, sort_order);
 
 CREATE TABLE IF NOT EXISTS store_products (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   locale text NOT NULL CHECK (locale IN ('es', 'en', 'ko', 'it')),
+  country text NOT NULL DEFAULT 'MX' CHECK (country IN ('MX', 'US')),
   sort_order int NOT NULL DEFAULT 0,
   name text NOT NULL,
   description text NOT NULL DEFAULT '',

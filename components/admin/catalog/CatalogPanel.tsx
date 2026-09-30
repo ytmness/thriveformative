@@ -119,7 +119,9 @@ export default function CatalogPanel({ section }: { section: string }) {
   function openNew() {
     setEditing(null);
     setServiceTab("general");
-    setForm(section === "membresias" ? { interval: "month" } : {});
+    if (section === "membresias") setForm({ interval: "month" });
+    else if (section === "servicios") setForm({ locationIds: scopedLocations.map((row) => row.id) });
+    else setForm({});
     setOpenForm(true);
   }
 
@@ -298,7 +300,7 @@ export default function CatalogPanel({ section }: { section: string }) {
                   <SegmentedControl tour="service-tabs" label="Secciones del servicio" value={serviceTab} onChange={setServiceTab} items={[{ id: "general", label: "General" }, { id: "precios", label: "Precios" }, { id: "reserva", label: "Reserva en línea" }, { id: "formularios", label: "Formularios" }]} />
                 </div>
               ) : null}
-              <Fields section={section} categoryKind={categoryKind} serviceTab={serviceTab} form={form} set={set} locations={locations} staff={staff} serviceCategories={serviceCategories} productCategories={productCategories} taxes={taxes} rooms={rooms} suppliers={suppliers} templates={templates} depsReady={depsReady} />
+              <Fields section={section} categoryKind={categoryKind} serviceTab={serviceTab} form={form} set={set} siteOptions={scopedLocations} staff={staff} serviceCategories={serviceCategories} productCategories={productCategories} taxes={taxes} rooms={rooms} suppliers={suppliers} templates={templates} depsReady={depsReady} />
             </form>
             <div className="admin-drawer__foot">
               <button className="admin-btn" type="button" onClick={() => setOpenForm(false)}>Cancelar</button>
@@ -311,13 +313,13 @@ export default function CatalogPanel({ section }: { section: string }) {
   );
 }
 
-function Fields({ section, categoryKind, serviceTab, form, set, locations, staff, serviceCategories, productCategories, taxes, rooms, suppliers, templates, depsReady }: {
+function Fields({ section, categoryKind, serviceTab, form, set, siteOptions, staff, serviceCategories, productCategories, taxes, rooms, suppliers, templates, depsReady }: {
   section: string;
   categoryKind: string;
   serviceTab: string;
   form: Row;
   set: (key: string, value: unknown) => void;
-  locations: Named[];
+  siteOptions: Named[];
   staff: Row[];
   serviceCategories: Named[];
   productCategories: Named[];
@@ -351,9 +353,12 @@ function Fields({ section, categoryKind, serviceTab, form, set, locations, staff
             <Check label="Se puede reservar en línea" checked={form.isOnlineBookable !== false} onChange={(value) => set("isOnlineBookable", value)} />
             <Text label="Margen antes (min)" value={form.bufferBeforeMinutes || "0"} onChange={(value) => set("bufferBeforeMinutes", Number(value))} />
             <Text label="Margen después (min)" value={form.bufferAfterMinutes || "0"} onChange={(value) => set("bufferAfterMinutes", Number(value))} />
-            <Checks label="Sedes" value={form.locationIds} options={locations.map((row) => [row.id, row.name])} onChange={(value) => set("locationIds", value)} />
+            <Checks label="Sedes" value={form.locationIds} options={siteOptions.map((row) => [row.id, row.name])} onChange={(value) => set("locationIds", value)} />
             <Checks label="Profesionales" value={form.staffIds} options={staff.map((row) => [String(row.id), `${row.first_name} ${row.last_name}`])} onChange={(value) => set("staffIds", value)} />
-            <Checks label="Salas" value={form.roomIds} options={rooms.map((row) => [row.id, row.name])} onChange={(value) => set("roomIds", value)} />
+            <Checks label="Salas" value={form.roomIds} options={rooms.filter((row) => {
+              const loc = (row as { location_id?: string }).location_id;
+              return !loc || siteOptions.some((site) => site.id === loc);
+            }).map((row) => [row.id, row.name])} onChange={(value) => set("roomIds", value)} />
           </>
         ) : null}
         {serviceTab === "formularios" ? <Select label="Formulario requerido" value={form.requiredFormTemplateId} onChange={(value) => set("requiredFormTemplateId", value)} options={templates.map((row) => [row.id, row.name])} /> : null}

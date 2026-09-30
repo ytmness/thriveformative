@@ -1,16 +1,16 @@
 # Graph Report - thriveformative-git  (2026-09-30)
 
 ## Corpus Check
-- 291 files · ~928,944 words
+- 293 files · ~929,954 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1231 nodes · 3044 edges · 82 communities (62 shown, 20 thin omitted)
+- 1232 nodes · 3056 edges · 93 communities (72 shown, 21 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 1 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `ca5f8889`
+- Built from commit: `61cbd350`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -27,6 +27,7 @@
 - bookingAvailability.ts
 - middleware.ts
 - import-healthvape-store.mjs
+- query
 - copy-standalone-assets.js
 - emailTemplate.ts
 - page.tsx
@@ -55,6 +56,7 @@
 - WHATSAPP_PHONE_E164
 - CmsPanel.tsx
 - page.tsx
+- db.ts
 - Header.tsx
 - Thrive Formative
 - ContactForm.tsx
@@ -62,6 +64,7 @@
 - NewsSection.tsx
 - server.ts
 - bookingConfig.ts
+- http.ts
 - setup-thrive-db.sh
 - CmsProvider.tsx
 - CmsVisualPreview.tsx
@@ -74,15 +77,23 @@
 - api
 - PatientScreens.tsx
 - CalendarBoard.tsx
+- catalog.ts
+- page.tsx
 - migrate.mjs
 - session.ts
 - NewsArticleView.tsx
 - types.ts
 - NewsArticleView.tsx
 - seed-demo.mjs
+- resolveDisplay.ts
+- saveLead
 - useStoreAdmin.ts
 - CatalogPanel.tsx
+- route.ts
 - page.tsx
+- PosScreen.tsx
+- route.ts
+- DoctorNoticiasPage.tsx
 - SalesOverview.tsx
 - CmsProvider.tsx
 
@@ -99,8 +110,6 @@
 10. `decryptPhi()` - 23 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `StorePanel()` --calls--> `useStoreAdmin()`  [EXTRACTED]
-  components/admin/StorePanel.tsx → hooks/useStoreAdmin.ts
 - `useCmsAdmin()` --indirect_call--> `saveService()`  [INFERRED]
   hooks/useCmsAdmin.ts → lib/domain/settings.ts
 - `PanelLayout()` --calls--> `getStaffSession()`  [EXTRACTED]
@@ -109,27 +118,29 @@
   app/[locale]/tienda/[ref]/page.tsx → lib/store/fetch.ts
 - `PATCH()` --calls--> `updateAppointment()`  [EXTRACTED]
   app/api/admin/appointments/[id]/route.ts → lib/domain/appointments.ts
+- `PATCH()` --calls--> `requestMeta()`  [EXTRACTED]
+  app/api/admin/appointments/[id]/route.ts → lib/http.ts
 
 ## Import Cycles
 - 2-file cycle: `lib/cms/mergePreviewLists.ts -> lib/cms/resolveDisplay.ts -> lib/cms/mergePreviewLists.ts`
 
-## Communities (82 total, 20 thin omitted)
+## Communities (93 total, 21 thin omitted)
 
 ### Community 0 - "CmsVisualPreview.tsx"
 Cohesion: 0.13
 Nodes (21): asLang(), cardBox(), CreateOffer(), FOCUS, GuideId, GUIDES, ICONS, Lang (+13 more)
 
 ### Community 1 - "ThemeProvider.tsx"
-Cohesion: 0.12
-Nodes (9): api(), Catalog, Item, loadStripe(), Method, PosScreen(), ManageBooking(), Field (+1 more)
+Cohesion: 0.09
+Nodes (13): api(), EMPTY, Lead, LeadBoard(), ManageBooking(), Catalog, dateKey(), Group (+5 more)
 
 ### Community 2 - "ContactSection.tsx"
-Cohesion: 0.29
-Nodes (6): ThemeContext, ThemeId, THEMES, useTheme(), useThemes(), ThemeSwitcher()
+Cohesion: 0.23
+Nodes (7): BookingWizard(), ThemeContext, ThemeId, THEMES, useTheme(), useThemes(), ThemeSwitcher()
 
 ### Community 3 - "Locale"
-Cohesion: 0.06
-Nodes (51): GET(), PATCH(), POST(), requireAdmin(), GET(), LOCALES, POST(), requireAdmin() (+43 more)
+Cohesion: 0.17
+Nodes (14): GET(), PATCH(), POST(), requireAdmin(), GET(), LOCALES, ALLOWED, POST() (+6 more)
 
 ### Community 4 - "route.ts"
 Cohesion: 0.10
@@ -163,6 +174,10 @@ Nodes (4): routing, config, handleI18nRouting, middleware()
 Cohesion: 0.18
 Nodes (16): __dirname, fetchAllProducts(), fetchPage(), importToSupabase(), isDryRun, loadEnvFile(), LOCALES, main() (+8 more)
 
+### Community 12 - "query"
+Cohesion: 0.14
+Nodes (36): GET(), POST(), GET(), GET(), KINDS, POST(), POST(), GET() (+28 more)
+
 ### Community 13 - "copy-standalone-assets.js"
 Cohesion: 0.15
 Nodes (11): fs, missing, path, publicDest, publicSrc, REQUIRED_IN_PUBLIC, root, serverJs (+3 more)
@@ -188,8 +203,8 @@ Cohesion: 0.40
 Nodes (4): IntrinsicElements, JSX, react, react/jsx-runtime
 
 ### Community 22 - "isAdminAuthenticated"
-Cohesion: 0.06
-Nodes (92): GET(), KINDS, POST(), GET(), POST(), GET(), POST(), appointmentsGET() (+84 more)
+Cohesion: 0.10
+Nodes (39): POST(), POST(), appointmentsGET(), appointmentsPOST(), auth(), denied(), leadsGET(), leadsPOST() (+31 more)
 
 ### Community 23 - "next.config.js"
 Cohesion: 0.50
@@ -204,12 +219,12 @@ Cohesion: 0.40
 Nodes (3): fs, path, rootEnv
 
 ### Community 45 - "CmsPanel.tsx"
-Cohesion: 0.19
-Nodes (10): CmsPanel(), LOCALE_LABELS, Props, SubTab, ViewMode, mergeWithPendingDrafts(), useCmsAdmin(), mutateCms() (+2 more)
+Cohesion: 0.18
+Nodes (10): CmsPanel(), LOCALE_LABELS, Props, SubTab, ViewMode, mergeWithPendingDrafts(), useCmsAdmin(), ALL_CMS_TEXT_KEYS (+2 more)
 
-### Community 46 - "page.tsx"
-Cohesion: 0.16
-Nodes (4): CmsProvider(), DoctorNoticiasPage(), LoadingScreenLogo3D, ScrollProgress()
+### Community 47 - "db.ts"
+Cohesion: 0.17
+Nodes (20): POST(), POST(), POST(), POST(), GET(), clearPortalSession(), createPortalAccount(), getPortalSession() (+12 more)
 
 ### Community 48 - "Header.tsx"
 Cohesion: 0.19
@@ -220,56 +235,72 @@ Cohesion: 0.20
 Nodes (9): Agenda (Pabau), Base de datos, Desarrollo, Embeds, Quién entra dónde, Requisitos, Scripts, Thrive Formative (+1 more)
 
 ### Community 51 - "ContactForm.tsx"
-Cohesion: 0.32
+Cohesion: 0.28
 Nodes (3): Props, BrandCtaButton(), Props
+
+### Community 52 - "pabau.ts"
+Cohesion: 0.13
+Nodes (5): ContactLocationMap(), Props, BrandCtaLink(), Props, CLINIC_MAPS_QUERY
 
 ### Community 53 - "NewsSection.tsx"
 Cohesion: 0.29
 Nodes (4): metadata, playfair, poppins, locales
 
+### Community 56 - "http.ts"
+Cohesion: 0.13
+Nodes (17): DELETE(), GET(), inputOf(), PATCH(), GET(), inputOf(), POST(), POST() (+9 more)
+
 ### Community 59 - "CmsProvider.tsx"
-Cohesion: 0.07
-Nodes (75): PATCH(), GET(), POST(), DELETE(), GET(), POST(), GET(), GET() (+67 more)
+Cohesion: 0.12
+Nodes (43): PATCH(), GET(), POST(), DELETE(), GET(), POST(), GET(), DELETE() (+35 more)
 
 ### Community 60 - "CmsVisualPreview.tsx"
-Cohesion: 0.14
-Nodes (12): GET(), LOCALES, CmsEditDrawer(), Props, CmsAdminApi, fetchCmsBundleFromDb(), parsePlanItems(), TPlans (+4 more)
+Cohesion: 0.17
+Nodes (8): Props, CmsAdminApi, TPlans, TServices, mutateCms(), CmsArticle, CmsPlan, CmsService
 
 ### Community 61 - "resolveDisplay.ts"
-Cohesion: 0.16
-Nodes (22): CmsEditTarget, CmsPreviewDoctorSection(), CmsPreviewFaqSection(), SectionProps, ARTICLE_KEYS, CmsVisualPreview(), MESSAGES_BY_LOCALE, Props (+14 more)
+Cohesion: 0.18
+Nodes (13): CmsEditDrawer(), CmsEditTarget, CmsPreviewDoctorSection(), CmsPreviewFaqSection(), SectionProps, ARTICLE_KEYS, CmsVisualPreview(), MESSAGES_BY_LOCALE (+5 more)
 
 ### Community 63 - "LanguageSwitcher.tsx"
 Cohesion: 0.12
 Nodes (10): cellsOf(), DAYS, detailOf(), GROUPS, labelOf(), MAP, Row, SECTIONS (+2 more)
 
 ### Community 64 - "CmsImageField.tsx"
-Cohesion: 0.38
-Nodes (3): ContactLocationMap(), Props, CLINIC_MAPS_QUERY
+Cohesion: 0.19
+Nodes (13): StoreCatalog(), createEmptyDraft(), StoreAdminApi, StoreProductDraft, useStoreAdmin(), validateProduct(), fetchStoreCategories(), fetchStoreProducts() (+5 more)
 
 ### Community 65 - "appointments.ts"
 Cohesion: 0.07
-Nodes (64): authorized(), POST(), POST(), POST(), GET(), GET(), limited(), POST() (+56 more)
+Nodes (55): authorized(), POST(), GET(), GET(), limited(), POST(), PUT(), AuditInput (+47 more)
 
 ### Community 66 - "v1Handlers.ts"
-Cohesion: 0.24
-Nodes (7): BookingWizard(), Catalog, dateKey(), Group, pad(), PublicCalendar(), Slot
+Cohesion: 0.26
+Nodes (11): GET(), LOCALES, GET(), LOCALES, countryOf(), fetchStoreCategoriesFromDb(), fetchStoreProductByRefFromDb(), fetchStoreProductsFromDb() (+3 more)
 
 ### Community 67 - "Modules.tsx"
-Cohesion: 0.18
-Nodes (6): CommsAdmin(), formatReport(), FormBuilder(), InvoiceCenter(), ReportView(), statusLabel()
+Cohesion: 0.16
+Nodes (7): CommsAdmin(), formatReport(), FormBuilder(), InvoiceCenter(), ReportView(), statusLabel(), EmptyState()
 
 ### Community 68 - "api"
-Cohesion: 0.09
-Nodes (16): ClinicLocation, ClinicScopeProvider(), Ctx, Scope, ScopeBar(), useClinicScope(), DashboardHome(), money() (+8 more)
+Cohesion: 0.24
+Nodes (8): ClinicLocation, ClinicScopeProvider(), countryCode(), Ctx, Scope, ScopeBar(), NAV, NavItem
 
 ### Community 69 - "PatientScreens.tsx"
 Cohesion: 0.11
-Nodes (12): EMPTY, Patient, PatientChart(), PatientList(), TAB_ALIAS, TABS, Button(), CloseButton() (+4 more)
+Nodes (11): EMPTY, Patient, PatientChart(), PatientList(), TAB_ALIAS, TABS, Button(), CloseButton() (+3 more)
 
 ### Community 70 - "CalendarBoard.tsx"
-Cohesion: 0.23
-Nodes (9): Appt, CalendarBoard(), clinicWall(), localKey(), nextClinicSlot(), Opt, pad(), STATUSES (+1 more)
+Cohesion: 0.24
+Nodes (8): Appt, CalendarBoard(), clinicWall(), localKey(), nextClinicSlot(), Opt, pad(), STATUSES
+
+### Community 71 - "catalog.ts"
+Cohesion: 0.36
+Nodes (10): DELETE(), PATCH(), GET(), POST(), adjustStock(), archiveCatalogItem(), exportInventory(), listProducts() (+2 more)
+
+### Community 72 - "page.tsx"
+Cohesion: 0.31
+Nodes (7): ProductDetailContent(), Props, StoreProductPrice(), fetchStoreProductByRef(), formatStorePrice(), formatStoreProductPrice(), StoreProduct
 
 ### Community 73 - "migrate.mjs"
 Cohesion: 0.47
@@ -281,31 +312,51 @@ Nodes (28): GET(), POST(), POST(), PanelLayout(), hashPassword(), verifyPassword
 
 ### Community 75 - "NewsArticleView.tsx"
 Cohesion: 0.14
-Nodes (14): AnimatedSection(), AnimatedSectionProps, BookingSection(), useCmsContext(), CmsText(), Props, CardVariant, GiantScrollCard() (+6 more)
+Nodes (13): AnimatedSection(), AnimatedSectionProps, BookingSection(), useCmsContext(), CmsText(), Props, CardVariant, GiantScrollCard() (+5 more)
 
 ### Community 76 - "types.ts"
-Cohesion: 0.43
-Nodes (5): Props, ALLOWED_TYPES, CmsImageFolder, uploadCmsImage(), validateCmsImageFile()
+Cohesion: 0.22
+Nodes (11): GET(), LOCALES, Props, Locale, fetchCmsBundleFromDb(), parsePlanItems(), CmsTextEntry, ALLOWED_TYPES (+3 more)
 
 ### Community 77 - "NewsArticleView.tsx"
-Cohesion: 0.22
-Nodes (8): Props, NewsArticleView(), Props, ITEM_KEYS, NewsSectionAdminEditable, Props, CmsArticle, formatArticleBody()
+Cohesion: 0.21
+Nodes (9): Props, NewsArticleView(), Props, ITEM_KEYS, NewsSection(), NewsSectionAdminEditable, Props, buildFallbackArticles() (+1 more)
 
 ### Community 79 - "seed-demo.mjs"
 Cohesion: 0.19
 Nodes (18): at(), clearDemo(), clinicDate(), contactHash(), context(), encryptPhi(), insertLead(), insertMessages() (+10 more)
 
+### Community 80 - "resolveDisplay.ts"
+Cohesion: 0.44
+Nodes (9): PreviewPlanRow, PreviewServiceRow, isEphemeralCmsId(), isFallbackId(), mergeBySortOrderSlot(), resolveArticlesForDisplay(), resolvePlansForDisplay(), resolveServicesForDisplay() (+1 more)
+
+### Community 81 - "saveLead"
+Cohesion: 0.29
+Nodes (8): PATCH(), GET(), POST(), archiveLead(), blankNumber(), moveLead(), saveLead(), saveLeadCustom()
+
 ### Community 82 - "useStoreAdmin.ts"
-Cohesion: 0.25
-Nodes (6): LOCALE_LABELS, ProductForm(), Props, slugifyInput(), StorePanel(), CMS_LOCALES
+Cohesion: 0.15
+Nodes (11): useClinicScope(), DashboardHome(), money(), Site, Stats, Upcoming, LOCALE_LABELS, ProductForm() (+3 more)
 
 ### Community 83 - "CatalogPanel.tsx"
 Cohesion: 0.12
 Nodes (8): SECTIONS, CatalogPanel(), cellsOf(), columnsOf(), hintOf(), Named, Row, SECTIONS
 
+### Community 84 - "route.ts"
+Cohesion: 0.36
+Nodes (6): POST(), requireAdmin(), attachCategoryToProduct(), PRODUCT_FIELDS_SQL, ProductRow, slugifyRef()
+
 ### Community 85 - "page.tsx"
-Cohesion: 0.18
+Cohesion: 0.24
 Nodes (3): opacityMap, WaveDivider(), WaveDividerProps
+
+### Community 86 - "PosScreen.tsx"
+Cohesion: 0.29
+Nodes (5): Catalog, Item, loadStripe(), Method, PosScreen()
+
+### Community 87 - "route.ts"
+Cohesion: 0.60
+Nodes (3): GET(), readPrivateFile(), root
 
 ### Community 94 - "SalesOverview.tsx"
 Cohesion: 0.28
@@ -318,22 +369,22 @@ Nodes (8): CmsContext, CmsContextValue, CmsProviderFetched(), Props, fetchCmsBun
 ## Knowledge Gaps
 - **290 isolated node(s):** `extends`, `next/core-web-vitals`, `SECTIONS`, `poppins`, `playfair` (+285 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **20 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **21 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `query()` connect `isAdminAuthenticated` to `appointments.ts`, `Locale`, `session.ts`, `CmsProvider.tsx`, `CmsVisualPreview.tsx`?**
-  _High betweenness centrality (0.178) - this node is a cross-community bridge._
-- **Why does `api()` connect `ThemeProvider.tsx` to `v1Handlers.ts`, `Modules.tsx`, `api`, `PatientScreens.tsx`, `CalendarBoard.tsx`, `CatalogPanel.tsx`, `SalesOverview.tsx`, `LanguageSwitcher.tsx`?**
-  _High betweenness centrality (0.072) - this node is a cross-community bridge._
-- **Why does `Locale` connect `Locale` to `types.ts`, `CmsPanel.tsx`, `NewsArticleView.tsx`, `useStoreAdmin.ts`, `NewsSection.tsx`, `CmsVisualPreview.tsx`, `resolveDisplay.ts`, `CmsProvider.tsx`?**
-  _High betweenness centrality (0.069) - this node is a cross-community bridge._
+- **Why does `query()` connect `query` to `appointments.ts`, `v1Handlers.ts`, `Locale`, `catalog.ts`, `session.ts`, `types.ts`, `db.ts`, `saveLead`, `route.ts`, `isAdminAuthenticated`, `route.ts`, `http.ts`, `CmsProvider.tsx`?**
+  _High betweenness centrality (0.176) - this node is a cross-community bridge._
+- **Why does `Locale` connect `types.ts` to `CmsImageField.tsx`, `v1Handlers.ts`, `Locale`, `page.tsx`, `CmsPanel.tsx`, `NewsArticleView.tsx`, `resolveDisplay.ts`, `useStoreAdmin.ts`, `route.ts`, `NewsSection.tsx`, `CmsVisualPreview.tsx`, `resolveDisplay.ts`, `CmsProvider.tsx`?**
+  _High betweenness centrality (0.086) - this node is a cross-community bridge._
+- **Why does `api()` connect `ThemeProvider.tsx` to `Modules.tsx`, `api`, `PatientScreens.tsx`, `CalendarBoard.tsx`, `useStoreAdmin.ts`, `CatalogPanel.tsx`, `PosScreen.tsx`, `SalesOverview.tsx`, `LanguageSwitcher.tsx`?**
+  _High betweenness centrality (0.056) - this node is a cross-community bridge._
 - **What connects `extends`, `next/core-web-vitals`, `SECTIONS` to the rest of the system?**
   _290 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CmsVisualPreview.tsx` be split into smaller, more focused modules?**
   _Cohesion score 0.12987012987012986 - nodes in this community are weakly interconnected._
 - **Should `ThemeProvider.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.11857707509881422 - nodes in this community are weakly interconnected._
-- **Should `Locale` be split into smaller, more focused modules?**
-  _Cohesion score 0.06393606393606394 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.08817204301075268 - nodes in this community are weakly interconnected._
+- **Should `route.ts` be split into smaller, more focused modules?**
+  _Cohesion score 0.10202020202020202 - nodes in this community are weakly interconnected._

@@ -19,10 +19,11 @@ async function mutateStore<T = unknown>(body: Record<string, unknown>): Promise<
 
 export type StoreProductDraft = StoreProduct & { id: string | "draft" };
 
-function createEmptyDraft(locale: Locale, sortOrder: number): StoreProductDraft {
+function createEmptyDraft(locale: Locale, sortOrder: number, country: string): StoreProductDraft {
   return {
     id: "draft",
     locale,
+    country,
     sort_order: sortOrder,
     name: "",
     description: "",
@@ -35,7 +36,7 @@ function createEmptyDraft(locale: Locale, sortOrder: number): StoreProductDraft 
     price_min: null,
     price_max: null,
     compare_at_price_min: null,
-    currency: "USD",
+    currency: country === "US" ? "USD" : "MXN",
     source: null,
     source_handle: null,
   };
@@ -66,14 +67,14 @@ function validateCategoryName(name: string): string | null {
   return null;
 }
 
-export function useStoreAdmin(initialLocale: Locale) {
+export function useStoreAdmin(initialLocale: Locale, country: string) {
   const [locale, setLocale] = useState<Locale>(initialLocale);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [products, setProducts] = useState<StoreProduct[]>([]);
   const [categories, setCategories] = useState<StoreCategory[]>([]);
-  const [draft, setDraft] = useState<StoreProductDraft>(() => createEmptyDraft(initialLocale, 0));
+  const [draft, setDraft] = useState<StoreProductDraft>(() => createEmptyDraft(initialLocale, 0, country));
   const [editingId, setEditingId] = useState<string | null>(null);
   const [categoryName, setCategoryName] = useState("");
 
@@ -88,10 +89,10 @@ export function useStoreAdmin(initialLocale: Locale) {
 
   const resetDraft = useCallback(
     (rows: StoreProduct[] = products) => {
-      setDraft(createEmptyDraft(locale, nextSortOrder(rows)));
+      setDraft(createEmptyDraft(locale, nextSortOrder(rows), country));
       setEditingId(null);
     },
-    [locale, nextSortOrder, products]
+    [locale, country, nextSortOrder, products]
   );
 
   const load = useCallback(async () => {
@@ -99,12 +100,12 @@ export function useStoreAdmin(initialLocale: Locale) {
     setMessage(null);
     try {
       const [rows, cats] = await Promise.all([
-        fetchStoreProducts(locale, { includeUnpublished: true }),
-        fetchStoreCategories(locale),
+        fetchStoreProducts(locale, { includeUnpublished: true, country }),
+        fetchStoreCategories(locale, country),
       ]);
       setProducts(rows);
       setCategories(cats);
-      setDraft(createEmptyDraft(locale, nextSortOrder(rows)));
+      setDraft(createEmptyDraft(locale, nextSortOrder(rows), country));
       setEditingId(null);
       setCategoryName("");
     } catch (e) {
@@ -118,7 +119,7 @@ export function useStoreAdmin(initialLocale: Locale) {
     } finally {
       setLoading(false);
     }
-  }, [locale, nextSortOrder]);
+  }, [locale, country, nextSortOrder]);
 
   useEffect(() => {
     load();
@@ -163,6 +164,7 @@ export function useStoreAdmin(initialLocale: Locale) {
     setMessage(null);
     const payload = {
       locale,
+      country,
       sort_order: draft.sort_order,
       name: draft.name.trim(),
       description: draft.description.trim(),
@@ -174,7 +176,7 @@ export function useStoreAdmin(initialLocale: Locale) {
       price_min: draft.price_min,
       price_max: draft.price_max,
       compare_at_price_min: draft.compare_at_price_min,
-      currency: draft.currency?.trim() || "USD",
+      currency: draft.currency?.trim() || (country === "US" ? "USD" : "MXN"),
       source: draft.source?.trim() || null,
       source_handle: draft.source_handle?.trim() || null,
     };
@@ -190,7 +192,7 @@ export function useStoreAdmin(initialLocale: Locale) {
         (a, b) => a.sort_order - b.sort_order
       );
       setProducts(nextProducts);
-      setDraft(createEmptyDraft(locale, nextSortOrder(nextProducts)));
+      setDraft(createEmptyDraft(locale, nextSortOrder(nextProducts), country));
       setEditingId(null);
       setMessage({
         type: "ok",
@@ -212,7 +214,7 @@ export function useStoreAdmin(initialLocale: Locale) {
       const nextProducts = products.filter((p) => p.id !== id);
       setProducts(nextProducts);
       if (editingId === id) {
-        setDraft(createEmptyDraft(locale, nextSortOrder(nextProducts)));
+        setDraft(createEmptyDraft(locale, nextSortOrder(nextProducts), country));
         setEditingId(null);
       }
       setMessage({ type: "ok", text: "Producto eliminado." });
@@ -269,6 +271,7 @@ export function useStoreAdmin(initialLocale: Locale) {
       const { data } = await mutateStore<{ data: StoreCategory }>({
         op: "saveCategory",
         locale,
+        country,
         name: categoryName.trim(),
       });
       setCategories((prev) =>

@@ -6,11 +6,12 @@ const LOCALES = new Set(["es", "en", "ko", "it"]);
 
 export async function GET(req: Request) {
   try {
-    const locale = (new URL(req.url).searchParams.get("locale") || "es") as Locale;
+    const url = new URL(req.url);
+    const locale = (url.searchParams.get("locale") || "es") as Locale;
     if (!LOCALES.has(locale)) {
       return NextResponse.json({ error: "locale inválido" }, { status: 400 });
     }
-    return NextResponse.json(await fetchStoreCategoriesFromDb(locale));
+    return NextResponse.json(await fetchStoreCategoriesFromDb(locale, url.searchParams.get("country")));
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Error" },

@@ -1,6 +1,11 @@
 import { query } from "@/lib/db";
+import { normalizeCountry } from "@/lib/domain/scope";
 import { PRODUCT_FIELDS_SQL, type ProductRow } from "@/lib/store/fields";
 import type { Locale, StoreCategory, StoreProduct } from "@/lib/store/types";
+
+function countryOf(value: string | null | undefined) {
+  return normalizeCountry(value) || "MX";
+}
 
 function joinProductsWithCategories(
   rows: ProductRow[],
@@ -17,25 +22,26 @@ function joinProductsWithCategories(
   }));
 }
 
-export async function fetchStoreCategoriesFromDb(locale: Locale): Promise<StoreCategory[]> {
+export async function fetchStoreCategoriesFromDb(locale: Locale, country?: string | null): Promise<StoreCategory[]> {
   const res = await query<StoreCategory>(
-    `SELECT id, locale, name, slug, sort_order
-     FROM store_categories WHERE locale = $1
+    `SELECT id, locale, country, name, slug, sort_order
+     FROM store_categories WHERE locale = $1 AND country = $2
      ORDER BY sort_order ASC`,
-    [locale]
+    [locale, countryOf(country)]
   );
   return res.rows;
 }
 
 export async function fetchStoreProductsFromDb(
   locale: Locale,
-  options?: { includeUnpublished?: boolean; categorySlug?: string | null }
+  options?: { includeUnpublished?: boolean; categorySlug?: string | null; country?: string | null }
 ): Promise<StoreProduct[]> {
   const includeUnpublished = options?.includeUnpublished ?? false;
-  const categories = await fetchStoreCategoriesFromDb(locale);
+  const country = countryOf(options?.country);
+  const categories = await fetchStoreCategoriesFromDb(locale, country);
 
-  const params: unknown[] = [locale];
-  let sql = `SELECT ${PRODUCT_FIELDS_SQL} FROM store_products WHERE locale = $1`;
+  const params: unknown[] = [locale, country];
+  let sql = `SELECT ${PRODUCT_FIELDS_SQL} FROM store_products WHERE locale = $1 AND country = $2`;
   if (!includeUnpublished) {
     sql += ` AND is_published = true`;
   }
@@ -57,7 +63,6 @@ export async function fetchStoreProductByRefFromDb(
   options?: { includeUnpublished?: boolean }
 ): Promise<StoreProduct | null> {
   const includeUnpublished = options?.includeUnpublished ?? false;
-  const categories = await fetchStoreCategoriesFromDb(locale);
   const params: unknown[] = [locale, ref];
   let sql = `SELECT ${PRODUCT_FIELDS_SQL} FROM store_products WHERE locale = $1 AND ref = $2`;
   if (!includeUnpublished) {
@@ -66,5 +71,6 @@ export async function fetchStoreProductByRefFromDb(
   sql += ` LIMIT 1`;
   const res = await query<ProductRow>(sql, params);
   if (!res.rows[0]) return null;
+  const categories = await fetchStoreCategoriesFromDb(locale, res.rows[0].country);
   return joinProductsWithCategories([res.rows[0]], categories)[0] ?? null;
 }

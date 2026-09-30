@@ -7,6 +7,7 @@ import { attachCategoryToProduct } from "@/lib/store/fetch";
 import type { ProductRow } from "@/lib/store/fields";
 import type { Locale } from "@/lib/store/types";
 import { slugifyRef } from "@/lib/store/slug";
+import { normalizeCountry } from "@/lib/domain/scope";
 
 async function requireAdmin() {
   if (!(await isAdminAuthenticated())) {
@@ -26,13 +27,16 @@ export async function POST(req: Request) {
       locale?: string;
       payload?: Record<string, unknown>;
       name?: string;
+      country?: string;
     };
 
     if (body.op === "saveProduct") {
       const p = body.payload!;
       const isNew = !body.id;
+      const country = normalizeCountry(String(p.country || "")) || "MX";
       const cols = [
         p.locale,
+        country,
         p.sort_order,
         p.name,
         p.description,
@@ -52,26 +56,26 @@ export async function POST(req: Request) {
       if (isNew) {
         res = await query<ProductRow>(
           `INSERT INTO store_products
-           (locale, sort_order, name, description, ref, referral_url, image_url,
+           (locale, country, sort_order, name, description, ref, referral_url, image_url,
             category_id, is_published, price_min, price_max, compare_at_price_min,
             currency, source, source_handle)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
            RETURNING ${PRODUCT_FIELDS_SQL}`,
           cols
         );
       } else {
         res = await query<ProductRow>(
           `UPDATE store_products SET
-           locale=$1, sort_order=$2, name=$3, description=$4, ref=$5, referral_url=$6,
-           image_url=$7, category_id=$8, is_published=$9, price_min=$10, price_max=$11,
-           compare_at_price_min=$12, currency=$13, source=$14, source_handle=$15,
+           locale=$1, country=$2, sort_order=$3, name=$4, description=$5, ref=$6, referral_url=$7,
+           image_url=$8, category_id=$9, is_published=$10, price_min=$11, price_max=$12,
+           compare_at_price_min=$13, currency=$14, source=$15, source_handle=$16,
            updated_at=now()
-           WHERE id=$16
+           WHERE id=$17
            RETURNING ${PRODUCT_FIELDS_SQL}`,
           [...cols, body.id]
         );
       }
-      const cats = await fetchStoreCategoriesFromDb(p.locale as Locale);
+      const cats = await fetchStoreCategoriesFromDb(p.locale as Locale, country);
       return NextResponse.json({
         data: attachCategoryToProduct(res.rows[0], cats),
       });
@@ -89,7 +93,7 @@ export async function POST(req: Request) {
         [body.id]
       );
       const locale = (res.rows[0]?.locale || body.locale || "es") as Locale;
-      const cats = await fetchStoreCategoriesFromDb(locale);
+      const cats = await fetchStoreCategoriesFromDb(locale, res.rows[0]?.country);
       return NextResponse.json({
         data: attachCategoryToProduct(res.rows[0], cats),
       });
@@ -102,20 +106,21 @@ export async function POST(req: Request) {
       if (body.id) {
         const updated = await query(
           `UPDATE store_categories SET name=$2, slug=$3, updated_at=now() WHERE id=$1
-           RETURNING id, locale, name, slug, sort_order`,
+           RETURNING id, locale, country, name, slug, sort_order`,
           [body.id, name, slug]
         );
         return NextResponse.json({ data: updated.rows[0] });
       }
+      const country = normalizeCountry(String(body.country || "")) || "MX";
       const sortRes = await query<{ m: number }>(
-        `SELECT COALESCE(MAX(sort_order), -1) + 1 AS m FROM store_categories WHERE locale=$1`,
-        [locale]
+        `SELECT COALESCE(MAX(sort_order), -1) + 1 AS m FROM store_categories WHERE locale=$1 AND country=$2`,
+        [locale, country]
       );
       const res = await query(
-        `INSERT INTO store_categories (locale, name, slug, sort_order)
-         VALUES ($1,$2,$3,$4)
-         RETURNING id, locale, name, slug, sort_order`,
-        [locale, name, slug, sortRes.rows[0]?.m ?? 0]
+        `INSERT INTO store_categories (locale, country, name, slug, sort_order)
+         VALUES ($1,$2,$3,$4,$5)
+         RETURNING id, locale, country, name, slug, sort_order`,
+        [locale, country, name, slug, sortRes.rows[0]?.m ?? 0]
       );
       return NextResponse.json({ data: res.rows[0] });
     }

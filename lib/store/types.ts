@@ -3,6 +3,7 @@ import type { Locale } from "@/lib/cms/types";
 export type StoreCategory = {
   id: string;
   locale: string;
+  country: string;
   name: string;
   slug: string;
   sort_order: number;
@@ -11,6 +12,7 @@ export type StoreCategory = {
 export type StoreProduct = {
   id: string;
   locale: string;
+  country: string;
   sort_order: number;
   name: string;
   description: string;

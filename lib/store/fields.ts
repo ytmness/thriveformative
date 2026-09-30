@@ -1,6 +1,6 @@
 /** Columnas públicas de store_products (sin source_payload). */
 export const PRODUCT_FIELDS =
-  "id, locale, sort_order, name, description, ref, referral_url, image_url, category_id, is_published, price_min, price_max, compare_at_price_min, currency, source, source_handle";
+  "id, locale, country, sort_order, name, description, ref, referral_url, image_url, category_id, is_published, price_min, price_max, compare_at_price_min, currency, source, source_handle";
 
 /** Lista SQL (misma columnas) para consultas pg. */
 export const PRODUCT_FIELDS_SQL = PRODUCT_FIELDS;
@@ -11,6 +11,7 @@ export const PRODUCT_FIELDS_ADMIN = `${PRODUCT_FIELDS}, source_payload`;
 export type ProductRow = {
   id: string;
   locale: string;
+  country: string;
   sort_order: number;
   name: string;
   description: string;

@@ -86,6 +86,9 @@ export default function AdminShell({
             <p className="admin-sidebar__eyebrow">Thrive Formative</p>
             <p className="admin-sidebar__title">Clínica</p>
           </div>
+          <div className="admin-scope-slot admin-scope-slot--sidebar">
+            <ScopeBar />
+          </div>
           <nav className="admin-nav" data-tour="shell-nav">
             {groups.map((group) => (
               <div key={group.label} className="admin-nav__block">
@@ -111,7 +114,9 @@ export default function AdminShell({
         </aside>
         <main className="admin-main">
           <header className="admin-topbar">
-            <ScopeBar />
+            <div className="admin-scope-slot admin-scope-slot--bar">
+              <ScopeBar />
+            </div>
             <div className="admin-topbar__tools">
             <NotificationBell variant="admin" />
             <TutorialButton pathname={pathname} />

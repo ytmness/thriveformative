@@ -2,7 +2,7 @@
 
 .admin-shell {
   display: grid;
-  grid-template-columns: 16rem minmax(0, 1fr);
+  grid-template-columns: 17.5rem minmax(0, 1fr);
   gap: 0;
   min-height: calc(100vh - 5rem);
   max-width: none;

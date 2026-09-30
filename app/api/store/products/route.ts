@@ -19,6 +19,7 @@ export async function GET(req: Request) {
       await fetchStoreProductsFromDb(locale, {
         includeUnpublished,
         categorySlug: category,
+        country: url.searchParams.get("country"),
       })
     );
   } catch (e) {

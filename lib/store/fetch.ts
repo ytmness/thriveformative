@@ -25,23 +25,24 @@ async function storeApi<T>(path: string): Promise<T> {
   return body as T;
 }
 
-export async function fetchStoreCategories(locale: Locale): Promise<StoreCategory[]> {
+export async function fetchStoreCategories(locale: Locale, country = "MX"): Promise<StoreCategory[]> {
   if (typeof window === "undefined") {
     const { fetchStoreCategoriesFromDb } = await import("@/lib/store/db");
-    return fetchStoreCategoriesFromDb(locale);
+    return fetchStoreCategoriesFromDb(locale, country);
   }
-  return storeApi(`/api/store/categories?locale=${encodeURIComponent(locale)}`);
+  const params = new URLSearchParams({ locale, country });
+  return storeApi(`/api/store/categories?${params.toString()}`);
 }
 
 export async function fetchStoreProducts(
   locale: Locale,
-  options?: { includeUnpublished?: boolean; categorySlug?: string | null }
+  options?: { includeUnpublished?: boolean; categorySlug?: string | null; country?: string | null }
 ): Promise<StoreProduct[]> {
   if (typeof window === "undefined") {
     const { fetchStoreProductsFromDb } = await import("@/lib/store/db");
     return fetchStoreProductsFromDb(locale, options);
   }
-  const params = new URLSearchParams({ locale });
+  const params = new URLSearchParams({ locale, country: options?.country || "MX" });
   if (options?.includeUnpublished) params.set("all", "1");
   if (options?.categorySlug) params.set("category", options.categorySlug);
   return storeApi(`/api/store/products?${params.toString()}`);

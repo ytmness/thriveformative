@@ -175,8 +175,8 @@
     "semantic_hash": ""
   },
   "components/admin/StorePanel.tsx": {
-    "mtime": 1790803645.8332317,
-    "ast_hash": "680dbc6f87691e5e1d71ca4826934bef",
+    "mtime": 1790809455.1468358,
+    "ast_hash": "ce7045cd217c3495e7f77c769b5e4131",
     "semantic_hash": ""
   },
   "components/admin/cms/CmsEditDrawer.tsx": {
@@ -240,9 +240,9 @@
     "semantic_hash": "24b6c344d175f1b53e63d45a19a257cc"
   },
   "components/store/StoreCatalog.tsx": {
-    "mtime": 1782206118.4012945,
-    "ast_hash": "40bc909b85f59334ecd902bcd25b7b26",
-    "semantic_hash": "40bc909b85f59334ecd902bcd25b7b26"
+    "mtime": 1790809483.2230031,
+    "ast_hash": "66741210d350ae3510d25d2113405632",
+    "semantic_hash": ""
   },
   "components/store/StoreProductPrice.tsx": {
     "mtime": 1782202004.7296772,
@@ -285,8 +285,8 @@
     "semantic_hash": ""
   },
   "hooks/useStoreAdmin.ts": {
-    "mtime": 1790803636.414609,
-    "ast_hash": "1c0c7828391f23b3ba1d86d4a0bdead3",
+    "mtime": 1790809453.0618625,
+    "ast_hash": "ff6b0ba6913ef44c586fe4bac3b08cc3",
     "semantic_hash": ""
   },
   "i18n/config.ts": {
@@ -425,8 +425,8 @@
     "semantic_hash": "e553548d4329aee683d171df46be105a"
   },
   "lib/store/fetch.ts": {
-    "mtime": 1790212033.9472623,
-    "ast_hash": "71174683946ece3d5797849cbf3127ab",
+    "mtime": 1790809381.3377805,
+    "ast_hash": "0f49673dc53365b80453d8b99e923ccf",
     "semantic_hash": ""
   },
   "lib/store/fetchServer.ts": {
@@ -435,8 +435,8 @@
     "semantic_hash": ""
   },
   "lib/store/fields.ts": {
-    "mtime": 1790212033.9517953,
-    "ast_hash": "d87c7d2311b322d9c294e898fcfcb1d4",
+    "mtime": 1790809346.9353125,
+    "ast_hash": "11756879b7a9cae7e8c95ceb77859a0a",
     "semantic_hash": ""
   },
   "lib/store/formatPrice.ts": {
@@ -455,9 +455,9 @@
     "semantic_hash": "7fcb8b0bb0fc77a3dcc296aa4aaeb99a"
   },
   "lib/store/types.ts": {
-    "mtime": 1782206064.0777998,
-    "ast_hash": "9c7f8328bb17e47ee2e6480b31dea75b",
-    "semantic_hash": "9c7f8328bb17e47ee2e6480b31dea75b"
+    "mtime": 1790809345.6587443,
+    "ast_hash": "a36f2a98494397ddb846fd6b4fab40aa",
+    "semantic_hash": ""
   },
   "lib/supabase.ts": {
     "mtime": 1782206030.0569487,
@@ -2710,13 +2710,13 @@
     "semantic_hash": ""
   },
   "app/api/store/categories/route.ts": {
-    "mtime": 1790212033.8696043,
-    "ast_hash": "4e5f931f66a92a21743cd766a8272eaf",
+    "mtime": 1790809382.6644678,
+    "ast_hash": "f12b52a52e29a4d0730de0a8571c880f",
     "semantic_hash": ""
   },
   "app/api/store/mutate/route.ts": {
-    "mtime": 1790803635.4398901,
-    "ast_hash": "96aa030b7686095a1594eb88b74d5182",
+    "mtime": 1790809442.060774,
+    "ast_hash": "202390a54c1ee89aefc5eab0b935df34",
     "semantic_hash": ""
   },
   "app/api/store/product/route.ts": {
@@ -2725,8 +2725,8 @@
     "semantic_hash": ""
   },
   "app/api/store/products/route.ts": {
-    "mtime": 1790212033.8766625,
-    "ast_hash": "d143a8abd64b510951c819f36ae03346",
+    "mtime": 1790809381.5429058,
+    "ast_hash": "bdb37b831bbe99c13a75cb3af84a04ad",
     "semantic_hash": ""
   },
   "app/api/upload/route.ts": {
@@ -2735,8 +2735,8 @@
     "semantic_hash": ""
   },
   "db/schema.sql": {
-    "mtime": 1790212033.9023087,
-    "ast_hash": "bd6896a58d76e77dab6cfdf94187f3b4",
+    "mtime": 1790809360.537779,
+    "ast_hash": "d213864b2af7de9adfc9a06e1913cc5f",
     "semantic_hash": ""
   },
   "lib/adminSession.ts": {
@@ -2760,8 +2760,8 @@
     "semantic_hash": ""
   },
   "lib/store/db.ts": {
-    "mtime": 1790212033.946766,
-    "ast_hash": "f126ea1ecde7a20fbb633103f95c38d1",
+    "mtime": 1790809377.102808,
+    "ast_hash": "4ff15e3b6579f3f9103952fff1913ade",
     "semantic_hash": ""
   },
   "scripts/setup-thrive-db.sh": {
@@ -3120,8 +3120,8 @@
     "semantic_hash": ""
   },
   "components/admin/shell/AdminShell.tsx": {
-    "mtime": 1790806217.804665,
-    "ast_hash": "a56ea355808843e4d09d813b60ee943f",
+    "mtime": 1790809460.3831205,
+    "ast_hash": "0c8a51e5e06fdc446f0812e6a1d4d708",
     "semantic_hash": ""
   },
   "components/booking/BookingWizard.tsx": {
@@ -3255,8 +3255,8 @@
     "semantic_hash": ""
   },
   "lib/domain/reports.ts": {
-    "mtime": 1790806174.0389621,
-    "ast_hash": "0a22faf04061bbd3e36bc26d9fa8363e",
+    "mtime": 1790806661.2697875,
+    "ast_hash": "f115018f030c12055c32f076f0364700",
     "semantic_hash": ""
   },
   "lib/domain/sales.ts": {
@@ -3370,8 +3370,8 @@
     "semantic_hash": ""
   },
   "components/admin/catalog/CatalogPanel.tsx": {
-    "mtime": 1790806285.3683493,
-    "ast_hash": "f805d97fdc7ec7fc566a41418546bd4a",
+    "mtime": 1790809577.993229,
+    "ast_hash": "73676ce38a614d4da944c676632dcc6b",
     "semantic_hash": ""
   },
   "components/admin/sales/SalesOverview.tsx": {
@@ -3392,6 +3392,16 @@
   "scripts/seed-demo-sites.sql": {
     "mtime": 1790806346.6800382,
     "ast_hash": "b1613b40be30c84c0282ebd368394fe9",
+    "semantic_hash": ""
+  },
+  "db/migrations/0010_store_country.sql": {
+    "mtime": 1790809483.7518024,
+    "ast_hash": "abac99e1eeab7c96b350ef8bd806e8c4",
+    "semantic_hash": ""
+  },
+  "scripts/fix-demo-accents.sql": {
+    "mtime": 1790809108.9095533,
+    "ast_hash": "acbd168c39052482a285686a3580371e",
     "semantic_hash": ""
   }
 }

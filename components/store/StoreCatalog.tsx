@@ -20,16 +20,26 @@ export default function StoreCatalog() {
   const [categories, setCategories] = useState<StoreCategory[]>([]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [country, setCountry] = useState<"MX" | "US">("MX");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem("tf-store-country");
+    if (saved === "US" || saved === "MX") setCountry(saved);
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem("tf-store-country", country);
+  }, [country]);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError(null);
     Promise.all([
-      fetchStoreProducts(locale as Locale),
-      fetchStoreCategories(locale as Locale),
+      fetchStoreProducts(locale as Locale, { country }),
+      fetchStoreCategories(locale as Locale, country),
     ])
       .then(([rows, cats]) => {
         if (!cancelled) {
@@ -48,7 +58,7 @@ export default function StoreCatalog() {
     return () => {
       cancelled = true;
     };
-  }, [locale, t]);
+  }, [locale, country, t]);
 
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
@@ -58,36 +68,56 @@ export default function StoreCatalog() {
     });
   }, [products, activeCategory, query]);
 
+  const hasActiveFilters = Boolean(activeCategory || query.trim());
+  const countries = (
+    <div className="tienda-countries" role="group" aria-label="País">
+      <button type="button" className={country === "MX" ? "is-active" : ""} aria-pressed={country === "MX"} onClick={() => { setCountry("MX"); setActiveCategory(null); }}>México</button>
+      <button type="button" className={country === "US" ? "is-active" : ""} aria-pressed={country === "US"} onClick={() => { setCountry("US"); setActiveCategory(null); }}>Estados Unidos</button>
+    </div>
+  );
+
   if (loading) {
     return (
-      <div className="tienda-catalog" aria-busy="true" aria-label={t("loading")}>
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="tienda-skeleton">
-            <div className="tienda-skeleton__media" />
-            <div className="tienda-skeleton__body">
-              <div className="tienda-skeleton__line tienda-skeleton__line--short" />
-              <div className="tienda-skeleton__line tienda-skeleton__line--title" />
-              <div className="tienda-skeleton__line" />
-              <div className="tienda-skeleton__btn" />
+      <>
+        {countries}
+        <div className="tienda-catalog" aria-busy="true" aria-label={t("loading")}>
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="tienda-skeleton">
+              <div className="tienda-skeleton__media" />
+              <div className="tienda-skeleton__body">
+                <div className="tienda-skeleton__line tienda-skeleton__line--short" />
+                <div className="tienda-skeleton__line tienda-skeleton__line--title" />
+                <div className="tienda-skeleton__line" />
+                <div className="tienda-skeleton__btn" />
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </>
     );
   }
 
   if (error) {
-    return <p className="tienda-empty type-body-muted">{error}</p>;
+    return (
+      <>
+        {countries}
+        <p className="tienda-empty type-body-muted">{error}</p>
+      </>
+    );
   }
 
   if (!products.length) {
-    return <p className="tienda-empty type-body-muted">{t("empty")}</p>;
+    return (
+      <>
+        {countries}
+        <p className="tienda-empty type-body-muted">{t("empty")}</p>
+      </>
+    );
   }
-
-  const hasActiveFilters = Boolean(activeCategory || query.trim());
 
   return (
     <>
+      {countries}
       <div className="tienda-toolbar">
         <div className="tienda-search">
           <Search className="tienda-search__icon" size={17} strokeWidth={2} aria-hidden />

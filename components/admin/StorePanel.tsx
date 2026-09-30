@@ -2,6 +2,7 @@
 
 import { CMS_LOCALES, type Locale } from "@/lib/cms/types";
 import { useState } from "react";
+import { useClinicScope } from "@/components/admin/clinic/ClinicScope";
 import { useStoreAdmin } from "@/hooks/useStoreAdmin";
 import CmsImageField from "@/components/admin/cms/CmsImageField";
 import "@/app/styles/admin-cms.css";
@@ -18,6 +19,7 @@ type Props = {
 };
 
 export default function StorePanel({ siteLocale }: Props) {
+  const scope = useClinicScope();
   const {
     locale,
     setLocale,
@@ -40,7 +42,7 @@ export default function StorePanel({ siteLocale }: Props) {
     startNewProduct,
     startEditProduct,
     suggestRefFromName,
-  } = useStoreAdmin(siteLocale as Locale);
+  } = useStoreAdmin(siteLocale as Locale, scope.country);
   const [editingCat, setEditingCat] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
 
@@ -56,8 +58,8 @@ export default function StorePanel({ siteLocale }: Props) {
         <p className="admin-header__eyebrow">Sitio web</p>
         <h1 className="admin-header__title">Tienda web</h1>
         <p className="admin-header__desc">
-          Este es el catálogo público del sitio. Cada producto lleva un enlace a una tienda externa.
-          No es el inventario de la clínica: eso se administra en Servicios y productos.
+          Catálogo público de {scope.label}. México y Estados Unidos tienen productos distintos.
+          Cada producto lleva un enlace a una tienda externa. El inventario de la clínica está en Servicios y productos.
         </p>
       </header>
       <div className="admin-cms__toolbar">
