@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/components/admin/clinic/client";
+import { useClinicScope } from "@/components/admin/clinic/ClinicScope";
 import { CreateOffer } from "@/components/admin/tutorial";
 
 type Item = { itemType: string; referenceId?: string; description: string; quantity: number; unitPrice?: number; taxRate?: number };
-type Catalog = { id: string; name: string; price?: string | number; tax_rate?: string | number | null };
+type Catalog = { id: string; name: string; price?: string | number; tax_rate?: string | number | null; locationIds?: string[] };
 type Method = { id: string; key: string; name: string; is_active?: boolean };
 
 export default function PosScreen() {
@@ -30,6 +31,7 @@ export default function PosScreen() {
   const [saleId, setSaleId] = useState<string | null>(null);
   const [locationId, setLocationId] = useState("");
   const [locations, setLocations] = useState<{ id: string; name: string }[]>([]);
+  const scope = useClinicScope();
   const [catalogReady, setCatalogReady] = useState(false);
   const stripeRef = useRef<{ confirmPayment: (opts: { elements: unknown; redirect: string }) => Promise<{ error?: { message?: string }; paymentIntent?: { id: string } }> } | null>(null);
   const elementsRef = useRef<unknown>(null);
@@ -39,7 +41,7 @@ export default function PosScreen() {
     api<{ rows: Catalog[] }>("/api/admin/products").then((r) => setProducts(r.rows)).catch(() => undefined);
     api<{ rows: Catalog[] }>("/api/admin/products?kind=packages").then((r) => setPackages(r.rows)).catch(() => undefined);
     api<{ rows: Catalog[] }>("/api/admin/products?kind=memberships").then((r) => setMemberships(r.rows)).catch(() => undefined);
-    api<{ rows: { id: string; firstName: string; lastName: string }[] }>("/api/admin/patients?pageSize=100").then((r) => setPatients(r.rows)).catch(() => undefined);
+    api<{ rows: { id: string; firstName: string; lastName: string }[] }>(`/api/admin/patients?pageSize=100&${scope.query}`).then((r) => setPatients(r.rows)).catch(() => undefined);
     api<{ rows: Method[] }>("/api/admin/settings/payment-methods").then((r) => {
       const active = r.rows.filter((row) => row.is_active !== false);
       setMethods(active);
@@ -48,11 +50,23 @@ export default function PosScreen() {
     }).catch(() => undefined).finally(() => setMethodsReady(true));
     api<{ rows: { id: string; name: string }[] }>("/api/admin/settings/locations").then((r) => {
       setLocations(r.rows);
-      if (r.rows[0]) setLocationId((current) => current || r.rows[0].id);
     }).catch(() => undefined);
-  }, []);
+  }, [scope.query]);
 
-  const catalog = tab === "service" ? services : tab === "product" ? products : tab === "package" ? packages : memberships;
+  useEffect(() => {
+    const sites = scope.visible.length ? scope.visible : locations;
+    const next = scope.locationId && sites.some((row) => row.id === scope.locationId) ? scope.locationId : sites[0]?.id || "";
+    if (next) setLocationId(next);
+  }, [scope.locationId, scope.visible, locations]);
+
+  const siteChoices = scope.visible.length ? scope.visible : locations;
+  const scopedServices = services.filter((item) => {
+    const ids = item.locationIds || [];
+    if (!ids.length) return true;
+    if (locationId) return ids.includes(locationId);
+    return ids.some((id) => siteChoices.some((site) => site.id === id));
+  });
+  const catalog = tab === "service" ? scopedServices : tab === "product" ? products : tab === "package" ? packages : memberships;
   const subtotal = useMemo(() => cart.reduce((sum, item) => sum + (item.unitPrice || 0) * item.quantity, 0), [cart]);
   const taxTotal = useMemo(() => cart.reduce((sum, item) => sum + (item.unitPrice || 0) * item.quantity * (item.taxRate || 0) / 100, 0), [cart]);
   const total = subtotal + taxTotal;
@@ -171,7 +185,7 @@ export default function PosScreen() {
         </div>
         <aside className="admin-checkout" data-tour="sales-pay">
           <label className="admin-field">Paciente<select value={patientId} onChange={(e) => setPatientId(e.target.value)}><option value="">Mostrador</option>{patients.map((p) => <option key={p.id} value={p.id}>{p.firstName} {p.lastName}</option>)}</select></label>
-          <label className="admin-field">Sede<select value={locationId} onChange={(e) => setLocationId(e.target.value)}><option value="">—</option>{locations.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}</select></label>
+          <label className="admin-field">Sede<select value={locationId} onChange={(e) => setLocationId(e.target.value)}><option value="">—</option>{siteChoices.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}</select></label>
           <label className="admin-field">Sin paciente<input value={walkIn} placeholder="Nombre walk-in" onChange={(e) => setWalkIn(e.target.value)} /></label>
           <label className="admin-check"><input type="checkbox" checked={newPatient} onChange={(e) => setNewPatient(e.target.checked)} />Crear paciente ahora</label>
           {newPatient ? <><label className="admin-field">Nombre<input value={firstName} onChange={(e) => setFirstName(e.target.value)} /></label><label className="admin-field">Apellido<input value={lastName} onChange={(e) => setLastName(e.target.value)} /></label></> : null}

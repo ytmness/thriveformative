@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/components/admin/clinic/client";
+import { countryCode, useClinicScope } from "@/components/admin/clinic/ClinicScope";
 import { Button, CloseButton, EmptyState, Tabs, Toast } from "@/components/admin/ui";
 
 type Patient = Record<string, unknown> & { id: string; firstName: string; lastName: string; clientCode: string; email?: string; mobile?: string };
@@ -31,11 +32,12 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
   const [palette, setPalette] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const scope = useClinicScope();
   const [options, setOptions] = useState<{ locations: { id: string; name: string }[]; staff: { id: string; first_name: string; last_name: string }[]; sources: { id: string; name: string }[]; fields: { id: string; label: string; field_type: string; is_required?: boolean }[] }>({ locations: [], staff: [], sources: [], fields: [] });
   const tabs = [["identidad", "Datos"], ["contacto", "Contacto"], ["direccion", "Dirección"], ["consentimiento", "Consentimientos"]] as const;
 
   async function load(nextPage = page, query = q) {
-    const data = await api<{ rows: Patient[]; total: number }>(`/api/admin/patients?q=${encodeURIComponent(query)}&page=${nextPage}`);
+    const data = await api<{ rows: Patient[]; total: number }>(`/api/admin/patients?q=${encodeURIComponent(query)}&page=${nextPage}&${scope.query}`);
     setRows(data.rows);
     setTotal(data.total);
   }
@@ -43,17 +45,17 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
     setQ(initialQuery);
     load(1, initialQuery).catch((e) => setError(e.message));
     Promise.all([
-      api<{ rows: { id: string; name: string }[] }>("/api/admin/settings/locations"),
+      api<{ rows: { id: string; name: string; country?: string | null }[] }>("/api/admin/settings/locations"),
       api<{ rows: { id: string; first_name: string; last_name: string }[] }>("/api/admin/settings/staff"),
       api<{ rows: { id: string; name: string }[] }>("/api/admin/settings/marketing-sources"),
       api<{ rows: { id: string; label: string; field_type: string; entity: string; is_required?: boolean }[] }>("/api/admin/settings/custom-fields"),
     ]).then(([locations, staff, sources, fields]) => setOptions({
-      locations: locations.rows,
+      locations: locations.rows.filter((row) => countryCode(row.country) === scope.country),
       staff: staff.rows,
       sources: sources.rows,
       fields: fields.rows.filter((row) => row.entity === "patient"),
     })).catch(() => undefined);
-  }, [initialQuery]);
+  }, [initialQuery, scope.query]);
 
   useEffect(() => {
     if (!open) return;
@@ -79,12 +81,12 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
   useEffect(() => {
     if (q.trim().length < 2) { setHits([]); return; }
     const timer = setTimeout(() => {
-      api<{ rows: Patient[] }>(`/api/admin/patients?q=${encodeURIComponent(q)}&pageSize=8`)
+      api<{ rows: Patient[] }>(`/api/admin/patients?q=${encodeURIComponent(q)}&pageSize=8&${scope.query}`)
         .then((result) => setHits(result.rows))
         .catch(() => setHits([]));
     }, 180);
     return () => clearTimeout(timer);
-  }, [q]);
+  }, [q, scope.query]);
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -111,7 +113,7 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
 
   return (
     <>
-      <header className="admin-header"><p className="admin-header__eyebrow">Directorio</p><h1 className="admin-header__title">Pacientes</h1></header>
+      <header className="admin-header"><p className="admin-header__eyebrow">Directorio · {scope.label}</p><h1 className="admin-header__title">Pacientes</h1></header>
       {error ? <div className="admin-alert" role="alert">{error}</div> : null}
       {notice ? <p className="admin-notice" role="status">{notice}</p> : null}
       <div className="admin-toolbar" data-tour="patients-tools">
@@ -129,7 +131,7 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
           ) : null}
         </div>
         <button className="admin-btn" type="button" onClick={() => { setPalette(false); setPage(1); load(1, q); }}>Buscar</button>
-        <button className="admin-btn admin-btn--primary" type="button" data-tour="patients-new" onClick={() => setOpen(true)}>+ Paciente</button>
+        <button className="admin-btn admin-btn--primary" type="button" data-tour="patients-new" onClick={() => { setForm({ ...EMPTY, locationId: scope.locationId || scope.visible[0]?.id || "" }); setOpen(true); }}>+ Paciente</button>
       </div>
       <div className="admin-table-wrap" data-tour="patients-list">
         <div className="admin-table__row admin-table__head" style={{ gridTemplateColumns: "minmax(0,1fr) 8rem" }}><span>Paciente</span><span>Acciones</span></div>

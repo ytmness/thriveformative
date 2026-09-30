@@ -4,6 +4,7 @@ import { contactHash, decryptPhi, encryptPhi } from "@/lib/crypto/phi";
 import { query } from "@/lib/db";
 import { DomainError } from "@/lib/http";
 import { createPatient, type PatientInput } from "@/lib/domain/patients";
+import { countrySql, normalizeCountry } from "@/lib/domain/scope";
 import { emitWebhook } from "@/lib/webhooks/emit";
 
 function blankNumber(value: unknown) {
@@ -13,7 +14,7 @@ function blankNumber(value: unknown) {
   return amount;
 }
 
-export async function listLeads() {
+export async function listLeads(filters: { locationId?: string | null; country?: string | null } = {}) {
   const rows = await query(
     `SELECT l.*, s.name AS stage_name, s.is_won, s.is_lost, u.first_name AS owner_first, u.last_name AS owner_last,
             ms.name AS source_name
@@ -22,7 +23,10 @@ export async function listLeads() {
      LEFT JOIN staff_users u ON u.id = l.owner_staff_id
      LEFT JOIN marketing_sources ms ON ms.id = l.marketing_source_id
      WHERE l.archived_at IS NULL
-     ORDER BY l.created_at DESC`
+       AND ($1::uuid IS NULL OR l.location_id = $1)
+       AND ${countrySql("l.location_id", "$2")}
+     ORDER BY l.created_at DESC`,
+    [filters.locationId || null, normalizeCountry(filters.country)]
   );
   return rows.rows.map((row) => ({
     ...row,

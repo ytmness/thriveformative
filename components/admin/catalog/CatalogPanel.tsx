@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "@/components/admin/clinic/client";
+import { countryCode, useClinicScope } from "@/components/admin/clinic/ClinicScope";
 import { CloseButton, EmptyState, SegmentedControl } from "@/components/admin/ui";
 import { CreateOffer } from "@/components/admin/tutorial";
 
@@ -16,7 +17,7 @@ const SECTIONS: [string, string][] = [
 ];
 
 type Row = Record<string, unknown>;
-type Named = { id: string; name: string };
+type Named = { id: string; name: string; country?: string | null };
 
 export default function CatalogPanel({ section }: { section: string }) {
   const [rows, setRows] = useState<Row[]>([]);
@@ -38,6 +39,16 @@ export default function CatalogPanel({ section }: { section: string }) {
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [stock, setStock] = useState({ productId: "", locationId: "", quantity: "", reason: "Ajuste" });
+  const scope = useClinicScope();
+  const scopedLocations = locations.filter((row) => countryCode(row.country) === scope.country);
+  const stockLocations = scope.locationId ? scopedLocations.filter((row) => row.id === scope.locationId) : scopedLocations;
+  const visibleRows = section !== "servicios" || !scopedLocations.length
+    ? rows
+    : rows.filter((row) => {
+        const ids = (row.locationIds as string[]) || [];
+        const allowed = new Set(stockLocations.map((site) => site.id));
+        return ids.some((id) => allowed.has(id));
+      });
 
   const title = SECTIONS.find((item) => item[0] === section)?.[1] || "Catálogo";
 
@@ -195,7 +206,7 @@ export default function CatalogPanel({ section }: { section: string }) {
       </nav>
       <div>
         <header className="admin-header">
-          <p className="admin-header__eyebrow">Catálogo de la clínica</p>
+          <p className="admin-header__eyebrow">Catálogo · {scope.label}</p>
           <h1 className="admin-header__title">{title}</h1>
           <p className="admin-header__desc">{hintOf(section)}</p>
         </header>
@@ -223,9 +234,9 @@ export default function CatalogPanel({ section }: { section: string }) {
           <div className="admin-table__row admin-table__head" style={{ gridTemplateColumns: columns.template }}>
             {columns.labels.map((label) => <span key={label}>{label}</span>)}
           </div>
-          {rows.map((row) => (
+          {visibleRows.map((row) => (
             <div key={String(row.id)} className="admin-table__row" style={{ gridTemplateColumns: columns.template }}>
-              {cellsOf(section, row, serviceCategories).map((cell, index) => <div key={index}>{cell}</div>)}
+              {cellsOf(section, row, serviceCategories, stockLocations.map((row) => row.id)).map((cell, index) => <div key={index}>{cell}</div>)}
               <details className="admin-menu">
                 <summary aria-label="Acciones">⋯</summary>
                 <div className="admin-menu__list">
@@ -235,7 +246,7 @@ export default function CatalogPanel({ section }: { section: string }) {
               </details>
             </div>
           ))}
-          {!rows.length ? <EmptyState title="Sin registros" text="Crea el primero con + Nuevo." action={<button className="admin-btn admin-btn--primary" type="button" onClick={openNew}>+ Nuevo</button>} /> : null}
+          {!visibleRows.length ? <EmptyState title="Sin registros" text="Nada en esta sede. Crea el primero con + Nuevo." action={<button className="admin-btn admin-btn--primary" type="button" onClick={openNew}>+ Nuevo</button>} /> : null}
         </div>
         {section === "productos" ? (
           <>
@@ -253,7 +264,7 @@ export default function CatalogPanel({ section }: { section: string }) {
               }
             }}>
               <select required value={stock.productId} onChange={(e) => setStock({ ...stock, productId: e.target.value })}><option value="">Producto</option>{rows.map((row) => <option key={String(row.id)} value={String(row.id)}>{String(row.name)}</option>)}</select>
-              <select required value={stock.locationId} onChange={(e) => setStock({ ...stock, locationId: e.target.value })}><option value="">Sede</option>{locations.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}</select>
+              <select required value={stock.locationId} onChange={(e) => setStock({ ...stock, locationId: e.target.value })}><option value="">Sede</option>{stockLocations.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}</select>
               <input required type="number" step="1" placeholder="Cantidad (+/−)" value={stock.quantity} onChange={(e) => setStock({ ...stock, quantity: e.target.value })} />
               <input value={stock.reason} onChange={(e) => setStock({ ...stock, reason: e.target.value })} placeholder="Motivo" />
               <button className="admin-btn admin-btn--primary" type="submit">Registrar movimiento</button>
@@ -482,13 +493,14 @@ function columnsOf(section: string) {
   return { labels: ["Nombre", "Detalle", "Acciones"], template: "minmax(0,1.4fr) minmax(0,1fr) 4.5rem" };
 }
 
-function cellsOf(section: string, row: Row, categories: Named[]) {
+function cellsOf(section: string, row: Row, categories: Named[], locationIds: string[] = []) {
   if (section === "servicios") {
     const category = categories.find((item) => item.id === row.category_id);
     return [String(row.name || ""), `${row.duration_minutes || "—"} min`, `$${Number(row.price || 0).toFixed(2)}`, category?.name || String(row.category_name || "—")];
   }
   if (section === "productos") {
-    const stockRows = (row.stock as { quantity: number; location_name: string }[]) || [];
+    const stockRows = ((row.stock as { quantity: number; location_name: string; location_id?: string }[]) || [])
+      .filter((item) => !locationIds.length || locationIds.includes(String(item.location_id)));
     return [String(row.name || ""), String(row.sku || "—"), `$${Number(row.price || 0).toFixed(2)}`, stockRows.length ? stockRows.map((item) => `${item.location_name}: ${item.quantity}`).join(" · ") : "Sin existencias"];
   }
   if (section === "membresias") return [String(row.name || ""), `${row.interval_unit === "year" ? "Anual" : "Mensual"} · $${Number(row.price || 0).toFixed(2)}`];

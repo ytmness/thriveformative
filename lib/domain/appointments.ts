@@ -7,6 +7,7 @@ import { withTx } from "@/lib/dbTx";
 import { DomainError } from "@/lib/http";
 import { log } from "@/lib/log";
 import { notifyAppointment } from "@/lib/domain/clinicNotify";
+import { countrySql, normalizeCountry } from "@/lib/domain/scope";
 import { dispatchDueMessages, enqueueForAppointment } from "@/lib/messaging/queue";
 import { addDaysToDateKey, addMonthsToDateKey, formatDate, formatHm, parseClinicDateTime, zonedTimeToUtc } from "@/lib/scheduling/time";
 import { emitWebhook } from "@/lib/webhooks/emit";
@@ -225,7 +226,7 @@ export async function createAppointment(input: AppointmentInput, actor: StaffSes
   return { appointment: mapAppointment(row.rows[0], manageToken), ids };
 }
 
-export async function listAppointments(from: string, to: string, filters: { staffUserId?: string; locationId?: string; roomId?: string; patientId?: string }) {
+export async function listAppointments(from: string, to: string, filters: { staffUserId?: string; locationId?: string; roomId?: string; patientId?: string; country?: string | null }) {
   const res = await query(
     `${SELECT}
      WHERE a.starts_at < $2 AND a.ends_at > $1
@@ -233,8 +234,9 @@ export async function listAppointments(from: string, to: string, filters: { staf
        AND ($4::uuid IS NULL OR a.location_id = $4)
        AND ($5::uuid IS NULL OR a.room_id = $5)
        AND ($6::uuid IS NULL OR a.patient_id = $6)
+       AND ${countrySql("a.location_id", "$7")}
      ORDER BY a.starts_at`,
-    [from, to, filters.staffUserId ?? null, filters.locationId ?? null, filters.roomId ?? null, filters.patientId ?? null]
+    [from, to, filters.staffUserId ?? null, filters.locationId || null, filters.roomId ?? null, filters.patientId ?? null, normalizeCountry(filters.country)]
   );
   return res.rows.map((row) => mapAppointment(row));
 }

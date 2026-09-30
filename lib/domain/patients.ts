@@ -1,6 +1,7 @@
 import { writeAudit } from "@/lib/audit";
 import type { StaffSession } from "@/lib/auth/session";
 import { contactHash, decryptPhi, encryptPhi, normalizeEmail } from "@/lib/crypto/phi";
+import { countrySql, normalizeCountry } from "@/lib/domain/scope";
 import { query } from "@/lib/db";
 import { DomainError, pageParams } from "@/lib/http";
 import { emitWebhook } from "@/lib/webhooks/emit";
@@ -118,17 +119,16 @@ export async function listPatients(url: URL) {
   const { page, pageSize, offset } = pageParams(url);
   const q = (url.searchParams.get("q") || "").trim();
   const like = `%${q}%`;
-  const params = [
+  const filters = [
     q,
     like,
     q ? contactHash("email", q) : null,
     q ? contactHash("phone", q) : null,
-    url.searchParams.get("locationId"),
-    url.searchParams.get("ownerStaffId"),
-    url.searchParams.get("sex"),
-    url.searchParams.get("tagId"),
-    pageSize,
-    offset,
+    url.searchParams.get("locationId") || null,
+    url.searchParams.get("ownerStaffId") || null,
+    url.searchParams.get("sex") || null,
+    url.searchParams.get("tagId") || null,
+    normalizeCountry(url.searchParams.get("country")),
   ];
   const where = `
     WHERE p.deleted_at IS NULL
@@ -140,9 +140,10 @@ export async function listPatients(url: URL) {
       AND ($8::uuid IS NULL OR EXISTS (
         SELECT 1 FROM patient_tags pt WHERE pt.patient_id = p.id AND pt.tag_id = $8
       ))
+      AND ${countrySql("p.location_id", "$9")}
   `;
-  const total = await query<{ n: number }>(`SELECT count(*)::int AS n FROM patients p ${where}`, params.slice(0, 8));
-  const rows = await query(`${BASE} ${where} ORDER BY p.last_name, p.first_name LIMIT $9 OFFSET $10`, params);
+  const total = await query<{ n: number }>(`SELECT count(*)::int AS n FROM patients p ${where}`, filters);
+  const rows = await query(`${BASE} ${where} ORDER BY p.last_name, p.first_name LIMIT $10 OFFSET $11`, [...filters, pageSize, offset]);
   return { rows: rows.rows.map((row) => mapPatient(row)), total: total.rows[0].n, page, pageSize };
 }
 

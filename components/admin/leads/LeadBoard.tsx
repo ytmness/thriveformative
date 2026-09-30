@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { DndContext, DragOverlay, PointerSensor, pointerWithin, useDraggable, useDroppable, useSensor, useSensors } from "@dnd-kit/core";
 import { api } from "@/components/admin/clinic/client";
+import { useClinicScope } from "@/components/admin/clinic/ClinicScope";
 
 type Lead = { id: string; first_name: string; last_name: string; stage_id: string | null; stage_name: string | null; status: string; email?: string; mobile?: string; lost_reason?: string | null; estimated_value?: string | number | null; owner_first?: string | null; owner_last?: string | null; source_name?: string | null };
 
@@ -24,10 +25,11 @@ export default function LeadBoard({ startNew }: { startNew?: boolean }) {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const skipClick = useRef(false);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
+  const scope = useClinicScope();
 
   async function load() {
     const [leads, stageRows, staffRows, sourceRows, fieldRows] = await Promise.all([
-      api<{ rows: Lead[] }>("/api/admin/leads"),
+      api<{ rows: Lead[] }>(`/api/admin/leads?${scope.query}`),
       api<{ rows: { id: string; name: string; sort_order?: number }[] }>("/api/admin/settings/lead-stages"),
       api<{ rows: { id: string; first_name: string; last_name: string }[] }>("/api/admin/settings/staff"),
       api<{ rows: { id: string; name: string }[] }>("/api/admin/settings/marketing-sources"),
@@ -41,7 +43,7 @@ export default function LeadBoard({ startNew }: { startNew?: boolean }) {
     setFields(fieldRows.rows.filter((row) => row.entity === "lead"));
     setForm((current) => (current.stageId ? current : { ...current, stageId: nextStages[0]?.id || "" }));
   }
-  useEffect(() => { load().catch((e) => setError(e.message)); }, []);
+  useEffect(() => { load().catch((e) => setError(e.message)); }, [scope.query]);
 
   function openNew() {
     setError(null);
@@ -51,7 +53,7 @@ export default function LeadBoard({ startNew }: { startNew?: boolean }) {
 
   return (
     <>
-      <header className="admin-header"><p className="admin-header__eyebrow">CRM</p><h1 className="admin-header__title">Leads</h1></header>
+      <header className="admin-header"><p className="admin-header__eyebrow">CRM · {scope.label}</p><h1 className="admin-header__title">Leads</h1></header>
       {error ? <div className="admin-alert" role="alert">{error}</div> : null}
       {notice ? <p className="admin-notice" role="status">{notice}</p> : null}
       <div className="admin-toolbar" data-tour="leads-new"><button className="admin-btn admin-btn--primary" type="button" onClick={openNew}>+ Lead</button></div>
@@ -91,7 +93,7 @@ export default function LeadBoard({ startNew }: { startNew?: boolean }) {
             e.preventDefault();
             setError(null);
             try {
-              await api("/api/admin/leads", { method: "POST", body: JSON.stringify({ ...form, customFields: fields.map((field) => ({ fieldId: field.id, value: extra[field.id] || "" })) }) });
+              await api("/api/admin/leads", { method: "POST", body: JSON.stringify({ ...form, locationId: scope.locationId || scope.visible[0]?.id || null, customFields: fields.map((field) => ({ fieldId: field.id, value: extra[field.id] || "" })) }) });
               setOpen(false);
               setNotice("Lead guardado.");
               setForm({ ...EMPTY, stageId: stages[0]?.id || "" });

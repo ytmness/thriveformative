@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { DndContext, PointerSensor, useDraggable, useDroppable, useSensor, useSensors } from "@dnd-kit/core";
 import { api } from "@/components/admin/clinic/client";
+import { countryCode, useClinicScope } from "@/components/admin/clinic/ClinicScope";
 import { CreateOffer } from "@/components/admin/tutorial";
 
 type Appt = {
@@ -19,7 +20,7 @@ type Appt = {
   notes: string | null;
   durationMinutes: number;
 };
-type Opt = { id: string; name?: string; first_name?: string; last_name?: string; timezone?: string };
+type Opt = { id: string; name?: string; first_name?: string; last_name?: string; timezone?: string; country?: string | null };
 
 const CLINIC_TZ = "America/Chicago";
 
@@ -84,6 +85,9 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
   const [clinicTz, setClinicTz] = useState(CLINIC_TZ);
   const [draft, setDraft] = useState<Record<string, string> | null>(openCreate ? { status: "booked", startsAt: nextClinicSlot(CLINIC_TZ) } : null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+  const scope = useClinicScope();
+  const siteOptions = locations.filter((row) => countryCode(row.country) === scope.country);
+  const preferredLocation = scope.locationId || siteOptions[0]?.id || "";
 
   const range = useMemo(() => {
     const start = new Date(anchor);
@@ -98,9 +102,16 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
   }, [anchor, view]);
 
   const load = useCallback(async () => {
-    const data = await api<{ rows: Appt[] }>(`/api/admin/appointments?from=${range.start.toISOString()}&to=${range.end.toISOString()}${staffFilter ? `&staffUserId=${staffFilter}` : ""}`);
+    const params = new URLSearchParams({
+      from: range.start.toISOString(),
+      to: range.end.toISOString(),
+      country: scope.country,
+    });
+    if (staffFilter) params.set("staffUserId", staffFilter);
+    if (scope.locationId) params.set("locationId", scope.locationId);
+    const data = await api<{ rows: Appt[] }>(`/api/admin/appointments?${params.toString()}`);
     setRows(data.rows.filter((row) => row.status !== "cancelled"));
-  }, [range, staffFilter]);
+  }, [range, staffFilter, scope.country, scope.locationId]);
 
   useEffect(() => {
     load().catch((e) => setError(e.message));
@@ -109,8 +120,8 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
     api<{ rows: Opt[] }>("/api/admin/settings/locations").then((r) => { setLocations(r.rows); if (r.rows[0]?.timezone) setClinicTz(r.rows[0].timezone); }).catch(() => undefined);
     api<{ rows: Opt[] }>("/api/admin/settings/rooms").then((r) => setRooms(r.rows)).catch(() => undefined);
     api<{ rows: { id: string; first_name: string | null; last_name: string | null; service_name: string | null }[] }>("/api/admin/waitlist").then((r) => setWaitlist(r.rows)).catch(() => undefined);
-    api<{ rows: { id: string; firstName: string; lastName: string }[] }>("/api/admin/patients?pageSize=100").then((r) => setPatients(r.rows)).catch(() => undefined).finally(() => setCatalogReady(true));
-  }, [load]);
+    api<{ rows: { id: string; firstName: string; lastName: string }[] }>(`/api/admin/patients?pageSize=100&${scope.query}`).then((r) => setPatients(r.rows)).catch(() => undefined).finally(() => setCatalogReady(true));
+  }, [load, scope.query]);
 
   const days = useMemo(() => {
     if (view === "month") {
@@ -183,7 +194,7 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
     e.preventDefault();
     if (!block) return;
     try {
-      await api("/api/admin/bookouts", { method: "POST", body: JSON.stringify({ startsAt: new Date(block.startsAt).toISOString(), endsAt: new Date(block.endsAt).toISOString(), staffUserId: staffFilter || null, reason: block.reason || "Bloqueo", locationId: locations[0]?.id || null }) });
+      await api("/api/admin/bookouts", { method: "POST", body: JSON.stringify({ startsAt: new Date(block.startsAt).toISOString(), endsAt: new Date(block.endsAt).toISOString(), staffUserId: staffFilter || null, reason: block.reason || "Bloqueo", locationId: preferredLocation || null }) });
       setBlock(null);
       await load();
     } catch (e) {
@@ -211,7 +222,7 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
           <option value="">Todos los profesionales</option>
           {staff.map((person) => <option key={person.id} value={person.id}>{person.first_name} {person.last_name}</option>)}
         </select>
-        <button className="admin-btn admin-btn--primary" type="button" data-tour="cal-new" onClick={() => setDraft({ status: "booked", startsAt: nextClinicSlot(clinicTz), locationId: locations[0]?.id || "", staffUserId: staffFilter })}>+ Cita</button>
+        <button className="admin-btn admin-btn--primary" type="button" data-tour="cal-new" onClick={() => setDraft({ status: "booked", startsAt: nextClinicSlot(clinicTz), locationId: preferredLocation, staffUserId: staffFilter })}>+ Cita</button>
         <button className="admin-btn" type="button" onClick={() => setBlock({ startsAt: "", endsAt: "", reason: "Bloqueo" })}>Bloqueo</button>
         {view === "day" ? (
           <select value={columnsBy} onChange={(e) => setColumnsBy(e.target.value as "day" | "staff" | "room")} aria-label="Columnas">
@@ -265,7 +276,7 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
                 {boardColumns.map((column) => (
                   <HourCell key={`${column.key}-${hour}`} id={`${column.key}|${String(hour).padStart(2, "0")}`} appointments={rows.filter((row) => column.match(row, hour))} onCreate={() => {
                     const day = view === "day" ? days[0] : days.find((item) => localKey(item) === column.key) || days[0];
-                    const next: Record<string, string> = { status: "booked", startsAt: day ? `${localKey(day)}T${pad(hour)}:00` : nextClinicSlot(clinicTz), locationId: locations[0]?.id || "" };
+                    const next: Record<string, string> = { status: "booked", startsAt: day ? `${localKey(day)}T${pad(hour)}:00` : nextClinicSlot(clinicTz), locationId: preferredLocation };
                     if (view === "day" && columnsBy === "staff") next.staffUserId = column.key;
                     else if (staffFilter) next.staffUserId = staffFilter;
                     setDraft(next);
@@ -289,7 +300,7 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
         e.preventDefault();
         const data = new FormData(e.currentTarget);
         try {
-          await api("/api/admin/waitlist", { method: "POST", body: JSON.stringify({ patientId: String(data.get("patient") || ""), serviceId: String(data.get("service") || "") || null, staffUserId: staffFilter || null, locationId: locations[0]?.id || null, notes: String(data.get("notes") || "") }) });
+          await api("/api/admin/waitlist", { method: "POST", body: JSON.stringify({ patientId: String(data.get("patient") || ""), serviceId: String(data.get("service") || "") || null, staffUserId: staffFilter || null, locationId: preferredLocation || null, notes: String(data.get("notes") || "") }) });
           setNotice("Paciente agregado a la lista de espera.");
           e.currentTarget.reset();
           const next = await api<{ rows: { id: string; first_name: string | null; last_name: string | null; service_name: string | null }[] }>("/api/admin/waitlist");
@@ -319,7 +330,7 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
               <label className="admin-field">Paciente<select value={draft.patientId || ""} onChange={(e) => setDraft({ ...draft, patientId: e.target.value })}><option value="">Sin paciente</option>{patients.map((p) => <option key={p.id} value={p.id}>{p.firstName} {p.lastName}</option>)}</select><CreateOffer show={catalogReady && !patients.length} kind="patient" href="/admin/pacientes?nuevo=1" /></label>
               <label className="admin-field">Servicio<select value={draft.serviceId || ""} onChange={(e) => setDraft({ ...draft, serviceId: e.target.value })}><option value="">—</option>{services.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select><CreateOffer show={catalogReady && !services.length} kind="service" href="/admin/catalogo/servicios?nuevo=1" /></label>
               <label className="admin-field">Profesional<select required value={draft.staffUserId || ""} onChange={(e) => setDraft({ ...draft, staffUserId: e.target.value })}><option value="">—</option>{staff.map((s) => <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>)}</select><CreateOffer show={catalogReady && !staff.length} kind="staff" href="/admin/configuracion/equipo?nuevo=1" /></label>
-              <label className="admin-field">Sede<select required value={draft.locationId || ""} onChange={(e) => setDraft({ ...draft, locationId: e.target.value })}><option value="">—</option>{locations.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select><CreateOffer show={catalogReady && !locations.length} kind="location" href="/admin/configuracion/sedes?nuevo=1" /></label>
+              <label className="admin-field">Sede<select required value={draft.locationId || ""} onChange={(e) => setDraft({ ...draft, locationId: e.target.value })}><option value="">—</option>{siteOptions.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select><CreateOffer show={catalogReady && !siteOptions.length} kind="location" href="/admin/configuracion/sedes?nuevo=1" /></label>
               <label className="admin-field">Inicio<input type="datetime-local" required value={draft.startsAt || ""} onChange={(e) => setDraft({ ...draft, startsAt: e.target.value })} /></label>
               <label className="admin-field">Estado<select value={draft.status || "booked"} onChange={(e) => setDraft({ ...draft, status: e.target.value })}>{STATUSES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
               {!draft.id ? <label className="admin-field">Recurrencia<select value={draft.freq || ""} onChange={(e) => setDraft({ ...draft, freq: e.target.value })}><option value="">No se repite</option><option value="DAILY">Diaria</option><option value="WEEKLY">Semanal</option><option value="MONTHLY">Mensual</option></select></label> : null}

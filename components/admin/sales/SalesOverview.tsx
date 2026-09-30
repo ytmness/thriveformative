@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "@/components/admin/clinic/client";
+import { useClinicScope } from "@/components/admin/clinic/ClinicScope";
 
 type Sale = {
   id: string;
@@ -27,25 +28,26 @@ export default function SalesOverview() {
   const [days, setDays] = useState<IncomeRow[]>([]);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const scope = useClinicScope();
 
   function load() {
-    api<{ rows: Sale[]; summary: Summary }>("/api/admin/sales")
+    api<{ rows: Sale[]; summary: Summary }>(`/api/admin/sales?${scope.query}`)
       .then((result) => {
         setSales(result.rows);
         setSummary(result.summary);
       })
       .catch((err) => setError(err instanceof Error ? err.message : "No se pudieron cargar las ventas."));
-    api<{ rows: IncomeRow[] }>("/api/admin/reports/ingresos")
+    api<{ rows: IncomeRow[] }>(`/api/admin/reports/ingresos?${scope.query}`)
       .then((result) => setDays((result.rows || []).slice(-7).reverse()))
       .catch(() => setDays([]));
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [scope.query]);
 
   return (
     <>
       <header className="admin-header">
-        <p className="admin-header__eyebrow">Dinero</p>
+        <p className="admin-header__eyebrow">Dinero · {scope.label}</p>
         <h1 className="admin-header__title">Ventas</h1>
         <p className="admin-header__desc">Aquí ves cuánto se vendió. Para cobrar en mostrador, abre Cobrar.</p>
       </header>

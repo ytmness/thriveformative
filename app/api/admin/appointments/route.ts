@@ -26,6 +26,7 @@ export async function GET(req: Request) {
     const rows = await listAppointments(from, to, {
       staffUserId: url.searchParams.get("staffUserId") || undefined,
       locationId: url.searchParams.get("locationId") || undefined,
+      country: url.searchParams.get("country"),
       roomId: url.searchParams.get("roomId") || undefined,
       patientId: url.searchParams.get("patientId") || undefined,
     });

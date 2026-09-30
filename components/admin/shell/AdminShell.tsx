@@ -22,6 +22,7 @@ import NotificationBell from "@/components/NotificationBell";
 import ThemeProvider from "@/components/theme/ThemeProvider";
 import ThemeSwitcher from "@/components/theme/ThemeSwitcher";
 import { api } from "@/components/admin/clinic/client";
+import { ClinicScopeProvider, ScopeBar } from "@/components/admin/clinic/ClinicScope";
 import { TutorialButton } from "@/components/admin/tutorial";
 
 type NavItem = {
@@ -78,6 +79,7 @@ export default function AdminShell({
 
   return (
     <ThemeProvider>
+      <ClinicScopeProvider>
       <div className="admin-shell">
         <aside className="admin-sidebar" aria-label="Navegación del panel">
           <div className="admin-sidebar__brand">
@@ -109,6 +111,8 @@ export default function AdminShell({
         </aside>
         <main className="admin-main">
           <header className="admin-topbar">
+            <ScopeBar />
+            <div className="admin-topbar__tools">
             <NotificationBell variant="admin" />
             <TutorialButton pathname={pathname} />
             <details className="admin-create" data-tour="shell-create">
@@ -120,10 +124,12 @@ export default function AdminShell({
                 <Link href="/admin/cobrar">Cobro</Link>
               </div>
             </details>
+            </div>
           </header>
           {children}
         </main>
       </div>
+      </ClinicScopeProvider>
     </ThemeProvider>
   );
 }

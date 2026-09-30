@@ -5,6 +5,7 @@ import { query } from "@/lib/db";
 import { withTx, type TxQuery } from "@/lib/dbTx";
 import { DomainError, money } from "@/lib/http";
 import { getStripe } from "@/lib/payments/stripeClient";
+import { countrySql, normalizeCountry } from "@/lib/domain/scope";
 import { emitWebhook } from "@/lib/webhooks/emit";
 
 export type SaleItemInput = {
@@ -247,20 +248,28 @@ export async function listSales(url: URL) {
   const page = Math.max(1, Number(url.searchParams.get("page") || 1));
   const pageSize = 25;
   const offset = (page - 1) * pageSize;
+  const locationId = url.searchParams.get("locationId") || null;
+  const country = normalizeCountry(url.searchParams.get("country"));
+  const filters = [locationId, country];
+  const where = `WHERE ($1::uuid IS NULL OR s.location_id = $1) AND ${countrySql("s.location_id", "$2")}`;
   const rows = await query(
-    `SELECT s.*, p.first_name, p.last_name FROM sales s
+    `SELECT s.*, p.first_name, p.last_name, l.name AS location_name FROM sales s
      LEFT JOIN patients p ON p.id = s.patient_id
-     ORDER BY s.created_at DESC LIMIT $1 OFFSET $2`,
-    [pageSize, offset]
+     LEFT JOIN locations l ON l.id = s.location_id
+     ${where}
+     ORDER BY s.created_at DESC LIMIT $3 OFFSET $4`,
+    [...filters, pageSize, offset]
   );
-  const total = await query<{ n: number }>(`SELECT count(*)::int AS n FROM sales`);
+  const total = await query<{ n: number }>(`SELECT count(*)::int AS n FROM sales s ${where}`, filters);
   const summary = await query<{ today: number; week: number; month: number; avg_ticket: number }>(
     `SELECT
-       coalesce(sum(total) FILTER (WHERE status <> 'void' AND (created_at AT TIME ZONE 'America/Chicago')::date = (now() AT TIME ZONE 'America/Chicago')::date), 0)::float AS today,
-       coalesce(sum(total) FILTER (WHERE status <> 'void' AND (created_at AT TIME ZONE 'America/Chicago')::date >= date_trunc('week', now() AT TIME ZONE 'America/Chicago')::date), 0)::float AS week,
-       coalesce(sum(total) FILTER (WHERE status <> 'void' AND (created_at AT TIME ZONE 'America/Chicago')::date >= date_trunc('month', now() AT TIME ZONE 'America/Chicago')::date), 0)::float AS month,
-       coalesce(avg(total) FILTER (WHERE status <> 'void' AND (created_at AT TIME ZONE 'America/Chicago')::date >= date_trunc('month', now() AT TIME ZONE 'America/Chicago')::date), 0)::float AS avg_ticket
-     FROM sales`
+       coalesce(sum(s.total) FILTER (WHERE s.status <> 'void' AND (s.created_at AT TIME ZONE 'America/Chicago')::date = (now() AT TIME ZONE 'America/Chicago')::date), 0)::float AS today,
+       coalesce(sum(s.total) FILTER (WHERE s.status <> 'void' AND (s.created_at AT TIME ZONE 'America/Chicago')::date >= date_trunc('week', now() AT TIME ZONE 'America/Chicago')::date), 0)::float AS week,
+       coalesce(sum(s.total) FILTER (WHERE s.status <> 'void' AND (s.created_at AT TIME ZONE 'America/Chicago')::date >= date_trunc('month', now() AT TIME ZONE 'America/Chicago')::date), 0)::float AS month,
+       coalesce(avg(s.total) FILTER (WHERE s.status <> 'void' AND (s.created_at AT TIME ZONE 'America/Chicago')::date >= date_trunc('month', now() AT TIME ZONE 'America/Chicago')::date), 0)::float AS avg_ticket
+     FROM sales s
+     ${where}`,
+    filters
   );
   return { rows: rows.rows, total: total.rows[0].n, page, pageSize, summary: summary.rows[0] };
 }
