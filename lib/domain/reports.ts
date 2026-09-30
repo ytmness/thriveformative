@@ -153,10 +153,10 @@ export async function dashboardStats(
      LEFT JOIN services s ON s.id = a.service_id
      LEFT JOIN locations l ON l.id = a.location_id
      WHERE a.status NOT IN ('cancelled','no_show') AND a.starts_at >= now() AND a.starts_at < now() + interval '1 day'
-       AND ($2::uuid IS NULL OR a.location_id = $2)
-       AND ${place}
+       AND ($1::uuid IS NULL OR a.location_id = $1)
+       AND ${countrySql("a.location_id", "$2")}
      ORDER BY a.starts_at LIMIT 8`,
-    filters
+    [locationId, country]
   );
   const sites = await query(
     `SELECT l.id, l.name, l.city, l.country,
