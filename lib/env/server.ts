@@ -20,11 +20,6 @@ export function requireNotifyEmail(): string {
   return email;
 }
 
-export function getComingSoonPassword(): string | undefined {
-  const value = process.env.COMING_SOON_PASSWORD;
-  return value && value.length > 0 ? value : undefined;
-}
-
 export function getSiteUrl(): string {
   return (
     process.env.NEXT_PUBLIC_SITE_URL?.trim() ||

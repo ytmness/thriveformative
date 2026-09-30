@@ -7,7 +7,6 @@
 .site-nav__cta,
 .cta-final-button,
 .plan-card-plan__btn,
-.coming-soon-page__btn,
 .admin-cms__btn,
 .brand-cta,
 .booking-section__whatsapp-btn {
@@ -42,7 +41,6 @@
 .site-nav__cta:hover,
 .cta-final-button:hover,
 .plan-card-plan__btn:hover,
-.coming-soon-page__btn:hover:not(:disabled),
 .admin-cms__btn:hover,
 .brand-cta:hover,
 .booking-section__whatsapp-btn:hover {
@@ -56,7 +54,6 @@
 .site-nav__cta:active,
 .cta-final-button:active,
 .plan-card-plan__btn:active,
-.coming-soon-page__btn:active:not(:disabled),
 .admin-cms__btn:active,
 .brand-cta:active,
 .booking-section__whatsapp-btn:active {
@@ -66,7 +63,6 @@
 .site-btn:disabled,
 .site-btn[aria-disabled="true"],
 .btn-primary:disabled,
-.coming-soon-page__btn:disabled,
 .admin-cms__btn:disabled,
 .brand-cta:disabled {
   opacity: 0.6;
@@ -82,7 +78,6 @@
 .site-nav__cta,
 .cta-final-button,
 .plan-card-plan__btn--featured,
-.coming-soon-page__btn,
 .admin-cms__btn:not(.admin-cms__btn--ghost):not(.admin-cms__btn--danger),
 .booking-section__whatsapp-btn {
   color: rgb(var(--primary-contrast, 255 255 255));
@@ -96,7 +91,6 @@
 .site-nav__cta:hover,
 .cta-final-button:hover,
 .plan-card-plan__btn--featured:hover,
-.coming-soon-page__btn:hover:not(:disabled),
 .admin-cms__btn:not(.admin-cms__btn--ghost):not(.admin-cms__btn--danger):hover,
 .booking-section__whatsapp-btn:hover {
   opacity: 0.92;

@@ -6,17 +6,14 @@ import "../styles/hero-stats.css";
 import "../styles/waves.css";
 import "../styles/animations.css";
 import "../styles/scroll.css";
-import "../styles/coming-soon.css";
 import "../styles/booking.css";
 import "../styles/header-nav.css";
 import "../styles/brand-cta.css";
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import { Poppins, Playfair_Display } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { locales } from "@/i18n/config";
-import ComingSoonScreen from "@/components/ComingSoonScreen";
 
 const poppins = Poppins({ subsets: ["latin"], weight: ["300","400","500","600","700"], variable: "--font-body" });
 const playfair = Playfair_Display({ subsets: ["latin"], weight: ["400", "600", "700"], variable: "--font-serif" });
@@ -43,27 +40,12 @@ export default async function LocaleLayout({
 }) {
   const { locale } = await params;
   const messages = await getMessages();
-  const cookieStore = await cookies();
-  const hasCookie = cookieStore.get("thrive_unlock")?.value === "1";
-  const gateEnabled = Boolean(process.env.COMING_SOON_PASSWORD);
-  const unlocked = hasCookie || !gateEnabled;
 
   return (
     <html lang={locale} className={`${poppins.variable} ${playfair.variable}`}>
-      <head>
-        {!unlocked && (
-          <link
-            rel="preload"
-            href="/logos/logometal.glb"
-            as="fetch"
-            crossOrigin="anonymous"
-            fetchPriority="high"
-          />
-        )}
-      </head>
       <body>
         <NextIntlClientProvider messages={messages}>
-          {unlocked ? children : <ComingSoonScreen />}
+          {children}
         </NextIntlClientProvider>
       </body>
     </html>

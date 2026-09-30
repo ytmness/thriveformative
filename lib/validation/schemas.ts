@@ -54,8 +54,4 @@ export const sendEmailBodySchema = z.discriminatedUnion("kind", [
   contactNotifyAdminSchema,
 ]);
 
-export const comingSoonUnlockSchema = z.object({
-  password: z.string().min(1).max(256),
-});
-
 export type SendEmailBody = z.infer<typeof sendEmailBodySchema>;
