@@ -2790,13 +2790,13 @@
     "semantic_hash": ""
   },
   "app/[locale]/admin/(panel)/facturas/page.tsx": {
-    "mtime": 1790646906.8970757,
-    "ast_hash": "7110d6032075c2355bad48517ffd62c1",
+    "mtime": 1790810334.5647085,
+    "ast_hash": "0046344f86550b137bec46a1e7ec214f",
     "semantic_hash": ""
   },
   "app/[locale]/admin/(panel)/formularios/page.tsx": {
-    "mtime": 1790646907.786775,
-    "ast_hash": "6fd7c94df66a4fd3dfa775d30f65762e",
+    "mtime": 1790810334.6773977,
+    "ast_hash": "4d926569e774ae84f526c332fbfcab8c",
     "semantic_hash": ""
   },
   "app/[locale]/admin/(panel)/layout.tsx": {
@@ -2920,8 +2920,8 @@
     "semantic_hash": ""
   },
   "app/api/admin/invoices/route.ts": {
-    "mtime": 1790646609.1207485,
-    "ast_hash": "0b6afd67729f69abdcfbbb22b71e0457",
+    "mtime": 1790810291.2569556,
+    "ast_hash": "f2e663306570c6672f30ccc8ea3c1763",
     "semantic_hash": ""
   },
   "app/api/admin/leads/[id]/activities/route.ts": {
@@ -3090,8 +3090,8 @@
     "semantic_hash": ""
   },
   "components/admin/clinic/Modules.tsx": {
-    "mtime": 1790803746.7525964,
-    "ast_hash": "6e94d3632cf219e38cffda75a8e64d9b",
+    "mtime": 1790810357.3513815,
+    "ast_hash": "d60374feb05289570caf50e83f1ee3e8",
     "semantic_hash": ""
   },
   "components/admin/clinic/client.ts": {
@@ -3135,8 +3135,8 @@
     "semantic_hash": ""
   },
   "components/portal/PortalApp.tsx": {
-    "mtime": 1790646937.9482293,
-    "ast_hash": "55172019bed8114bb111e56387164607",
+    "mtime": 1790810390.7144785,
+    "ast_hash": "6b5be0213de0398aa285d1e848a23edb",
     "semantic_hash": ""
   },
   "db/migrations/0001_extensions.sql": {
@@ -3402,6 +3402,16 @@
   "scripts/fix-demo-accents.sql": {
     "mtime": 1790809108.9095533,
     "ast_hash": "acbd168c39052482a285686a3580371e",
+    "semantic_hash": ""
+  },
+  "components/admin/forms/FormStudio.tsx": {
+    "mtime": 1790810380.0422344,
+    "ast_hash": "cd3a16be8fa345f92f619405926f7af5",
+    "semantic_hash": ""
+  },
+  "components/admin/invoices/InvoiceCenter.tsx": {
+    "mtime": 1790810311.6754973,
+    "ast_hash": "2597847496c7549f51a29457ebbc5581",
     "semantic_hash": ""
   }
 }

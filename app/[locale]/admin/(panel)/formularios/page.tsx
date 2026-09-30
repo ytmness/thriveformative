@@ -1,2 +1,2 @@
-import { FormBuilder } from "@/components/admin/clinic/Modules";
-export default function Page() { return <FormBuilder />; }
+import { FormStudio } from "@/components/admin/forms/FormStudio";
+export default function Page() { return <FormStudio />; }

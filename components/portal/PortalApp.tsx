@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "@/components/admin/clinic/client";
 
-type Field = { id: string; label: string; type: string; required?: boolean; options?: string[] };
+type Field = { id: string; label: string; type: string; required?: boolean; options?: string[]; help?: string };
 
 export default function PortalApp({ mode, token }: { mode: "login" | "home" | "form"; token?: string }) {
   const [email, setEmail] = useState("");
@@ -44,7 +44,7 @@ export default function PortalApp({ mode, token }: { mode: "login" | "home" | "f
             await api(`/api/public/forms/${token}`, { method: "POST", body: JSON.stringify({ answers, signature: form.requiresSignature ? signature : null, signerName: answers.signer || "" }) });
             setError("Formulario enviado.");
           }}>
-            {form.schema.map((field) => <label key={field.id} className="admin-field">{field.label}<input required={field.required} value={answers[field.id] || ""} onChange={(e) => setAnswers({ ...answers, [field.id]: e.target.value })} /></label>)}
+            {form.schema.map((field) => <PortalField key={field.id} field={field} value={answers[field.id] || ""} onChange={(value) => setAnswers({ ...answers, [field.id]: value })} />)}
             {form.requiresSignature ? <canvas ref={canvas} width={480} height={160} style={{ border: "1px solid #ccc", borderRadius: 12, touchAction: "none" }} onPointerDown={(e) => { const ctx = canvas.current?.getContext("2d"); if (!ctx || !canvas.current) return; const rect = canvas.current.getBoundingClientRect(); ctx.beginPath(); ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top); const move = (ev: PointerEvent) => { ctx.lineTo(ev.clientX - rect.left, ev.clientY - rect.top); ctx.stroke(); }; const up = () => { window.removeEventListener("pointermove", move); }; window.addEventListener("pointermove", move); window.addEventListener("pointerup", up, { once: true }); }} /> : null}
             <button className="admin-btn admin-btn--primary" type="submit">Enviar</button>
             {error ? <p>{error}</p> : null}
@@ -70,4 +70,27 @@ export default function PortalApp({ mode, token }: { mode: "login" | "home" | "f
       <button className="admin-btn" type="button" onClick={() => api("/api/portal/logout", { method: "POST" }).then(() => { location.href = "/portal/login"; })}>Salir</button>
     </main>
   );
+}
+
+function PortalField({ field, value, onChange }: { field: Field; value: string; onChange: (value: string) => void }) {
+  if (field.type === "heading") return <h2 className="admin-header__title" style={{ fontSize: "1.2rem", marginTop: "1rem" }}>{field.label}</h2>;
+  if (field.type === "signature") return null;
+  if (field.type === "checkbox") {
+    return <label className="admin-check"><input type="checkbox" required={field.required} checked={value === "sí"} onChange={(event) => onChange(event.target.checked ? "sí" : "")} />{field.label}</label>;
+  }
+  const hint = field.help ? <span className="form-studio__help">{field.help}</span> : null;
+  if (field.type === "textarea") {
+    return <label className="admin-field">{field.label}{hint}<textarea required={field.required} rows={4} value={value} onChange={(event) => onChange(event.target.value)} /></label>;
+  }
+  if (field.type === "select") {
+    return (
+      <label className="admin-field">{field.label}{hint}
+        <select required={field.required} value={value} onChange={(event) => onChange(event.target.value)}>
+          <option value="">Elige…</option>
+          {(field.options || []).map((option) => <option key={option}>{option}</option>)}
+        </select>
+      </label>
+    );
+  }
+  return <label className="admin-field">{field.label}{hint}<input required={field.required} type={field.type === "date" ? "date" : "text"} value={value} onChange={(event) => onChange(event.target.value)} /></label>;
 }
