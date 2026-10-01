@@ -3115,8 +3115,8 @@
     "semantic_hash": ""
   },
   "components/admin/pos/PosScreen.tsx": {
-    "mtime": 1790806291.8412597,
-    "ast_hash": "23e9f71a107c98b0c86de74c248a111b",
+    "mtime": 1790813640.9068153,
+    "ast_hash": "6d2995706999238fe47b6d1299c08be5",
     "semantic_hash": ""
   },
   "components/admin/shell/AdminShell.tsx": {
@@ -3412,6 +3412,41 @@
   "components/admin/invoices/InvoiceCenter.tsx": {
     "mtime": 1790810311.6754973,
     "ast_hash": "2597847496c7549f51a29457ebbc5581",
+    "semantic_hash": ""
+  },
+  "public/pos/consulta.svg": {
+    "mtime": 1790813617.78397,
+    "ast_hash": "cf51453e1f923d0162e043b1fc71bbc5",
+    "semantic_hash": ""
+  },
+  "public/pos/habitos.svg": {
+    "mtime": 1790813622.587464,
+    "ast_hash": "aebc17fe1327f627fa23f494d9714aa7",
+    "semantic_hash": ""
+  },
+  "public/pos/labs.svg": {
+    "mtime": 1790813621.1946628,
+    "ast_hash": "1ab9d44c9d00419df50b34eeccaf413c",
+    "semantic_hash": ""
+  },
+  "public/pos/membresia.svg": {
+    "mtime": 1790813626.740709,
+    "ast_hash": "ddbc16bc313c234c6a6129887019cee9",
+    "semantic_hash": ""
+  },
+  "public/pos/paquete.svg": {
+    "mtime": 1790813625.348025,
+    "ast_hash": "004dbaed2bf38811a9a5d011ca525ae0",
+    "semantic_hash": ""
+  },
+  "public/pos/producto.svg": {
+    "mtime": 1790813623.9601133,
+    "ast_hash": "9982de183faf44b37c6ca13ccbfd2f10",
+    "semantic_hash": ""
+  },
+  "public/pos/seguimiento.svg": {
+    "mtime": 1790813619.2056103,
+    "ast_hash": "fa9b9d9e8bec538027ed595df394c916",
     "semantic_hash": ""
   }
 }

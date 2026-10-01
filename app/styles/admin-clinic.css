@@ -211,7 +211,42 @@
 .admin-kanban__col { background: rgb(var(--surface) / 0.6); border: 1px solid rgb(var(--border) / 0.16); border-radius: 1rem; padding: 0.75rem; min-height: 16rem; }
 .admin-kanban__card { cursor: grab; margin-bottom: 0.5rem; touch-action: none; }
 .admin-banner { margin: 0.75rem 0 1rem; padding: 0.85rem 1rem; border-radius: 0.85rem; font-weight: 600; background: rgb(var(--primary) / 0.16); border: 1px solid rgb(var(--primary) / 0.4); }
-.admin-pos { display: grid; gap: 1rem; }
+.admin-pos { display: grid; gap: 1rem; align-items: start; }
+.pos-menu { display: grid; grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr)); gap: 0.75rem; }
+.pos-card {
+  display: flex; flex-direction: column; gap: 0.2rem; padding: 0 0 0.7rem; text-align: left;
+  border: 1px solid rgb(var(--border) / 0.16); border-radius: 1rem; overflow: hidden;
+  background: rgb(var(--surface)); color: inherit; font: inherit; cursor: pointer;
+  transition: transform 160ms ease-out;
+}
+.pos-card:hover { transform: translateY(-2px); }
+.pos-card:active { transform: scale(0.98); }
+.pos-card:focus-visible { outline: none; box-shadow: 0 0 0 3px rgb(var(--primary) / 0.35); }
+.pos-card__photo { position: relative; display: block; aspect-ratio: 4 / 3; background: #f4e7d6; }
+.pos-card__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pos-card__price {
+  position: absolute; right: 0.45rem; bottom: 0.45rem;
+  background: rgb(var(--surface) / 0.94); color: rgb(var(--text));
+  border-radius: 999px; padding: 0.22rem 0.55rem; font-weight: 750; font-size: 0.86rem;
+}
+.pos-card__qty {
+  position: absolute; left: 0.45rem; top: 0.45rem; min-width: 1.6rem; height: 1.6rem;
+  display: grid; place-items: center; border-radius: 999px; background: rgb(var(--primary));
+  color: white; font-weight: 750; font-size: 0.82rem;
+}
+.pos-card__name, .pos-card__note { display: block; padding: 0 0.7rem; }
+.pos-card__name { margin-top: 0.55rem; font-weight: 700; line-height: 1.25; }
+.pos-card__note {
+  color: rgb(var(--muted)); font-size: 0.8rem;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+@media (prefers-reduced-motion: reduce) { .pos-card { transition: none; } }
+.pos-qty { display: inline-flex; align-items: center; gap: 0.35rem; }
+.pos-qty button {
+  width: 1.7rem; height: 1.7rem; border-radius: 999px; border: 1px solid rgb(var(--border) / 0.3);
+  background: transparent; color: inherit; cursor: pointer; font: inherit;
+}
+.pos-qty button:focus-visible { outline: none; box-shadow: 0 0 0 3px rgb(var(--primary) / 0.35); }
 @media (min-width: 960px) { .admin-pos { grid-template-columns: minmax(0, 1.4fr) minmax(18rem, 0.8fr); } }
 .admin-checkout {
   padding: 1rem 1.1rem; border-radius: 1rem; border: 1px solid rgb(var(--border) / 0.18);

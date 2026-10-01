@@ -6,7 +6,19 @@ import { useClinicScope } from "@/components/admin/clinic/ClinicScope";
 import { CreateOffer } from "@/components/admin/tutorial";
 
 type Item = { itemType: string; referenceId?: string; description: string; quantity: number; unitPrice?: number; taxRate?: number };
-type Catalog = { id: string; name: string; price?: string | number; tax_rate?: string | number | null; locationIds?: string[] };
+type Catalog = {
+  id: string;
+  name: string;
+  price?: string | number;
+  tax_rate?: string | number | null;
+  locationIds?: string[];
+  image_url?: string | null;
+  color?: string | null;
+  duration_minutes?: number | null;
+  description?: string | null;
+  size_label?: string | null;
+  interval_unit?: string | null;
+};
 type Method = { id: string; key: string; name: string; is_active?: boolean };
 
 export default function PosScreen() {
@@ -74,7 +86,13 @@ export default function PosScreen() {
 
   function add(item: Catalog) {
     const type = tab === "service" ? "service" : tab === "product" ? "product" : tab === "package" ? "package" : "membership";
-    setCart([...cart, { itemType: type, referenceId: item.id, description: item.name, quantity: 1, unitPrice: Number(item.price || 0), taxRate: Number(item.tax_rate || 0) }]);
+    setCart((current) => {
+      const index = current.findIndex((row) => row.referenceId === item.id && row.itemType === type);
+      if (index >= 0) {
+        return current.map((row, i) => (i === index ? { ...row, quantity: row.quantity + 1 } : row));
+      }
+      return [...current, { itemType: type, referenceId: item.id, description: item.name, quantity: 1, unitPrice: Number(item.price || 0), taxRate: Number(item.tax_rate || 0) }];
+    });
     setReview(false);
   }
 
@@ -163,7 +181,7 @@ export default function PosScreen() {
       <header className="admin-header">
         <p className="admin-header__eyebrow">Punto de venta</p>
         <h1 className="admin-header__title">Cobrar</h1>
-        <p className="admin-header__desc">Elige un servicio o producto, revisa el total y confirma. Para crear o editar el catálogo, ve a Servicios y productos.</p>
+        <p className="admin-header__desc">Toca una ficha para agregarla al ticket. Para crear o editar el catálogo, ve a Servicios y productos.</p>
       </header>
       <div className="admin-tabs" data-tour="sales-tabs">
         {[["service", "Servicios"], ["product", "Productos"], ["package", "Paquetes"], ["membership", "Membresías"]].map(([id, label]) => (
@@ -171,13 +189,23 @@ export default function PosScreen() {
         ))}
       </div>
       <div className="admin-pos">
-        <div data-tour="sales-catalog">
-          {catalog.map((item) => (
-            <button key={item.id} type="button" className="admin-table__row" onClick={() => add(item)}>
-              <span className="admin-table__cell-title">{item.name}</span>
-              <span>${Number(item.price || 0).toFixed(2)}</span>
-            </button>
-          ))}
+        <div className="pos-menu" data-tour="sales-catalog">
+          {catalog.map((item) => {
+            const type = tab === "service" ? "service" : tab === "product" ? "product" : tab === "package" ? "package" : "membership";
+            const qty = cart.filter((row) => row.referenceId === item.id && row.itemType === type).reduce((sum, row) => sum + row.quantity, 0);
+            const price = Number(item.price || 0).toFixed(2);
+            return (
+              <button key={item.id} type="button" className="pos-card" onClick={() => add(item)} aria-label={`Agregar ${item.name}, $${price}`}>
+                <span className="pos-card__photo" style={{ background: item.color || undefined }}>
+                  <img src={pictureOf(item, tab)} alt="" />
+                  <span className="pos-card__price">${price}</span>
+                  {qty ? <span className="pos-card__qty">{qty}</span> : null}
+                </span>
+                <span className="pos-card__name">{item.name}</span>
+                <span className="pos-card__note">{noteOf(item, tab)}</span>
+              </button>
+            );
+          })}
           <CreateOffer show={catalogReady && !catalog.length && tab === "service"} kind="service" href="/admin/catalogo/servicios?nuevo=1" />
           <CreateOffer show={catalogReady && !catalog.length && tab === "product"} kind="product" href="/admin/catalogo/productos?nuevo=1" />
           {catalogReady && !catalog.length && tab === "package" ? <p className="admin-table__empty">No hay paquetes. Créalos en Servicios y productos.</p> : null}
@@ -198,8 +226,12 @@ export default function PosScreen() {
           {methodsReady && !methods.length ? <p className="admin-field__hint">Agrega un método en Configuración → Métodos de pago.</p> : null}
           {cart.map((item, index) => (
             <p key={index} className="admin-checkout__line">
-              <span>{item.description} × {item.quantity}</span>
-              <button type="button" className="admin-btn" onClick={() => { setCart(cart.filter((_, i) => i !== index)); setReview(false); }}>Quitar</button>
+              <span>{item.description}</span>
+              <span className="pos-qty">
+                <button type="button" aria-label="Quitar uno" onClick={() => { setCart(cart.flatMap((row, i) => (i !== index ? [row] : row.quantity > 1 ? [{ ...row, quantity: row.quantity - 1 }] : []))); setReview(false); }}>−</button>
+                <span>{item.quantity}</span>
+                <button type="button" aria-label="Agregar uno" onClick={() => { setCart(cart.map((row, i) => (i === index ? { ...row, quantity: row.quantity + 1 } : row))); setReview(false); }}>+</button>
+              </span>
             </p>
           ))}
           <div className="admin-checkout__total">
@@ -224,6 +256,27 @@ export default function PosScreen() {
       </div>
     </>
   );
+}
+
+function pictureOf(item: Catalog, tab: string) {
+  if (item.image_url) return item.image_url;
+  const name = item.name.toLowerCase();
+  if (name.includes("consulta")) return "/pos/consulta.svg";
+  if (name.includes("seguimiento")) return "/pos/seguimiento.svg";
+  if (name.includes("lectura") || name.includes("lab")) return "/pos/labs.svg";
+  if (name.includes("hábito") || name.includes("habito")) return "/pos/habitos.svg";
+  if (tab === "product") return "/pos/producto.svg";
+  if (tab === "package") return "/pos/paquete.svg";
+  if (tab === "membership") return "/pos/membresia.svg";
+  return "/pos/consulta.svg";
+}
+
+function noteOf(item: Catalog, tab: string) {
+  if (tab === "service" && item.duration_minutes) return `${item.duration_minutes} min`;
+  if (tab === "product" && item.size_label) return item.size_label;
+  if (tab === "membership") return item.interval_unit === "year" ? "Cada año" : "Cada mes";
+  if (item.description) return String(item.description);
+  return "Toca para agregar";
 }
 
 function loadStripe(): Promise<(key: string) => { elements: (opts: { clientSecret: string }) => { create: (type: string) => { mount: (sel: string) => void } }; confirmPayment: (opts: { elements: unknown; redirect: string }) => Promise<{ error?: { message?: string }; paymentIntent?: { id: string } }> }> {

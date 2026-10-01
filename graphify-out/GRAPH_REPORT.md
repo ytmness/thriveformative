@@ -1,16 +1,16 @@
 # Graph Report - thriveformative-git  (2026-09-30)
 
 ## Corpus Check
-- 295 files · ~931,624 words
+- 295 files · ~932,204 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1250 nodes · 3090 edges · 86 communities (63 shown, 23 thin omitted)
+- 1252 nodes · 3094 edges · 94 communities (72 shown, 22 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 2 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `d5f7da33`
+- Built from commit: `0f6f801e`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -78,6 +78,7 @@
 - PatientScreens.tsx
 - CalendarBoard.tsx
 - catalog.ts
+- db.ts
 - migrate.mjs
 - session.ts
 - NewsArticleView.tsx
@@ -85,9 +86,15 @@
 - NewsArticleView.tsx
 - seed-demo.mjs
 - resolveDisplay.ts
+- query
 - useStoreAdmin.ts
 - CatalogPanel.tsx
+- appointments.ts
 - page.tsx
+- portal.ts
+- forms.ts
+- FormStudio.tsx
+- DoctorNoticiasPage.tsx
 - SalesOverview.tsx
 
 ## God Nodes (most connected - your core abstractions)
@@ -103,12 +110,12 @@
 10. `decryptPhi()` - 23 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `ProductDetailContent()` --calls--> `fetchStoreProductByRef()`  [EXTRACTED]
-  app/[locale]/tienda/[ref]/page.tsx → lib/store/fetch.ts
 - `useCmsAdmin()` --indirect_call--> `saveService()`  [INFERRED]
   hooks/useCmsAdmin.ts → lib/domain/settings.ts
 - `PanelLayout()` --calls--> `getStaffSession()`  [EXTRACTED]
   app/[locale]/admin/(panel)/layout.tsx → lib/auth/session.ts
+- `ProductDetailContent()` --calls--> `fetchStoreProductByRef()`  [EXTRACTED]
+  app/[locale]/tienda/[ref]/page.tsx → lib/store/fetch.ts
 - `PATCH()` --calls--> `updateAppointment()`  [EXTRACTED]
   app/api/admin/appointments/[id]/route.ts → lib/domain/appointments.ts
 - `GET()` --calls--> `listAppointments()`  [EXTRACTED]
@@ -117,23 +124,23 @@
 ## Import Cycles
 - 2-file cycle: `lib/cms/mergePreviewLists.ts -> lib/cms/resolveDisplay.ts -> lib/cms/mergePreviewLists.ts`
 
-## Communities (86 total, 23 thin omitted)
+## Communities (94 total, 22 thin omitted)
 
 ### Community 0 - "CmsVisualPreview.tsx"
 Cohesion: 0.13
 Nodes (21): asLang(), cardBox(), CreateOffer(), FOCUS, GuideId, GUIDES, ICONS, Lang (+13 more)
 
 ### Community 1 - "ThemeProvider.tsx"
-Cohesion: 0.13
-Nodes (9): useClinicScope(), EMPTY, Lead, LeadBoard(), Catalog, Item, loadStripe(), Method (+1 more)
+Cohesion: 0.27
+Nodes (7): Catalog, Item, loadStripe(), Method, noteOf(), pictureOf(), PosScreen()
 
 ### Community 2 - "ContactSection.tsx"
-Cohesion: 0.22
-Nodes (8): CmsProvider(), DoctorNoticiasPage(), ThemeContext, ThemeId, THEMES, useTheme(), useThemes(), ThemeSwitcher()
+Cohesion: 0.26
+Nodes (6): ThemeContext, ThemeId, THEMES, useTheme(), useThemes(), ThemeSwitcher()
 
 ### Community 3 - "Locale"
 Cohesion: 0.06
-Nodes (57): GET(), PATCH(), POST(), requireAdmin(), GET(), LOCALES, POST(), requireAdmin() (+49 more)
+Nodes (58): GET(), PATCH(), POST(), requireAdmin(), GET(), LOCALES, POST(), requireAdmin() (+50 more)
 
 ### Community 4 - "route.ts"
 Cohesion: 0.10
@@ -196,8 +203,8 @@ Cohesion: 0.40
 Nodes (4): IntrinsicElements, JSX, react, react/jsx-runtime
 
 ### Community 22 - "isAdminAuthenticated"
-Cohesion: 0.10
-Nodes (37): POST(), appointmentsGET(), appointmentsPOST(), auth(), denied(), leadsGET(), leadsPOST(), patientsGET() (+29 more)
+Cohesion: 0.21
+Nodes (18): appointmentsGET(), appointmentsPOST(), auth(), denied(), leadsGET(), leadsPOST(), patientsGET(), patientsPOST() (+10 more)
 
 ### Community 23 - "next.config.js"
 Cohesion: 0.50
@@ -214,6 +221,10 @@ Nodes (3): fs, path, rootEnv
 ### Community 45 - "CmsPanel.tsx"
 Cohesion: 0.19
 Nodes (10): CmsPanel(), LOCALE_LABELS, Props, SubTab, ViewMode, mergeWithPendingDrafts(), useCmsAdmin(), mutateCms() (+2 more)
+
+### Community 46 - "page.tsx"
+Cohesion: 0.15
+Nodes (5): LoadingScreenLogo3D, ScrollProgress(), opacityMap, WaveDivider(), WaveDividerProps
 
 ### Community 47 - "db.ts"
 Cohesion: 0.24
@@ -235,9 +246,13 @@ Nodes (3): Props, BrandCtaButton(), Props
 Cohesion: 0.18
 Nodes (8): metadata, playfair, poppins, CmsProviderFetched(), locales, fetchCmsBundle(), EMPTY, useCms()
 
+### Community 56 - "http.ts"
+Cohesion: 0.18
+Nodes (22): decryptPhi(), encryptPhi(), shiftStart(), COPY, Kind, notifyAppointment(), enqueueForAppointment(), render() (+14 more)
+
 ### Community 59 - "CmsProvider.tsx"
-Cohesion: 0.07
-Nodes (76): PATCH(), GET(), POST(), DELETE(), GET(), POST(), GET(), GET() (+68 more)
+Cohesion: 0.06
+Nodes (89): PATCH(), GET(), POST(), DELETE(), GET(), POST(), GET(), GET() (+81 more)
 
 ### Community 60 - "CmsVisualPreview.tsx"
 Cohesion: 0.43
@@ -256,20 +271,20 @@ Cohesion: 0.38
 Nodes (3): ContactLocationMap(), Props, CLINIC_MAPS_QUERY
 
 ### Community 65 - "appointments.ts"
-Cohesion: 0.05
-Nodes (113): PATCH(), GET(), GET(), KINDS, POST(), POST(), authorized(), POST() (+105 more)
+Cohesion: 0.19
+Nodes (24): GET(), KINDS, POST(), writeAudit(), listPatientForms(), addSensitive(), createNote(), createPatient() (+16 more)
 
 ### Community 66 - "v1Handlers.ts"
 Cohesion: 0.50
 Nodes (3): CardVariant, GiantScrollCard(), GiantScrollCardProps
 
 ### Community 67 - "Modules.tsx"
-Cohesion: 0.27
-Nodes (4): CommsAdmin(), formatReport(), ReportView(), statusLabel()
+Cohesion: 0.24
+Nodes (5): CommsAdmin(), formatReport(), ReportView(), statusLabel(), EmptyState()
 
 ### Community 68 - "api"
-Cohesion: 0.24
-Nodes (8): ClinicLocation, ClinicScopeProvider(), countryCode(), Ctx, Scope, ScopeBar(), NAV, NavItem
+Cohesion: 0.12
+Nodes (12): ClinicLocation, ClinicScopeProvider(), countryCode(), Ctx, Scope, ScopeBar(), useClinicScope(), EMPTY (+4 more)
 
 ### Community 69 - "PatientScreens.tsx"
 Cohesion: 0.11
@@ -279,13 +294,17 @@ Nodes (11): EMPTY, Patient, PatientChart(), PatientList(), TAB_ALIAS, TABS, Butt
 Cohesion: 0.24
 Nodes (8): Appt, CalendarBoard(), clinicWall(), localKey(), nextClinicSlot(), Opt, pad(), STATUSES
 
+### Community 72 - "db.ts"
+Cohesion: 0.17
+Nodes (19): POST(), createPool(), getPool(), TxQuery, withTx(), addPayment(), applySideEffects(), catalogPrice() (+11 more)
+
 ### Community 73 - "migrate.mjs"
 Cohesion: 0.47
 Nodes (5): bootstrapAdmin(), __dirname, loadEnv(), main(), root
 
 ### Community 74 - "session.ts"
-Cohesion: 0.09
-Nodes (34): GET(), POST(), POST(), GET(), GET(), limited(), PanelLayout(), clearStaffSession() (+26 more)
+Cohesion: 0.20
+Nodes (16): GET(), POST(), POST(), PanelLayout(), clearStaffSession(), createStaffSession(), getStaffSession(), hashToken() (+8 more)
 
 ### Community 75 - "NewsArticleView.tsx"
 Cohesion: 0.12
@@ -307,17 +326,37 @@ Nodes (18): at(), clearDemo(), clinicDate(), contactHash(), context(), encryptPh
 Cohesion: 0.39
 Nodes (10): PreviewPlanRow, PreviewServiceRow, isEphemeralCmsId(), isFallbackId(), mergeBySortOrderSlot(), resolveArticlesForDisplay(), resolvePlansForDisplay(), resolveServicesForDisplay() (+2 more)
 
+### Community 81 - "query"
+Cohesion: 0.20
+Nodes (20): POST(), GET(), getPortalSession(), portalAppointments(), portalInvoices(), generateTotpSecret(), query(), beginMfa() (+12 more)
+
 ### Community 82 - "useStoreAdmin.ts"
-Cohesion: 0.12
-Nodes (12): api(), DashboardHome(), money(), Site, Stats, Upcoming, BLOCKS, FormField (+4 more)
+Cohesion: 0.11
+Nodes (9): api(), DashboardHome(), money(), Site, Stats, Upcoming, ManageBooking(), Field (+1 more)
 
 ### Community 83 - "CatalogPanel.tsx"
 Cohesion: 0.12
-Nodes (9): SECTIONS, CatalogPanel(), cellsOf(), columnsOf(), hintOf(), Named, Row, SECTIONS (+1 more)
+Nodes (8): SECTIONS, CatalogPanel(), cellsOf(), columnsOf(), hintOf(), Named, Row, SECTIONS
+
+### Community 84 - "appointments.ts"
+Cohesion: 0.23
+Nodes (18): GET(), limited(), POST(), PUT(), AppointmentInput, createAppointment(), findByManageToken(), hashToken() (+10 more)
 
 ### Community 85 - "page.tsx"
+Cohesion: 0.19
+Nodes (13): authorized(), POST(), AuditInput, log, LogLevel, redact(), shouldLog(), write() (+5 more)
+
+### Community 86 - "portal.ts"
+Cohesion: 0.29
+Nodes (11): POST(), hashPassword(), verifyPassword(), clearPortalSession(), createPortalAccount(), hashToken(), portalLogin(), contactHash() (+3 more)
+
+### Community 87 - "forms.ts"
+Cohesion: 0.33
+Nodes (10): GET(), POST(), GET(), archiveTemplate(), assignForm(), assignmentByToken(), hashToken(), listTemplates() (+2 more)
+
+### Community 88 - "FormStudio.tsx"
 Cohesion: 0.22
-Nodes (4): ProductDetailContent(), opacityMap, WaveDivider(), WaveDividerProps
+Nodes (5): BLOCKS, FormField, FormStudio(), Template, TYPES
 
 ### Community 94 - "SalesOverview.tsx"
 Cohesion: 0.28
@@ -326,22 +365,22 @@ Nodes (6): formatDay(), IncomeRow, money(), Sale, SalesOverview(), Summary
 ## Knowledge Gaps
 - **296 isolated node(s):** `extends`, `next/core-web-vitals`, `SECTIONS`, `poppins`, `playfair` (+291 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **23 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **22 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `query()` connect `appointments.ts` to `Locale`, `session.ts`, `types.ts`, `isAdminAuthenticated`, `CmsProvider.tsx`?**
-  _High betweenness centrality (0.160) - this node is a cross-community bridge._
-- **Why does `Locale` connect `Locale` to `NewsArticleView.tsx`, `types.ts`, `CmsPanel.tsx`, `resolveDisplay.ts`, `page.tsx`, `NewsSection.tsx`, `CmsVisualPreview.tsx`, `resolveDisplay.ts`?**
-  _High betweenness centrality (0.087) - this node is a cross-community bridge._
-- **Why does `api()` connect `useStoreAdmin.ts` to `ThemeProvider.tsx`, `Modules.tsx`, `api`, `PatientScreens.tsx`, `CalendarBoard.tsx`, `query`, `db.ts`, `CatalogPanel.tsx`, `http.ts`, `SalesOverview.tsx`, `LanguageSwitcher.tsx`?**
-  _High betweenness centrality (0.075) - this node is a cross-community bridge._
+- **Why does `query()` connect `query` to `appointments.ts`, `Locale`, `db.ts`, `session.ts`, `types.ts`, `appointments.ts`, `page.tsx`, `isAdminAuthenticated`, `portal.ts`, `http.ts`, `forms.ts`, `CmsProvider.tsx`?**
+  _High betweenness centrality (0.162) - this node is a cross-community bridge._
+- **Why does `Locale` connect `Locale` to `NewsArticleView.tsx`, `types.ts`, `CmsPanel.tsx`, `page.tsx`, `resolveDisplay.ts`, `NewsSection.tsx`, `CmsVisualPreview.tsx`, `resolveDisplay.ts`?**
+  _High betweenness centrality (0.089) - this node is a cross-community bridge._
+- **Why does `api()` connect `useStoreAdmin.ts` to `ThemeProvider.tsx`, `Modules.tsx`, `api`, `PatientScreens.tsx`, `CalendarBoard.tsx`, `query`, `db.ts`, `CatalogPanel.tsx`, `FormStudio.tsx`, `SalesOverview.tsx`, `LanguageSwitcher.tsx`?**
+  _High betweenness centrality (0.073) - this node is a cross-community bridge._
 - **What connects `extends`, `next/core-web-vitals`, `SECTIONS` to the rest of the system?**
   _296 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CmsVisualPreview.tsx` be split into smaller, more focused modules?**
   _Cohesion score 0.12987012987012986 - nodes in this community are weakly interconnected._
-- **Should `ThemeProvider.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.13071895424836602 - nodes in this community are weakly interconnected._
 - **Should `Locale` be split into smaller, more focused modules?**
-  _Cohesion score 0.05651176133103844 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05546218487394958 - nodes in this community are weakly interconnected._
+- **Should `route.ts` be split into smaller, more focused modules?**
+  _Cohesion score 0.10202020202020202 - nodes in this community are weakly interconnected._
