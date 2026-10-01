@@ -367,3 +367,56 @@ button.invoice-list { width: 100%; border: 0; background: transparent; color: in
   .form-studio__palette { position: static; grid-auto-flow: column; grid-auto-columns: minmax(8.5rem, 1fr); overflow-x: auto; }
   .form-studio__inspector { position: static; }
 }
+
+.assistant-drawer { z-index: 60; }
+.assistant-drawer .admin-drawer__panel { width: min(28rem, 100%); }
+.assistant-kicker { margin: 0; font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: rgb(var(--muted)); }
+.assistant-drawer h2 { margin: 0.15rem 0 0; font-family: var(--font-serif), Georgia, serif; font-size: 1.45rem; font-weight: 600; }
+.assistant-log { flex: 1; overflow: auto; padding: 1rem 1.15rem 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; }
+.assistant-note { margin: 0; color: rgb(var(--muted)); font-size: 0.78rem; line-height: 1.45; }
+.assistant-prompts { display: flex; flex-direction: column; gap: 0.45rem; }
+.assistant-prompts button {
+  text-align: left; border-radius: 0.8rem; border: 1px solid rgb(var(--border) / 0.22);
+  background: rgb(var(--surface) / 0.7); color: inherit; padding: 0.7rem 0.8rem; cursor: pointer; font: inherit;
+}
+.assistant-prompts button:hover { border-color: rgb(122 62 40 / 0.45); }
+.assistant-prompts button:focus-visible { outline: none; box-shadow: 0 0 0 3px rgb(var(--primary) / 0.28); }
+.assistant-bubble { margin: 0; padding: 0.75rem 0.85rem; border-radius: 0.9rem; line-height: 1.45; white-space: pre-wrap; text-align: left; }
+.assistant-bubble a { color: rgb(122 62 40); font-weight: 650; }
+.assistant-bubble--user { align-self: flex-end; max-width: 92%; background: rgb(122 62 40 / 0.1); }
+.assistant-bubble--assistant { align-self: stretch; background: rgb(var(--surface) / 0.85); border: 1px solid rgb(var(--border) / 0.14); }
+.assistant-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin-top: 0.7rem; }
+.assistant-metrics div { padding: 0.55rem 0.65rem; border-radius: 0.7rem; background: rgb(var(--bg) / 0.55); }
+.assistant-metrics span { display: block; color: rgb(var(--muted)); font-size: 0.72rem; }
+.assistant-metrics strong { font-variant-numeric: tabular-nums; }
+.assistant-table-wrap { margin-top: 0.7rem; overflow-x: auto; }
+.assistant-table-wrap p { margin: 0 0 0.35rem; font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; color: rgb(var(--muted)); }
+.assistant-table-wrap table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.assistant-table-wrap th, .assistant-table-wrap td { text-align: left; padding: 0.35rem 0.4rem; border-bottom: 1px solid rgb(var(--border) / 0.14); white-space: nowrap; }
+.assistant-links { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.7rem; }
+.assistant-confirm { margin-top: 0.75rem; display: grid; gap: 0.55rem; white-space: normal; }
+.assistant-confirm__title { margin: 0; font-weight: 700; }
+.assistant-confirm__actions { display: flex; justify-content: flex-end; gap: 0.45rem; }
+.assistant-fields { display: grid; gap: 0.4rem; }
+.assistant-fields > span { font-size: 0.82rem; font-weight: 650; }
+.assistant-fields__row { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.9fr) auto auto; gap: 0.35rem; align-items: center; }
+.assistant-fields__row input, .assistant-fields__row select {
+  width: 100%; border-radius: 0.6rem; border: 1px solid rgb(var(--border) / 0.28);
+  background: rgb(var(--surface)); color: inherit; padding: 0.4rem 0.5rem; font: inherit;
+}
+.assistant-fields__row label { display: flex; align-items: center; gap: 0.25rem; font-size: 0.75rem; color: rgb(var(--muted)); }
+.assistant-fields__row button { border: 0; background: transparent; color: rgb(var(--muted)); cursor: pointer; font: inherit; }
+.assistant-settled, .assistant-pending { margin: 0.45rem 0 0; color: rgb(var(--muted)); font-size: 0.78rem; }
+.assistant-error { margin: 0; color: rgb(153 42 42); font-size: 0.85rem; }
+.assistant-composer { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.5rem; align-items: end; padding: 0.85rem 1.15rem; border-top: 1px solid rgb(var(--border) / 0.12); }
+.assistant-composer textarea {
+  width: 100%; resize: none; border-radius: 0.8rem; border: 1px solid rgb(var(--border) / 0.28);
+  background: rgb(var(--surface)); color: inherit; padding: 0.6rem 0.7rem; font: inherit;
+}
+.assistant-composer textarea:focus { outline: none; border-color: rgb(122 62 40); box-shadow: 0 0 0 3px rgb(122 62 40 / 0.16); }
+@media (max-width: 640px) {
+  .assistant-fields__row { grid-template-columns: 1fr 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .assistant-prompts button, .assistant-bubble { transition: none; }
+}

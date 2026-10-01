@@ -23,6 +23,7 @@ import ThemeProvider from "@/components/theme/ThemeProvider";
 import ThemeSwitcher from "@/components/theme/ThemeSwitcher";
 import { api } from "@/components/admin/clinic/client";
 import { ClinicScopeProvider, ScopeBar } from "@/components/admin/clinic/ClinicScope";
+import { AssistantDock } from "@/components/admin/assistant/AssistantDock";
 import { TutorialButton } from "@/components/admin/tutorial";
 
 type NavItem = {
@@ -119,6 +120,7 @@ export default function AdminShell({
             </div>
             <div className="admin-topbar__tools">
             <NotificationBell variant="admin" />
+            <AssistantDock pathname={pathname} permissions={permissions} />
             <TutorialButton pathname={pathname} />
             <details className="admin-create" data-tour="shell-create">
               <summary className="admin-btn admin-btn--primary">Crear</summary>
