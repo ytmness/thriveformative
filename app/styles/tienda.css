@@ -588,3 +588,55 @@
   color: rgb(var(--muted));
   line-height: 1.55;
 }
+
+.square-checkout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.square-checkout__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.8125rem;
+  color: rgb(var(--muted));
+}
+
+.square-checkout__field select,
+.square-checkout__card {
+  width: 100%;
+  border: 1px solid rgb(var(--border) / 0.35);
+  border-radius: 0.9rem;
+  background: rgb(var(--bg) / 0.45);
+}
+
+.square-checkout__field select {
+  min-height: 2.75rem;
+  padding: 0.55rem 0.8rem;
+  color: rgb(var(--text));
+}
+
+.square-checkout__card {
+  min-height: 3.25rem;
+  padding: 0.75rem 0.85rem;
+}
+
+.square-checkout__success {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  font-size: 0.95rem;
+}
+
+.square-checkout__success a {
+  color: rgb(var(--primary));
+  font-weight: 600;
+}
+
+.square-checkout__error {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: rgb(185 28 28);
+}

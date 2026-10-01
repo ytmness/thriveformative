@@ -5,6 +5,7 @@ import ThemeSwitcher from "@/components/theme/ThemeSwitcher";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import WaveDivider from "@/components/WaveDivider";
+import SquareCheckout from "@/components/store/SquareCheckout";
 import BrandCtaLink from "@/components/ui/BrandCtaLink";
 import StoreProductPrice from "@/components/store/StoreProductPrice";
 import { fetchStoreProductByRef } from "@/lib/store/fetch";
@@ -149,19 +150,39 @@ function ProductDetailView({
         ) : null}
 
         <div className="tienda-detail__cta-wrap">
-          <BrandCtaLink
-            href={product.referral_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            block
-            className="inline-flex items-center justify-center gap-2"
-          >
-            <span className="inline-flex items-center gap-2">
-              {t("buyExternal")}
-              <ExternalLink size={16} strokeWidth={2.25} aria-hidden />
-            </span>
-          </BrandCtaLink>
-          <p className="tienda-detail__disclaimer">{t("externalDisclaimer")}</p>
+          {product.source === "square" ? (
+            <SquareCheckout
+              locale={locale}
+              productRef={product.ref}
+              labels={{
+                payWithCard: t("payWithCard"),
+                payNow: t("payNow"),
+                paying: t("paying"),
+                paymentSuccess: t("paymentSuccess"),
+                paymentReceipt: t("paymentReceipt"),
+                sandboxCardHint: t("sandboxCardHint"),
+                variationLabel: t("variationLabel"),
+                paymentUnavailable: t("paymentUnavailable"),
+                paymentFailed: t("paymentFailed"),
+              }}
+            />
+          ) : (
+            <>
+              <BrandCtaLink
+                href={product.referral_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                block
+                className="inline-flex items-center justify-center gap-2"
+              >
+                <span className="inline-flex items-center gap-2">
+                  {t("buyExternal")}
+                  <ExternalLink size={16} strokeWidth={2.25} aria-hidden />
+                </span>
+              </BrandCtaLink>
+              <p className="tienda-detail__disclaimer">{t("externalDisclaimer")}</p>
+            </>
+          )}
         </div>
       </div>
     </motion.div>

@@ -246,15 +246,21 @@ function ProductCard({
         ) : null}
 
         <div className="tienda-card__actions">
-          <a
-            href={product.referral_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="tienda-card__buy"
-          >
-            {t("buyExternal")}
-            <ExternalLink size={14} strokeWidth={2.25} aria-hidden />
-          </a>
+          {product.source === "square" ? (
+            <Link href={detailHref} className="tienda-card__buy">
+              {t("buyHere")}
+            </Link>
+          ) : (
+            <a
+              href={product.referral_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="tienda-card__buy"
+            >
+              {t("buyExternal")}
+              <ExternalLink size={14} strokeWidth={2.25} aria-hidden />
+            </a>
+          )}
           <Link href={detailHref} className="tienda-card__detail">
             {t("viewProduct")} →
           </Link>

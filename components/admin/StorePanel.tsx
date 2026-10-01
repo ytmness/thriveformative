@@ -42,6 +42,7 @@ export default function StorePanel({ siteLocale }: Props) {
     startNewProduct,
     startEditProduct,
     suggestRefFromName,
+    syncSquareCatalog,
   } = useStoreAdmin(siteLocale as Locale, scope.country);
   const [editingCat, setEditingCat] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
@@ -59,8 +60,24 @@ export default function StorePanel({ siteLocale }: Props) {
         <h1 className="admin-header__title">Tienda web</h1>
         <p className="admin-header__desc">
           Catálogo público de {scope.label}. México y Estados Unidos tienen productos distintos.
-          Cada producto lleva un enlace a una tienda externa. El inventario de la clínica está en Servicios y productos.
+          Los artículos de Square se importan con el botón de sincronizar y se cobran en la ficha del producto.
         </p>
+        <button
+          type="button"
+          className="admin-cms__btn"
+          disabled={saving}
+          onClick={() => {
+            if (
+              window.confirm(
+                `¿Importar el catálogo de Square a ${scope.label}? Los productos ya importados de este país se actualizan.`
+              )
+            ) {
+              void syncSquareCatalog();
+            }
+          }}
+        >
+          {saving ? "Sincronizando…" : "Sincronizar catálogo de Square"}
+        </button>
       </header>
       <div className="admin-cms__toolbar">
         <div className="admin-cms__locale-select">

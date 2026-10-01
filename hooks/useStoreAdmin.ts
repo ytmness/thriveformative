@@ -340,6 +340,40 @@ export function useStoreAdmin(initialLocale: Locale, country: string) {
     }
   }
 
+  async function syncSquareCatalog() {
+    setMessage(null);
+    setSaving(true);
+    try {
+      const response = await fetch("/api/square/catalog/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ country }),
+      });
+      const body = (await response.json()) as {
+        ok?: boolean;
+        error?: string;
+        products?: number;
+        environment?: string;
+      };
+      if (!response.ok || !body.ok) {
+        setMessage({ type: "err", text: body.error || "No se pudo sincronizar Square." });
+        return false;
+      }
+      await load();
+      setMessage({
+        type: "ok",
+        text: `Catálogo de Square (${body.environment ?? "sandbox"}) actualizado: ${body.products ?? 0} productos.`,
+      });
+      return true;
+    } catch {
+      setMessage({ type: "err", text: "No se pudo sincronizar Square." });
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return {
     locale,
     setLocale,
@@ -363,6 +397,7 @@ export function useStoreAdmin(initialLocale: Locale, country: string) {
     startNewProduct,
     startEditProduct,
     suggestRefFromName,
+    syncSquareCatalog,
   };
 }
 
