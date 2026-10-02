@@ -8,10 +8,57 @@ type CreateOrderResponse = {
   };
 };
 
+export type StoreFulfillment =
+  | { method: "pickup"; name: string }
+  | {
+      method: "shipping";
+      name: string;
+      line1: string;
+      city: string;
+      state: string;
+      postalCode: string;
+      country: "MX" | "US";
+    };
+
+export function fulfillmentNote(input: StoreFulfillment): string {
+  if (input.method === "pickup") return `Recolección · ${input.name}`;
+  return `Envío · ${input.name}, ${input.line1}, ${input.city}, ${input.state} ${input.postalCode}, ${input.country}`;
+}
+
+function squareFulfillment(input: StoreFulfillment) {
+  if (input.method === "pickup") {
+    return {
+      type: "PICKUP",
+      state: "PROPOSED",
+      pickup_details: {
+        recipient: { display_name: input.name.slice(0, 255) },
+        schedule_type: "ASAP",
+      },
+    };
+  }
+  return {
+    type: "SHIPMENT",
+    state: "PROPOSED",
+    shipment_details: {
+      recipient: {
+        display_name: input.name.slice(0, 255),
+        address: {
+          address_line_1: input.line1.slice(0, 255),
+          locality: input.city.slice(0, 255),
+          administrative_district_level_1: input.state.slice(0, 255),
+          postal_code: input.postalCode.slice(0, 12),
+          country: input.country,
+        },
+      },
+    },
+  };
+}
+
 export async function createSquareOrder(input: {
   idempotencyKey: string;
   locationId: string;
   lines: { name: string; quantity: number; amount: number; currency: string }[];
+  fulfillment: StoreFulfillment;
 }): Promise<{ id: string; totalAmount: number; currency: string }> {
   const body = await squareFetch<CreateOrderResponse>("/v2/orders", {
     method: "POST",
@@ -27,6 +74,7 @@ export async function createSquareOrder(input: {
             currency: line.currency,
           },
         })),
+        fulfillments: [squareFulfillment(input.fulfillment)],
       },
     },
   });

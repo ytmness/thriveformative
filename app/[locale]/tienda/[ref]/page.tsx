@@ -121,13 +121,7 @@ function ProductDetailView({
       transition={{ duration: 0.5 }}
     >
       <div className="tienda-detail__media">
-        {product.image_url ? (
-          <img src={product.image_url} alt={product.name} />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center type-caption text-muted uppercase tracking-wider">
-            {t("noImage")}
-          </div>
-        )}
+        <img src={product.image_url || "/pos/producto.svg"} alt={product.image_url ? product.name : ""} />
       </div>
 
       <div className="tienda-detail__panel">

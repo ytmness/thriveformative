@@ -23,11 +23,24 @@ declare global {
 
 type PayLine = { ref: string; variationId: string; quantity: number };
 
+export type CheckoutFulfillment =
+  | { method: "pickup"; name: string }
+  | {
+      method: "shipping";
+      name: string;
+      line1: string;
+      city: string;
+      state: string;
+      postalCode: string;
+      country: "MX" | "US";
+    };
+
 type Props = {
   locale: string;
   lines: PayLine[];
   totalMajor: number;
   currency: string;
+  fulfillment: CheckoutFulfillment | null;
   onPaid: (receiptUrl: string | null) => void;
   labels: {
     payWithCard: string;
@@ -66,7 +79,7 @@ function loadSquareSdk(src: string): Promise<void> {
   });
 }
 
-export default function SquareCheckout({ locale, lines, totalMajor, currency, onPaid, labels }: Props) {
+export default function SquareCheckout({ locale, lines, totalMajor, currency, fulfillment, onPaid, labels }: Props) {
   const cardHostId = useId().replace(/:/g, "");
   const cardRef = useRef<SquareCard | null>(null);
   const [context, setContext] = useState<PayContext | null>(null);
@@ -125,7 +138,7 @@ export default function SquareCheckout({ locale, lines, totalMajor, currency, on
   }, [context, cardHostId]);
 
   async function pay() {
-    if (!context || !cardRef.current || paying || !lines.length) return;
+    if (!context || !cardRef.current || paying || !lines.length || !fulfillment) return;
     if (context.currency !== currency) {
       setError(labels.paymentFailed);
       return;
@@ -145,6 +158,7 @@ export default function SquareCheckout({ locale, lines, totalMajor, currency, on
         body: JSON.stringify({
           locale,
           lines,
+          fulfillment,
           sourceId: tokenResult.token,
           idempotencyKey: crypto.randomUUID(),
         }),
@@ -179,7 +193,7 @@ export default function SquareCheckout({ locale, lines, totalMajor, currency, on
       <button
         type="button"
         className={`${BRAND_CTA_BASE_CLASS} brand-cta brand-cta--block`}
-        disabled={!ready || paying || !lines.length}
+        disabled={!ready || paying || !lines.length || !fulfillment}
         onClick={() => void pay()}
       >
         <span>{paying ? labels.paying : `${labels.payNow} · ${total}`}</span>

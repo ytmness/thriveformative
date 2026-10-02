@@ -5,7 +5,7 @@ import { api } from "@/components/admin/clinic/client";
 import { useClinicScope } from "@/components/admin/clinic/ClinicScope";
 import { CreateOffer } from "@/components/admin/tutorial";
 
-type Item = { itemType: string; referenceId?: string; description: string; quantity: number; unitPrice?: number; taxRate?: number };
+type Item = { itemType: string; referenceId?: string; description: string; quantity: number; unitPrice?: number; taxRate?: number; imageUrl?: string | null };
 type Catalog = {
   id: string;
   name: string;
@@ -91,7 +91,7 @@ export default function PosScreen() {
       if (index >= 0) {
         return current.map((row, i) => (i === index ? { ...row, quantity: row.quantity + 1 } : row));
       }
-      return [...current, { itemType: type, referenceId: item.id, description: item.name, quantity: 1, unitPrice: Number(item.price || 0), taxRate: Number(item.tax_rate || 0) }];
+      return [...current, { itemType: type, referenceId: item.id, description: item.name, quantity: 1, unitPrice: Number(item.price || 0), taxRate: Number(item.tax_rate || 0), imageUrl: item.image_url || null }];
     });
     setReview(false);
   }
@@ -226,7 +226,10 @@ export default function PosScreen() {
           {methodsReady && !methods.length ? <p className="admin-field__hint">Agrega un método en Configuración → Métodos de pago.</p> : null}
           {cart.map((item, index) => (
             <p key={index} className="admin-checkout__line">
-              <span>{item.description}</span>
+              <span className="admin-checkout__item">
+                {item.imageUrl ? <img className="admin-checkout__photo" src={item.imageUrl} alt="" /> : null}
+                <span>{item.description}</span>
+              </span>
               <span className="pos-qty">
                 <button type="button" aria-label="Quitar uno" onClick={() => { setCart(cart.flatMap((row, i) => (i !== index ? [row] : row.quantity > 1 ? [{ ...row, quantity: row.quantity - 1 }] : []))); setReview(false); }}>−</button>
                 <span>{item.quantity}</span>

@@ -224,7 +224,7 @@ function ProductCard({
             sizes="(max-width: 768px) 100vw, 280px"
           />
         ) : (
-          <span className="tienda-card__media-placeholder">{t("noImage")}</span>
+          <img src="/pos/producto.svg" alt="" className="tienda-card__image" />
         )}
       </Link>
 

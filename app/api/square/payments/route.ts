@@ -3,7 +3,7 @@ import { z } from "zod";
 import { query } from "@/lib/db";
 import { getSquareLocation, SquareApiError } from "@/lib/square/client";
 import { SquareConfigError } from "@/lib/square/config";
-import { createSquareOrder } from "@/lib/square/orders";
+import { createSquareOrder, fulfillmentNote, type StoreFulfillment } from "@/lib/square/orders";
 import { createSquarePayment } from "@/lib/square/payments";
 import { jsonError, jsonOk, handleRouteError } from "@/lib/security/errors";
 import { checkRateLimit } from "@/lib/rate-limit/memory";
@@ -27,11 +27,28 @@ const lineSchema = z.object({
   quantity: z.number().int().min(1).max(20),
 });
 
+const fulfillmentSchema = z.discriminatedUnion("method", [
+  z.object({
+    method: z.literal("pickup"),
+    name: z.string().trim().min(2).max(80),
+  }),
+  z.object({
+    method: z.literal("shipping"),
+    name: z.string().trim().min(2).max(80),
+    line1: z.string().trim().min(3).max(120),
+    city: z.string().trim().min(2).max(80),
+    state: z.string().trim().min(2).max(40),
+    postalCode: z.string().trim().min(3).max(12),
+    country: z.enum(["MX", "US"]),
+  }),
+]);
+
 const bodySchema = z.object({
   locale: z.enum(["es", "en", "ko", "it"]),
   lines: z.array(lineSchema).min(1).max(20),
   sourceId: z.string().min(1).max(512),
   idempotencyKey: z.string().uuid(),
+  fulfillment: fulfillmentSchema,
 });
 
 const RATE_LIMIT = { limit: 8, windowMs: 10 * 60 * 1000 };
@@ -98,10 +115,12 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    const fulfillment = parsed.data.fulfillment satisfies StoreFulfillment;
     const order = await createSquareOrder({
       idempotencyKey: parsed.data.idempotencyKey,
       locationId: location.id,
       lines: orderLines,
+      fulfillment,
     });
     if (order.currency !== location.currency || order.totalAmount <= 0) {
       return jsonError(409, "El total del pedido no se puede cobrar.");
@@ -114,7 +133,7 @@ export async function POST(request: NextRequest) {
       currency: order.currency,
       locationId: location.id,
       orderId: order.id,
-      note: `Thrive Formative · ${orderLines.map((line) => line.name).join(", ")}`,
+      note: `Thrive Formative · ${fulfillmentNote(fulfillment)} · ${orderLines.map((line) => line.name).join(", ")}`,
       referenceId: "tienda",
     });
 

@@ -5,7 +5,7 @@ import ThemeSwitcher from "@/components/theme/ThemeSwitcher";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import WaveDivider from "@/components/WaveDivider";
-import SquareCheckout from "@/components/store/SquareCheckout";
+import SquareCheckout, { type CheckoutFulfillment } from "@/components/store/SquareCheckout";
 import { useStoreCart } from "@/components/store/StoreCart";
 import { minorToMajor } from "@/lib/square/money";
 import { formatStorePrice } from "@/lib/store/formatPrice";
@@ -20,17 +20,47 @@ function CheckoutContent() {
   const locale = useLocale();
   const cart = useStoreCart();
   const [receiptUrl, setReceiptUrl] = useState<string | null | undefined>(undefined);
+  const [method, setMethod] = useState<"pickup" | "shipping">("pickup");
+  const [name, setName] = useState("");
+  const [line1, setLine1] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [country, setCountry] = useState<"MX" | "US">("MX");
   const payable = cart.currency ? cart.lines.filter((line) => line.currency === cart.currency) : cart.lines;
   const blocked = cart.lines.filter((line) => cart.currency && line.currency !== cart.currency);
   const totalMinor = payable.reduce((sum, line) => sum + line.unitAmount * line.quantity, 0);
   const currency = cart.currency || payable[0]?.currency || "USD";
   const paid = receiptUrl !== undefined;
+  const trimmedName = name.trim();
+  const shippingReady =
+    trimmedName.length >= 2 &&
+    line1.trim().length >= 3 &&
+    city.trim().length >= 2 &&
+    state.trim().length >= 2 &&
+    postalCode.trim().length >= 3;
+  const fulfillment: CheckoutFulfillment | null =
+    method === "pickup"
+      ? trimmedName.length >= 2
+        ? { method: "pickup", name: trimmedName }
+        : null
+      : shippingReady
+        ? {
+            method: "shipping",
+            name: trimmedName,
+            line1: line1.trim(),
+            city: city.trim(),
+            state: state.trim(),
+            postalCode: postalCode.trim(),
+            country,
+          }
+        : null;
 
   return (
     <>
       <ThemeSwitcher />
       <Header />
-      <main className="tienda-main max-w-3xl mx-auto px-6 py-16 md:py-24">
+      <main className="tienda-main tienda-checkout max-w-3xl mx-auto px-6 py-16 md:py-24">
         <Link
           href={`/${locale}/tienda`}
           className="type-ui text-sm text-[rgb(var(--primary))] hover:opacity-80 inline-flex items-center gap-1 mb-10"
@@ -66,11 +96,26 @@ function CheckoutContent() {
                 const lineTotal = unit * line.quantity;
                 return (
                   <li key={`${line.ref}:${line.variationId}`} className="tienda-cart__line">
+                    <img
+                      className="tienda-cart__photo"
+                      src={line.imageUrl || "/pos/producto.svg"}
+                      alt={line.imageUrl ? line.name : ""}
+                      onError={(event) => {
+                        const img = event.currentTarget;
+                        if (img.dataset.fallback === "1") return;
+                        img.dataset.fallback = "1";
+                        img.src = "/pos/producto.svg";
+                        img.alt = "";
+                      }}
+                    />
                     <div className="tienda-cart__copy">
                       <p className="tienda-cart__name">{line.name}</p>
                       {line.variationName && line.variationName !== "Estándar" ? (
                         <p className="tienda-cart__meta">{line.variationName}</p>
                       ) : null}
+                      <p className="tienda-cart__meta">
+                        {t("unitPrice")} · {formatStorePrice(unit, line.currency, locale)}
+                      </p>
                       <p className="tienda-cart__meta">
                         {formatStorePrice(lineTotal, line.currency, locale)}
                       </p>
@@ -115,8 +160,66 @@ function CheckoutContent() {
                 <p className="tienda-cart__total">
                   {t("cartTotal")} · {formatStorePrice(minorToMajor(totalMinor, currency), currency, locale)}
                 </p>
+                <fieldset className="tienda-fulfill">
+                  <legend className="tienda-fulfill__legend">{t("deliveryTitle")}</legend>
+                  <div className="tienda-fulfill__choices">
+                    <label className="tienda-fulfill__choice">
+                      <input
+                        type="radio"
+                        name="delivery"
+                        value="pickup"
+                        checked={method === "pickup"}
+                        onChange={() => setMethod("pickup")}
+                      />
+                      {t("pickup")}
+                    </label>
+                    <label className="tienda-fulfill__choice">
+                      <input
+                        type="radio"
+                        name="delivery"
+                        value="shipping"
+                        checked={method === "shipping"}
+                        onChange={() => setMethod("shipping")}
+                      />
+                      {t("shipping")}
+                    </label>
+                  </div>
+                  <label className="tienda-fulfill__field">
+                    <span>{t("recipientName")}</span>
+                    <input value={name} autoComplete="name" onChange={(event) => setName(event.target.value)} />
+                  </label>
+                  {method === "shipping" ? (
+                    <>
+                      <label className="tienda-fulfill__field">
+                        <span>{t("addressLine")}</span>
+                        <input value={line1} autoComplete="address-line1" onChange={(event) => setLine1(event.target.value)} />
+                      </label>
+                      <label className="tienda-fulfill__field">
+                        <span>{t("city")}</span>
+                        <input value={city} autoComplete="address-level2" onChange={(event) => setCity(event.target.value)} />
+                      </label>
+                      <label className="tienda-fulfill__field">
+                        <span>{t("state")}</span>
+                        <input value={state} autoComplete="address-level1" onChange={(event) => setState(event.target.value)} />
+                      </label>
+                      <label className="tienda-fulfill__field">
+                        <span>{t("postalCode")}</span>
+                        <input value={postalCode} autoComplete="postal-code" inputMode="text" onChange={(event) => setPostalCode(event.target.value)} />
+                      </label>
+                      <label className="tienda-fulfill__field">
+                        <span>{t("country")}</span>
+                        <select value={country} autoComplete="country" onChange={(event) => setCountry(event.target.value === "US" ? "US" : "MX")}>
+                          <option value="MX">{t("countryMx")}</option>
+                          <option value="US">{t("countryUs")}</option>
+                        </select>
+                      </label>
+                    </>
+                  ) : null}
+                  {!fulfillment ? <p className="tienda-detail__disclaimer">{t("deliveryHint")}</p> : null}
+                </fieldset>
                 <SquareCheckout
                   locale={locale}
+                  fulfillment={fulfillment}
                   lines={payable.map((line) => ({
                     ref: line.ref,
                     variationId: line.variationId,
