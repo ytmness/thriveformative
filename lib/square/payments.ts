@@ -20,6 +20,7 @@ export async function createSquarePayment(input: {
   amount: number;
   currency: string;
   locationId: string;
+  orderId: string;
   note: string;
   referenceId: string;
 }): Promise<SquarePaymentResult> {
@@ -33,6 +34,7 @@ export async function createSquarePayment(input: {
         currency: input.currency,
       },
       location_id: input.locationId,
+      order_id: input.orderId,
       autocomplete: true,
       note: input.note.slice(0, 500),
       reference_id: input.referenceId.slice(0, 40),

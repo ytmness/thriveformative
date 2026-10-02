@@ -47,25 +47,40 @@ export async function squareFetch<T>(
   return payload;
 }
 
-let cachedLocation: { environment: string; id: string } | null = null;
+let cachedLocation: { environment: string; id: string; currency: string } | null = null;
 
-export async function getSquareLocationId(): Promise<string> {
+export async function getSquareLocation(): Promise<{ id: string; currency: string }> {
   const credentials = getSquareCredentials();
-  if (credentials.locationId) return credentials.locationId;
-  if (cachedLocation?.environment === credentials.environment) return cachedLocation.id;
-
-  const body = await squareFetch<{
-    locations?: { id?: string; status?: string }[];
-  }>("/v2/locations");
-
-  const location =
-    body.locations?.find((row) => row.status === "ACTIVE" && row.id) ??
-    body.locations?.find((row) => row.id);
-
-  if (!location?.id) {
-    throw new SquareApiError(404, "Square no devolvió un Location ID para este ambiente.");
+  if (
+    cachedLocation?.environment === credentials.environment &&
+    (!credentials.locationId || cachedLocation.id === credentials.locationId)
+  ) {
+    return { id: cachedLocation.id, currency: cachedLocation.currency };
   }
 
-  cachedLocation = { environment: credentials.environment, id: location.id };
+  const body = await squareFetch<{
+    locations?: { id?: string; status?: string; currency?: string }[];
+  }>("/v2/locations");
+
+  const rows = body.locations ?? [];
+  const location = credentials.locationId
+    ? rows.find((row) => row.id === credentials.locationId)
+    : (rows.find((row) => row.status === "ACTIVE" && row.id && row.currency) ??
+      rows.find((row) => row.id && row.currency));
+
+  if (!location?.id || !location.currency) {
+    throw new SquareApiError(404, "Square no devolvió una sede con moneda para este ambiente.");
+  }
+
+  cachedLocation = {
+    environment: credentials.environment,
+    id: location.id,
+    currency: location.currency.toUpperCase(),
+  };
+  return { id: cachedLocation.id, currency: cachedLocation.currency };
+}
+
+export async function getSquareLocationId(): Promise<string> {
+  const location = await getSquareLocation();
   return location.id;
 }

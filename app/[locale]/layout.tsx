@@ -11,6 +11,7 @@ import "../styles/header-nav.css";
 import "../styles/brand-cta.css";
 import type { Metadata } from "next";
 import { Poppins, Playfair_Display } from "next/font/google";
+import { StoreCartProvider } from "@/components/store/StoreCart";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { locales } from "@/i18n/config";
@@ -45,7 +46,7 @@ export default async function LocaleLayout({
     <html lang={locale} className={`${poppins.variable} ${playfair.variable}`}>
       <body>
         <NextIntlClientProvider messages={messages}>
-          {children}
+          <StoreCartProvider>{children}</StoreCartProvider>
         </NextIntlClientProvider>
       </body>
     </html>

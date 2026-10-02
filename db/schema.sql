@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS store_products (
   source_payload jsonb,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
-  UNIQUE (locale, ref)
+  UNIQUE (locale, country, ref)
 );
 CREATE INDEX IF NOT EXISTS idx_store_products_locale_sort ON store_products (locale, sort_order);
 CREATE INDEX IF NOT EXISTS idx_store_products_category_id ON store_products (category_id);

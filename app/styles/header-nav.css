@@ -127,6 +127,44 @@
 
 /* .site-nav__cta — estilos en brand-cta.css */
 
+.site-nav__cart {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(var(--border) / 0.35);
+  color: inherit;
+  text-decoration: none;
+  transition: transform 160ms ease-out, border-color 160ms ease-out;
+}
+
+.site-nav__cart:hover {
+  border-color: rgb(var(--primary) / 0.55);
+}
+
+.site-nav__cart:active {
+  transform: scale(0.96);
+}
+
+.site-nav__cart-count {
+  position: absolute;
+  top: -0.35rem;
+  right: -0.35rem;
+  min-width: 1.05rem;
+  height: 1.05rem;
+  padding: 0 0.2rem;
+  border-radius: 999px;
+  background: rgb(var(--primary));
+  color: #1a1a1a;
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1.05rem;
+  text-align: center;
+}
+
 /* Language switcher minimal dentro del nav */
 .site-nav__lang .site-nav-lang-btn {
   display: inline-flex;

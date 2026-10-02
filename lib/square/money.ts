@@ -5,6 +5,12 @@ export function minorToMajor(amount: number, currency: string): number {
   return amount / 100;
 }
 
+export function majorToMinor(amount: number, currency: string): number {
+  if (!Number.isFinite(amount) || amount <= 0) return 0;
+  if (ZERO_DECIMAL.has(currency.toUpperCase())) return Math.round(amount);
+  return Math.round(amount * 100);
+}
+
 export function readSquareMoney(money?: {
   amount?: number | string;
   currency?: string;

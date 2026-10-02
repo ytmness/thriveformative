@@ -1,6 +1,7 @@
 import { query } from "@/lib/db";
 import { normalizeCountry } from "@/lib/domain/scope";
 import { PRODUCT_FIELDS_SQL, type ProductRow } from "@/lib/store/fields";
+import { sellableVariations } from "@/lib/store/variations";
 import type { Locale, StoreCategory, StoreProduct } from "@/lib/store/types";
 
 function countryOf(value: string | null | undefined) {
@@ -12,14 +13,23 @@ function joinProductsWithCategories(
   categories: StoreCategory[]
 ): StoreProduct[] {
   const byId = new Map(categories.map((c) => [c.id, c]));
-  return rows.map((row) => ({
-    ...row,
-    description: row.description ?? "",
-    category_id: row.category_id ?? null,
-    category: row.category_id ? (byId.get(row.category_id) ?? null) : null,
-    source: row.source ?? null,
-    source_handle: row.source_handle ?? null,
-  }));
+  return rows.map((row) => {
+    const { source_payload: sourcePayload, ...rest } = row;
+    return {
+      ...rest,
+      description: rest.description ?? "",
+      category_id: rest.category_id ?? null,
+      category: rest.category_id ? (byId.get(rest.category_id) ?? null) : null,
+      source: rest.source ?? null,
+      source_handle: rest.source_handle ?? null,
+      variations: sellableVariations({
+        source: rest.source,
+        sourcePayload,
+        priceMin: rest.price_min,
+        currency: rest.currency,
+      }),
+    };
+  });
 }
 
 export async function fetchStoreCategoriesFromDb(locale: Locale, country?: string | null): Promise<StoreCategory[]> {
@@ -41,7 +51,7 @@ export async function fetchStoreProductsFromDb(
   const categories = await fetchStoreCategoriesFromDb(locale, country);
 
   const params: unknown[] = [locale, country];
-  let sql = `SELECT ${PRODUCT_FIELDS_SQL} FROM store_products WHERE locale = $1 AND country = $2`;
+  let sql = `SELECT ${PRODUCT_FIELDS_SQL}, source_payload FROM store_products WHERE locale = $1 AND country = $2`;
   if (!includeUnpublished) {
     sql += ` AND is_published = true`;
   }
@@ -64,7 +74,7 @@ export async function fetchStoreProductByRefFromDb(
 ): Promise<StoreProduct | null> {
   const includeUnpublished = options?.includeUnpublished ?? false;
   const params: unknown[] = [locale, ref];
-  let sql = `SELECT ${PRODUCT_FIELDS_SQL} FROM store_products WHERE locale = $1 AND ref = $2`;
+  let sql = `SELECT ${PRODUCT_FIELDS_SQL}, source_payload FROM store_products WHERE locale = $1 AND ref = $2`;
   if (!includeUnpublished) {
     sql += ` AND is_published = true`;
   }

@@ -1,26 +1,9 @@
 "use client";
 
 import { BRAND_CTA_BASE_CLASS } from "@/lib/brandCta";
-import { minorToMajor } from "@/lib/square/money";
 import { formatStorePrice } from "@/lib/store/formatPrice";
 import { useEffect, useId, useRef, useState } from "react";
 import "@/app/styles/brand-cta.css";
-
-type Variation = {
-  id: string;
-  name: string;
-  amount: number;
-  currency: string;
-};
-
-type CheckoutContext = {
-  environment: "sandbox" | "production";
-  applicationId: string;
-  locationId: string;
-  sdkUrl: string;
-  productName: string;
-  variations: Variation[];
-};
 
 type SquareCard = {
   attach: (selector: string) => Promise<void>;
@@ -38,20 +21,30 @@ declare global {
   }
 }
 
+type PayLine = { ref: string; variationId: string; quantity: number };
+
 type Props = {
   locale: string;
-  productRef: string;
+  lines: PayLine[];
+  totalMajor: number;
+  currency: string;
+  onPaid: (receiptUrl: string | null) => void;
   labels: {
     payWithCard: string;
     payNow: string;
     paying: string;
-    paymentSuccess: string;
-    paymentReceipt: string;
     sandboxCardHint: string;
-    variationLabel: string;
     paymentUnavailable: string;
     paymentFailed: string;
   };
+};
+
+type PayContext = {
+  environment: "sandbox" | "production";
+  applicationId: string;
+  locationId: string;
+  sdkUrl: string;
+  currency: string;
 };
 
 function loadSquareSdk(src: string): Promise<void> {
@@ -73,31 +66,25 @@ function loadSquareSdk(src: string): Promise<void> {
   });
 }
 
-export default function SquareCheckout({ locale, productRef, labels }: Props) {
+export default function SquareCheckout({ locale, lines, totalMajor, currency, onPaid, labels }: Props) {
   const cardHostId = useId().replace(/:/g, "");
   const cardRef = useRef<SquareCard | null>(null);
-  const [context, setContext] = useState<CheckoutContext | null>(null);
-  const [variationId, setVariationId] = useState("");
+  const [context, setContext] = useState<PayContext | null>(null);
   const [ready, setReady] = useState(false);
   const [unavailable, setUnavailable] = useState(false);
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [paid, setPaid] = useState(false);
-  const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    const params = new URLSearchParams({ locale, ref: productRef });
-    fetch(`/api/square/checkout-context?${params}`)
+    fetch("/api/square/checkout-context")
       .then(async (response) => {
-        const body = (await response.json()) as CheckoutContext & { ok?: boolean };
+        const body = (await response.json()) as PayContext & { ok?: boolean };
         if (!response.ok || !body.ok) throw new Error("unavailable");
         return body;
       })
       .then((body) => {
-        if (cancelled) return;
-        setContext(body);
-        setVariationId(body.variations[0]?.id ?? "");
+        if (!cancelled) setContext(body);
       })
       .catch(() => {
         if (!cancelled) setUnavailable(true);
@@ -105,7 +92,7 @@ export default function SquareCheckout({ locale, productRef, labels }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [locale, productRef]);
+  }, []);
 
   useEffect(() => {
     if (!context) return;
@@ -137,10 +124,12 @@ export default function SquareCheckout({ locale, productRef, labels }: Props) {
     };
   }, [context, cardHostId]);
 
-  const selected = context?.variations.find((row) => row.id === variationId) ?? context?.variations[0];
-
   async function pay() {
-    if (!context || !selected || !cardRef.current || paying) return;
+    if (!context || !cardRef.current || paying || !lines.length) return;
+    if (context.currency !== currency) {
+      setError(labels.paymentFailed);
+      return;
+    }
     setPaying(true);
     setError(null);
     try {
@@ -155,8 +144,7 @@ export default function SquareCheckout({ locale, productRef, labels }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           locale,
-          ref: productRef,
-          variationId: selected.id,
+          lines,
           sourceId: tokenResult.token,
           idempotencyKey: crypto.randomUUID(),
         }),
@@ -166,8 +154,7 @@ export default function SquareCheckout({ locale, productRef, labels }: Props) {
         setError(body.error || labels.paymentFailed);
         return;
       }
-      setReceiptUrl(body.receiptUrl ?? null);
-      setPaid(true);
+      onPaid(body.receiptUrl ?? null);
     } catch {
       setError(labels.paymentFailed);
     } finally {
@@ -179,57 +166,25 @@ export default function SquareCheckout({ locale, productRef, labels }: Props) {
     return <p className="tienda-detail__disclaimer">{labels.paymentUnavailable}</p>;
   }
 
-  if (!context || !selected) {
+  if (!context) {
     return <div className="square-checkout__card animate-pulse" aria-hidden />;
   }
+
+  const total = formatStorePrice(totalMajor, currency, locale);
 
   return (
     <div className="square-checkout">
       <p className="tienda-detail__eyebrow">{labels.payWithCard}</p>
-
-      {context.variations.length > 1 ? (
-        <label className="square-checkout__field">
-          <span>{labels.variationLabel}</span>
-          <select value={selected.id} onChange={(event) => setVariationId(event.target.value)}>
-            {context.variations.map((variation) => (
-              <option key={variation.id} value={variation.id}>
-                {variation.name} · {formatStorePrice(minorToMajor(variation.amount, variation.currency), variation.currency, locale)}
-              </option>
-            ))}
-          </select>
-        </label>
-      ) : null}
-
-      {paid ? (
-        <div className="square-checkout__success">
-          <p>{labels.paymentSuccess}</p>
-          {receiptUrl ? (
-            <a href={receiptUrl} target="_blank" rel="noopener noreferrer">
-              {labels.paymentReceipt}
-            </a>
-          ) : null}
-        </div>
-      ) : (
-        <>
-          <div id={cardHostId} className="square-checkout__card" />
-          <button
-            type="button"
-            className={`${BRAND_CTA_BASE_CLASS} brand-cta brand-cta--block`}
-            disabled={!ready || paying}
-            onClick={() => void pay()}
-          >
-            <span>
-              {paying
-                ? labels.paying
-                : `${labels.payNow} · ${formatStorePrice(minorToMajor(selected.amount, selected.currency), selected.currency, locale)}`}
-            </span>
-          </button>
-          {context.environment === "sandbox" ? (
-            <p className="tienda-detail__disclaimer">{labels.sandboxCardHint}</p>
-          ) : null}
-        </>
-      )}
-
+      <div id={cardHostId} className="square-checkout__card" />
+      <button
+        type="button"
+        className={`${BRAND_CTA_BASE_CLASS} brand-cta brand-cta--block`}
+        disabled={!ready || paying || !lines.length}
+        onClick={() => void pay()}
+      >
+        <span>{paying ? labels.paying : `${labels.payNow} · ${total}`}</span>
+      </button>
+      {context.environment === "sandbox" ? <p className="tienda-detail__disclaimer">{labels.sandboxCardHint}</p> : null}
       {error ? <p className="square-checkout__error">{error}</p> : null}
     </div>
   );

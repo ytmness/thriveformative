@@ -28,6 +28,7 @@ export type StoreProduct = {
   currency: string | null;
   source: string | null;
   source_handle: string | null;
+  variations?: { id: string; name: string; amount: number; currency: string }[];
 };
 
 export type { Locale };

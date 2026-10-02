@@ -374,6 +374,39 @@ export function useStoreAdmin(initialLocale: Locale, country: string) {
     }
   }
 
+  async function copyToPos() {
+    setMessage(null);
+    setSaving(true);
+    try {
+      const response = await fetch("/api/admin/store/pos-sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ country }),
+      });
+      const body = (await response.json()) as {
+        ok?: boolean;
+        error?: string;
+        products?: number;
+        rows?: number;
+      };
+      if (!response.ok || !body.ok) {
+        setMessage({ type: "err", text: body.error || "No se pudo copiar al punto de venta." });
+        return false;
+      }
+      setMessage({
+        type: "ok",
+        text: `Punto de venta actualizado: ${body.rows ?? 0} presentaciones de ${body.products ?? 0} productos.`,
+      });
+      return true;
+    } catch {
+      setMessage({ type: "err", text: "No se pudo copiar al punto de venta." });
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return {
     locale,
     setLocale,
@@ -398,6 +431,7 @@ export function useStoreAdmin(initialLocale: Locale, country: string) {
     startEditProduct,
     suggestRefFromName,
     syncSquareCatalog,
+    copyToPos,
   };
 }
 

@@ -8,6 +8,7 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useUser, signOut } from "@/lib/useUser";
 import { useRouter, usePathname } from "next/navigation";
 import NotificationBell from "@/components/NotificationBell";
+import StoreCartLink from "@/components/store/StoreCartLink";
 import { useCallback, useEffect, useState, type RefObject } from "react";
 
 type NavItem = { key: string; href: string; label?: string; hashOnly?: boolean };
@@ -264,6 +265,7 @@ export default function Header({ preview }: HeaderProps = {}) {
           )}
           {!preview ? (
             <>
+              <StoreCartLink />
               <div className="site-nav__lang">
                 <LanguageSwitcher variant="minimal" />
               </div>
@@ -280,6 +282,7 @@ export default function Header({ preview }: HeaderProps = {}) {
         </div>
 
         <div className="flex lg:hidden items-center gap-2 flex-shrink-0">
+          {!preview ? <StoreCartLink /> : null}
           <div className="site-nav__lang">
             <LanguageSwitcher variant="minimal" />
           </div>

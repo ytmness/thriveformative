@@ -1,11 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ExternalLink, Search, X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
+import AddToCart from "@/components/store/AddToCart";
 import StoreProductPrice from "@/components/store/StoreProductPrice";
 import { fetchStoreCategories, fetchStoreProducts } from "@/lib/store/fetch";
 import { productMatchesQuery } from "@/lib/store/search";
@@ -246,21 +247,7 @@ function ProductCard({
         ) : null}
 
         <div className="tienda-card__actions">
-          {product.source === "square" ? (
-            <Link href={detailHref} className="tienda-card__buy">
-              {t("buyHere")}
-            </Link>
-          ) : (
-            <a
-              href={product.referral_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="tienda-card__buy"
-            >
-              {t("buyExternal")}
-              <ExternalLink size={14} strokeWidth={2.25} aria-hidden />
-            </a>
-          )}
+          <AddToCart product={product} locale={locale} appearance="card" />
           <Link href={detailHref} className="tienda-card__detail">
             {t("viewProduct")} →
           </Link>
