@@ -60,7 +60,7 @@ function CheckoutContent() {
     <>
       <ThemeSwitcher />
       <Header />
-      <main className="tienda-main tienda-checkout max-w-3xl mx-auto px-6 py-16 md:py-24">
+      <main className="tienda-main tienda-checkout mx-auto px-6 py-16 md:py-24">
         <Link
           href={`/${locale}/tienda`}
           className="type-ui text-sm text-[rgb(var(--primary))] hover:opacity-80 inline-flex items-center gap-1 mb-10"
@@ -120,30 +120,32 @@ function CheckoutContent() {
                         {formatStorePrice(lineTotal, line.currency, locale)}
                       </p>
                     </div>
-                    <div className="tienda-cart__qty">
+                    <div className="tienda-cart__actions">
+                      <div className="tienda-cart__qty">
+                        <button
+                          type="button"
+                          aria-label={t("decreaseQty")}
+                          onClick={() => cart.setQuantity(line.ref, line.variationId, line.quantity - 1)}
+                        >
+                          <Minus size={14} aria-hidden />
+                        </button>
+                        <span>{line.quantity}</span>
+                        <button
+                          type="button"
+                          aria-label={t("increaseQty")}
+                          onClick={() => cart.setQuantity(line.ref, line.variationId, line.quantity + 1)}
+                        >
+                          <Plus size={14} aria-hidden />
+                        </button>
+                      </div>
                       <button
                         type="button"
-                        aria-label={t("decreaseQty")}
-                        onClick={() => cart.setQuantity(line.ref, line.variationId, line.quantity - 1)}
+                        className="tienda-cart__remove"
+                        onClick={() => cart.remove(line.ref, line.variationId)}
                       >
-                        <Minus size={14} aria-hidden />
-                      </button>
-                      <span>{line.quantity}</span>
-                      <button
-                        type="button"
-                        aria-label={t("increaseQty")}
-                        onClick={() => cart.setQuantity(line.ref, line.variationId, line.quantity + 1)}
-                      >
-                        <Plus size={14} aria-hidden />
+                        {t("cartRemove")}
                       </button>
                     </div>
-                    <button
-                      type="button"
-                      className="tienda-cart__remove"
-                      onClick={() => cart.remove(line.ref, line.variationId)}
-                    >
-                      {t("cartRemove")}
-                    </button>
                   </li>
                 );
               })}
@@ -156,7 +158,7 @@ function CheckoutContent() {
             ))}
 
             {payable.length > 0 ? (
-              <>
+              <aside className="tienda-cart__panel">
                 <p className="tienda-cart__total">
                   {t("cartTotal")} · {formatStorePrice(minorToMajor(totalMinor, currency), currency, locale)}
                 </p>
@@ -194,25 +196,29 @@ function CheckoutContent() {
                         <span>{t("addressLine")}</span>
                         <input value={line1} autoComplete="address-line1" onChange={(event) => setLine1(event.target.value)} />
                       </label>
-                      <label className="tienda-fulfill__field">
-                        <span>{t("city")}</span>
-                        <input value={city} autoComplete="address-level2" onChange={(event) => setCity(event.target.value)} />
-                      </label>
-                      <label className="tienda-fulfill__field">
-                        <span>{t("state")}</span>
-                        <input value={state} autoComplete="address-level1" onChange={(event) => setState(event.target.value)} />
-                      </label>
-                      <label className="tienda-fulfill__field">
-                        <span>{t("postalCode")}</span>
-                        <input value={postalCode} autoComplete="postal-code" inputMode="text" onChange={(event) => setPostalCode(event.target.value)} />
-                      </label>
-                      <label className="tienda-fulfill__field">
-                        <span>{t("country")}</span>
-                        <select value={country} autoComplete="country" onChange={(event) => setCountry(event.target.value === "US" ? "US" : "MX")}>
-                          <option value="MX">{t("countryMx")}</option>
-                          <option value="US">{t("countryUs")}</option>
-                        </select>
-                      </label>
+                      <div className="tienda-fulfill__pair">
+                        <label className="tienda-fulfill__field">
+                          <span>{t("city")}</span>
+                          <input value={city} autoComplete="address-level2" onChange={(event) => setCity(event.target.value)} />
+                        </label>
+                        <label className="tienda-fulfill__field">
+                          <span>{t("state")}</span>
+                          <input value={state} autoComplete="address-level1" onChange={(event) => setState(event.target.value)} />
+                        </label>
+                      </div>
+                      <div className="tienda-fulfill__pair">
+                        <label className="tienda-fulfill__field">
+                          <span>{t("postalCode")}</span>
+                          <input value={postalCode} autoComplete="postal-code" inputMode="text" onChange={(event) => setPostalCode(event.target.value)} />
+                        </label>
+                        <label className="tienda-fulfill__field">
+                          <span>{t("country")}</span>
+                          <select value={country} autoComplete="country" onChange={(event) => setCountry(event.target.value === "US" ? "US" : "MX")}>
+                            <option value="MX">{t("countryMx")}</option>
+                            <option value="US">{t("countryUs")}</option>
+                          </select>
+                        </label>
+                      </div>
                     </>
                   ) : null}
                   {!fulfillment ? <p className="tienda-detail__disclaimer">{t("deliveryHint")}</p> : null}
@@ -240,7 +246,7 @@ function CheckoutContent() {
                     paymentFailed: t("paymentFailed"),
                   }}
                 />
-              </>
+              </aside>
             ) : null}
           </div>
         )}

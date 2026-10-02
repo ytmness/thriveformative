@@ -662,6 +662,7 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
+  width: min(100%, 32rem);
 }
 
 .tienda-checkout > a,
@@ -730,6 +731,13 @@
   margin: 0.15rem 0 0;
   font-size: 0.875rem;
   color: rgb(var(--muted));
+}
+
+.tienda-cart__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .tienda-cart__qty {
@@ -842,4 +850,97 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.tienda-cart__panel {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+@media (min-width: 960px) {
+  .tienda-checkout {
+    align-items: stretch;
+    text-align: left;
+    width: min(100%, 72rem);
+  }
+
+  .tienda-checkout > a,
+  .tienda-checkout .tienda-detail__title,
+  .tienda-checkout .tienda-cart,
+  .tienda-checkout .square-checkout__success,
+  .tienda-checkout .tienda-empty {
+    width: 100%;
+  }
+
+  .tienda-checkout .tienda-detail__title,
+  .tienda-checkout > a {
+    text-align: left;
+  }
+
+  .tienda-cart {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(20rem, 0.78fr);
+    align-items: start;
+    gap: 1.5rem 2rem;
+  }
+
+  .tienda-cart__lines,
+  .tienda-cart > .tienda-detail__disclaimer {
+    grid-column: 1;
+  }
+
+  .tienda-cart__panel {
+    grid-column: 2;
+    grid-row: 1;
+    position: sticky;
+    top: 5.5rem;
+    align-items: stretch;
+    padding: 1.25rem;
+    border: 1px solid rgb(var(--border) / 0.16);
+    border-radius: 1.25rem;
+    background: rgb(var(--surface) / 0.72);
+  }
+
+  .tienda-cart__line {
+    flex-direction: row;
+    align-items: center;
+    text-align: left;
+    gap: 1rem;
+  }
+
+  .tienda-cart__photo {
+    width: 6.25rem;
+    height: 6.25rem;
+    flex: none;
+  }
+
+  .tienda-cart__copy {
+    align-items: flex-start;
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+  }
+
+  .tienda-cart__actions {
+    align-items: flex-end;
+    flex: none;
+  }
+
+  .tienda-cart__total,
+  .tienda-fulfill__legend {
+    text-align: left;
+  }
+
+  .tienda-fulfill__pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.7rem;
+  }
+
+  .tienda-cart .square-checkout {
+    align-items: stretch;
+  }
 }
