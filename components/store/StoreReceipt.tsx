@@ -1,7 +1,6 @@
 "use client";
 
 import { ReceiptPrinter, type ReceiptPrinterStage } from "@/components/store/ReceiptPrinter";
-import { SITE_LOGO_SRC } from "@/lib/branding";
 import { formatStorePrice } from "@/lib/store/formatPrice";
 import { minorToMajor } from "@/lib/square/money";
 import type { StoreReceiptData } from "@/lib/store/orderTypes";
@@ -65,7 +64,7 @@ export default function StoreReceipt({
       <ReceiptPrinter.Root stage={stage} animate={animate}>
         <ReceiptPrinter.Machine>
           <ReceiptPrinter.Header>
-            <img className="receipt-machine__logo" src={SITE_LOGO_SRC} alt="Thrive Formative" />
+            <img className="receipt-machine__logo" src={PAPER_LOGO} alt="Thrive Formative" />
             <Link className="receipt-machine__home" href={homeHref}>
               <Home size={14} aria-hidden />
               {labels.home}
