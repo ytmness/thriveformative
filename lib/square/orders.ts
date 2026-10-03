@@ -9,7 +9,7 @@ type CreateOrderResponse = {
 };
 
 export type StoreFulfillment =
-  | { method: "pickup"; name: string }
+  | { method: "pickup"; name: string; locationName: string }
   | {
       method: "shipping";
       name: string;
@@ -21,7 +21,7 @@ export type StoreFulfillment =
     };
 
 export function fulfillmentNote(input: StoreFulfillment): string {
-  if (input.method === "pickup") return `Recolección · ${input.name}`;
+  if (input.method === "pickup") return `Recolección · ${input.locationName} · ${input.name}`;
   return `Envío · ${input.name}, ${input.line1}, ${input.city}, ${input.state} ${input.postalCode}, ${input.country}`;
 }
 

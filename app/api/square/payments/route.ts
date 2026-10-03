@@ -17,6 +17,7 @@ import {
   readJsonBody,
 } from "@/lib/security/request";
 import { isValidRef } from "@/lib/store/slug";
+import { assertPickupStock, insertStoreOrder } from "@/lib/store/storeOrders";
 import { sellableVariations } from "@/lib/store/variations";
 
 export const dynamic = "force-dynamic";
@@ -31,6 +32,7 @@ const fulfillmentSchema = z.discriminatedUnion("method", [
   z.object({
     method: z.literal("pickup"),
     name: z.string().trim().min(2).max(80),
+    locationId: z.string().uuid(),
   }),
   z.object({
     method: z.literal("shipping"),
@@ -56,6 +58,7 @@ const RATE_LIMIT = { limit: 8, windowMs: 10 * 60 * 1000 };
 type ProductPayRow = {
   ref: string;
   name: string;
+  image_url: string | null;
   source: string | null;
   source_payload: unknown;
   price_min: unknown;
@@ -85,14 +88,22 @@ export async function POST(request: NextRequest) {
 
     const location = await getSquareLocation();
     const result = await query<ProductPayRow>(
-      `SELECT ref, name, source, source_payload, price_min, currency
+      `SELECT ref, name, image_url, source, source_payload, price_min, currency
        FROM store_products
        WHERE locale = $1 AND is_published = true AND ref = ANY($2::text[])`,
       [parsed.data.locale, lines.map((line) => line.ref)]
     );
     const byRef = new Map(result.rows.map((row) => [row.ref, row]));
 
-    const orderLines: { name: string; quantity: number; amount: number; currency: string }[] = [];
+    const orderLines: {
+      ref: string;
+      name: string;
+      variationName: string | null;
+      quantity: number;
+      amount: number;
+      currency: string;
+      imageUrl: string | null;
+    }[] = [];
     for (const line of lines) {
       const product = byRef.get(line.ref);
       if (!product) return jsonError(404, "Un producto del carrito ya no está disponible.");
@@ -106,20 +117,47 @@ export async function POST(request: NextRequest) {
       if (variation.currency !== location.currency) {
         return jsonError(409, `El cobro de la tienda es en ${location.currency}.`);
       }
-      const label = variation.name === "Estándar" ? product.name : `${product.name} · ${variation.name}`;
+      const variationName = variation.name === "Estándar" ? null : variation.name;
       orderLines.push({
-        name: label,
+        ref: product.ref,
+        name: product.name,
+        variationName,
         quantity: line.quantity,
         amount: variation.amount,
         currency: variation.currency,
+        imageUrl: product.image_url,
       });
     }
 
-    const fulfillment = parsed.data.fulfillment satisfies StoreFulfillment;
+    const submitted = parsed.data.fulfillment;
+    let fulfillment: StoreFulfillment;
+    let locationId: string | null = null;
+    let locationName: string | null = null;
+    if (submitted.method === "pickup") {
+      try {
+        locationName = await assertPickupStock(
+          parsed.data.locale,
+          submitted.locationId,
+          orderLines.map((line) => line.ref)
+        );
+      } catch (error) {
+        return jsonError(409, error instanceof Error ? error.message : "Esa sede no tiene los productos.");
+      }
+      locationId = submitted.locationId;
+      fulfillment = { method: "pickup", name: submitted.name, locationName };
+    } else {
+      fulfillment = submitted;
+    }
+
     const order = await createSquareOrder({
       idempotencyKey: parsed.data.idempotencyKey,
       locationId: location.id,
-      lines: orderLines,
+      lines: orderLines.map((line) => ({
+        name: line.variationName ? `${line.name} · ${line.variationName}` : line.name,
+        quantity: line.quantity,
+        amount: line.amount,
+        currency: line.currency,
+      })),
       fulfillment,
     });
     if (order.currency !== location.currency || order.totalAmount <= 0) {
@@ -141,10 +179,43 @@ export async function POST(request: NextRequest) {
       return jsonError(402, "El pago no se completó. Revisa la tarjeta e inténtalo de nuevo.");
     }
 
+    let saved = null;
+    try {
+      saved = await insertStoreOrder({
+        locale: parsed.data.locale,
+        fulfillment: fulfillment.method,
+        locationId,
+        locationName,
+        recipientName: fulfillment.name,
+        addressLine1: fulfillment.method === "shipping" ? fulfillment.line1 : null,
+        city: fulfillment.method === "shipping" ? fulfillment.city : null,
+        state: fulfillment.method === "shipping" ? fulfillment.state : null,
+        postalCode: fulfillment.method === "shipping" ? fulfillment.postalCode : null,
+        country: fulfillment.method === "shipping" ? fulfillment.country : null,
+        currency: order.currency,
+        totalAmount: order.totalAmount,
+        squareOrderId: order.id,
+        squarePaymentId: payment.id,
+        receiptUrl: payment.receiptUrl,
+        lines: orderLines.map((line) => ({
+          ref: line.ref,
+          name: line.name,
+          variationName: line.variationName,
+          quantity: line.quantity,
+          unitAmount: line.amount,
+          currency: line.currency,
+          imageUrl: line.imageUrl,
+        })),
+      });
+    } catch (error) {
+      console.error("store-order-save", error);
+    }
+
     return jsonOk({
       paymentId: payment.id,
       status: payment.status,
       receiptUrl: payment.receiptUrl,
+      order: saved,
     });
   } catch (error) {
     if (error instanceof PayloadTooLargeError) return payloadTooLargeResponse();

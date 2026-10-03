@@ -2,6 +2,7 @@
 
 import { BRAND_CTA_BASE_CLASS } from "@/lib/brandCta";
 import { formatStorePrice } from "@/lib/store/formatPrice";
+import type { StoreReceiptData } from "@/lib/store/orderTypes";
 import { useEffect, useId, useRef, useState } from "react";
 import "@/app/styles/brand-cta.css";
 
@@ -24,7 +25,7 @@ declare global {
 type PayLine = { ref: string; variationId: string; quantity: number };
 
 export type CheckoutFulfillment =
-  | { method: "pickup"; name: string }
+  | { method: "pickup"; name: string; locationId: string }
   | {
       method: "shipping";
       name: string;
@@ -41,7 +42,7 @@ type Props = {
   totalMajor: number;
   currency: string;
   fulfillment: CheckoutFulfillment | null;
-  onPaid: (receiptUrl: string | null) => void;
+  onPaid: (result: { receiptUrl: string | null; order: StoreReceiptData | null }) => void;
   labels: {
     payWithCard: string;
     payNow: string;
@@ -163,12 +164,17 @@ export default function SquareCheckout({ locale, lines, totalMajor, currency, fu
           idempotencyKey: crypto.randomUUID(),
         }),
       });
-      const body = (await response.json()) as { ok?: boolean; error?: string; receiptUrl?: string | null };
+      const body = (await response.json()) as {
+        ok?: boolean;
+        error?: string;
+        receiptUrl?: string | null;
+        order?: StoreReceiptData | null;
+      };
       if (!response.ok || !body.ok) {
         setError(body.error || labels.paymentFailed);
         return;
       }
-      onPaid(body.receiptUrl ?? null);
+      onPaid({ receiptUrl: body.receiptUrl ?? null, order: body.order ?? null });
     } catch {
       setError(labels.paymentFailed);
     } finally {

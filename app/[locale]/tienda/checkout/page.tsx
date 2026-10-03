@@ -6,21 +6,27 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import WaveDivider from "@/components/WaveDivider";
 import SquareCheckout, { type CheckoutFulfillment } from "@/components/store/SquareCheckout";
+import StoreReceipt from "@/components/store/StoreReceipt";
 import { useStoreCart } from "@/components/store/StoreCart";
 import { minorToMajor } from "@/lib/square/money";
 import { formatStorePrice } from "@/lib/store/formatPrice";
+import type { StoreReceiptData } from "@/lib/store/orderTypes";
 import { Minus, Plus } from "lucide-react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "@/app/styles/tienda.css";
 
 function CheckoutContent() {
   const t = useTranslations("tienda");
   const locale = useLocale();
   const cart = useStoreCart();
-  const [receiptUrl, setReceiptUrl] = useState<string | null | undefined>(undefined);
+  const [paidOrder, setPaidOrder] = useState<StoreReceiptData | null>(null);
+  const [paid, setPaid] = useState(false);
   const [method, setMethod] = useState<"pickup" | "shipping">("pickup");
+  const [locationId, setLocationId] = useState("");
+  const [sites, setSites] = useState<{ id: string; name: string; city: string | null }[]>([]);
+  const [pickupLines, setPickupLines] = useState<{ ref: string; locationIds: string[] }[]>([]);
   const [name, setName] = useState("");
   const [line1, setLine1] = useState("");
   const [city, setCity] = useState("");
@@ -31,8 +37,36 @@ function CheckoutContent() {
   const blocked = cart.lines.filter((line) => cart.currency && line.currency !== cart.currency);
   const totalMinor = payable.reduce((sum, line) => sum + line.unitAmount * line.quantity, 0);
   const currency = cart.currency || payable[0]?.currency || "USD";
-  const paid = receiptUrl !== undefined;
   const trimmedName = name.trim();
+  const refsKey = payable.map((line) => line.ref).join(",");
+
+  useEffect(() => {
+    if (method !== "pickup" || !refsKey) {
+      setSites([]);
+      setPickupLines([]);
+      return;
+    }
+    let cancelled = false;
+    fetch(`/api/store/pickup?locale=${encodeURIComponent(locale)}&refs=${encodeURIComponent(refsKey)}`)
+      .then(async (response) => {
+        const body = (await response.json()) as {
+          ok?: boolean;
+          locations?: { id: string; name: string; city: string | null }[];
+          lines?: { ref: string; locationIds: string[] }[];
+        };
+        if (!response.ok || !body.ok || cancelled) return;
+        setSites(body.locations ?? []);
+        setPickupLines(body.lines ?? []);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [method, locale, refsKey]);
+
+  const pickupCovered =
+    Boolean(locationId) &&
+    payable.every((line) => pickupLines.find((row) => row.ref === line.ref)?.locationIds.includes(locationId));
   const shippingReady =
     trimmedName.length >= 2 &&
     line1.trim().length >= 3 &&
@@ -41,8 +75,8 @@ function CheckoutContent() {
     postalCode.trim().length >= 3;
   const fulfillment: CheckoutFulfillment | null =
     method === "pickup"
-      ? trimmedName.length >= 2
-        ? { method: "pickup", name: trimmedName }
+      ? trimmedName.length >= 2 && pickupCovered
+        ? { method: "pickup" as const, name: trimmedName, locationId }
         : null
       : shippingReady
         ? {
@@ -69,14 +103,25 @@ function CheckoutContent() {
         </Link>
         <h1 className="tienda-detail__title">{t("cartTitle")}</h1>
 
-        {paid ? (
+        {paid && paidOrder ? (
+          <StoreReceipt
+            data={paidOrder}
+            labels={{
+              receiptTitle: t("receiptTitle"),
+              totalPaid: t("totalPaid"),
+              thanksOrder: t("thanksOrder"),
+              processingOrder: t("processingOrder"),
+              printingReceipt: t("printingReceipt"),
+              orderComplete: t("orderComplete"),
+              pickup: t("pickup"),
+              shipping: t("shipping"),
+              home: t("receiptHome"),
+            }}
+            homeHref={`/${locale}`}
+          />
+        ) : paid ? (
           <div className="square-checkout__success mt-8">
             <p>{t("paymentSuccess")}</p>
-            {receiptUrl ? (
-              <a href={receiptUrl} target="_blank" rel="noopener noreferrer">
-                {t("paymentReceipt")}
-              </a>
-            ) : null}
           </div>
         ) : payable.length === 0 && blocked.length === 0 ? (
           <div className="tienda-empty text-center py-16">
@@ -190,6 +235,48 @@ function CheckoutContent() {
                     <span>{t("recipientName")}</span>
                     <input value={name} autoComplete="name" onChange={(event) => setName(event.target.value)} />
                   </label>
+                  {method === "pickup" ? (
+                    <div className="tienda-fulfill__sites">
+                      <p className="tienda-fulfill__warn">{t("pickupChoose")}</p>
+                      {sites.map((site) => (
+                        <label key={site.id} className="tienda-fulfill__choice tienda-fulfill__site">
+                          <input
+                            type="radio"
+                            name="pickup-site"
+                            value={site.id}
+                            checked={locationId === site.id}
+                            onChange={() => setLocationId(site.id)}
+                          />
+                          {site.name}
+                          {site.city ? ` · ${site.city}` : ""}
+                        </label>
+                      ))}
+                      {payable.map((line) => {
+                        const available = pickupLines.find((row) => row.ref === line.ref)?.locationIds ?? [];
+                        if (locationId && available.includes(locationId)) return null;
+                        if (!available.length) {
+                          return (
+                            <p key={line.ref} className="tienda-fulfill__warn">
+                              {line.name}: {t("pickupNone")}
+                            </p>
+                          );
+                        }
+                        if (!locationId) return null;
+                        const names = sites.filter((site) => available.includes(site.id)).map((site) => site.name).join(", ");
+                        return (
+                          <p key={line.ref} className="tienda-fulfill__warn">
+                            {line.name}: {t("pickupOnlyAt", { sites: names })}
+                          </p>
+                        );
+                      })}
+                      {sites.length > 0 &&
+                      !sites.some((site) =>
+                        payable.every((line) => pickupLines.find((row) => row.ref === line.ref)?.locationIds.includes(site.id))
+                      ) ? (
+                        <p className="tienda-fulfill__warn">{t("pickupUnavailable")}</p>
+                      ) : null}
+                    </div>
+                  ) : null}
                   {method === "shipping" ? (
                     <>
                       <label className="tienda-fulfill__field">
@@ -233,8 +320,9 @@ function CheckoutContent() {
                   }))}
                   totalMajor={minorToMajor(totalMinor, currency)}
                   currency={currency}
-                  onPaid={(url) => {
-                    setReceiptUrl(url);
+                  onPaid={(result) => {
+                    setPaidOrder(result.order);
+                    setPaid(true);
                     cart.clear();
                   }}
                   labels={{
