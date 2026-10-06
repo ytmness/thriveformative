@@ -41,8 +41,7 @@ export default function PosScreen() {
   const [review, setReview] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [saleId, setSaleId] = useState<string | null>(null);
-  const [terminalSale, setTerminalSale] = useState<string | null>(null);
-  const [terminal, setTerminal] = useState<TerminalLink | null>(null);
+  const [readerLink, setReaderLink] = useState<string | null>(null);
   const [locationId, setLocationId] = useState("");
   const [locations, setLocations] = useState<{ id: string; name: string }[]>([]);
   const scope = useClinicScope();
@@ -131,17 +130,26 @@ export default function PosScreen() {
       const amount = Math.round(total * 100) / 100;
       const result = await api<{
         sale: { id: string };
-        terminal: { checkoutId: string; deviceName: string; status: string } | null;
+        reader: { iosUrl: string; androidUrl: string } | null;
         stripe: { clientSecret: string | null; paymentIntentId: string | null } | null;
       }>("/api/admin/sales", {
         method: "POST",
         body: JSON.stringify({ patientId: buyer, walkInName: walkIn || null, locationId: locationId || null, items, payment: { methodKey: method, amount } }),
       });
       setSaleId(result.sale.id);
-      if (result.terminal?.checkoutId) {
-        setTerminalSale(result.sale.id);
-        setMessage(`Cobro enviado a ${result.terminal.deviceName}. El cliente paga en la terminal.`);
-      } else if (result.stripe?.clientSecret) {
+      if (result.reader) {
+        const ua = navigator.userAgent;
+        const ios = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+        const link = /Android/i.test(ua) ? result.reader.androidUrl : ios ? result.reader.iosUrl : null;
+        if (!link) {
+          setMessage("Abre Cobrar en el celular o la tablet donde está la app de Square y el lector emparejado. Desde la computadora el cuadro blanco no se conecta.");
+          return;
+        }
+        setReaderLink(link);
+        window.location.href = link;
+        return;
+      }
+      if (result.stripe?.clientSecret) {
         setClientSecret(result.stripe.clientSecret);
         setMessage("Confirma el cobro con Stripe.");
       } else {
@@ -149,82 +157,6 @@ export default function PosScreen() {
         setCart([]);
         setReview(false);
       }
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Error");
-    }
-  }
-
-  useEffect(() => {
-    if (method !== "card") return;
-    let stop = false;
-    const load = () => api<TerminalLink>("/api/admin/square/terminal").then((row) => {
-      if (!stop) setTerminal(row);
-    }).catch((error) => {
-      if (!stop && !terminalSale) setMessage(error instanceof Error ? error.message : "No se pudo consultar la terminal.");
-    });
-    load();
-    if (!terminal?.code) return () => { stop = true; };
-    const timer = window.setInterval(load, 3000);
-    return () => { stop = true; window.clearInterval(timer); };
-  }, [method, terminal?.code, terminalSale]);
-
-  useEffect(() => {
-    if (!terminalSale) return;
-    let stop = false;
-    const tick = async () => {
-      const row = await api<{ status: string }>(`/api/admin/sales/${terminalSale}`, {
-        method: "POST",
-        body: JSON.stringify({ action: "terminal" }),
-      });
-      if (stop) return;
-      if (row.status === "COMPLETED") {
-        setMessage("Pago confirmado en la terminal.");
-        setTerminalSale(null);
-        setCart([]);
-        setReview(false);
-      } else if (row.status === "CANCELED") {
-        setMessage("La terminal canceló el cobro. La venta quedó abierta.");
-        setTerminalSale(null);
-        setReview(false);
-      }
-    };
-    tick().catch((error) => { if (!stop) setMessage(error instanceof Error ? error.message : "Error"); });
-    const timer = window.setInterval(() => {
-      tick().catch((error) => { if (!stop) setMessage(error instanceof Error ? error.message : "Error"); });
-    }, 2000);
-    return () => { stop = true; window.clearInterval(timer); };
-  }, [terminalSale]);
-
-  async function pairTerminal() {
-    setMessage(null);
-    try {
-      const row = await api<{ code: string; status: string }>("/api/admin/square/terminal", {
-        method: "POST",
-        body: JSON.stringify({ action: "code", name: "Recepción" }),
-      });
-      setTerminal((current) => ({ ...(current || { deviceId: null, deviceName: null, devices: [] }), code: row }));
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Error");
-    }
-  }
-
-  async function chooseTerminal(deviceId: string) {
-    try {
-      const row = await api<{ device: { id: string; name: string } }>("/api/admin/square/terminal", {
-        method: "POST",
-        body: JSON.stringify({ action: "select", deviceId }),
-      });
-      setTerminal((current) => current ? { ...current, deviceId: row.device.id, deviceName: row.device.name, code: null } : current);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Error");
-    }
-  }
-
-  async function cancelTerminal() {
-    if (!terminalSale) return;
-    try {
-      await api(`/api/admin/sales/${terminalSale}`, { method: "POST", body: JSON.stringify({ action: "terminal-cancel" }) });
-      setMessage("Cancelación enviada a la terminal.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Error");
     }
@@ -311,18 +243,7 @@ export default function PosScreen() {
           {methodsReady && !methods.length ? <p className="admin-field__hint">Agrega un método en Configuración → Métodos de pago.</p> : null}
           {method === "card" ? (
             <div className="pos-terminal">
-              {terminal?.deviceName ? <p>Terminal lista: {terminal.deviceName}</p> : <p>Vincula la terminal de Square para cobrar con tarjeta.</p>}
-              {terminal?.code ? <p className="pos-terminal__code">{terminal.code.code}</p> : null}
-              {terminal?.code ? <p>Escribe este código en la terminal. Se vincula sola.</p> : null}
-              {(terminal?.devices.length || 0) > 1 ? (
-                <label className="admin-field">Terminal
-                  <select value={terminal?.deviceId || ""} onChange={(e) => chooseTerminal(e.target.value)}>
-                    <option value="">Elige</option>
-                    {terminal?.devices.map((device) => <option key={device.id} value={device.id}>{device.name}</option>)}
-                  </select>
-                </label>
-              ) : null}
-              <button className="admin-btn" type="button" onClick={pairTerminal}>{terminal?.code ? "Generar otro código" : "Vincular terminal"}</button>
+              <p>El cuadro blanco se empareja por Bluetooth en la app de Square del celular. Al cobrar, se abre esa app y el cliente paga en el lector.</p>
             </div>
           ) : null}
           {cart.map((item, index) => (
@@ -343,15 +264,13 @@ export default function PosScreen() {
             <p className="admin-checkout__line"><span>Impuestos</span><span>${taxTotal.toFixed(2)}</span></p>
             <p className="admin-checkout__line admin-checkout__line--total"><span>Total</span><span>${total.toFixed(2)}</span></p>
           </div>
-          {terminalSale ? (
-            <div className="admin-toolbar">
-              <button className="admin-btn" type="button" onClick={cancelTerminal}>Cancelar en la terminal</button>
-            </div>
+          {readerLink ? (
+            <a className="admin-btn admin-btn--primary" href={readerLink}>Abrir el lector en Square</a>
           ) : review ? (
             <div className="admin-review" role="region" aria-label="Revisar cobro">
               <p>Revisa la venta antes de registrarla.</p>
               <p>{buyerLabel} · {methodName}</p>
-              {method === "card" ? <p>El ticket se manda a la terminal. El cliente paga ahí.</p> : null}
+              {method === "card" ? <p>Se abre la app de Square. El cliente acerca o inserta la tarjeta en el lector.</p> : null}
               {cart.map((item, index) => <p key={index}>{item.description} × {item.quantity} · ${((item.unitPrice || 0) * item.quantity).toFixed(2)}</p>)}
               <div className="admin-toolbar">
                 <button className="admin-btn admin-btn--primary" type="button" onClick={checkout}>Confirmar cobro</button>
@@ -366,13 +285,6 @@ export default function PosScreen() {
     </>
   );
 }
-
-type TerminalLink = {
-  deviceId: string | null;
-  deviceName: string | null;
-  devices: { id: string; name: string; status: string }[];
-  code: { code: string; status: string } | null;
-};
 
 function pictureOf(item: Catalog, tab: string) {
   if (item.image_url) return item.image_url;

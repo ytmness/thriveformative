@@ -6,10 +6,11 @@ import { withTx, type TxQuery } from "@/lib/dbTx";
 import { DomainError, money } from "@/lib/http";
 import { getStripe } from "@/lib/payments/stripeClient";
 import { countrySql, normalizeCountry } from "@/lib/domain/scope";
-import { SquareApiError, getSquareLocation } from "@/lib/square/client";
-import { SquareConfigError } from "@/lib/square/config";
+import { SquareApiError, getSquareLocation, squareFetch } from "@/lib/square/client";
+import { SquareConfigError, getSquareCredentials, getSquareEnvironment } from "@/lib/square/config";
 import { majorToMinor } from "@/lib/square/money";
 import { createCounterOrder } from "@/lib/square/orders";
+import { buildReaderChargeLinks, readerErrorText } from "@/lib/square/reader";
 import {
   cancelTerminalCheckout,
   createTerminalCheckout,
@@ -225,7 +226,7 @@ export async function createSale(
     return id;
   });
 
-  let stripe: { clientSecret: string | null; paymentIntentId: string | null; terminal: TerminalCharge | null } | null = null;
+  let stripe: { clientSecret: string | null; paymentIntentId: string | null; terminal: TerminalCharge | null; reader: ReaderCharge | null } | null = null;
   if (input.payment && input.payment.amount > 0) {
     stripe = await addPayment(saleId, input.payment.methodKey, input.payment.amount, actor);
   }
@@ -238,7 +239,7 @@ export async function createSale(
     entityId: saleId,
     patientId: input.patientId ?? null,
   });
-  return { sale: await getSale(saleId), stripe, terminal: stripe?.terminal ?? null };
+  return { sale: await getSale(saleId), stripe, terminal: stripe?.terminal ?? null, reader: stripe?.reader ?? null };
 }
 
 export async function getSale(id: string) {
@@ -299,6 +300,7 @@ export async function addPayment(saleId: string, methodKey: string, amount: numb
   let squareCheckoutId: string | null = null;
   let clientSecret: string | null = null;
   let terminal: TerminalCharge | null = null;
+  let reader: ReaderCharge | null = null;
   let status = "succeeded";
   if (methodKey === "stripe") {
     const stripe = getStripe();
@@ -314,8 +316,8 @@ export async function addPayment(saleId: string, methodKey: string, amount: numb
     status = "pending";
   }
   if (methodKey === "card") {
-    terminal = await chargeOnTerminal(saleId, amount);
-    squareCheckoutId = terminal.checkoutId;
+    reader = await prepareReaderCharge(saleId, amount);
+    squareCheckoutId = `reader:${reader.state}`;
     status = "pending";
   }
   await query(
@@ -333,10 +335,70 @@ export async function addPayment(saleId: string, methodKey: string, amount: numb
     patientId: sale.rows[0].patient_id,
     metadata: { method: methodKey, status },
   });
-  return { clientSecret, paymentIntentId: stripePaymentIntentId, terminal };
+  return { clientSecret, paymentIntentId: stripePaymentIntentId, terminal, reader };
 }
 
 type TerminalCharge = { checkoutId: string; deviceName: string; status: string };
+type ReaderCharge = { state: string; iosUrl: string; androidUrl: string };
+
+async function prepareReaderCharge(saleId: string, amount: number): Promise<ReaderCharge> {
+  if (getSquareEnvironment() !== "production") {
+    throw new DomainError("El lector cobra con la app de Square en producción. El ambiente de pruebas no lo admite.", 503);
+  }
+  try {
+    const credentials = getSquareCredentials();
+    const location = await getSquareLocation();
+    const sale = await query<{ sale_number: string }>(`SELECT sale_number FROM sales WHERE id = $1`, [saleId]);
+    const state = randomUUID();
+    const links = buildReaderChargeLinks({
+      amount: majorToMinor(amount, location.currency),
+      currency: location.currency,
+      state,
+      note: `Thrive ${sale.rows[0]?.sale_number || saleId} ${state}`,
+      locationId: location.id,
+      applicationId: credentials.applicationId,
+    });
+    return { state, iosUrl: links.iosUrl, androidUrl: links.androidUrl };
+  } catch (error) {
+    squareFailure(error);
+  }
+}
+
+export async function completeReaderPayment(input: { state: string; squarePaymentId: string | null; errorCode: string | null }) {
+  if (!/^[0-9a-f-]{36}$/i.test(input.state)) throw new DomainError("Cobro no reconocido.");
+  const payment = await query<{ id: string; sale_id: string | null; status: string; amount: string }>(
+    `SELECT id, sale_id, status, amount::text FROM payments WHERE square_checkout_id = $1`,
+    [`reader:${input.state}`]
+  );
+  const row = payment.rows[0];
+  if (!row) throw new DomainError("No encontré ese cobro.");
+  if (row.status === "succeeded") return { ok: true, message: "El pago ya estaba registrado." };
+  if (input.errorCode || !input.squarePaymentId) {
+    await query(`UPDATE payments SET status = 'failed' WHERE id = $1 AND status = 'pending'`, [row.id]);
+    return { ok: false, message: readerErrorText(input.errorCode) };
+  }
+  let paid: { id?: string; status?: string; amount_money?: { amount?: number; currency?: string } } | undefined;
+  try {
+    const body = await squareFetch<{ payment?: { id?: string; status?: string; amount_money?: { amount?: number; currency?: string } } }>(
+      `/v2/payments/${encodeURIComponent(input.squarePaymentId)}`
+    );
+    paid = body.payment;
+  } catch (error) {
+    squareFailure(error);
+  }
+  const got = Number(paid?.amount_money?.amount);
+  const expected = majorToMinor(Number(row.amount), paid?.amount_money?.currency || "USD");
+  if (paid?.status !== "COMPLETED" || !paid.id || !Number.isFinite(got) || got + 1 < expected) {
+    return { ok: false, message: "Square aún no confirmó el monto del lector." };
+  }
+  await query(
+    `UPDATE payments SET status = 'succeeded', received_at = coalesce(received_at, now()), square_payment_id = $2
+     WHERE id = $1 AND status = 'pending'`,
+    [row.id, paid.id]
+  );
+  if (row.sale_id) await recalcSale(row.sale_id);
+  return { ok: true, message: "El lector cobró la tarjeta. La venta quedó pagada." };
+}
 
 function squareFailure(error: unknown): never {
   if (error instanceof DomainError) throw error;
