@@ -1,4 +1,4 @@
-import { randomBytes } from "crypto";
+import { randomBytes, randomUUID } from "crypto";
 import { writeAudit } from "@/lib/audit";
 import type { StaffSession } from "@/lib/auth/session";
 import { query } from "@/lib/db";
@@ -6,6 +6,16 @@ import { withTx, type TxQuery } from "@/lib/dbTx";
 import { DomainError, money } from "@/lib/http";
 import { getStripe } from "@/lib/payments/stripeClient";
 import { countrySql, normalizeCountry } from "@/lib/domain/scope";
+import { SquareApiError, getSquareLocation } from "@/lib/square/client";
+import { SquareConfigError } from "@/lib/square/config";
+import { majorToMinor } from "@/lib/square/money";
+import { createCounterOrder } from "@/lib/square/orders";
+import {
+  cancelTerminalCheckout,
+  createTerminalCheckout,
+  getTerminalCheckout,
+  requireTerminalDevice,
+} from "@/lib/square/terminal";
 import { emitWebhook } from "@/lib/webhooks/emit";
 
 export type SaleItemInput = {
@@ -215,7 +225,7 @@ export async function createSale(
     return id;
   });
 
-  let stripe: { clientSecret: string | null; paymentIntentId: string | null } | null = null;
+  let stripe: { clientSecret: string | null; paymentIntentId: string | null; terminal: TerminalCharge | null } | null = null;
   if (input.payment && input.payment.amount > 0) {
     stripe = await addPayment(saleId, input.payment.methodKey, input.payment.amount, actor);
   }
@@ -228,7 +238,7 @@ export async function createSale(
     entityId: saleId,
     patientId: input.patientId ?? null,
   });
-  return { sale: await getSale(saleId), stripe };
+  return { sale: await getSale(saleId), stripe, terminal: stripe?.terminal ?? null };
 }
 
 export async function getSale(id: string) {
@@ -286,7 +296,9 @@ export async function addPayment(saleId: string, methodKey: string, amount: numb
   if (!method.rows[0]) throw new DomainError("Método de pago no válido.");
   const invoice = await query<{ id: string }>(`SELECT id FROM invoices WHERE sale_id = $1`, [saleId]);
   let stripePaymentIntentId: string | null = null;
+  let squareCheckoutId: string | null = null;
   let clientSecret: string | null = null;
+  let terminal: TerminalCharge | null = null;
   let status = "succeeded";
   if (methodKey === "stripe") {
     const stripe = getStripe();
@@ -301,10 +313,15 @@ export async function addPayment(saleId: string, methodKey: string, amount: numb
     clientSecret = intent.client_secret;
     status = "pending";
   }
+  if (methodKey === "card") {
+    terminal = await chargeOnTerminal(saleId, amount);
+    squareCheckoutId = terminal.checkoutId;
+    status = "pending";
+  }
   await query(
-    `INSERT INTO payments (sale_id, invoice_id, patient_id, method_id, amount, status, stripe_payment_intent_id, received_at, created_by)
-     VALUES ($1,$2,$3,$4,$5,$6,$7, CASE WHEN $6 = 'succeeded' THEN now() ELSE NULL END, $8)`,
-    [saleId, invoice.rows[0]?.id ?? null, sale.rows[0].patient_id, method.rows[0].id, money(amount), status, stripePaymentIntentId, actor.staff.id]
+    `INSERT INTO payments (sale_id, invoice_id, patient_id, method_id, amount, status, stripe_payment_intent_id, square_checkout_id, received_at, created_by)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8, CASE WHEN $6 = 'succeeded' THEN now() ELSE NULL END, $9)`,
+    [saleId, invoice.rows[0]?.id ?? null, sale.rows[0].patient_id, method.rows[0].id, money(amount), status, stripePaymentIntentId, squareCheckoutId, actor.staff.id]
   );
   if (status === "succeeded") await recalcSale(saleId);
   await writeAudit({
@@ -316,7 +333,115 @@ export async function addPayment(saleId: string, methodKey: string, amount: numb
     patientId: sale.rows[0].patient_id,
     metadata: { method: methodKey, status },
   });
-  return { clientSecret, paymentIntentId: stripePaymentIntentId };
+  return { clientSecret, paymentIntentId: stripePaymentIntentId, terminal };
+}
+
+type TerminalCharge = { checkoutId: string; deviceName: string; status: string };
+
+function squareFailure(error: unknown): never {
+  if (error instanceof DomainError) throw error;
+  if (error instanceof SquareConfigError) throw new DomainError(error.message, 503);
+  if (error instanceof SquareApiError) {
+    const status = error.status >= 400 && error.status < 500 ? error.status : 502;
+    throw new DomainError(error.message, status);
+  }
+  throw error;
+}
+
+async function chargeOnTerminal(saleId: string, amount: number): Promise<TerminalCharge> {
+  try {
+    const device = await requireTerminalDevice();
+    const location = await getSquareLocation();
+    const sale = await query<{ sale_number: string; walk_in_name: string | null }>(
+      `SELECT sale_number, walk_in_name FROM sales WHERE id = $1`,
+      [saleId]
+    );
+    const items = await query<{ description: string; quantity: string; line_total: string }>(
+      `SELECT description, quantity, line_total FROM sale_items WHERE sale_id = $1`,
+      [saleId]
+    );
+    const lines = items.rows.flatMap((item) => {
+      const quantity = Math.max(1, Math.round(Number(item.quantity)));
+      const totalMinor = majorToMinor(Number(item.line_total), location.currency);
+      if (totalMinor <= 0) return [];
+      const unit = Math.round(totalMinor / quantity);
+      if (quantity > 1 && unit * quantity === totalMinor) {
+        return [{ name: item.description, quantity: String(quantity), amount: unit, currency: location.currency }];
+      }
+      const name = quantity > 1 ? `${quantity} × ${item.description}` : item.description;
+      return [{ name, quantity: "1", amount: totalMinor, currency: location.currency }];
+    });
+    if (!lines.length) throw new DomainError("El cobro no tiene importes para la terminal.");
+    const order = await createCounterOrder({
+      idempotencyKey: randomUUID(),
+      locationId: location.id,
+      lines,
+      referenceId: sale.rows[0]?.sale_number || saleId,
+    });
+    const expected = majorToMinor(amount, location.currency);
+    if (Math.abs(order.totalAmount - expected) > 1) {
+      throw new DomainError("El total de Square no coincide con el ticket.");
+    }
+    const checkout = await createTerminalCheckout({
+      deviceId: device.id,
+      orderId: order.id,
+      amount: order.totalAmount,
+      currency: order.currency,
+      referenceId: sale.rows[0]?.sale_number || saleId,
+      note: `Cobro ${sale.rows[0]?.sale_number || ""} ${sale.rows[0]?.walk_in_name || ""}`.trim(),
+    });
+    return { checkoutId: checkout.id, deviceName: device.name, status: checkout.status };
+  } catch (error) {
+    squareFailure(error);
+  }
+}
+
+export async function syncTerminalPayment(saleId: string) {
+  const payment = await query<{ id: string; status: string; square_checkout_id: string | null }>(
+    `SELECT id, status, square_checkout_id FROM payments
+     WHERE sale_id = $1 AND square_checkout_id IS NOT NULL
+     ORDER BY created_at DESC LIMIT 1`,
+    [saleId]
+  );
+  const row = payment.rows[0];
+  if (!row?.square_checkout_id) throw new DomainError("Esta venta no tiene un cobro en la terminal.");
+  if (row.status === "succeeded") return { status: "COMPLETED" };
+  if (row.status === "failed" || row.status === "void") return { status: "CANCELED" };
+  let checkout: { status: string; paymentId: string | null };
+  try {
+    checkout = await getTerminalCheckout(row.square_checkout_id);
+  } catch (error) {
+    squareFailure(error);
+  }
+  if (checkout.status === "COMPLETED") {
+    await query(
+      `UPDATE payments SET status = 'succeeded', received_at = coalesce(received_at, now()), square_payment_id = $2
+       WHERE id = $1 AND status = 'pending'`,
+      [row.id, checkout.paymentId]
+    );
+    await recalcSale(saleId);
+  } else if (checkout.status === "CANCELED") {
+    await query(`UPDATE payments SET status = 'failed' WHERE id = $1 AND status = 'pending'`, [row.id]);
+  }
+  return { status: checkout.status };
+}
+
+export async function cancelTerminalPayment(saleId: string) {
+  const payment = await query<{ id: string; status: string; square_checkout_id: string | null }>(
+    `SELECT id, status, square_checkout_id FROM payments
+     WHERE sale_id = $1 AND square_checkout_id IS NOT NULL
+     ORDER BY created_at DESC LIMIT 1`,
+    [saleId]
+  );
+  const row = payment.rows[0];
+  if (!row?.square_checkout_id) throw new DomainError("Esta venta no tiene un cobro en la terminal.");
+  if (row.status !== "pending") return syncTerminalPayment(saleId);
+  try {
+    await cancelTerminalCheckout(row.square_checkout_id);
+  } catch (error) {
+    squareFailure(error);
+  }
+  return syncTerminalPayment(saleId);
 }
 
 export async function markStripePaid(paymentIntentId: string) {

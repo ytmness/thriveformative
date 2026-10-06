@@ -1,5 +1,5 @@
 import { isSession, requirePermission } from "@/lib/auth/guard";
-import { addPayment, getSale, markStripePaid, voidSale } from "@/lib/domain/sales";
+import { addPayment, cancelTerminalPayment, getSale, markStripePaid, syncTerminalPayment, voidSale } from "@/lib/domain/sales";
 import { getStripe } from "@/lib/payments/stripeClient";
 import { readJson, toErrorResponse, DomainError } from "@/lib/http";
 
@@ -23,6 +23,14 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     if (body.action === "void") {
       await voidSale(id, String(body.reason || ""), session);
       return Response.json({ sale: await getSale(id) });
+    }
+    if (body.action === "terminal") {
+      const terminal = await syncTerminalPayment(id);
+      return Response.json({ ...terminal, sale: await getSale(id) });
+    }
+    if (body.action === "terminal-cancel") {
+      const terminal = await cancelTerminalPayment(id);
+      return Response.json({ ...terminal, sale: await getSale(id) });
     }
     if (body.action === "confirm" && body.paymentIntentId) {
       const stripe = getStripe();

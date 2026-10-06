@@ -257,6 +257,9 @@
 .admin-checkout__item { display: flex; align-items: center; justify-content: flex-start; gap: 0.65rem; min-width: 0; text-align: left; }
 .admin-checkout__photo { width: 3.25rem; height: 3.25rem; object-fit: contain; object-position: center; flex: none; border-radius: 0.55rem; background: #f4e7d6; }
 .admin-checkout__line--total { color: rgb(var(--text)); font-size: 1.35rem; font-weight: 650; }
+.pos-terminal { display: grid; gap: 0.4rem; padding: 0.75rem 0.85rem; border-radius: 0.85rem; border: 1px solid rgb(var(--primary) / 0.45); background: rgb(var(--primary) / 0.12); }
+.pos-terminal p { margin: 0; }
+.pos-terminal__code { font-size: 1.7rem; letter-spacing: 0.2em; font-weight: 700; }
 .admin-patient-search { position: relative; flex: 1; min-width: 14rem; }
 .admin-patient-search input { width: 100%; }
 .admin-check { display: flex; align-items: center; gap: 0.45rem; font-size: 0.875rem; }

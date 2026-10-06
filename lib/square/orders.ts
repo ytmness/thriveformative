@@ -86,3 +86,36 @@ export async function createSquareOrder(input: {
 
   return { id: body.order.id, totalAmount: total.amount, currency: total.currency };
 }
+
+export async function createCounterOrder(input: {
+  idempotencyKey: string;
+  locationId: string;
+  lines: { name: string; quantity: string; amount: number; currency: string }[];
+  referenceId: string;
+}): Promise<{ id: string; totalAmount: number; currency: string }> {
+  const body = await squareFetch<CreateOrderResponse>("/v2/orders", {
+    method: "POST",
+    body: {
+      idempotency_key: input.idempotencyKey,
+      order: {
+        location_id: input.locationId,
+        reference_id: input.referenceId.slice(0, 40),
+        line_items: input.lines.map((line) => ({
+          name: line.name.slice(0, 255),
+          quantity: line.quantity,
+          base_price_money: {
+            amount: line.amount,
+            currency: line.currency,
+          },
+        })),
+      },
+    },
+  });
+
+  const total = readSquareMoney(body.order?.total_money);
+  if (!body.order?.id || !total) {
+    throw new Error("Square no devolvió el pedido.");
+  }
+
+  return { id: body.order.id, totalAmount: total.amount, currency: total.currency };
+}
