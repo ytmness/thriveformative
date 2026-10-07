@@ -122,7 +122,7 @@ export default function PosScreen() {
     setMessage(null);
     try {
       let buyer = patientId || null;
-      if (newPatient) {
+      if (!patientId && newPatient) {
         const created = await api<{ patient: { id: string } }>("/api/admin/patients", { method: "POST", body: JSON.stringify({ firstName, lastName }) });
         buyer = created.patient.id;
       }
@@ -229,11 +229,15 @@ export default function PosScreen() {
           {catalogReady && !catalog.length && tab === "membership" ? <p className="admin-table__empty">No hay membresías. Créalas en Servicios y productos.</p> : null}
         </div>
         <aside className="admin-checkout" data-tour="sales-pay">
-          <label className="admin-field">Paciente<select value={patientId} onChange={(e) => setPatientId(e.target.value)}><option value="">Mostrador</option>{patients.map((p) => <option key={p.id} value={p.id}>{p.firstName} {p.lastName}</option>)}</select></label>
+          <label className="admin-field">Paciente<select value={patientId} onChange={(e) => { setPatientId(e.target.value); if (e.target.value) setNewPatient(false); }}><option value="">Mostrador</option>{patients.map((p) => <option key={p.id} value={p.id}>{p.firstName} {p.lastName}</option>)}</select></label>
           <label className="admin-field">Sede<select value={locationId} onChange={(e) => setLocationId(e.target.value)}><option value="">—</option>{siteChoices.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}</select></label>
-          <label className="admin-field">Sin paciente<input value={walkIn} placeholder="Nombre walk-in" onChange={(e) => setWalkIn(e.target.value)} /></label>
-          <label className="admin-check"><input type="checkbox" checked={newPatient} onChange={(e) => setNewPatient(e.target.checked)} />Crear paciente ahora</label>
-          {newPatient ? <><label className="admin-field">Nombre<input value={firstName} onChange={(e) => setFirstName(e.target.value)} /></label><label className="admin-field">Apellido<input value={lastName} onChange={(e) => setLastName(e.target.value)} /></label></> : null}
+          {patientId ? null : (
+            <>
+              <label className="admin-field">Sin paciente<input value={walkIn} placeholder="Nombre walk-in" onChange={(e) => setWalkIn(e.target.value)} /></label>
+              <label className="admin-check"><input type="checkbox" checked={newPatient} onChange={(e) => setNewPatient(e.target.checked)} />Crear paciente ahora</label>
+              {newPatient ? <><label className="admin-field">Nombre<input value={firstName} onChange={(e) => setFirstName(e.target.value)} /></label><label className="admin-field">Apellido<input value={lastName} onChange={(e) => setLastName(e.target.value)} /></label></> : null}
+            </>
+          )}
           <label className="admin-field">Cobro
             <select value={method} onChange={(e) => setMethod(e.target.value)}>
               {!methods.length ? <option value="">Sin métodos</option> : null}
