@@ -143,7 +143,8 @@ export async function listPatients(url: URL) {
       AND ${countrySql("p.location_id", "$9")}
   `;
   const total = await query<{ n: number }>(`SELECT count(*)::int AS n FROM patients p ${where}`, filters);
-  const rows = await query(`${BASE} ${where} ORDER BY p.last_name, p.first_name LIMIT $10 OFFSET $11`, [...filters, pageSize, offset]);
+  const order = url.searchParams.get("sort") === "recent" ? "p.created_at DESC" : "p.last_name, p.first_name";
+  const rows = await query(`${BASE} ${where} ORDER BY ${order} LIMIT $10 OFFSET $11`, [...filters, pageSize, offset]);
   return { rows: rows.rows.map((row) => mapPatient(row)), total: total.rows[0].n, page, pageSize };
 }
 

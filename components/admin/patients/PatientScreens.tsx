@@ -7,7 +7,18 @@ import { api } from "@/components/admin/clinic/client";
 import { countryCode, useClinicScope } from "@/components/admin/clinic/ClinicScope";
 import { Button, CloseButton, EmptyState, Tabs, Toast } from "@/components/admin/ui";
 
-type Patient = Record<string, unknown> & { id: string; firstName: string; lastName: string; clientCode: string; email?: string; mobile?: string };
+type Patient = Record<string, unknown> & {
+  id: string; firstName: string; lastName: string; clientCode: string;
+  email?: string; mobile?: string; phone?: string; city?: string; state?: string;
+  createdAt?: string; marketingSource?: string | null; privacyPolicyStatus?: string;
+  tags?: { id?: string; name?: string }[];
+};
+
+function privacyLabel(status?: string) {
+  if (status === "aceptado") return "Aviso aceptado";
+  if (status === "rechazado") return "Aviso rechazado";
+  return "Aviso sin respuesta";
+}
 
 const EMPTY = {
   firstName: "", lastName: "", salutation: "", sex: "", birthDate: "", preferredLanguage: "es",
@@ -21,6 +32,9 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
   const [q, setQ] = useState(initialQuery);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [sex, setSex] = useState("");
+  const [sort, setSort] = useState("name");
+  const [expanded, setExpanded] = useState<string | null>(null);
   const [open, setOpen] = useState(startNew || false);
   const [form, setForm] = useState<Record<string, unknown>>(EMPTY);
   const [error, setError] = useState<string | null>(null);
@@ -36,8 +50,8 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
   const [options, setOptions] = useState<{ locations: { id: string; name: string }[]; staff: { id: string; first_name: string; last_name: string }[]; sources: { id: string; name: string }[]; fields: { id: string; label: string; field_type: string; is_required?: boolean }[] }>({ locations: [], staff: [], sources: [], fields: [] });
   const tabs = [["identidad", "Datos"], ["contacto", "Contacto"], ["direccion", "Dirección"], ["consentimiento", "Consentimientos"]] as const;
 
-  async function load(nextPage = page, query = q) {
-    const data = await api<{ rows: Patient[]; total: number }>(`/api/admin/patients?q=${encodeURIComponent(query)}&page=${nextPage}&${scope.query}`);
+  async function load(nextPage = page, query = q, nextSex = sex, nextSort = sort) {
+    const data = await api<{ rows: Patient[]; total: number }>(`/api/admin/patients?q=${encodeURIComponent(query)}&page=${nextPage}&sex=${encodeURIComponent(nextSex)}&sort=${encodeURIComponent(nextSort)}&${scope.query}`);
     setRows(data.rows);
     setTotal(data.total);
   }
@@ -116,9 +130,10 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
       <header className="admin-header"><p className="admin-header__eyebrow">Directorio · {scope.label}</p><h1 className="admin-header__title">Pacientes</h1></header>
       {error ? <div className="admin-alert" role="alert">{error}</div> : null}
       {notice ? <p className="admin-notice" role="status">{notice}</p> : null}
+      <div className="patient-directory">
       <div className="admin-toolbar" data-tour="patients-tools">
         <div className="admin-patient-search">
-          <input ref={searchRef} value={q} placeholder="Buscar nombre, código, email o teléfono (Ctrl+K)" onChange={(e) => { setQ(e.target.value); setPalette(true); }} onFocus={() => setPalette(true)} onKeyDown={(e) => { if (e.key === "Enter") { setPalette(false); setPage(1); load(1, q); } if (e.key === "Escape") setPalette(false); }} />
+          <input ref={searchRef} value={q} placeholder="Buscar nombre, código, email o teléfono" onChange={(e) => { setQ(e.target.value); setPalette(true); }} onFocus={() => setPalette(true)} onKeyDown={(e) => { if (e.key === "Enter") { setPalette(false); setPage(1); load(1, q); } if (e.key === "Escape") setPalette(false); }} />
           {palette && q.trim().length >= 2 ? (
             <div className="admin-palette" role="listbox">
               {hits.map((hit) => (
@@ -133,33 +148,79 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
         <button className="admin-btn" type="button" onClick={() => { setPalette(false); setPage(1); load(1, q); }}>Buscar</button>
         <button className="admin-btn admin-btn--primary" type="button" data-tour="patients-new" onClick={() => { setForm({ ...EMPTY, locationId: scope.locationId || scope.visible[0]?.id || "" }); setOpen(true); }}>+ Paciente</button>
       </div>
+      <div className="patient-directory__filters">
+        <div className="patient-directory__chips" role="group" aria-label="Filtrar pacientes">
+          {[["", "Todos"], ["femenino", "Mujeres"], ["masculino", "Hombres"], ["otro", "Otro"]].map(([id, label]) => (
+            <button key={id || "all"} type="button" className={sex === id ? "is-active" : ""} onClick={() => { setSex(id); setPage(1); load(1, q, id, sort); }}>{label}</button>
+          ))}
+        </div>
+        <label className="admin-field patient-directory__sort">Orden
+          <select value={sort} onChange={(e) => { setSort(e.target.value); setPage(1); load(1, q, sex, e.target.value); }}>
+            <option value="name">Nombre</option>
+            <option value="recent">Más recientes</option>
+          </select>
+        </label>
+      </div>
+      <p className="patient-directory__count">{total} {total === 1 ? "paciente" : "pacientes"}</p>
+      <div className="patient-directory__stats">
+        <article><span>Directorio</span><strong>{total}</strong></article>
+        <article><span>En esta página</span><strong>{rows.length}</strong></article>
+        <article><span>Con email</span><strong>{rows.filter((row) => row.email).length}</strong></article>
+        <article><span>Con teléfono</span><strong>{rows.filter((row) => row.mobile || row.phone).length}</strong></article>
+      </div>
       <div className="admin-table-wrap" data-tour="patients-list">
-        <div className="admin-table__row admin-table__head" style={{ gridTemplateColumns: "minmax(0,1fr) 8rem" }}><span>Paciente</span><span>Acciones</span></div>
-        {rows.map((row) => (
-          <div key={row.id} className="admin-table__row" style={{ gridTemplateColumns: "minmax(0,1fr) 8rem" }}>
-            <Link href={`/admin/pacientes/${row.id}`}>
-              <div className="admin-table__cell-title">{row.firstName} {row.lastName}</div>
-              <div className="admin-table__cell-sub">{row.clientCode} · {row.email || "sin email"} · {row.mobile || ""}</div>
-            </Link>
-            <details className="admin-menu">
-              <summary aria-label="Acciones">⋯</summary>
-              <div className="admin-menu__list">
-            <button type="button" onClick={async () => {
-              if (!window.confirm(`¿Archivar a ${row.firstName} ${row.lastName}? El expediente se conserva, pero dejará de aparecer en la lista.`)) return;
-              try {
-                await api(`/api/admin/patients/${row.id}`, { method: "DELETE" });
-                setNotice("Paciente archivado. El expediente se conserva.");
-                setError(null);
-                await load();
-              } catch (err) {
-                setError(err instanceof Error ? err.message : "No se pudo archivar el paciente.");
-              }
-            }}>Archivar</button>
+        <div className="admin-table__head admin-table__head--patients"><span>Paciente</span><span>Contacto</span><span>Ciudad</span><span>Alta</span><span /></div>
+        {rows.map((row) => {
+          const tags = Array.isArray(row.tags) ? row.tags as { id?: string; name?: string }[] : [];
+          const openRow = expanded === row.id;
+          return (
+            <div key={row.id} className="patient-directory__item">
+              <div className="admin-table__row admin-table__row--patients">
+                <button type="button" className="patient-directory__who" aria-expanded={openRow} onClick={() => setExpanded(openRow ? null : row.id)}>
+                  <span className={openRow ? "is-open" : ""} aria-hidden="true">›</span>
+                  <span>
+                    <span className="admin-table__cell-title">{row.firstName} {row.lastName}</span>
+                    <span className="patient-directory__code">{row.clientCode}</span>
+                  </span>
+                </button>
+                <div>
+                  <div>{row.email || "Sin email"}</div>
+                  <div className="admin-table__cell-sub">{row.mobile || row.phone || "Sin teléfono"}</div>
+                </div>
+                <div>{[row.city, row.state].filter(Boolean).join(", ") || "—"}</div>
+                <div>{row.createdAt ? new Date(String(row.createdAt)).toLocaleDateString("es-MX") : "—"}</div>
+                <details className="admin-menu">
+                  <summary aria-label="Acciones">⋯</summary>
+                  <div className="admin-menu__list">
+                    <Link href={`/admin/pacientes/${row.id}`}>Abrir expediente</Link>
+                    <button type="button" onClick={async () => {
+                      if (!window.confirm(`¿Archivar a ${row.firstName} ${row.lastName}? El expediente se conserva, pero dejará de aparecer en la lista.`)) return;
+                      try {
+                        await api(`/api/admin/patients/${row.id}`, { method: "DELETE" });
+                        setNotice("Paciente archivado. El expediente se conserva.");
+                        setError(null);
+                        await load();
+                      } catch (err) {
+                        setError(err instanceof Error ? err.message : "No se pudo archivar el paciente.");
+                      }
+                    }}>Archivar</button>
+                  </div>
+                </details>
               </div>
-            </details>
-          </div>
-        ))}
+              {openRow ? (
+                <div className="patient-directory__detail">
+                  <p>{String(row.marketingSource || "Sin origen")} · {privacyLabel(row.privacyPolicyStatus)}</p>
+                  <div className="patient-directory__tags">
+                    {tags.length ? tags.map((tag) => <span key={tag.id || tag.name}>{tag.name}</span>) : <span>Sin etiquetas</span>}
+                  </div>
+                  <Link href={`/admin/pacientes/${row.id}`}>Abrir expediente</Link>
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
         {!rows.length ? <EmptyState title={q ? "Sin coincidencias" : "Aún no hay pacientes"} text={q ? "Ningún paciente coincide con la búsqueda." : "Crea el primero para empezar el directorio."} action={<button className="admin-btn admin-btn--primary" type="button" onClick={() => setOpen(true)}>+ Paciente</button>} /> : null}
+      </div>
       </div>
       <div className="admin-toolbar">
         <button className="admin-btn" type="button" disabled={page <= 1} onClick={() => { const n = page - 1; setPage(n); load(n); }}>Anterior</button>

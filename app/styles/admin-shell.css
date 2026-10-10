@@ -464,6 +464,10 @@
   grid-template-columns: 1.15fr 1fr 1fr 0.9fr;
 }
 
+.admin-table__head--patients {
+  grid-template-columns: 1.35fr 1.15fr 0.8fr 0.7fr 2.5rem;
+}
+
 @media (max-width: 900px) {
   .admin-table__head {
     display: none;
@@ -510,10 +514,15 @@
   grid-template-columns: 1.15fr 1fr 1fr 0.9fr;
 }
 
+.admin-table__row--patients {
+  grid-template-columns: 1.35fr 1.15fr 0.8fr 0.7fr 2.5rem;
+}
+
 @media (max-width: 900px) {
   .admin-table__row--appointments,
   .admin-table__row--contact,
-  .admin-table__row--clients {
+  .admin-table__row--clients,
+  .admin-table__row--patients {
     grid-template-columns: 1fr;
     gap: 0.65rem;
   }

@@ -100,8 +100,29 @@
 .admin-menu summary { list-style: none; width: 40px; height: 40px; display: grid; place-items: center; cursor: pointer; border-radius: 0.55rem; }
 .admin-menu summary::-webkit-details-marker { display: none; }
 .admin-menu__list { position: absolute; right: 0; z-index: 8; min-width: 9rem; padding: 0.3rem; border-radius: 0.7rem; background: #fff; border: 1px solid rgb(var(--border) / 0.16); box-shadow: 0 10px 28px rgb(0 0 0 / 0.1); display: grid; }
-.admin-menu__list button { text-align: left; background: transparent; border: 0; padding: 0.45rem 0.6rem; border-radius: 0.45rem; cursor: pointer; color: inherit; }
-.admin-menu__list button:hover { background: rgb(122 62 40 / 0.08); }
+.admin-menu__list button, .admin-menu__list a { text-align: left; background: transparent; border: 0; padding: 0.45rem 0.6rem; border-radius: 0.45rem; cursor: pointer; color: inherit; text-decoration: none; }
+.admin-menu__list button:hover, .admin-menu__list a:hover { background: rgb(122 62 40 / 0.08); }
+.patient-directory { display: grid; gap: 0.85rem; }
+.patient-directory__filters { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 0.75rem; }
+.patient-directory__chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.patient-directory__chips button { border: 1px solid rgb(var(--border) / 0.2); background: transparent; color: rgb(var(--muted)); border-radius: 999px; padding: 0.4rem 0.8rem; font: inherit; font-size: 0.84rem; cursor: pointer; }
+.patient-directory__chips button.is-active { background: rgb(var(--text)); color: rgb(var(--bg)); border-color: transparent; }
+.patient-directory__sort { min-width: 11rem; }
+.patient-directory__sort select { margin-top: 0.3rem; }
+.patient-directory__count { margin: 0; color: rgb(var(--muted)); font-size: 0.9rem; }
+.patient-directory__stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.7rem; }
+@media (min-width: 900px) { .patient-directory__stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.patient-directory__stats article { border: 1px solid rgb(var(--border) / 0.16); border-radius: 0.9rem; background: rgb(var(--surface) / 0.72); padding: 0.8rem 0.95rem; }
+.patient-directory__stats span { display: block; font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgb(var(--muted)); }
+.patient-directory__stats strong { display: block; margin-top: 0.25rem; font-size: 1.55rem; font-weight: 650; }
+.patient-directory__who { display: flex; align-items: flex-start; gap: 0.45rem; padding: 0; border: 0; background: transparent; color: inherit; text-align: left; cursor: pointer; font: inherit; }
+.patient-directory__who > span:first-child { color: rgb(var(--muted)); transition: transform 0.15s ease; }
+.patient-directory__who > span:first-child.is-open { transform: rotate(90deg); }
+.patient-directory__code { display: inline-flex; margin-top: 0.3rem; border-radius: 999px; background: rgb(var(--primary) / 0.16); padding: 0.1rem 0.45rem; font-size: 0.72rem; color: rgb(var(--text)); }
+.patient-directory__detail { display: grid; gap: 0.55rem; margin: 0 1.25rem 0.9rem; padding: 0.85rem 1rem; border-radius: 0.85rem; border: 1px solid rgb(var(--border) / 0.14); background: rgb(var(--bg) / 0.45); }
+.patient-directory__detail p { margin: 0; color: rgb(var(--muted)); }
+.patient-directory__tags { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.patient-directory__tags span { border-radius: 999px; background: rgb(var(--border) / 0.12); padding: 0.15rem 0.5rem; font-size: 0.78rem; }
 .admin-toast { position: fixed; right: 1.25rem; bottom: 1.25rem; z-index: 60; display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 0.85rem; border-radius: 0.85rem; background: rgb(255 252 247); border: 1px solid rgb(122 62 40 / 0.35); box-shadow: 0 12px 32px rgb(0 0 0 / 0.12); }
 .admin-toast a { color: rgb(122 62 40); font-weight: 700; }
 .admin-badge { display: inline-flex; align-items: center; height: 22px; padding: 0 0.45rem; border-radius: 99px; font-size: 0.75rem; font-weight: 600; }
