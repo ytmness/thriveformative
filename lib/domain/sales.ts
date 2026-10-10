@@ -243,7 +243,10 @@ export async function createSale(
 }
 
 export async function getSale(id: string) {
-  const sale = await query(`SELECT * FROM sales WHERE id = $1`, [id]);
+  const sale = await query(
+    `SELECT s.*, l.name AS location_name FROM sales s LEFT JOIN locations l ON l.id = s.location_id WHERE s.id = $1`,
+    [id]
+  );
   if (!sale.rows[0]) throw new DomainError("Venta no encontrada.", 404);
   const items = await query(`SELECT * FROM sale_items WHERE sale_id = $1`, [id]);
   const payments = await query(

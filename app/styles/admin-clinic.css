@@ -42,15 +42,15 @@
 .admin-topbar { display: flex; gap: 0.75rem; align-items: center; justify-content: flex-end; margin-bottom: 0.75rem; flex-wrap: wrap; }
 .admin-topbar__tools { display: flex; gap: 0.6rem; align-items: center; margin-left: auto; }
 .admin-scope-slot--bar { display: none; width: 100%; }
-.admin-sidebar .admin-scope { flex-direction: column; align-items: stretch; }
+.admin-sidebar .admin-scope { flex-direction: column; align-items: stretch; gap: 0.28rem; }
 .admin-sidebar .admin-scope__countries,
 .admin-sidebar .admin-scope__sites { width: 100%; }
-.admin-sidebar .admin-scope button { flex: 1 1 6.2rem; min-width: 0; font-size: 0.78rem; line-height: 1.2; padding: 0.38rem 0.45rem; text-align: center; white-space: normal; }
-.admin-scope { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; min-width: 0; }
-.admin-scope__countries, .admin-scope__sites { display: flex; flex-wrap: wrap; gap: 0.15rem; padding: 0.18rem; border-radius: 999px; background: rgb(var(--border) / 0.12); }
-.admin-scope button { border: 0; background: transparent; color: rgb(var(--muted)); border-radius: 999px; padding: 0.42rem 0.8rem; font: inherit; font-size: 0.88rem; font-weight: 650; cursor: pointer; }
-.admin-scope button.is-active { background: rgb(var(--surface)); color: rgb(var(--text)); box-shadow: 0 1px 2px rgb(0 0 0 / 0.08); }
-.admin-scope button:focus-visible { outline: none; box-shadow: 0 0 0 3px rgb(var(--primary) / 0.28); }
+.admin-sidebar .admin-scope button { flex: 0 1 auto; min-width: 0; font-size: 0.68rem; line-height: 1.15; padding: 0.08rem 0.28rem; text-align: left; white-space: nowrap; }
+.admin-scope { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.7rem; min-width: 0; }
+.admin-scope__countries, .admin-scope__sites { display: flex; flex-wrap: wrap; align-items: center; gap: 0.05rem 0.15rem; padding: 0; border-radius: 0; background: transparent; }
+.admin-scope button { border: 0; border-bottom: 1px solid transparent; background: transparent; color: rgb(var(--muted)); border-radius: 0.3rem; padding: 0.1rem 0.32rem; font: inherit; font-size: 0.72rem; font-weight: 500; line-height: 1.2; cursor: pointer; }
+.admin-scope button.is-active { background: rgb(var(--primary) / 0.08); color: rgb(var(--primary)); border-bottom-color: rgb(var(--primary) / 0.7); box-shadow: none; }
+.admin-scope button:focus-visible { outline: none; box-shadow: 0 0 0 3px rgb(var(--primary) / 0.2); }
 @media (max-width: 900px) {
   .admin-scope-slot--sidebar { display: none; }
   .admin-scope-slot--bar { display: block; }
@@ -115,9 +115,12 @@
 .patient-directory__stats article { border: 1px solid rgb(var(--border) / 0.16); border-radius: 0.9rem; background: rgb(var(--surface) / 0.72); padding: 0.8rem 0.95rem; }
 .patient-directory__stats span { display: block; font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgb(var(--muted)); }
 .patient-directory__stats strong { display: block; margin-top: 0.25rem; font-size: 1.55rem; font-weight: 650; }
-.patient-directory__who { display: flex; align-items: flex-start; gap: 0.45rem; padding: 0; border: 0; background: transparent; color: inherit; text-align: left; cursor: pointer; font: inherit; }
-.patient-directory__who > span:first-child { color: rgb(var(--muted)); transition: transform 0.15s ease; }
-.patient-directory__who > span:first-child.is-open { transform: rotate(90deg); }
+.patient-directory__who { display: flex; align-items: flex-start; gap: 0.45rem; padding: 0; border: 0; background: transparent; color: inherit; text-align: left; font: inherit; }
+.patient-directory__toggle { display: inline-flex; padding: 0; border: 0; background: transparent; color: rgb(var(--muted)); cursor: pointer; font: inherit; line-height: 1; }
+.patient-directory__toggle span { display: inline-block; transition: transform 0.15s ease; }
+.patient-directory__toggle span.is-open { transform: rotate(90deg); }
+.admin-table__row--patients,
+.admin-table__row--sale { cursor: pointer; }
 .patient-directory__code { display: inline-flex; margin-top: 0.3rem; border-radius: 999px; background: rgb(var(--primary) / 0.16); padding: 0.1rem 0.45rem; font-size: 0.72rem; color: rgb(var(--text)); }
 .patient-directory__detail { display: grid; gap: 0.55rem; margin: 0 1.25rem 0.9rem; padding: 0.85rem 1rem; border-radius: 0.85rem; border: 1px solid rgb(var(--border) / 0.14); background: rgb(var(--bg) / 0.45); }
 .patient-directory__detail p { margin: 0; color: rgb(var(--muted)); }
@@ -221,6 +224,31 @@
   color: rgb(var(--muted)); background: transparent; white-space: nowrap;
 }
 .admin-tabs .is-active { color: rgb(var(--primary)); border-color: rgb(var(--primary) / 0.4); background: rgb(var(--primary) / 0.12); }
+.admin-tabs.admin-chart-tabs { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 0.35rem; width: auto; max-width: 100%; }
+.admin-tabs.admin-chart-tabs a,
+.admin-tabs.admin-chart-tabs button {
+  width: auto; flex: 0 0 auto;
+  border: 1px solid transparent; border-radius: 0.75rem; padding: 0.5rem 0.75rem;
+  background: transparent; color: rgb(var(--text) / 0.88); font-weight: 500; text-align: left;
+  font-family: var(--font-body), system-ui, sans-serif; cursor: pointer;
+}
+.admin-tabs.admin-chart-tabs a:hover,
+.admin-tabs.admin-chart-tabs button:hover { background: rgb(var(--primary) / 0.06); border-color: rgb(var(--border) / 0.15); }
+.admin-tabs.admin-chart-tabs .is-active { background: rgb(var(--primary) / 0.12); border-color: rgb(var(--primary) / 0.32); color: rgb(var(--primary)); }
+.admin-tabs.admin-chart-tabs a:focus-visible,
+.admin-tabs.admin-chart-tabs button:focus-visible { outline: none; box-shadow: 0 0 0 3px rgb(var(--primary) / 0.2); }
+@media (max-width: 900px) {
+  .admin-tabs.admin-chart-tabs { flex-wrap: nowrap; overflow-x: auto; }
+  .admin-tabs.admin-chart-tabs a,
+  .admin-tabs.admin-chart-tabs button { white-space: nowrap; flex-shrink: 0; padding: 0.5rem 0.85rem; font-size: 0.8125rem; }
+}
+.admin-header--chart { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.admin-header--chart .admin-header__copy { min-width: 0; }
+.admin-chart-archive.admin-btn {
+  height: auto; min-height: 0; margin: 0 0 0.2rem auto; padding: 0.15rem 0.4rem;
+  font-size: 0.75rem; font-weight: 500; border-color: transparent; flex-shrink: 0;
+}
+.admin-chart-archive.admin-btn:hover { background: rgb(var(--primary) / 0.06); }
 .admin-toolbar { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 1rem; align-items: center; }
 .admin-toolbar input, .admin-toolbar select { border-radius: 0.75rem; border: 1px solid rgb(var(--border) / 0.22); background: rgb(var(--bg) / 0.4); padding: 0.55rem 0.75rem; color: rgb(var(--text)); }
 .admin-cal { border: 1px solid rgb(var(--border) / 0.18); border-radius: 1.15rem; overflow: auto; background: rgb(var(--surface) / 0.55); }

@@ -6,6 +6,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/components/admin/clinic/client";
 import { countryCode, useClinicScope } from "@/components/admin/clinic/ClinicScope";
 import { Button, CloseButton, EmptyState, Tabs, Toast } from "@/components/admin/ui";
+import StoreReceipt from "@/components/store/StoreReceipt";
+import { majorToMinor } from "@/lib/square/money";
+import type { StoreReceiptData } from "@/lib/store/orderTypes";
+import "@/app/styles/tienda.css";
 
 type Patient = Record<string, unknown> & {
   id: string; firstName: string; lastName: string; clientCode: string;
@@ -175,21 +179,23 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
           const openRow = expanded === row.id;
           return (
             <div key={row.id} className="patient-directory__item">
-              <div className="admin-table__row admin-table__row--patients">
-                <button type="button" className="patient-directory__who" aria-expanded={openRow} onClick={() => setExpanded(openRow ? null : row.id)}>
-                  <span className={openRow ? "is-open" : ""} aria-hidden="true">›</span>
+              <div className="admin-table__row admin-table__row--patients" onClick={() => router.push(`/admin/pacientes/${row.id}`)}>
+                <div className="patient-directory__who">
+                  <button type="button" className="patient-directory__toggle" aria-expanded={openRow} aria-label="Ver detalle rápido" onClick={(e) => { e.stopPropagation(); setExpanded(openRow ? null : row.id); }}>
+                    <span className={openRow ? "is-open" : ""} aria-hidden="true">›</span>
+                  </button>
                   <span>
                     <span className="admin-table__cell-title">{row.firstName} {row.lastName}</span>
                     <span className="patient-directory__code">{row.clientCode}</span>
                   </span>
-                </button>
+                </div>
                 <div>
                   <div>{row.email || "Sin email"}</div>
                   <div className="admin-table__cell-sub">{row.mobile || row.phone || "Sin teléfono"}</div>
                 </div>
                 <div>{[row.city, row.state].filter(Boolean).join(", ") || "—"}</div>
                 <div>{row.createdAt ? new Date(String(row.createdAt)).toLocaleDateString("es-MX") : "—"}</div>
-                <details className="admin-menu">
+                <details className="admin-menu" onClick={(e) => e.stopPropagation()}>
                   <summary aria-label="Acciones">⋯</summary>
                   <div className="admin-menu__list">
                     <Link href={`/admin/pacientes/${row.id}`}>Abrir expediente</Link>
@@ -326,10 +332,52 @@ const TABS = [
   ["resumen", "Resumen"],
   ["citas", "Citas"],
   ["expediente", "Expediente"],
-  ["finanzas", "Finanzas"],
+  ["finanzas", "Compras"],
   ["comunicaciones", "Comunicaciones"],
   ["membresias", "Membresías"],
 ] as const;
+
+const SALE_RECEIPT_LABELS = {
+  receiptTitle: "Recibo",
+  totalPaid: "Total pagado",
+  thanksOrder: "Gracias por tu visita.",
+  processingOrder: "Procesando",
+  printingReceipt: "Imprimiendo tu recibo",
+  orderComplete: "Venta registrada",
+  pickup: "Sede",
+  shipping: "Sede",
+  home: "Ficha",
+};
+
+type ClinicSale = {
+  sale_number?: string;
+  total?: string | number;
+  created_at?: string;
+  location_name?: string | null;
+  items?: { description?: string; quantity?: string | number; unit_price?: string | number }[];
+};
+
+function saleToReceipt(sale: ClinicSale, patientName: string): StoreReceiptData {
+  const currency = "USD";
+  return {
+    folio: String(sale.sale_number || ""),
+    paidAt: String(sale.created_at || new Date().toISOString()),
+    recipientName: patientName,
+    fulfillment: "pickup",
+    locationName: sale.location_name || null,
+    address: null,
+    currency,
+    totalAmount: majorToMinor(Number(sale.total || 0), currency),
+    lines: (sale.items || []).map((item) => ({
+      name: String(item.description || "Concepto"),
+      variationName: null,
+      quantity: Number(item.quantity || 1),
+      unitAmount: majorToMinor(Number(item.unit_price || 0), currency),
+      currency,
+    })),
+    locale: "es-MX",
+  };
+}
 
 const TAB_ALIAS: Record<string, string> = {
   ventas: "finanzas",
@@ -353,6 +401,7 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
   const [templates, setTemplates] = useState<{ id: string; name: string }[]>([]);
   const [templateId, setTemplateId] = useState("");
   const [folder, setFolder] = useState(tab === "formularios" || tab === "alergias" || tab === "fotos" || tab === "documentos" ? tab : "notas");
+  const [receipt, setReceipt] = useState<StoreReceiptData | null>(null);
   const active = TAB_ALIAS[tab] || tab || "resumen";
 
   useEffect(() => {
@@ -378,11 +427,13 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
   if (!patient) return <div className="admin-skeleton" />;
   return (
     <>
-      <header className="admin-header">
-        <p className="admin-header__eyebrow">{String(patient.clientCode || "")}</p>
-        <h1 className="admin-header__title">{patient.firstName} {patient.lastName}</h1>
-        <p className="admin-header__desc">Creado {patient.createdAt ? new Date(String(patient.createdAt)).toLocaleString("es-MX") : ""}</p>
-        <button className="admin-btn" type="button" data-tour="chart-archive" onClick={async () => {
+      <header className="admin-header admin-header--chart">
+        <div className="admin-header__copy">
+          <p className="admin-header__eyebrow">{String(patient.clientCode || "")}</p>
+          <h1 className="admin-header__title">{patient.firstName} {patient.lastName}</h1>
+          <p className="admin-header__desc">Creado {patient.createdAt ? new Date(String(patient.createdAt)).toLocaleString("es-MX") : ""}</p>
+        </div>
+        <button className="admin-btn admin-btn--ghost admin-chart-archive" type="button" data-tour="chart-archive" onClick={async () => {
           if (!window.confirm(`¿Archivar a ${patient.firstName} ${patient.lastName}? El expediente se conserva, pero dejará de aparecer en la lista.`)) return;
           try {
             await api(`/api/admin/patients/${id}`, { method: "DELETE" });
@@ -394,14 +445,14 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
       </header>
       {error ? <div className="admin-alert" role="alert">{error}</div> : null}
       {notice ? <p className="admin-banner" role="status">{notice}</p> : null}
-      <nav className="admin-tabs" data-tour="chart-tabs" aria-label="Ficha del paciente">
+      <nav className="admin-tabs admin-chart-tabs" data-tour="chart-tabs" aria-label="Ficha del paciente">
         {TABS.map(([item, label]) => <Link key={item} className={active === item ? "is-active" : ""} href={item === "resumen" ? `/admin/pacientes/${id}` : `/admin/pacientes/${id}/${item}`}>{label}</Link>)}
       </nav>
       <div data-tour="chart-panel">
       {active === "resumen" ? <PatientSummary patient={patient} /> : null}
       {active === "expediente" ? (
         <>
-          <nav className="admin-tabs" aria-label="Secciones del expediente">
+          <nav className="admin-tabs admin-chart-tabs" aria-label="Secciones del expediente">
             {[["notas", "Notas"], ["alergias", "Alergias"], ["formularios", "Formularios"], ["fotos", "Fotos"], ["documentos", "Documentos"]].map(([item, label]) => (
               <button key={item} type="button" className={folder === item ? "is-active" : ""} onClick={() => setFolder(item)}>{label}</button>
             ))}
@@ -483,27 +534,43 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
         </div>
       ) : null}
       {active === "finanzas" ? (
-        <div className="admin-table-wrap">
-          {rows.map((row) => (
-            <div key={String(row.id)} className="admin-table__row">
-              <div>
-                <div className="admin-table__cell-title">{String(row.sale_number || "Venta")}</div>
-                <div className="admin-table__cell-sub">{row.status === "void" ? "Anulada" : String(row.status || "")} · ${Number(row.total || 0).toFixed(2)}</div>
+        <>
+          <div className="admin-table-wrap">
+            {rows.map((row) => (
+              <div key={String(row.id)} className="admin-table__row admin-table__row--sale" onClick={() => {
+                api<{ sale: ClinicSale }>(`/api/admin/sales/${row.id}`).then((result) => {
+                  setReceipt(saleToReceipt(result.sale, `${patient.firstName} ${patient.lastName}`));
+                  setError(null);
+                }).catch((err) => setError(err instanceof Error ? err.message : "No se pudo abrir el recibo."));
+              }}>
+                <div>
+                  <div className="admin-table__cell-title">{String(row.sale_number || "Venta")}</div>
+                  <div className="admin-table__cell-sub">{row.status === "void" ? "Anulada" : String(row.status || "")} · ${Number(row.total || 0).toFixed(2)}</div>
+                </div>
+                {row.status !== "void" ? <button className="admin-btn admin-btn--danger" type="button" onClick={async (event) => {
+                  event.stopPropagation();
+                  if (!window.confirm("¿Anular esta venta? El registro se conserva, pero deja de contar como cobro.")) return;
+                  try {
+                    await api(`/api/admin/sales/${row.id}`, { method: "POST", body: JSON.stringify({ action: "void", reason: "Anulada desde el expediente" }) });
+                    setNotice("Venta anulada.");
+                    setRows(rows.map((item) => item.id === row.id ? { ...item, status: "void" } : item));
+                  } catch (err) {
+                    setError(err instanceof Error ? err.message : "No se pudo anular la venta.");
+                  }
+                }}>Anular</button> : null}
               </div>
-              {row.status !== "void" ? <button className="admin-btn admin-btn--danger" type="button" onClick={async () => {
-                if (!window.confirm("¿Anular esta venta? El registro se conserva, pero deja de contar como cobro.")) return;
-                try {
-                  await api(`/api/admin/sales/${row.id}`, { method: "POST", body: JSON.stringify({ action: "void", reason: "Anulada desde el expediente" }) });
-                  setNotice("Venta anulada.");
-                  setRows(rows.map((item) => item.id === row.id ? { ...item, status: "void" } : item));
-                } catch (err) {
-                  setError(err instanceof Error ? err.message : "No se pudo anular la venta.");
-                }
-              }}>Anular</button> : null}
-            </div>
-          ))}
-          {!rows.length ? <div className="admin-table__empty">Sin ventas.</div> : null}
-        </div>
+            ))}
+            {!rows.length ? <div className="admin-table__empty">Sin ventas.</div> : null}
+          </div>
+          {receipt ? (
+            <section className="admin-card admin-receipt">
+              <div className="admin-toolbar">
+                <button className="admin-btn" type="button" onClick={() => setReceipt(null)}>Cerrar</button>
+              </div>
+              <StoreReceipt data={receipt} animate={false} labels={SALE_RECEIPT_LABELS} homeHref={`/admin/pacientes/${id}/finanzas`} />
+            </section>
+          ) : null}
+        </>
       ) : null}
       {active === "membresias" ? (
         <div className="admin-table-wrap">
