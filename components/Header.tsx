@@ -250,18 +250,27 @@ export default function Header({ preview }: HeaderProps = {}) {
                   >
                     {t("auth.signOut")}
                   </button>
-                  <NotificationBell />
+                  {role === "admin" ? <NotificationBell /> : null}
                 </div>
               ) : (
-                <motion.a
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  href={`/${locale}/admin/login`}
-                  className="type-ui-muted text-xs hover:opacity-80 whitespace-nowrap hidden xl:inline"
-                  title={t("auth.staffLoginHint")}
-                >
-                  {t("auth.staffLogin")}
-                </motion.a>
+                <div className="hidden xl:flex items-center gap-3">
+                  <motion.a
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    href={`/${locale}/login`}
+                    className="type-ui-muted text-xs hover:opacity-80 whitespace-nowrap"
+                  >
+                    {t("auth.loginTitle")}
+                  </motion.a>
+                  <motion.a
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    href={`/${locale}/register`}
+                    className="type-ui text-xs font-medium text-[rgb(var(--primary))] hover:opacity-80 whitespace-nowrap"
+                  >
+                    {t("auth.registerLink")}
+                  </motion.a>
+                </div>
               )}
             </>
           )}
@@ -376,18 +385,26 @@ export default function Header({ preview }: HeaderProps = {}) {
                       {t("auth.signOut")}
                     </button>
                     <div className="pt-1">
-                      <NotificationBell />
+                      {role === "admin" ? <NotificationBell /> : null}
                     </div>
                   </>
                 ) : (
-                  <a
-                    href={`/${locale}/admin/login`}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="type-ui-muted text-sm"
-                    title={t("auth.staffLoginHint")}
-                  >
-                    {t("auth.staffLogin")}
-                  </a>
+                  <>
+                    <a
+                      href={`/${locale}/login`}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="type-ui-muted text-sm"
+                    >
+                      {t("auth.loginTitle")}
+                    </a>
+                    <a
+                      href={`/${locale}/register`}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="type-ui font-medium text-[rgb(var(--primary))] text-sm"
+                    >
+                      {t("auth.registerLink")}
+                    </a>
+                  </>
                 )}
               </>
             )}

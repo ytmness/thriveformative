@@ -296,7 +296,7 @@
   },
   "auth": {
     "loginTitle": "로그인",
-    "loginSubtitle": "환자는 클리닉 포털로 예약합니다. 직원은 직원 로그인을 사용하세요.",
+    "loginSubtitle": "계정에 로그인하여 예약을 하고 일정을 확인하세요.",
     "email": "이메일",
     "emailPlaceholder": "you@email.com",
     "password": "비밀번호",
@@ -306,7 +306,7 @@
     "registerLink": "가입하기",
     "backHome": "← 홈으로",
     "registerTitle": "계정 만들기",
-    "registerSubtitle": "환자는 클리닉 포털로 예약합니다. 직원은 직원 로그인을 사용하세요.",
+    "registerSubtitle": "가입하고 예약을 관리하세요.",
     "fullName": "이름",
     "fullNamePlaceholder": "이름을 입력하세요",
     "passwordMin": "최소 6자",

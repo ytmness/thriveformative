@@ -296,7 +296,7 @@
   },
   "auth": {
     "loginTitle": "Sign in",
-    "loginSubtitle": "Patients book through the clinic portal. Staff sign in via Staff access.",
+    "loginSubtitle": "Access your account to schedule and view your appointments.",
     "email": "Email",
     "emailPlaceholder": "you@email.com",
     "password": "Password",
@@ -306,7 +306,7 @@
     "registerLink": "Sign up",
     "backHome": "← Back to home",
     "registerTitle": "Create account",
-    "registerSubtitle": "Patients book through the clinic portal. Staff use Staff access.",
+    "registerSubtitle": "Sign up to schedule and manage your appointments.",
     "fullName": "Full name",
     "fullNamePlaceholder": "Your name",
     "passwordMin": "Minimum 6 characters",

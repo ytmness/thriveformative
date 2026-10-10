@@ -296,7 +296,7 @@
   },
   "auth": {
     "loginTitle": "Iniciar sesión",
-    "loginSubtitle": "Los pacientes agendan por el portal de la clínica. El personal entra con Acceso staff.",
+    "loginSubtitle": "Accede a tu cuenta para agendar y ver tus citas.",
     "email": "Correo",
     "emailPlaceholder": "tu@correo.com",
     "password": "Contraseña",
@@ -306,7 +306,7 @@
     "registerLink": "Regístrate",
     "backHome": "← Volver al inicio",
     "registerTitle": "Crear cuenta",
-    "registerSubtitle": "Los pacientes reservan por el portal de la clínica. El personal usa Acceso staff.",
+    "registerSubtitle": "Regístrate para agendar y gestionar tus citas.",
     "fullName": "Nombre completo",
     "fullNamePlaceholder": "Tu nombre",
     "passwordMin": "Mínimo 6 caracteres",

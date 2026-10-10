@@ -289,7 +289,7 @@
   },
   "auth": {
     "loginTitle": "Accedi",
-    "loginSubtitle": "I pazienti prenotano tramite il portale della clinica. Il personale entra con Accesso staff.",
+    "loginSubtitle": "Accedi al tuo account per prenotare e vedere i tuoi appuntamenti.",
     "email": "Email",
     "emailPlaceholder": "tu@email.com",
     "password": "Password",
@@ -299,7 +299,7 @@
     "registerLink": "Registrati",
     "backHome": "← Torna alla home",
     "registerTitle": "Crea account",
-    "registerSubtitle": "I pazienti prenotano tramite il portale della clinica. Il personale usa Accesso staff.",
+    "registerSubtitle": "Registrati per prenotare e gestire i tuoi appuntamenti.",
     "fullName": "Nome completo",
     "fullNamePlaceholder": "Il tuo nome",
     "passwordMin": "Minimo 6 caratteri",

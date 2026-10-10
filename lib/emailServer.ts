@@ -5,6 +5,7 @@ import {
   emailSignOff,
   escapeHtml,
 } from "@/lib/emailTemplate";
+import { query } from "@/lib/db";
 import { getSmtpEnv } from "@/lib/env/server";
 import { log } from "@/lib/log";
 
@@ -48,6 +49,32 @@ export async function sendClinicEmail(to: string, subject: string, text: string)
     log.error("sendEmail", message, { kind: "clinic" });
     return { ok: false, error: message };
   }
+}
+
+function fillTemplate(template: string, vars: Record<string, string>) {
+  return template.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, key: string) => vars[key] ?? "");
+}
+
+/** Envía un correo con el texto guardado en message_templates, dentro del formato visual del servidor. */
+export async function sendSavedTemplateEmail(input: {
+  templateKey: string;
+  locale?: string;
+  to: string;
+  vars: Record<string, string>;
+  fallbackSubject: string;
+  fallbackText: string;
+}) {
+  const locale = input.locale || "es";
+  const saved = await query<{ subject: string | null; body: string }>(
+    `SELECT subject, body FROM message_templates
+     WHERE channel = 'email' AND is_active AND template_key = $1 AND locale = $2
+     LIMIT 1`,
+    [input.templateKey, locale]
+  ).catch(() => ({ rows: [] as { subject: string | null; body: string }[] }));
+  const row = saved.rows[0];
+  const subject = row?.subject ? fillTemplate(row.subject, input.vars) : input.fallbackSubject;
+  const text = row?.body ? fillTemplate(row.body, input.vars) : input.fallbackText;
+  return sendClinicEmail(input.to, subject, text);
 }
 
 export type EmailKind =
