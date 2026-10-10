@@ -174,8 +174,9 @@ export async function dashboardStats(
            AND (pay.received_at AT TIME ZONE $1)::date = (now() AT TIME ZONE $1)::date) AS revenue
      FROM locations l
      WHERE l.is_active AND ${countrySql("l.id", "$2")}
+       AND ($3::uuid IS NULL OR l.id = $3)
      ORDER BY l.name`,
-    [timeZone, country]
+    [timeZone, country, locationId]
   );
   return { ...rows.rows[0], upcoming: upcoming.rows, sites: sites.rows };
 }

@@ -27,6 +27,40 @@ type Scope = {
 const Ctx = createContext<Scope | null>(null);
 const KEY = "tf-clinic-scope";
 
+function preferredSede(country: "MX" | "US", rows: ClinicLocation[]) {
+  const needle = country === "MX" ? "monterrey" : "laredo";
+  return rows.find((row) => {
+    if (countryCode(row.country) !== country) return false;
+    const haystack = `${row.name || ""} ${row.city || ""}`.toLowerCase();
+    return haystack.includes(needle);
+  }) || null;
+}
+
+function FlagMexico() {
+  return (
+    <svg className="admin-scope__flag" viewBox="0 0 18 12" aria-hidden="true">
+      <rect width="6" height="12" fill="#006847" />
+      <rect x="6" width="6" height="12" fill="#fff" />
+      <rect x="12" width="6" height="12" fill="#ce1126" />
+    </svg>
+  );
+}
+
+function FlagUnitedStates() {
+  return (
+    <svg className="admin-scope__flag" viewBox="0 0 18 12" aria-hidden="true">
+      <rect width="18" height="12" fill="#b22234" />
+      <rect y="1.85" width="18" height="0.92" fill="#fff" />
+      <rect y="3.69" width="18" height="0.92" fill="#fff" />
+      <rect y="5.54" width="18" height="0.92" fill="#fff" />
+      <rect y="7.38" width="18" height="0.92" fill="#fff" />
+      <rect y="9.23" width="18" height="0.92" fill="#fff" />
+      <rect y="11.08" width="18" height="0.92" fill="#fff" />
+      <rect width="7.6" height="6.46" fill="#3c3b6e" />
+    </svg>
+  );
+}
+
 export function countryCode(value: string | null | undefined) {
   const code = (value || "").trim().toUpperCase();
   if (code === "MX" || code === "MEXICO" || code === "MÉXICO") return "MX";
@@ -62,30 +96,32 @@ export function ClinicScopeProvider({ children }: { children: React.ReactNode })
     window.localStorage.setItem(KEY, JSON.stringify({ country, locationId }));
   }, [country, locationId, ready]);
 
-  const visible = useMemo(
-    () => locations.filter((row) => countryCode(row.country) === country),
-    [locations, country]
-  );
+  const sede = useMemo(() => preferredSede(country, locations), [locations, country]);
+  const visible = useMemo(() => (sede ? [sede] : []), [sede]);
+  const label = sede?.name || (country === "MX" ? "Monterrey" : "Laredo");
 
-  const active = visible.find((row) => row.id === locationId);
-  const label = active ? active.name : country === "MX" ? "México · ambas sedes" : "Estados Unidos · ambas sedes";
+  useEffect(() => {
+    if (!ready || !sede || locationId === sede.id) return;
+    setLocationId(sede.id);
+  }, [ready, sede, locationId]);
 
   const query = useMemo(() => {
     const params = new URLSearchParams();
     params.set("country", country);
-    if (locationId && visible.some((row) => row.id === locationId)) params.set("locationId", locationId);
+    if (sede) params.set("locationId", sede.id);
     return params.toString();
-  }, [country, locationId, visible]);
+  }, [country, sede]);
 
   function setCountry(next: "MX" | "US") {
     setCountryState(next);
-    setLocationId("");
+    const nextSede = preferredSede(next, locations);
+    setLocationId(nextSede?.id || "");
   }
 
   const value: Scope = {
     ready,
     country,
-    locationId: visible.some((row) => row.id === locationId) ? locationId : "",
+    locationId: sede?.id || "",
     locations,
     visible,
     label,
@@ -104,21 +140,23 @@ export function useClinicScope() {
 }
 
 export function ScopeBar() {
-  const { country, locationId, visible, setCountry, setLocationId } = useClinicScope();
+  const { country, setCountry } = useClinicScope();
+  function onKey(event: React.KeyboardEvent) {
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+    event.preventDefault();
+    setCountry(country === "MX" ? "US" : "MX");
+  }
   return (
-    <div className="admin-scope" role="group" aria-label="País y sede">
-      <div className="admin-scope__countries">
-        <button type="button" className={country === "MX" ? "is-active" : ""} aria-pressed={country === "MX"} onClick={() => setCountry("MX")}>México</button>
-        <button type="button" className={country === "US" ? "is-active" : ""} aria-pressed={country === "US"} onClick={() => setCountry("US")}>Estados Unidos</button>
-      </div>
-      <div className="admin-scope__sites">
-        <button type="button" className={!locationId ? "is-active" : ""} aria-pressed={!locationId} onClick={() => setLocationId("")}>Ambas</button>
-        {visible.map((row) => (
-          <button key={row.id} type="button" className={locationId === row.id ? "is-active" : ""} aria-pressed={locationId === row.id} onClick={() => setLocationId(row.id)}>
-            {row.name}
-          </button>
-        ))}
-      </div>
+    <div className="admin-scope" role="radiogroup" aria-label="Sede" data-country={country} onKeyDown={onKey}>
+      <span className="admin-scope__thumb" aria-hidden="true" />
+      <button type="button" role="radio" aria-checked={country === "MX"} className={country === "MX" ? "is-active" : ""} onClick={() => setCountry("MX")}>
+        <FlagMexico />
+        <span>Monterrey</span>
+      </button>
+      <button type="button" role="radio" aria-checked={country === "US"} className={country === "US" ? "is-active" : ""} onClick={() => setCountry("US")}>
+        <FlagUnitedStates />
+        <span>Laredo</span>
+      </button>
     </div>
   );
 }
