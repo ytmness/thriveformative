@@ -14,9 +14,27 @@ import "@/app/styles/tienda.css";
 type Patient = Record<string, unknown> & {
   id: string; firstName: string; lastName: string; clientCode: string;
   email?: string; mobile?: string; phone?: string; city?: string; state?: string;
-  createdAt?: string; marketingSource?: string | null; privacyPolicyStatus?: string;
+  sex?: string | null; createdAt?: string; marketingSource?: string | null; privacyPolicyStatus?: string;
   tags?: { id?: string; name?: string }[];
 };
+
+type Facets = {
+  sex: { todos: number; femenino: number; masculino: number; otro: number; sin_dato: number };
+  sources: { id: string; name: string; total: number }[];
+};
+
+const EMPTY_FACETS: Facets = {
+  sex: { todos: 0, femenino: 0, masculino: 0, otro: 0, sin_dato: 0 },
+  sources: [],
+};
+
+function sexLabel(value: unknown) {
+  const sex = String(value || "").trim().toLowerCase();
+  if (sex === "femenino") return "Mujer";
+  if (sex === "masculino") return "Hombre";
+  if (sex === "otro") return "Otro";
+  return "Sin dato";
+}
 
 function privacyLabel(status?: string) {
   if (status === "aceptado") return "Aviso aceptado";
@@ -37,6 +55,8 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [sex, setSex] = useState("");
+  const [source, setSource] = useState("");
+  const [facets, setFacets] = useState<Facets>(EMPTY_FACETS);
   const [sort, setSort] = useState("name");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [open, setOpen] = useState(startNew || false);
@@ -54,10 +74,11 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
   const [options, setOptions] = useState<{ locations: { id: string; name: string }[]; staff: { id: string; first_name: string; last_name: string }[]; sources: { id: string; name: string }[]; fields: { id: string; label: string; field_type: string; is_required?: boolean }[] }>({ locations: [], staff: [], sources: [], fields: [] });
   const tabs = [["identidad", "Datos"], ["contacto", "Contacto"], ["direccion", "Dirección"], ["consentimiento", "Consentimientos"]] as const;
 
-  async function load(nextPage = page, query = q, nextSex = sex, nextSort = sort) {
-    const data = await api<{ rows: Patient[]; total: number }>(`/api/admin/patients?q=${encodeURIComponent(query)}&page=${nextPage}&sex=${encodeURIComponent(nextSex)}&sort=${encodeURIComponent(nextSort)}&${scope.query}`);
+  async function load(nextPage = page, query = q, nextSex = sex, nextSort = sort, nextSource = source) {
+    const data = await api<{ rows: Patient[]; total: number; facets?: Facets }>(`/api/admin/patients?q=${encodeURIComponent(query)}&page=${nextPage}&sex=${encodeURIComponent(nextSex)}&source=${encodeURIComponent(nextSource)}&sort=${encodeURIComponent(nextSort)}&${scope.query}`);
     setRows(data.rows);
     setTotal(data.total);
+    setFacets(data.facets || EMPTY_FACETS);
   }
   useEffect(() => {
     setQ(initialQuery);
@@ -65,12 +86,12 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
     Promise.all([
       api<{ rows: { id: string; name: string; country?: string | null }[] }>("/api/admin/settings/locations"),
       api<{ rows: { id: string; first_name: string; last_name: string }[] }>("/api/admin/settings/staff"),
-      api<{ rows: { id: string; name: string }[] }>("/api/admin/settings/marketing-sources"),
+      api<{ rows: { id: string; name: string; is_active?: boolean }[] }>("/api/admin/settings/marketing-sources"),
       api<{ rows: { id: string; label: string; field_type: string; entity: string; is_required?: boolean }[] }>("/api/admin/settings/custom-fields"),
     ]).then(([locations, staff, sources, fields]) => setOptions({
       locations: locations.rows.filter((row) => countryCode(row.country) === scope.country),
       staff: staff.rows,
-      sources: sources.rows,
+      sources: sources.rows.filter((row) => row.is_active !== false),
       fields: fields.rows.filter((row) => row.entity === "patient"),
     })).catch(() => undefined);
   }, [initialQuery, scope.query]);
@@ -129,6 +150,33 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
     }
   }
 
+  const sexFilters = [
+    ["", "Todos", facets.sex.todos],
+    ["femenino", "Mujeres", facets.sex.femenino],
+    ["masculino", "Hombres", facets.sex.masculino],
+    ["otro", "Otro", facets.sex.otro],
+    ["sin_dato", "Sin dato", facets.sex.sin_dato],
+  ] as const;
+  const sourceCounts = new Map(facets.sources.map((row) => [row.id, row.total]));
+  const knownSourceIds = new Set(options.sources.map((row) => row.id));
+  const sourceFilters = [
+    { id: "", name: "Todas", total: facets.sources.reduce((sum, row) => sum + row.total, 0) },
+    ...options.sources.map((row) => ({ id: row.id, name: row.name, total: sourceCounts.get(row.id) ?? 0 })),
+    { id: "sin_fuente", name: "Sin fuente", total: sourceCounts.get("sin_fuente") ?? 0 },
+    ...facets.sources
+      .filter((row) => row.id !== "sin_fuente" && !knownSourceIds.has(row.id))
+      .map((row) => ({ id: row.id, name: row.name, total: row.total })),
+  ];
+  const empty = q
+    ? { title: "Sin coincidencias", text: "Ningún paciente coincide con la búsqueda." }
+    : sex === "otro" && !source && facets.sex.otro === 0
+      ? { title: "Nadie en Otro", text: "Ningún paciente tiene el sexo Otro. Quienes no tienen sexo guardado están en Sin dato." }
+      : sex === "sin_dato" && !source && facets.sex.sin_dato === 0
+        ? { title: "Todos tienen sexo", text: "En este directorio cada paciente ya es Mujer, Hombre u Otro." }
+        : sex || source
+          ? { title: "Sin coincidencias", text: "Ningún paciente coincide con este filtro." }
+          : { title: "Aún no hay pacientes", text: "Crea el primero para empezar el directorio." };
+
   return (
     <>
       <header className="admin-header"><p className="admin-header__eyebrow">Directorio · {scope.label}</p><h1 className="admin-header__title">Pacientes</h1></header>
@@ -149,31 +197,40 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
             </div>
           ) : null}
         </div>
-        <button className="admin-btn" type="button" onClick={() => { setPalette(false); setPage(1); load(1, q); }}>Buscar</button>
-        <button className="admin-btn admin-btn--primary" type="button" data-tour="patients-new" onClick={() => { setForm({ ...EMPTY, locationId: scope.locationId || scope.visible[0]?.id || "" }); setOpen(true); }}>+ Paciente</button>
-      </div>
-      <div className="patient-directory__filters">
-        <div className="patient-directory__chips" role="group" aria-label="Filtrar pacientes">
-          {[["", "Todos"], ["femenino", "Mujeres"], ["masculino", "Hombres"], ["otro", "Otro"]].map(([id, label]) => (
-            <button key={id || "all"} type="button" className={sex === id ? "is-active" : ""} onClick={() => { setSex(id); setPage(1); load(1, q, id, sort); }}>{label}</button>
-          ))}
-        </div>
         <label className="admin-field patient-directory__sort">Orden
           <select value={sort} onChange={(e) => { setSort(e.target.value); setPage(1); load(1, q, sex, e.target.value); }}>
             <option value="name">Nombre</option>
             <option value="recent">Más recientes</option>
           </select>
         </label>
+        <button className="admin-btn" type="button" onClick={() => { setPalette(false); setPage(1); load(1, q); }}>Buscar</button>
+        <button className="admin-btn admin-btn--primary" type="button" data-tour="patients-new" onClick={() => { setForm({ ...EMPTY, locationId: scope.locationId || scope.visible[0]?.id || "" }); setOpen(true); }}>+ Paciente</button>
       </div>
+      <div className="patient-directory__body">
+      <aside className="patient-filters" aria-label="Filtros del directorio">
+        <div className="admin-nav__block" role="group" aria-label="Sexo">
+          <p className="admin-nav__group">Sexo</p>
+          {sexFilters.map(([id, label, count]) => (
+            <button key={id || "all-sex"} type="button" className={`admin-nav__item${sex === id ? " admin-nav__item--active" : ""}`} aria-pressed={sex === id} onClick={() => { setSex(id); setPage(1); load(1, q, id, sort, source); }}>
+              <span>{label}</span>
+              <span className="patient-filters__count">{count}</span>
+            </button>
+          ))}
+        </div>
+        <div className="admin-nav__block" role="group" aria-label="Cómo nos descubrieron">
+          <p className="admin-nav__group">Cómo nos descubrieron</p>
+          {sourceFilters.map((item) => (
+            <button key={item.id || "all-sources"} type="button" className={`admin-nav__item${source === item.id ? " admin-nav__item--active" : ""}`} aria-pressed={source === item.id} onClick={() => { setSource(item.id); setPage(1); load(1, q, sex, sort, item.id); }}>
+              <span>{item.name}</span>
+              <span className="patient-filters__count">{item.total}</span>
+            </button>
+          ))}
+        </div>
+      </aside>
+      <div className="patient-directory__list">
       <p className="patient-directory__count">{total} {total === 1 ? "paciente" : "pacientes"}</p>
-      <div className="patient-directory__stats">
-        <article><span>Directorio</span><strong>{total}</strong></article>
-        <article><span>En esta página</span><strong>{rows.length}</strong></article>
-        <article><span>Con email</span><strong>{rows.filter((row) => row.email).length}</strong></article>
-        <article><span>Con teléfono</span><strong>{rows.filter((row) => row.mobile || row.phone).length}</strong></article>
-      </div>
       <div className="admin-table-wrap" data-tour="patients-list">
-        <div className="admin-table__head admin-table__head--patients"><span>Paciente</span><span>Contacto</span><span>Ciudad</span><span>Alta</span><span /></div>
+        <div className="admin-table__head admin-table__head--patients"><span>Paciente</span><span>Contacto</span><span>Ciudad</span><span>Origen</span><span>Alta</span><span /></div>
         {rows.map((row) => {
           const tags = Array.isArray(row.tags) ? row.tags as { id?: string; name?: string }[] : [];
           const openRow = expanded === row.id;
@@ -186,7 +243,7 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
                   </button>
                   <span>
                     <span className="admin-table__cell-title">{row.firstName} {row.lastName}</span>
-                    <span className="patient-directory__code">{row.clientCode}</span>
+                    <span className="admin-table__cell-sub">{sexLabel(row.sex)} · {row.clientCode}</span>
                   </span>
                 </div>
                 <div>
@@ -194,6 +251,7 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
                   <div className="admin-table__cell-sub">{row.mobile || row.phone || "Sin teléfono"}</div>
                 </div>
                 <div>{[row.city, row.state].filter(Boolean).join(", ") || "—"}</div>
+                <div>{row.marketingSource || "Sin fuente"}</div>
                 <div>{row.createdAt ? new Date(String(row.createdAt)).toLocaleDateString("es-MX") : "—"}</div>
                 <details className="admin-menu" onClick={(e) => e.stopPropagation()}>
                   <summary aria-label="Acciones">⋯</summary>
@@ -225,13 +283,15 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
             </div>
           );
         })}
-        {!rows.length ? <EmptyState title={q ? "Sin coincidencias" : "Aún no hay pacientes"} text={q ? "Ningún paciente coincide con la búsqueda." : "Crea el primero para empezar el directorio."} action={<button className="admin-btn admin-btn--primary" type="button" onClick={() => setOpen(true)}>+ Paciente</button>} /> : null}
+        {!rows.length ? <EmptyState title={empty.title} text={empty.text} action={!q && !sex && !source ? <button className="admin-btn admin-btn--primary" type="button" onClick={() => setOpen(true)}>+ Paciente</button> : undefined} /> : null}
+      </div>
       </div>
       </div>
       <div className="admin-toolbar">
         <button className="admin-btn" type="button" disabled={page <= 1} onClick={() => { const n = page - 1; setPage(n); load(n); }}>Anterior</button>
         <span>{page} / {Math.max(1, Math.ceil(total / 25))}</span>
         <button className="admin-btn" type="button" disabled={page * 25 >= total} onClick={() => { const n = page + 1; setPage(n); load(n); }}>Siguiente</button>
+      </div>
       </div>
       {open ? (
         <div className="admin-drawer" onClick={() => setOpen(false)}>
@@ -293,7 +353,7 @@ export function PatientFields({ form, setForm, options, section = "identidad" }:
       ) : null}
       {section === "contacto" ? (
         <>
-          <label className="admin-field">Fuente<select value={String(form.marketingSourceId || "")} onChange={(e) => set("marketingSourceId", e.target.value)}><option value="">—</option>{options.sources.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
+          <label className="admin-field"><span className="admin-field__label">Cómo nos descubrieron</span><select value={String(form.marketingSourceId || "")} onChange={(e) => set("marketingSourceId", e.target.value)}><option value="">—</option>{options.sources.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
           <label className="admin-field">Referido por<input value={String(form.referredByName || "")} onChange={(e) => set("referredByName", e.target.value)} /></label>
           <label className="admin-field">Email<input type="email" value={String(form.email || "")} onChange={(e) => set("email", e.target.value)} /></label>
           <label className="admin-field">Móvil<input value={String(form.mobile || "")} onChange={(e) => set("mobile", e.target.value)} /></label>
@@ -599,7 +659,8 @@ function PatientSummary({ patient }: { patient: Patient }) {
     ["Móvil", patient.mobile],
     ["Teléfono", patient.phone],
     ["Nacimiento", patient.birthDate],
-    ["Sexo", patient.sex],
+    ["Sexo", sexLabel(patient.sex)],
+    ["Cómo nos descubrieron", patient.marketingSource || "Sin fuente"],
     ["Idioma", patient.preferredLanguage],
     ["Dirección", address],
     ["Aviso de privacidad", patient.privacyPolicyStatus],

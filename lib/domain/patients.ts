@@ -115,6 +115,8 @@ const BASE = `
   LEFT JOIN marketing_sources ms ON ms.id = p.marketing_source_id
 `;
 
+const KNOWN_SEX = `('femenino', 'masculino', 'otro')`;
+
 export async function listPatients(url: URL) {
   const { page, pageSize, offset } = pageParams(url);
   const q = (url.searchParams.get("q") || "").trim();
@@ -129,23 +131,70 @@ export async function listPatients(url: URL) {
     url.searchParams.get("sex") || null,
     url.searchParams.get("tagId") || null,
     normalizeCountry(url.searchParams.get("country")),
+    url.searchParams.get("source") || null,
   ];
-  const where = `
+  const whereBase = `
     WHERE p.deleted_at IS NULL
       AND ($1 = '' OR (p.first_name || ' ' || p.last_name) ILIKE $2 OR p.client_code ILIKE $2
            OR p.email_hash = $3 OR p.mobile_hash = $4 OR p.phone_hash = $4)
       AND ($5::uuid IS NULL OR p.location_id = $5)
       AND ($6::uuid IS NULL OR p.owner_staff_id = $6)
-      AND ($7::text IS NULL OR p.sex = $7)
       AND ($8::uuid IS NULL OR EXISTS (
         SELECT 1 FROM patient_tags pt WHERE pt.patient_id = p.id AND pt.tag_id = $8
       ))
       AND ${countrySql("p.location_id", "$9")}
   `;
-  const total = await query<{ n: number }>(`SELECT count(*)::int AS n FROM patients p ${where}`, filters);
+  const sexSql = `
+    AND (
+      $7::text IS NULL
+      OR ($7 = 'sin_dato' AND lower(btrim(coalesce(p.sex, ''))) NOT IN ${KNOWN_SEX})
+      OR ($7 <> 'sin_dato' AND lower(btrim(coalesce(p.sex, ''))) = lower($7))
+    )
+  `;
+  const sourceSql = `
+    AND (
+      $10::text IS NULL
+      OR ($10 = 'sin_fuente' AND p.marketing_source_id IS NULL)
+      OR ($10 <> 'sin_fuente' AND p.marketing_source_id::text = $10)
+    )
+  `;
+  const where = `${whereBase} ${sexSql} ${sourceSql}`;
+  const [total, sexFacet, sourceFacet] = await Promise.all([
+    query<{ n: number }>(`SELECT count(*)::int AS n FROM patients p ${where}`, filters),
+    query<{ todos: number; femenino: number; masculino: number; otro: number; sin_dato: number }>(
+      `SELECT
+         count(*)::int AS todos,
+         count(*) FILTER (WHERE lower(btrim(coalesce(p.sex, ''))) = 'femenino')::int AS femenino,
+         count(*) FILTER (WHERE lower(btrim(coalesce(p.sex, ''))) = 'masculino')::int AS masculino,
+         count(*) FILTER (WHERE lower(btrim(coalesce(p.sex, ''))) = 'otro')::int AS otro,
+         count(*) FILTER (WHERE lower(btrim(coalesce(p.sex, ''))) NOT IN ${KNOWN_SEX})::int AS sin_dato
+       FROM patients p ${whereBase} ${sourceSql}`,
+      filters
+    ),
+    query<{ id: string; name: string; total: number }>(
+      `SELECT coalesce(p.marketing_source_id::text, 'sin_fuente') AS id,
+              coalesce(ms.name, 'Sin fuente') AS name,
+              count(*)::int AS total
+       FROM patients p
+       LEFT JOIN marketing_sources ms ON ms.id = p.marketing_source_id
+       ${whereBase} ${sexSql}
+       GROUP BY p.marketing_source_id, ms.name
+       ORDER BY total DESC, name ASC`,
+      filters
+    ),
+  ]);
   const order = url.searchParams.get("sort") === "recent" ? "p.created_at DESC" : "p.last_name, p.first_name";
-  const rows = await query(`${BASE} ${where} ORDER BY ${order} LIMIT $10 OFFSET $11`, [...filters, pageSize, offset]);
-  return { rows: rows.rows.map((row) => mapPatient(row)), total: total.rows[0].n, page, pageSize };
+  const rows = await query(`${BASE} ${where} ORDER BY ${order} LIMIT $11 OFFSET $12`, [...filters, pageSize, offset]);
+  return {
+    rows: rows.rows.map((row) => mapPatient(row)),
+    total: total.rows[0].n,
+    page,
+    pageSize,
+    facets: {
+      sex: sexFacet.rows[0] || { todos: 0, femenino: 0, masculino: 0, otro: 0, sin_dato: 0 },
+      sources: sourceFacet.rows,
+    },
+  };
 }
 
 export async function getPatient(id: string, actor: StaffSession, meta?: { ip?: string | null; userAgent?: string | null }) {
