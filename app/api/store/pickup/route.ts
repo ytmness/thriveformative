@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { jsonError, jsonOk, handleRouteError } from "@/lib/security/errors";
 import { isValidRef } from "@/lib/store/slug";
 import { loadPickupAvailability } from "@/lib/store/storeOrders";
+import { normalizeCountry } from "@/lib/domain/scope";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
     if (!LOCALES.has(locale) || !refs.length || refs.some((ref) => !isValidRef(ref))) {
       return jsonError(400, "Solicitud inválida.");
     }
-    const availability = await loadPickupAvailability(locale, refs);
+    const availability = await loadPickupAvailability(locale, refs, normalizeCountry(request.nextUrl.searchParams.get("country")));
     return jsonOk(availability);
   } catch (error) {
     return handleRouteError("store-pickup", error);

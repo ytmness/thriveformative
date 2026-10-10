@@ -397,6 +397,14 @@ const TABS = [
   ["membresias", "Membresías"],
 ] as const;
 
+const FOLDERS = [
+  ["notas", "Notas", "expediente"],
+  ["alergias", "Alergias", "alergias"],
+  ["formularios", "Formularios", "formularios"],
+  ["fotos", "Fotos", "fotos"],
+  ["documentos", "Documentos", "documentos"],
+] as const;
+
 const SALE_RECEIPT_LABELS = {
   receiptTitle: "Recibo",
   totalPaid: "Total pagado",
@@ -460,9 +468,10 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
   const [clinical, setClinical] = useState<Record<string, Record<string, unknown>[]>>({});
   const [templates, setTemplates] = useState<{ id: string; name: string }[]>([]);
   const [templateId, setTemplateId] = useState("");
-  const [folder, setFolder] = useState(tab === "formularios" || tab === "alergias" || tab === "fotos" || tab === "documentos" ? tab : "notas");
   const [receipt, setReceipt] = useState<StoreReceiptData | null>(null);
   const active = TAB_ALIAS[tab] || tab || "resumen";
+  const folder = tab === "formularios" || tab === "alergias" || tab === "fotos" || tab === "documentos" ? tab : "notas";
+  const folderLabel = FOLDERS.find(([key]) => key === folder)?.[1] || "Notas";
 
   useEffect(() => {
     if (params.get("creado") === "1") setNotice("Paciente guardado.");
@@ -505,27 +514,45 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
       </header>
       {error ? <div className="admin-alert" role="alert">{error}</div> : null}
       {notice ? <p className="admin-banner" role="status">{notice}</p> : null}
-      <nav className="admin-nav admin-nav--row" data-tour="chart-tabs" aria-label="Ficha del paciente">
-        {TABS.map(([item, label]) => <Link key={item} className={`admin-nav__item${active === item ? " admin-nav__item--active" : ""}`} href={item === "resumen" ? `/admin/pacientes/${id}` : `/admin/pacientes/${id}/${item}`} aria-current={active === item ? "page" : undefined}>{label}</Link>)}
+      <nav className="admin-nav admin-nav--row chart-tabs" data-tour="chart-tabs" aria-label="Ficha del paciente">
+        {TABS.map(([item, label]) => item === "expediente" ? (
+          <details key={item} className={`chart-drop${active === "expediente" ? " is-current" : ""}`}>
+            <summary className={`admin-nav__item${active === "expediente" ? " admin-nav__item--active" : ""}`}>
+              <span>Expediente{active === "expediente" ? ` · ${folderLabel}` : ""}</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+            </summary>
+            <div className="chart-drop__menu" role="menu">
+              {FOLDERS.map(([key, name, slug]) => (
+                <Link key={key} role="menuitem" href={`/admin/pacientes/${id}/${slug}`} aria-current={active === "expediente" && folder === key ? "page" : undefined} onClick={(event) => { const menu = event.currentTarget.closest("details"); if (menu) menu.open = false; }}>{name}</Link>
+              ))}
+            </div>
+          </details>
+        ) : (
+          <Link key={item} className={`admin-nav__item${active === item ? " admin-nav__item--active" : ""}`} href={item === "resumen" ? `/admin/pacientes/${id}` : `/admin/pacientes/${id}/${item}`} aria-current={active === item ? "page" : undefined}>{label}</Link>
+        ))}
       </nav>
       <div data-tour="chart-panel">
       {active === "resumen" ? <PatientSummary patient={patient} /> : null}
       {active === "expediente" ? (
-        <>
-          <nav className="admin-nav admin-nav--row" aria-label="Secciones del expediente">
-            {[["notas", "Notas"], ["alergias", "Alergias"], ["formularios", "Formularios"], ["fotos", "Fotos"], ["documentos", "Documentos"]].map(([item, label]) => (
-              <button key={item} type="button" className={`admin-nav__item${folder === item ? " admin-nav__item--active" : ""}`} aria-pressed={folder === item} onClick={() => setFolder(item)}>{label}</button>
-            ))}
-          </nav>
+        <div className="chart-sheet">
           {folder === "notas" ? (
-            <form className="admin-form-grid" onSubmit={async (e) => { e.preventDefault(); await api(`/api/admin/patients/${id}/notes`, { method: "POST", body: JSON.stringify({ ...note, lock: true }) }); setNotice("Nota guardada."); location.reload(); }}>
-              <label className="admin-field">Subjetivo<textarea value={note.subjective} onChange={(e) => setNote({ ...note, subjective: e.target.value })} /></label>
-              <label className="admin-field">Objetivo<textarea value={note.objective} onChange={(e) => setNote({ ...note, objective: e.target.value })} /></label>
-              <label className="admin-field">Evaluación<textarea value={note.assessment} onChange={(e) => setNote({ ...note, assessment: e.target.value })} /></label>
-              <label className="admin-field">Plan<textarea value={note.plan} onChange={(e) => setNote({ ...note, plan: e.target.value })} /></label>
-              <button className="admin-btn admin-btn--primary" type="submit">Firmar nota SOAP</button>
-              {rows.map((row) => <article key={String(row.id)} className="admin-metric span-2"><p>{String(row.subjective || row.body || "")}</p><p className="admin-metric__label">{row.lockedAt ? "Firmada" : "Borrador"} · {String(row.authorName || "")}</p></article>)}
-            </form>
+            <>
+              <form className="chart-note" onSubmit={async (e) => { e.preventDefault(); await api(`/api/admin/patients/${id}/notes`, { method: "POST", body: JSON.stringify({ ...note, lock: true }) }); setNotice("Nota guardada."); location.reload(); }}>
+                <label className="admin-field">Subjetivo<textarea value={note.subjective} onChange={(e) => setNote({ ...note, subjective: e.target.value })} /></label>
+                <label className="admin-field">Objetivo<textarea value={note.objective} onChange={(e) => setNote({ ...note, objective: e.target.value })} /></label>
+                <label className="admin-field">Evaluación<textarea value={note.assessment} onChange={(e) => setNote({ ...note, assessment: e.target.value })} /></label>
+                <label className="admin-field">Plan<textarea value={note.plan} onChange={(e) => setNote({ ...note, plan: e.target.value })} /></label>
+                <div className="chart-note__actions">
+                  <button className="admin-btn admin-btn--primary" type="submit">Firmar nota SOAP</button>
+                </div>
+              </form>
+              {rows.length ? (
+                <section className="chart-note__saved">
+                  <h2>Notas firmadas</h2>
+                  {rows.map((row) => <article key={String(row.id)} className="chart-note__past"><p>{String(row.subjective || row.body || "")}</p><p className="admin-metric__label">{row.lockedAt ? "Firmada" : "Borrador"} · {String(row.authorName || "")}</p></article>)}
+                </section>
+              ) : null}
+            </>
           ) : null}
           {folder === "alergias" ? (
             <form onSubmit={async (e) => { e.preventDefault(); await api(`/api/admin/patients/${id}/${kind}`, { method: "POST", body: JSON.stringify({ value }) }); setNotice("Registro guardado."); location.reload(); }}>
@@ -535,7 +562,7 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
                 <button className="admin-btn admin-btn--primary" type="submit">Agregar</button>
               </div>
               {(["allergies", "conditions", "medications"] as const).map((name) => (
-                <section key={name}><h2>{name === "allergies" ? "Alergias" : name === "conditions" ? "Condiciones" : "Medicamentos"}</h2>{(clinical[name] || []).map((row) => <div key={String(row.id)} className="admin-table__row">{String(row.value)}</div>)}</section>
+                <section key={name} className="chart-block"><h2>{name === "allergies" ? "Alergias" : name === "conditions" ? "Condiciones" : "Medicamentos"}</h2>{(clinical[name] || []).map((row) => <div key={String(row.id)} className="admin-table__row">{String(row.value)}</div>)}</section>
               ))}
             </form>
           ) : null}
@@ -556,7 +583,7 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
             </div>
           ) : null}
           {(folder === "fotos" || folder === "documentos") ? (
-            <form onSubmit={async (e) => {
+            <form className="chart-block" onSubmit={async (e) => {
               e.preventDefault();
               const data = new FormData(e.currentTarget);
               if (folder === "fotos") data.set("isPhoto", "1");
@@ -568,7 +595,7 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
               {rows.filter((row) => folder === "fotos" ? row.is_photo : !row.is_photo).map((row) => <a key={String(row.id)} className="admin-table__row" href={`/api/admin/documents/${row.id}`}>{String(row.title)}</a>)}
             </form>
           ) : null}
-        </>
+        </div>
       ) : null}
       {active === "citas" ? (
         <div className="admin-table-wrap">

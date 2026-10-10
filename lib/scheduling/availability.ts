@@ -1,4 +1,5 @@
 import { query } from "@/lib/db";
+import { locationCountrySql, normalizeCountry } from "@/lib/domain/scope";
 import { addDaysToDateKey, todayKey, weekdayIndex, zonedTimeToUtc } from "@/lib/scheduling/time";
 
 type Range = { start: number; end: number; staffId?: string | null; roomId?: string | null; locationId?: string | null };
@@ -14,6 +15,7 @@ export async function availabilityForDate(input: {
   date: string;
   locationId?: string | null;
   staffUserId?: string | null;
+  country?: string | null;
 }) {
   const service = await query<{
     id: string;
@@ -58,15 +60,17 @@ export async function availabilityForDate(input: {
     [input.staffUserId ?? null, input.serviceId]
   );
 
+  const country = normalizeCountry(input.country);
   const locations = await query<{ id: string; timezone: string; name: string }>(
     `SELECT l.id, l.timezone, l.name FROM locations l
      WHERE l.is_active
        AND ($1::uuid IS NULL OR l.id = $1)
+       AND ($3::text IS NULL OR ${locationCountrySql("l.country", "$3")})
        AND (
          NOT EXISTS (SELECT 1 FROM service_locations sl WHERE sl.service_id = $2)
          OR EXISTS (SELECT 1 FROM service_locations sl WHERE sl.service_id = $2 AND sl.location_id = l.id)
        )`,
-    [input.locationId ?? null, input.serviceId]
+    [input.locationId ?? null, input.serviceId, country]
   );
 
   const rooms = await query<{ id: string; location_id: string }>(

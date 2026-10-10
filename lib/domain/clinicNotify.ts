@@ -7,10 +7,10 @@ import { formatDate, formatHm } from "@/lib/scheduling/time";
 
 type Kind = "pending" | "confirmed" | "cancelled";
 
-const COPY: Record<Kind, { type: string; title: string; email: "appointment_pending" | "appointment_confirmed" | "appointment_cancelled" }> = {
-  pending: { type: "appointment_pending", title: "Nueva cita por confirmar", email: "appointment_pending" },
-  confirmed: { type: "appointment_confirmed", title: "Cita confirmada", email: "appointment_confirmed" },
-  cancelled: { type: "appointment_cancelled", title: "Cita cancelada", email: "appointment_cancelled" },
+const COPY: Record<Kind, { type: string; title: string; patientTitle: string; email: "appointment_pending" | "appointment_confirmed" | "appointment_cancelled" }> = {
+  pending: { type: "appointment_pending", title: "Nueva cita por confirmar", patientTitle: "Cita agendada", email: "appointment_pending" },
+  confirmed: { type: "appointment_confirmed", title: "Cita confirmada", patientTitle: "Cita confirmada", email: "appointment_confirmed" },
+  cancelled: { type: "appointment_cancelled", title: "Cita cancelada", patientTitle: "Cita cancelada", email: "appointment_cancelled" },
 };
 
 export async function notifyAppointment(appointmentId: string, kind: Kind) {
@@ -69,4 +69,10 @@ export async function notifyAppointment(appointmentId: string, kind: Kind) {
     `INSERT INTO notifications (type, title, body, reference_id) VALUES ($1,$2,$3,$4)`,
     [copy.type, copy.title, `${who} · ${date} a las ${timeSlot}`, appointmentId]
   );
+  if (row.patient_id) {
+    await query(
+      `INSERT INTO notifications (type, title, body, reference_id, patient_id) VALUES ($1,$2,$3,$4,$5)`,
+      [copy.type, copy.patientTitle, `Tu cita del ${date} a las ${timeSlot}.`, appointmentId, row.patient_id]
+    );
+  }
 }

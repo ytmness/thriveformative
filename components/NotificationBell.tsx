@@ -22,11 +22,13 @@ export default function NotificationBell({ variant = "site" }: { variant?: "site
   const ref = useRef<HTMLDivElement>(null);
   const unreadCount = notifications.filter((item) => !item.read_at).length;
 
+  const endpoint = variant === "admin" ? "/api/admin/notifications" : "/api/portal/notifications";
+
   useEffect(() => {
-    if (!user) return;
+    if (variant === "site" && !user) return;
     let cancelled = false;
     async function load() {
-      const response = await fetch("/api/admin/notifications", { credentials: "same-origin" });
+      const response = await fetch(endpoint, { credentials: "same-origin" });
       if (!response.ok) return;
       const body = (await response.json()) as { rows?: NotificationRow[] };
       if (!cancelled) setNotifications(body.rows ?? []);
@@ -37,7 +39,7 @@ export default function NotificationBell({ variant = "site" }: { variant?: "site
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [user]);
+  }, [user, endpoint, variant]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -48,7 +50,7 @@ export default function NotificationBell({ variant = "site" }: { variant?: "site
   }, []);
 
   async function markRead(id: string) {
-    await fetch("/api/admin/notifications", {
+    await fetch(endpoint, {
       method: "PATCH",
       credentials: "same-origin",
       headers: { "Content-Type": "application/json" },
@@ -57,16 +59,15 @@ export default function NotificationBell({ variant = "site" }: { variant?: "site
     setNotifications((prev) => prev.map((item) => (item.id === id ? { ...item, read_at: new Date().toISOString() } : item)));
   }
 
-  if (!user) return null;
-
   const label = unreadCount > 0 ? `${unreadCount} notificaciones sin leer` : "Notificaciones";
+  const sitePanel = "absolute right-0 mt-2 w-80 max-h-[min(24rem,70vh)] overflow-auto rounded-xl border border-theme bg-[rgb(var(--bg))] shadow-lg z-50";
 
   return (
     <div className={variant === "admin" ? "admin-bell" : "relative"} ref={ref}>
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className={variant === "admin" ? "admin-bell__btn" : "relative p-2 rounded-lg border border-theme hover:bg-[rgb(var(--surface))] transition-colors"}
+        className={variant === "admin" ? "admin-bell__btn" : "site-nav__bell"}
         aria-label={label}
         aria-expanded={open}
       >
@@ -81,10 +82,15 @@ export default function NotificationBell({ variant = "site" }: { variant?: "site
         ) : null}
       </button>
       {open ? (
-        <div className={variant === "admin" ? "admin-bell__panel" : "absolute right-0 mt-2 w-80 max-h-[min(24rem,70vh)] overflow-auto rounded-xl border border-theme bg-[rgb(var(--bg))] shadow-lg z-50"}>
+        <div className={variant === "admin" ? "admin-bell__panel" : sitePanel}>
           <div className={variant === "admin" ? "admin-bell__head" : "p-3 border-b border-theme font-medium text-sm"}>Notificaciones</div>
           <div>
-            {notifications.length === 0 ? (
+            {variant === "site" && !user ? (
+              <div className="p-4 text-sm">
+                <a href={`/${locale}/login`} className="text-[rgb(var(--primary))] hover:underline">Inicia sesión</a>
+                <span className="text-muted"> para ver los avisos de tus citas.</span>
+              </div>
+            ) : notifications.length === 0 ? (
               <div className={variant === "admin" ? "admin-bell__empty" : "p-4 text-sm text-muted"}>No hay notificaciones.</div>
             ) : (
               notifications.map((item) => (

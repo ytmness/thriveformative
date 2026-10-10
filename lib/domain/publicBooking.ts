@@ -1,11 +1,13 @@
 import { contactHash } from "@/lib/crypto/phi";
 import { createPortalAccount } from "@/lib/auth/portal";
 import { query } from "@/lib/db";
+import { locationCountrySql } from "@/lib/domain/scope";
 import { DomainError } from "@/lib/http";
 import { createAppointment, findByManageToken, updateAppointment } from "@/lib/domain/appointments";
 import { createPatient } from "@/lib/domain/patients";
+import type { SiteMarket } from "@/lib/site/market";
 
-export async function bookPublic(body: Record<string, unknown>, meta?: { ip?: string | null; userAgent?: string | null }) {
+export async function bookPublic(body: Record<string, unknown>, meta?: { ip?: string | null; userAgent?: string | null }, market: SiteMarket = "MX") {
   const settings = await query<{ require_terms: boolean }>(`SELECT require_terms FROM booking_settings WHERE id = 1`);
   if (settings.rows[0]?.require_terms && body.acceptTerms !== true) {
     throw new DomainError("Debes aceptar los términos y el aviso de privacidad.");
@@ -42,6 +44,11 @@ export async function bookPublic(body: Record<string, unknown>, meta?: { ip?: st
       await query(`UPDATE patients SET marketing_source_id = $2 WHERE id = $1`, [patient.id, source.rows[0].id]);
     }
   }
+  const place = await query<{ id: string }>(
+    `SELECT id FROM locations WHERE id = $1 AND is_active AND ${locationCountrySql("country", "$2")}`,
+    [String(body.locationId || ""), market]
+  );
+  if (!place.rows[0]) throw new DomainError("Esa sede no está disponible en este país.");
   const created = await createAppointment(
     {
       patientId: patient.id,

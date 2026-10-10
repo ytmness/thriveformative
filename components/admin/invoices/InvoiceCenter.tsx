@@ -55,6 +55,7 @@ export function InvoiceCenter() {
   const [error, setError] = useState<string | null>(null);
   const [detail, setDetail] = useState<Detail | null>(null);
   const [opening, setOpening] = useState(false);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     setDetail(null);
@@ -77,6 +78,19 @@ export function InvoiceCenter() {
   }
 
   const title = kind === "quotes" ? "Cotización" : kind === "credits" ? "Nota de crédito" : "Factura";
+  const needle = query.trim().toLowerCase();
+  const visible = rows.filter((row) => {
+    if (!needle) return true;
+    const haystack = [
+      row.invoice_number,
+      row.quote_number,
+      row.credit_number,
+      person(row),
+      statusLabel(String(row.status || "")),
+      money(row.total || row.amount),
+    ].filter(Boolean).join(" ").toLowerCase();
+    return haystack.includes(needle);
+  });
 
   return (
     <>
@@ -108,9 +122,13 @@ export function InvoiceCenter() {
           <button className="admin-btn admin-btn--primary" type="submit">{kind === "quotes" ? "Nueva cotización" : "Nota de crédito"}</button>
         </form>
       ) : null}
+      <label className="section-search">
+        <span>Buscar documentos</span>
+        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Número, paciente, estado o monto" />
+      </label>
       <div className="admin-table-wrap" data-tour="invoice-table">
         <div className="admin-table__row admin-table__head invoice-list"><span>Número</span><span>Paciente</span><span>Fecha</span><span>Estado</span><span>Total</span><span /></div>
-        {rows.map((row) => (
+        {visible.map((row) => (
           <button key={String(row.id)} className="admin-table__row invoice-list" type="button" onClick={() => openRow(String(row.id))}>
             <span className="admin-table__cell-title">{String(row.invoice_number || row.quote_number || row.credit_number || "—")}</span>
             <span>{person(row)}</span>
@@ -121,6 +139,7 @@ export function InvoiceCenter() {
           </button>
         ))}
         {!rows.length ? <EmptyState title={kind === "quotes" ? "Sin cotizaciones" : kind === "credits" ? "Sin notas de crédito" : "Sin facturas"} text="Se crean al cobrar." action={<CreateOffer show={kind === "invoices"} kind="sale" href="/admin/cobrar" />} /> : null}
+        {rows.length > 0 && !visible.length ? <p className="admin-table__empty">Ningún documento coincide con la búsqueda.</p> : null}
       </div>
       {opening || detail ? (
         <div className="admin-drawer invoice-overlay" onClick={() => setDetail(null)}>

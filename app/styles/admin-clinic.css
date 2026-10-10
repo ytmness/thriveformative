@@ -15,6 +15,108 @@
 .admin-field input:focus, .admin-field select:focus, .admin-field textarea:focus {
   outline: none; border-color: rgb(122 62 40); box-shadow: 0 0 0 3px rgb(122 62 40 / 0.16);
 }
+.chart-tabs.admin-nav.admin-nav--row {
+  flex-wrap: wrap;
+  overflow: visible;
+  gap: 0.15rem;
+  margin: 0;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid rgb(var(--border) / 0.18);
+}
+.chart-drop { position: relative; }
+.chart-drop > summary.admin-nav__item {
+  width: auto;
+  list-style: none;
+}
+.chart-drop > summary.admin-nav__item::-webkit-details-marker { display: none; }
+.chart-drop > summary svg { transition: transform 150ms ease; }
+.chart-drop[open] > summary svg { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) {
+  .chart-drop > summary svg { transition: none; }
+}
+.chart-drop__menu {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  left: 0;
+  z-index: 30;
+  min-width: 12.5rem;
+  padding: 0.35rem;
+  border-radius: 0.9rem;
+  background: rgb(var(--bg));
+  border: 1px solid rgb(var(--border) / 0.18);
+  box-shadow: 0 16px 40px rgb(0 0 0 / 0.12);
+  display: grid;
+}
+.chart-drop__menu a {
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.6rem;
+  color: inherit;
+  text-decoration: none;
+}
+.chart-drop__menu a:hover { background: rgb(var(--primary) / 0.08); }
+.chart-drop__menu a[aria-current="page"] {
+  background: rgb(var(--primary) / 0.12);
+  color: rgb(var(--primary));
+}
+.chart-sheet {
+  padding-top: 1.15rem;
+}
+.chart-note {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: minmax(12rem, 1fr) minmax(12rem, 1fr) auto;
+  gap: 1rem 1.25rem;
+  min-height: calc(100dvh - 16.5rem);
+}
+.chart-note .admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-height: 0;
+  height: 100%;
+}
+.chart-note textarea {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 10rem;
+  height: 100%;
+  resize: vertical;
+}
+.chart-note__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-start;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgb(var(--border) / 0.16);
+}
+.chart-note__saved {
+  margin-top: 1.5rem;
+  padding-top: 1.15rem;
+  border-top: 1px solid rgb(var(--border) / 0.18);
+}
+.chart-note__saved h2,
+.chart-block h2 {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+}
+.chart-note__past {
+  padding: 0.85rem 0;
+  border-top: 1px solid rgb(var(--border) / 0.1);
+}
+.chart-note__past p { margin: 0; }
+.chart-block + .chart-block {
+  margin-top: 1.25rem;
+  padding-top: 1.15rem;
+  border-top: 1px solid rgb(var(--border) / 0.16);
+}
+@media (max-width: 720px) {
+  .chart-note {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    min-height: 0;
+  }
+  .chart-note textarea { min-height: 8rem; height: 8rem; }
+}
 .admin-form-grid { display: grid; gap: 16px; grid-template-columns: 1fr; align-items: start; }
 @media (min-width: 720px) { .admin-form-grid { grid-template-columns: 1fr 1fr; } }
 .admin-form-grid .span-2 { grid-column: 1 / -1; }
@@ -297,6 +399,29 @@
   font-size: 0.75rem; font-weight: 500; border-color: transparent; flex-shrink: 0;
 }
 .admin-chart-archive.admin-btn:hover { background: rgb(var(--primary) / 0.06); }
+.section-search { display: grid; gap: 0.35rem; margin: 0 0 1rem; max-width: 28rem; }
+.section-search span { font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: rgb(var(--muted)); }
+.section-search input {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(var(--border) / 0.22);
+  background: rgb(var(--bg) / 0.4);
+  padding: 0.65rem 0.8rem;
+  color: rgb(var(--text));
+  font: inherit;
+}
+button.admin-table__row {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid rgb(var(--border) / 0.1);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+button.admin-table__row.is-open { background: rgb(var(--primary) / 0.06); }
+.sale-sheet { display: grid; gap: 0.35rem; }
+.sale-sheet p { display: flex; justify-content: space-between; gap: 1rem; margin: 0.2rem 0; }
 .admin-toolbar { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 1rem; align-items: center; }
 .admin-toolbar input, .admin-toolbar select { border-radius: 0.75rem; border: 1px solid rgb(var(--border) / 0.22); background: rgb(var(--bg) / 0.4); padding: 0.55rem 0.75rem; color: rgb(var(--text)); }
 .admin-cal { border: 1px solid rgb(var(--border) / 0.18); border-radius: 1.15rem; overflow: auto; background: rgb(var(--surface) / 0.55); }

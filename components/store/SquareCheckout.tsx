@@ -25,10 +25,11 @@ declare global {
 type PayLine = { ref: string; variationId: string; quantity: number };
 
 export type CheckoutFulfillment =
-  | { method: "pickup"; name: string; locationId: string }
+  | { method: "pickup"; name: string; email: string; locationId: string }
   | {
       method: "shipping";
       name: string;
+      email: string;
       line1: string;
       city: string;
       state: string;

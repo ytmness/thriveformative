@@ -1,4 +1,6 @@
 import { getPool, query } from "@/lib/db";
+import { locationCountrySql, normalizeCountry } from "@/lib/domain/scope";
+import { sendClinicEmail } from "@/lib/emailServer";
 import type { StoreReceiptData } from "@/lib/store/orderTypes";
 
 export type PickupLocation = { id: string; name: string; city: string | null };
@@ -11,10 +13,14 @@ export type PickupAvailability = {
 type StockRow = { ref: string; location_id: string };
 type LocationRow = PickupLocation;
 
-export async function loadPickupAvailability(locale: string, refs: string[]): Promise<PickupAvailability> {
+export async function loadPickupAvailability(locale: string, refs: string[], country?: string | null): Promise<PickupAvailability> {
   const unique = [...new Set(refs)];
+  const market = normalizeCountry(country);
   const locations = await query<LocationRow>(
-    `SELECT id, name, city FROM locations WHERE is_active = true ORDER BY name`
+    `SELECT id, name, city FROM locations
+     WHERE is_active = true AND ($1::text IS NULL OR ${locationCountrySql("country", "$1")})
+     ORDER BY name`,
+    [market]
   );
   if (!unique.length) return { locations: locations.rows, lines: [] };
   const stock = await query<StockRow>(
@@ -23,8 +29,9 @@ export async function loadPickupAvailability(locale: string, refs: string[]): Pr
      JOIN products p ON lower(btrim(p.name)) = lower(btrim(sp.name)) AND p.is_active = true
      JOIN product_stock ps ON ps.product_id = p.id AND ps.quantity > 0
      JOIN locations l ON l.id = ps.location_id AND l.is_active = true
-     WHERE sp.locale = $1 AND sp.is_published = true AND sp.ref = ANY($2::text[])`,
-    [locale, unique]
+     WHERE sp.locale = $1 AND sp.is_published = true AND sp.ref = ANY($2::text[])
+       AND ($3::text IS NULL OR ${locationCountrySql("l.country", "$3")})`,
+    [locale, unique, market]
   );
   const byRef = new Map<string, string[]>();
   for (const row of stock.rows) {
@@ -38,8 +45,8 @@ export async function loadPickupAvailability(locale: string, refs: string[]): Pr
   };
 }
 
-export async function assertPickupStock(locale: string, locationId: string, refs: string[]): Promise<string> {
-  const availability = await loadPickupAvailability(locale, refs);
+export async function assertPickupStock(locale: string, locationId: string, refs: string[], country?: string | null): Promise<string> {
+  const availability = await loadPickupAvailability(locale, refs, country);
   const site = availability.locations.find((row) => row.id === locationId);
   if (!site) throw new Error("La sede no está disponible.");
   const missing = availability.lines.some((line) => !line.locationIds.includes(locationId));
@@ -63,6 +70,7 @@ export async function insertStoreOrder(input: {
   locationId: string | null;
   locationName: string | null;
   recipientName: string;
+  recipientEmail: string | null;
   addressLine1: string | null;
   city: string | null;
   state: string | null;
@@ -81,15 +89,16 @@ export async function insertStoreOrder(input: {
     await client.query("BEGIN");
     const inserted = await client.query<{ id: string; public_token: string; created_at: Date }>(
       `INSERT INTO store_orders (
-         locale, fulfillment, location_id, recipient_name, address_line1, city, state, postal_code, country,
+         locale, fulfillment, location_id, recipient_name, recipient_email, address_line1, city, state, postal_code, country,
          currency, total_amount, square_order_id, square_payment_id, receipt_url
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
        RETURNING id, public_token, created_at`,
       [
         input.locale,
         input.fulfillment,
         input.locationId,
         input.recipientName,
+        input.recipientEmail,
         input.addressLine1,
         input.city,
         input.state,
@@ -111,6 +120,7 @@ export async function insertStoreOrder(input: {
       );
     }
     await client.query("COMMIT");
+    void noticeStoreOrder(order.id, "paid").catch(() => undefined);
     const address = [input.addressLine1, input.city, input.state, input.postalCode, input.country].filter(Boolean).join(", ");
     return {
       folio: order.public_token.slice(0, 8).toUpperCase(),
@@ -233,9 +243,93 @@ export async function getStoreOrder(id: string): Promise<StoreOrderDetail | null
 }
 
 export async function updateStoreOrderStatus(id: string, status: "paid" | "ready" | "completed" | "cancelled"): Promise<boolean> {
+  const current = await query<{ status: string }>(`SELECT status FROM store_orders WHERE id = $1`, [id]);
+  if (!current.rows[0]) return false;
+  if (current.rows[0].status === status) return true;
   const result = await query(
     `UPDATE store_orders SET status = $2, updated_at = now() WHERE id = $1`,
     [id, status]
   );
+  if ((result.rowCount ?? 0) > 0) void noticeStoreOrder(id, status).catch(() => undefined);
   return (result.rowCount ?? 0) > 0;
+}
+
+function moneyLabel(cents: number, currency: string) {
+  return new Intl.NumberFormat("es-MX", { style: "currency", currency: currency || "USD" }).format(cents / 100);
+}
+
+const STAGE_COPY: Record<string, { title: string; subject: string; line: string }> = {
+  paid: {
+    title: "Nuevo pedido en línea",
+    subject: "Thrive Formative – Recibimos tu compra",
+    line: "Recibimos tu compra y ya está pagada.",
+  },
+  ready: {
+    title: "Pedido listo",
+    subject: "Thrive Formative – Tu pedido avanzó",
+    line: "Tu pedido ya está listo para recoger o va en camino.",
+  },
+  completed: {
+    title: "Pedido entregado",
+    subject: "Thrive Formative – Pedido entregado",
+    line: "Tu pedido ya se entregó.",
+  },
+  cancelled: {
+    title: "Pedido cancelado",
+    subject: "Thrive Formative – Pedido cancelado",
+    line: "Tu pedido fue cancelado. Si ya pagaste y necesitas ayuda, responde a este correo.",
+  },
+};
+
+async function noticeStoreOrder(id: string, status: string) {
+  const order = await query<{
+    recipient_name: string;
+    recipient_email: string | null;
+    fulfillment: string;
+    currency: string;
+    total_amount: number;
+    public_token: string;
+    location_name: string | null;
+    city: string | null;
+  }>(
+    `SELECT o.recipient_name, o.recipient_email, o.fulfillment, o.currency, o.total_amount, o.public_token,
+            l.name AS location_name, o.city
+     FROM store_orders o
+     LEFT JOIN locations l ON l.id = o.location_id
+     WHERE o.id = $1`,
+    [id]
+  );
+  const row = order.rows[0];
+  if (!row) return;
+  const lines = await query<{ name: string; quantity: number; unit_amount: number }>(
+    `SELECT name, quantity, unit_amount FROM store_order_lines WHERE order_id = $1 ORDER BY name`,
+    [id]
+  );
+  const place = row.fulfillment === "pickup" ? row.location_name || "Recoger en sede" : row.city || "Envío";
+  const folio = row.public_token.slice(0, 8).toUpperCase();
+  const total = moneyLabel(row.total_amount, row.currency);
+  const copy = STAGE_COPY[status] || STAGE_COPY.paid;
+  const items = lines.rows.map((line) => `${line.name} x${line.quantity} · ${moneyLabel(line.unit_amount * line.quantity, row.currency)}`).join("\n");
+  await query(
+    `INSERT INTO notifications (type, title, body, reference_id)
+     VALUES ('store_order', $1, $2, $3)`,
+    [copy.title, `${row.recipient_name} · ${place} · ${total} · Folio ${folio}`, id]
+  ).catch(() => undefined);
+  if (!row.recipient_email) return;
+  const readyLine = status === "ready"
+    ? (row.fulfillment === "shipping" ? "Tu pedido va en camino." : "Tu pedido está listo para recoger.")
+    : copy.line;
+  const text = [
+    `Hola ${row.recipient_name},`,
+    "",
+    readyLine,
+    "",
+    `Folio ${folio}`,
+    place,
+    "",
+    items,
+    "",
+    `Total pagado: ${total}`,
+  ].join("\n");
+  await sendClinicEmail(row.recipient_email, copy.subject, text);
 }

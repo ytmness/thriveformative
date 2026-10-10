@@ -18,6 +18,7 @@ import {
 } from "@/lib/security/request";
 import { isValidRef } from "@/lib/store/slug";
 import { assertPickupStock, insertStoreOrder } from "@/lib/store/storeOrders";
+import { requestMarket } from "@/lib/site/requestMarket";
 import { sellableVariations } from "@/lib/store/variations";
 
 export const dynamic = "force-dynamic";
@@ -28,15 +29,19 @@ const lineSchema = z.object({
   quantity: z.number().int().min(1).max(20),
 });
 
+const emailField = z.string().trim().email().max(160);
+
 const fulfillmentSchema = z.discriminatedUnion("method", [
   z.object({
     method: z.literal("pickup"),
     name: z.string().trim().min(2).max(80),
+    email: emailField,
     locationId: z.string().uuid(),
   }),
   z.object({
     method: z.literal("shipping"),
     name: z.string().trim().min(2).max(80),
+    email: emailField,
     line1: z.string().trim().min(3).max(120),
     city: z.string().trim().min(2).max(80),
     state: z.string().trim().min(2).max(40),
@@ -138,7 +143,8 @@ export async function POST(request: NextRequest) {
         locationName = await assertPickupStock(
           parsed.data.locale,
           submitted.locationId,
-          orderLines.map((line) => line.ref)
+          orderLines.map((line) => line.ref),
+          await requestMarket()
         );
       } catch (error) {
         return jsonError(409, error instanceof Error ? error.message : "Esa sede no tiene los productos.");
@@ -146,7 +152,8 @@ export async function POST(request: NextRequest) {
       locationId = submitted.locationId;
       fulfillment = { method: "pickup", name: submitted.name, locationName };
     } else {
-      fulfillment = submitted;
+      const { email: _buyerEmail, ...shipping } = submitted;
+      fulfillment = shipping;
     }
 
     const order = await createSquareOrder({
@@ -187,6 +194,7 @@ export async function POST(request: NextRequest) {
         locationId,
         locationName,
         recipientName: fulfillment.name,
+        recipientEmail: submitted.email,
         addressLine1: fulfillment.method === "shipping" ? fulfillment.line1 : null,
         city: fulfillment.method === "shipping" ? fulfillment.city : null,
         state: fulfillment.method === "shipping" ? fulfillment.state : null,

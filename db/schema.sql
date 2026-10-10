@@ -116,6 +116,7 @@ CREATE TABLE IF NOT EXISTS notifications (
   title text NOT NULL,
   body text,
   reference_id uuid,
+  patient_id uuid,
   read_at timestamptz,
   created_at timestamptz DEFAULT now()
 );

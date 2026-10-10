@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/components/admin/clinic/client";
+import { OrderTrack, type OrderStage } from "@/components/store/OrderTrack";
 import StoreReceipt from "@/components/store/StoreReceipt";
 import type { StoreReceiptData } from "@/lib/store/orderTypes";
 import "@/app/styles/tienda.css";
@@ -46,6 +47,7 @@ const receiptLabels = {
 export default function StoreOrdersPanel() {
   const [rows, setRows] = useState<Row[]>([]);
   const [detail, setDetail] = useState<Detail | null>(null);
+  const [query, setQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   function load() {
@@ -68,7 +70,7 @@ export default function StoreOrdersPanel() {
     }
   }
 
-  async function setStatus(status: string) {
+  async function setStatus(status: OrderStage) {
     if (!detail) return;
     try {
       await api(`/api/admin/store/orders/${detail.id}`, { method: "POST", body: JSON.stringify({ status }) });
@@ -79,6 +81,19 @@ export default function StoreOrdersPanel() {
     }
   }
 
+  const needle = query.trim().toLowerCase();
+  const visible = rows.filter((row) => {
+    if (!needle) return true;
+    const haystack = [
+      row.recipient_name,
+      row.location_name,
+      row.city,
+      STATUS[row.status] || row.status,
+      money(row.total_amount, row.currency),
+    ].filter(Boolean).join(" ").toLowerCase();
+    return haystack.includes(needle);
+  });
+
   return (
     <>
       <header className="admin-header">
@@ -87,10 +102,15 @@ export default function StoreOrdersPanel() {
         <p className="admin-header__desc">Pedidos pagados en la tienda. Elige uno para ver el recibo y marcar la entrega.</p>
       </header>
       {error ? <div className="admin-alert" role="alert">{error}</div> : null}
+      <label className="section-search">
+        <span>Buscar pedidos</span>
+        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nombre, sede, estado o monto" />
+      </label>
       <div className="admin-table-wrap">
         {rows.length === 0 ? <p className="admin-table__empty">Todavía no hay pedidos de la tienda.</p> : null}
-        {rows.map((row) => (
-          <button key={row.id} className="admin-table__row" type="button" style={{ width: "100%", border: 0, background: "transparent", color: "inherit", font: "inherit", cursor: "pointer" }} onClick={() => void open(row.id)}>
+        {visible.length === 0 && rows.length > 0 ? <p className="admin-table__empty">Ningún pedido coincide con la búsqueda.</p> : null}
+        {visible.map((row) => (
+          <button key={row.id} className={`admin-table__row${detail?.id === row.id ? " is-open" : ""}`} type="button" onClick={() => void open(row.id)}>
             <div>
               <div className="admin-table__cell-title">{row.recipient_name}</div>
               <div className="admin-table__cell-sub">
@@ -107,16 +127,33 @@ export default function StoreOrdersPanel() {
         ))}
       </div>
       {detail ? (
-        <section className="admin-card admin-receipt">
-          <div className="admin-toolbar">
-            <button className="admin-btn" type="button" onClick={() => setStatus("ready")}>Listo para recoger</button>
-            <button className="admin-btn admin-btn--primary" type="button" onClick={() => setStatus("completed")}>Entregado</button>
-            <button className="admin-btn" type="button" onClick={() => setStatus("cancelled")}>Cancelado</button>
-            <button className="admin-btn" type="button" onClick={() => setDetail(null)}>Cerrar</button>
+        <div className="order-desk">
+          <OrderTrack
+            status={detail.status}
+            fulfillment={detail.fulfillment}
+            onSelect={(status) => void setStatus(status)}
+            onClose={() => setDetail(null)}
+            labels={{
+              title: "Etapas del pedido",
+              paid: "Pagado",
+              readyPickup: "Listo para recoger",
+              readyShip: "En camino",
+              completed: "Entregado",
+              cancelled: "Cancelado",
+              paidNote: "El pago ya está registrado.",
+              readyPickupNote: "El cliente puede pasar por la sede.",
+              readyShipNote: "El pedido va en camino.",
+              completedNote: "El pedido ya se entregó.",
+              cancelledNote: "Este pedido se canceló.",
+              cancel: "Cancelar pedido",
+              close: "Cerrar",
+              hint: "Toca una etapa para cambiar el estado. El cliente recibe un correo.",
+            }}
+          />
+          <div className="order-desk__receipt">
+            <StoreReceipt data={detail} animate={false} labels={receiptLabels} homeHref="/admin/tienda/pedidos" />
           </div>
-          <p className="admin-notice" role="status">{STATUS[detail.status] || detail.status}</p>
-          <StoreReceipt data={detail} animate={false} labels={receiptLabels} homeHref="/admin/tienda/pedidos" />
-        </section>
+        </div>
       ) : null}
     </>
   );

@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import WaveDivider from "@/components/WaveDivider";
 import SquareCheckout, { type CheckoutFulfillment } from "@/components/store/SquareCheckout";
 import StoreReceipt from "@/components/store/StoreReceipt";
+import { OrderTrack } from "@/components/store/OrderTrack";
 import { useStoreCart } from "@/components/store/StoreCart";
 import { minorToMajor } from "@/lib/square/money";
 import { formatStorePrice } from "@/lib/store/formatPrice";
@@ -29,6 +30,7 @@ function CheckoutContent() {
   const [sites, setSites] = useState<{ id: string; name: string; city: string | null }[]>([]);
   const [pickupLines, setPickupLines] = useState<{ ref: string; locationIds: string[] }[]>([]);
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [line1, setLine1] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
@@ -43,6 +45,8 @@ function CheckoutContent() {
   const totalMinor = payable.reduce((sum, line) => sum + line.unitAmount * line.quantity, 0);
   const currency = cart.currency || payable[0]?.currency || "USD";
   const trimmedName = name.trim();
+  const trimmedEmail = email.trim();
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail);
   const refsKey = payable.map((line) => line.ref).join(",");
 
   useEffect(() => {
@@ -52,7 +56,7 @@ function CheckoutContent() {
       return;
     }
     let cancelled = false;
-    fetch(`/api/store/pickup?locale=${encodeURIComponent(locale)}&refs=${encodeURIComponent(refsKey)}`)
+    fetch(`/api/store/pickup?locale=${encodeURIComponent(locale)}&country=${encodeURIComponent(country)}&refs=${encodeURIComponent(refsKey)}`)
       .then(async (response) => {
         const body = (await response.json()) as {
           ok?: boolean;
@@ -67,7 +71,7 @@ function CheckoutContent() {
     return () => {
       cancelled = true;
     };
-  }, [method, locale, refsKey]);
+  }, [method, locale, refsKey, country]);
 
   const pickupCovered =
     Boolean(locationId) &&
@@ -80,13 +84,14 @@ function CheckoutContent() {
     postalCode.trim().length >= 3;
   const fulfillment: CheckoutFulfillment | null =
     method === "pickup"
-      ? trimmedName.length >= 2 && pickupCovered
-        ? { method: "pickup" as const, name: trimmedName, locationId }
+      ? trimmedName.length >= 2 && emailOk && pickupCovered
+        ? { method: "pickup" as const, name: trimmedName, email: trimmedEmail, locationId }
         : null
-      : shippingReady
+      : shippingReady && emailOk
         ? {
             method: "shipping",
             name: trimmedName,
+            email: trimmedEmail,
             line1: line1.trim(),
             city: city.trim(),
             state: state.trim(),
@@ -109,21 +114,45 @@ function CheckoutContent() {
         <h1 className="tienda-detail__title">{t("cartTitle")}</h1>
 
         {paid && paidOrder ? (
-          <StoreReceipt
-            data={paidOrder}
-            labels={{
-              receiptTitle: t("receiptTitle"),
-              totalPaid: t("totalPaid"),
-              thanksOrder: t("thanksOrder"),
-              processingOrder: t("processingOrder"),
-              printingReceipt: t("printingReceipt"),
-              orderComplete: t("orderComplete"),
-              pickup: t("pickup"),
-              shipping: t("shipping"),
-              home: t("receiptHome"),
-            }}
-            homeHref={`/${locale}`}
-          />
+          <div className="order-desk">
+            <OrderTrack
+              status="paid"
+              fulfillment={paidOrder.fulfillment}
+              labels={{
+                title: t("trackTitle"),
+                paid: t("trackPaid"),
+                readyPickup: t("trackReady"),
+                readyShip: t("trackShipping"),
+                completed: t("trackDone"),
+                cancelled: t("trackCancelled"),
+                paidNote: t("trackPaidNote"),
+                readyPickupNote: t("trackReadyNote"),
+                readyShipNote: t("trackShippingNote"),
+                completedNote: t("trackDoneNote"),
+                cancelledNote: t("trackCancelledNote"),
+                cancel: "",
+                close: "",
+                hint: "",
+              }}
+            />
+            <div className="order-desk__receipt">
+              <StoreReceipt
+                data={paidOrder}
+                labels={{
+                  receiptTitle: t("receiptTitle"),
+                  totalPaid: t("totalPaid"),
+                  thanksOrder: t("thanksOrder"),
+                  processingOrder: t("processingOrder"),
+                  printingReceipt: t("printingReceipt"),
+                  orderComplete: t("orderComplete"),
+                  pickup: t("pickup"),
+                  shipping: t("shipping"),
+                  home: t("receiptHome"),
+                }}
+                homeHref={`/${locale}`}
+              />
+            </div>
+          </div>
         ) : paid ? (
           <div className="square-checkout__success mt-8">
             <p>{t("paymentSuccess")}</p>
@@ -239,6 +268,10 @@ function CheckoutContent() {
                   <label className="tienda-fulfill__field">
                     <span>{t("recipientName")}</span>
                     <input value={name} autoComplete="name" onChange={(event) => setName(event.target.value)} />
+                  </label>
+                  <label className="tienda-fulfill__field">
+                    <span>{t("recipientEmail")}</span>
+                    <input value={email} type="email" autoComplete="email" onChange={(event) => setEmail(event.target.value)} />
                   </label>
                   {method === "pickup" ? (
                     <div className="tienda-fulfill__sites">

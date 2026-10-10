@@ -149,6 +149,29 @@
   transform: scale(0.96);
 }
 
+.site-nav__bell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(var(--border) / 0.35);
+  background: transparent;
+  color: inherit;
+  transition: transform 160ms ease-out, border-color 160ms ease-out;
+}
+
+.site-nav__bell:hover {
+  border-color: rgb(var(--primary) / 0.55);
+}
+
+.site-nav__bell:active {
+  transform: scale(0.96);
+}
+
 .site-nav__cart-count {
   position: absolute;
   top: -0.35rem;

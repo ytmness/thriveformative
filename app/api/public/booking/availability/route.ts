@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { availabilityForDate } from "@/lib/scheduling/availability";
 import { requestMeta, toErrorResponse } from "@/lib/http";
 import { checkRateLimit } from "@/lib/rate-limit/memory";
+import { requestMarket } from "@/lib/site/requestMarket";
 
 export async function GET(req: Request) {
   const meta = requestMeta(req);
@@ -14,6 +15,7 @@ export async function GET(req: Request) {
       date: url.searchParams.get("date") || "",
       locationId: url.searchParams.get("locationId"),
       staffUserId: url.searchParams.get("staffUserId"),
+      country: await requestMarket(),
     });
     return Response.json({ slots });
   } catch (error) {

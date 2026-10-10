@@ -1,7 +1,9 @@
 import { query } from "@/lib/db";
+import { locationCountrySql } from "@/lib/domain/scope";
 import { toErrorResponse } from "@/lib/http";
 import { checkRateLimit } from "@/lib/rate-limit/memory";
 import { requestMeta } from "@/lib/http";
+import { requestMarket } from "@/lib/site/requestMarket";
 import { NextResponse } from "next/server";
 
 function limited(req: Request) {
@@ -15,11 +17,28 @@ export async function GET(req: Request) {
   const blocked = limited(req);
   if (blocked) return blocked;
   try {
+    const market = await requestMarket();
     const services = await query(
-      `SELECT id, name, description, duration_minutes, price, category_id FROM services
-       WHERE is_active AND is_online_bookable ORDER BY name`
+      `SELECT s.id, s.name, s.description, s.duration_minutes, s.price, s.category_id
+       FROM services s
+       WHERE s.is_active AND s.is_online_bookable
+         AND (
+           NOT EXISTS (SELECT 1 FROM service_locations sl WHERE sl.service_id = s.id)
+           OR EXISTS (
+             SELECT 1 FROM service_locations sl
+             JOIN locations l ON l.id = sl.location_id
+             WHERE sl.service_id = s.id AND l.is_active AND ${locationCountrySql("l.country", "$1")}
+           )
+         )
+       ORDER BY s.name`,
+      [market]
     );
-    const locations = await query(`SELECT id, name, city, timezone FROM locations WHERE is_active ORDER BY name`);
+    const locations = await query(
+      `SELECT id, name, city, timezone FROM locations
+       WHERE is_active AND ${locationCountrySql("country", "$1")}
+       ORDER BY name`,
+      [market]
+    );
     const staff = await query(
       `SELECT id, first_name, last_name, calendar_color FROM staff_users WHERE is_active AND is_bookable ORDER BY first_name`
     );

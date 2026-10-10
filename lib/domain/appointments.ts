@@ -215,9 +215,9 @@ export async function createAppointment(input: AppointmentInput, actor: StaffSes
     });
   }
 
-  const notice = input.bookedOnline && base.status === "booked" ? "pending" : "confirmed";
+  const notice = base.status === "booked" ? "pending" : base.status === "confirmed" ? "confirmed" : base.status === "cancelled" ? "cancelled" : null;
   try {
-    await notifyAppointment(ids[0], notice);
+    if (notice) await notifyAppointment(ids[0], notice);
     await dispatchDueMessages();
   } catch (error) {
     log.warn("appointments", "no se pudo avisar de la cita", { name: error instanceof Error ? error.name : "error" });
@@ -305,7 +305,7 @@ export async function updateAppointment(
       log.warn("appointments", "no se pudo avisar de la cancelación", { name: error instanceof Error ? error.name : "error" });
     }
     await emitWebhook("appointment.cancelled", { appointmentId: id });
-  } else if (window.status === "confirmed" && previous === "booked" && row.booked_online) {
+  } else if (window.status === "confirmed" && previous !== "confirmed") {
     try { await notifyAppointment(id, "confirmed"); } catch (error) {
       log.warn("appointments", "no se pudo avisar de la confirmación", { name: error instanceof Error ? error.name : "error" });
     }

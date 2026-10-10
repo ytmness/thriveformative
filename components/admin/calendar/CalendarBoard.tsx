@@ -20,7 +20,7 @@ type Appt = {
   notes: string | null;
   durationMinutes: number;
 };
-type Opt = { id: string; name?: string; first_name?: string; last_name?: string; timezone?: string; country?: string | null };
+type Opt = { id: string; name?: string; first_name?: string; last_name?: string; timezone?: string; country?: string | null; location_id?: string; is_active?: boolean };
 
 const CLINIC_TZ = "America/Chicago";
 
@@ -86,7 +86,8 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
   const [draft, setDraft] = useState<Record<string, string> | null>(openCreate ? { status: "booked", startsAt: nextClinicSlot(CLINIC_TZ) } : null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
   const scope = useClinicScope();
-  const siteOptions = locations.filter((row) => countryCode(row.country) === scope.country);
+  const siteOptions = locations.filter((row) => row.is_active !== false && countryCode(row.country) === scope.country);
+  const roomOptions = rooms.filter((row) => siteOptions.some((site) => site.id === row.location_id));
   const preferredLocation = scope.locationId || siteOptions[0]?.id || "";
 
   const range = useMemo(() => {
@@ -117,11 +118,16 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
     load().catch((e) => setError(e.message));
     api<{ rows: Opt[] }>("/api/admin/settings/staff").then((r) => setStaff(r.rows)).catch(() => undefined);
     api<{ rows: Opt[] }>("/api/admin/settings/services").then((r) => setServices(r.rows)).catch(() => undefined);
-    api<{ rows: Opt[] }>("/api/admin/settings/locations").then((r) => { setLocations(r.rows); if (r.rows[0]?.timezone) setClinicTz(r.rows[0].timezone); }).catch(() => undefined);
+    api<{ rows: Opt[] }>("/api/admin/settings/locations").then((r) => setLocations(r.rows)).catch(() => undefined);
     api<{ rows: Opt[] }>("/api/admin/settings/rooms").then((r) => setRooms(r.rows)).catch(() => undefined);
     api<{ rows: { id: string; first_name: string | null; last_name: string | null; service_name: string | null }[] }>("/api/admin/waitlist").then((r) => setWaitlist(r.rows)).catch(() => undefined);
     api<{ rows: { id: string; firstName: string; lastName: string }[] }>(`/api/admin/patients?pageSize=100&${scope.query}`).then((r) => setPatients(r.rows)).catch(() => undefined).finally(() => setCatalogReady(true));
   }, [load, scope.query]);
+
+  useEffect(() => {
+    const site = siteOptions.find((row) => row.id === preferredLocation) || siteOptions[0];
+    if (site?.timezone) setClinicTz(site.timezone);
+  }, [preferredLocation, locations, scope.country]);
 
   const days = useMemo(() => {
     if (view === "month") {
@@ -153,7 +159,7 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
       }));
     }
     if (view === "day" && columnsBy === "room") {
-      return rooms.map((room) => ({
+      return roomOptions.map((room) => ({
         key: room.id,
         label: room.name || "Sala",
         match: (row: Appt, hour: number) => sameDay(row) && row.roomId === room.id && clinicWall(row.startsAt, clinicTz).hour === hour,
@@ -164,7 +170,7 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
       label: item.toLocaleDateString("es-MX", { weekday: "short", day: "numeric" }),
       match: (row: Appt, hour: number) => clinicWall(row.startsAt, clinicTz).date === localKey(item) && clinicWall(row.startsAt, clinicTz).hour === hour,
     }));
-  }, [clinicTz, columnsBy, days, rooms, staff, view]);
+  }, [clinicTz, columnsBy, days, roomOptions, staff, view]);
 
   async function saveDraft() {
     if (!draft) return;

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "@/components/admin/clinic/client";
+import { countryCode, useClinicScope } from "@/components/admin/clinic/ClinicScope";
 import { CloseButton, EmptyState, SegmentedControl } from "@/components/admin/ui";
 import { CreateOffer } from "@/components/admin/tutorial";
 
@@ -34,6 +35,7 @@ const DAYS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "
 type Row = Record<string, unknown>;
 
 export default function SettingsPanel({ section }: { section: string }) {
+  const scope = useClinicScope();
   const apiSection = MAP[section] || "locations";
   const [rows, setRows] = useState<Row[]>([]);
   const [locations, setLocations] = useState<Row[]>([]);
@@ -117,6 +119,14 @@ export default function SettingsPanel({ section }: { section: string }) {
     }
   }
 
+  const scopedLocations = locations.filter((row) => countryCode(String(row.country || "")) === scope.country && row.is_active !== false);
+  const scopedIds = new Set(scopedLocations.map((row) => String(row.id)));
+  const scopedRooms = rooms.filter((row) => scopedIds.has(String(row.location_id || "")));
+  const visibleRows = apiSection === "locations"
+    ? rows.filter((row) => countryCode(String(row.country || "")) === scope.country)
+    : apiSection === "rooms" || apiSection === "schedules"
+      ? rows.filter((row) => scopedIds.has(String(row.location_id || "")))
+      : rows;
   const title = SECTIONS.find((item) => item[0] === section)?.[1] || "Configuración";
   const singleton = apiSection === "booking" || apiSection === "clinic";
   const columns = tableColumns(apiSection);
@@ -133,7 +143,7 @@ export default function SettingsPanel({ section }: { section: string }) {
 
   function openNew() {
     setEditing(null);
-    setForm({});
+    setForm(apiSection === "locations" ? { country: scope.country, timezone: scope.country === "MX" ? "America/Monterrey" : "America/Chicago" } : {});
     setServiceTab("general");
     setOpenForm(true);
   }
@@ -158,7 +168,7 @@ export default function SettingsPanel({ section }: { section: string }) {
           />
         </div>
       ) : null}
-      <Fields section={apiSection} form={form} set={set} locations={locations} staff={staff} categories={categories} taxes={taxes} rooms={rooms} templates={templates} serviceTab={serviceTab} editing={Boolean(editing)} ready={depsReady} />
+      <Fields section={apiSection} form={form} set={set} locations={scopedLocations} staff={staff} categories={categories} taxes={taxes} rooms={scopedRooms} templates={templates} serviceTab={serviceTab} editing={Boolean(editing)} ready={depsReady} />
     </form>
   );
 
@@ -203,7 +213,7 @@ export default function SettingsPanel({ section }: { section: string }) {
               <div className="admin-table__row admin-table__head" style={{ gridTemplateColumns: columns.template }}>
                 {columns.labels.map((label) => <span key={label}>{label}</span>)}
               </div>
-              {rows.map((row) => (
+              {visibleRows.map((row) => (
                 <div key={String(row.id)} className="admin-table__row" style={{ gridTemplateColumns: columns.template }}>
                   {cellsOf(apiSection, row, categories).map((cell, index) => <div key={index}>{cell}</div>)}
                   <details className="admin-menu">
@@ -219,7 +229,7 @@ export default function SettingsPanel({ section }: { section: string }) {
                   </details>
                 </div>
               ))}
-              {!rows.length ? <EmptyState title="Sin registros" text="Crea el primero con + Nuevo." action={<button className="admin-btn admin-btn--primary" type="button" onClick={openNew}>+ Nuevo</button>} /> : null}
+              {!visibleRows.length ? <EmptyState title="Sin registros" text="Crea el primero con + Nuevo." action={<button className="admin-btn admin-btn--primary" type="button" onClick={openNew}>+ Nuevo</button>} /> : null}
             </div>
           </>
         )}

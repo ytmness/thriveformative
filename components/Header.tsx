@@ -250,7 +250,6 @@ export default function Header({ preview }: HeaderProps = {}) {
                   >
                     {t("auth.signOut")}
                   </button>
-                  {role === "admin" ? <NotificationBell /> : null}
                 </div>
               ) : (
                 <div className="hidden xl:flex items-center gap-3">
@@ -277,6 +276,7 @@ export default function Header({ preview }: HeaderProps = {}) {
           {!preview ? (
             <>
               <StoreCartLink />
+              <NotificationBell />
               <div className="site-nav__lang">
                 <LanguageSwitcher variant="minimal" />
               </div>
@@ -294,6 +294,7 @@ export default function Header({ preview }: HeaderProps = {}) {
 
         <div className="flex lg:hidden items-center gap-2 flex-shrink-0">
           {!preview ? <StoreCartLink /> : null}
+          {!preview ? <NotificationBell /> : null}
           <div className="site-nav__lang">
             <LanguageSwitcher variant="minimal" />
           </div>
@@ -384,9 +385,6 @@ export default function Header({ preview }: HeaderProps = {}) {
                     >
                       {t("auth.signOut")}
                     </button>
-                    <div className="pt-1">
-                      {role === "admin" ? <NotificationBell /> : null}
-                    </div>
                   </>
                 ) : (
                   <>

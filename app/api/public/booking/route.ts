@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { bookPublic, joinWaitlist, managePublic } from "@/lib/domain/publicBooking";
+import { requestMarket } from "@/lib/site/requestMarket";
 import { findByManageToken } from "@/lib/domain/appointments";
 import { readJson, requestMeta, toErrorResponse } from "@/lib/http";
 import { checkRateLimit } from "@/lib/rate-limit/memory";
@@ -15,7 +16,7 @@ export async function POST(req: Request) {
   const blocked = limited(req, "book", 10);
   if (blocked) return blocked;
   try {
-    return Response.json(await bookPublic(await readJson(req), requestMeta(req)));
+    return Response.json(await bookPublic(await readJson(req), requestMeta(req), await requestMarket()));
   } catch (error) {
     return toErrorResponse(error);
   }

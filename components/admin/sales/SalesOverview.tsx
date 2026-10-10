@@ -28,6 +28,8 @@ export default function SalesOverview() {
   const [days, setDays] = useState<IncomeRow[]>([]);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState<Record<string, unknown> | null>(null);
   const scope = useClinicScope();
 
   function load() {
@@ -43,6 +45,29 @@ export default function SalesOverview() {
   }
 
   useEffect(() => { load(); }, [scope.query]);
+
+  const needle = query.trim().toLowerCase();
+  const visible = sales.filter((sale) => {
+    if (!needle) return true;
+    const haystack = [
+      sale.sale_number,
+      sale.first_name,
+      sale.last_name,
+      sale.status,
+      money(Number(sale.total || 0)),
+    ].filter(Boolean).join(" ").toLowerCase();
+    return haystack.includes(needle);
+  });
+
+  async function openSale(id: string) {
+    setError(null);
+    try {
+      const result = await api<{ sale: Record<string, unknown> }>(`/api/admin/sales/${id}`);
+      setOpen(result.sale);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo abrir la venta.");
+    }
+  }
 
   return (
     <>
@@ -76,10 +101,14 @@ export default function SalesOverview() {
       ) : null}
       <section data-tour="sales-history">
         <h2 style={{ margin: "0 0 0.75rem", fontSize: "1.05rem" }}>Ventas recientes</h2>
+        <label className="section-search">
+          <span>Buscar ventas</span>
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Folio, cliente, estado o monto" />
+        </label>
         <div className="admin-table-wrap">
-          {sales.map((sale) => (
-            <div key={sale.id} className="admin-table__row">
-              <div>
+          {visible.map((sale) => (
+            <div key={sale.id} className={`admin-table__row${open?.id === sale.id ? " is-open" : ""}`}>
+              <button type="button" style={{ background: "transparent", border: 0, color: "inherit", font: "inherit", textAlign: "left", cursor: "pointer", padding: 0 }} onClick={() => void openSale(sale.id)}>
                 <div className="admin-table__cell-title">{sale.sale_number}</div>
                 <div className="admin-table__cell-sub">
                   {[sale.first_name, sale.last_name].filter(Boolean).join(" ") || "Mostrador"}
@@ -89,9 +118,10 @@ export default function SalesOverview() {
                   ${Number(sale.total || 0).toFixed(2)}
                   {sale.created_at ? ` · ${new Date(sale.created_at).toLocaleString("es-MX", { dateStyle: "medium", timeStyle: "short" })}` : ""}
                 </div>
-              </div>
+              </button>
               {sale.status !== "void" ? (
-                <button className="admin-btn admin-btn--danger" type="button" onClick={async () => {
+                <button className="admin-btn admin-btn--danger" type="button" onClick={async (event) => {
+                  event.stopPropagation();
                   if (!window.confirm(`¿Anular ${sale.sale_number}? El registro se conserva, pero deja de contar como cobro.`)) return;
                   try {
                     await api(`/api/admin/sales/${sale.id}`, { method: "POST", body: JSON.stringify({ action: "void", reason: "Anulada en ventas" }) });
@@ -106,9 +136,37 @@ export default function SalesOverview() {
             </div>
           ))}
           {!sales.length ? <div className="admin-table__empty">Todavía no hay ventas. El primer cobro se hace en Cobrar.</div> : null}
+          {sales.length > 0 && !visible.length ? <div className="admin-table__empty">Ninguna venta coincide con la búsqueda.</div> : null}
         </div>
+        {open ? <SaleSheet sale={open} onClose={() => setOpen(null)} /> : null}
       </section>
     </>
+  );
+}
+
+function SaleSheet({ sale, onClose }: { sale: Record<string, unknown>; onClose: () => void }) {
+  const items = Array.isArray(sale.items) ? sale.items as Record<string, unknown>[] : [];
+  const payments = Array.isArray(sale.payments) ? sale.payments as Record<string, unknown>[] : [];
+  const invoice = sale.invoice as { invoice_number?: string } | null;
+  return (
+    <section className="admin-card sale-sheet" style={{ marginTop: "1rem" }}>
+      <div className="admin-page-head">
+        <h2 style={{ margin: 0, fontSize: "1.05rem" }}>{String(sale.sale_number || "Venta")}</h2>
+        <button className="admin-btn" type="button" onClick={onClose}>Cerrar</button>
+      </div>
+      <p><span>Estado</span><span>{sale.status === "void" ? "Anulada" : String(sale.status || "—")}</span></p>
+      <p><span>Total</span><span>{money(Number(sale.total || 0))}</span></p>
+      {invoice?.invoice_number ? <p><span>Factura</span><span>{invoice.invoice_number}</span></p> : null}
+      {items.map((item, index) => (
+        <p key={String(item.id || index)}>
+          <span>{String(item.description || item.name || "Concepto")} × {Number(item.quantity || 1)}</span>
+          <span>{money(Number(item.line_total || item.total || 0))}</span>
+        </p>
+      ))}
+      {payments.map((pay, index) => (
+        <p key={index}><span>{String(pay.method_name || "Pago")}</span><span>{money(Number(pay.amount || 0))}</span></p>
+      ))}
+    </section>
   );
 }
 
