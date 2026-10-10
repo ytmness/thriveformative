@@ -3,7 +3,10 @@ import { writeAudit } from "@/lib/audit";
 import type { StaffSession } from "@/lib/auth/session";
 import { decryptPhi, encryptPhi } from "@/lib/crypto/phi";
 import { query } from "@/lib/db";
+import { sendClinicEmail } from "@/lib/emailServer";
+import { getSiteUrl } from "@/lib/env/server";
 import { DomainError } from "@/lib/http";
+import { log } from "@/lib/log";
 import { savePrivateFile } from "@/lib/files/privateStore";
 
 function hashToken(token: string) {
@@ -66,7 +69,44 @@ export async function assignForm(body: Record<string, unknown>, actor: StaffSess
     entityId: inserted.rows[0].id,
     patientId,
   });
+  try {
+    await notifyFormAssignment({
+      assignmentId: inserted.rows[0].id,
+      patientId,
+      templateId,
+      token,
+    });
+  } catch {
+    log.warn("notify", "no se pudo avisar del formulario");
+  }
   return { id: inserted.rows[0].id, token };
+}
+
+async function notifyFormAssignment(input: { assignmentId: string; patientId: string; templateId: string; token: string }) {
+  const found = await query<{ name: string; email_enc: Buffer | null; first_name: string | null }>(
+    `SELECT t.name, p.email_enc, p.first_name
+     FROM form_templates t
+     JOIN patients p ON p.id = $2
+     WHERE t.id = $1`,
+    [input.templateId, input.patientId]
+  );
+  const row = found.rows[0];
+  const formName = row?.name || "Formulario";
+  const link = `${getSiteUrl().replace(/\/$/, "")}/portal/formularios/${input.token}`;
+  await query(
+    `INSERT INTO notifications (type, title, body, reference_id, patient_id)
+     VALUES ('form_assigned', $1, $2, $3, $4)`,
+    ["Tienes un formulario por responder", `${formName}. Ábrelo desde el correo que te enviamos.`, input.assignmentId, input.patientId]
+  ).catch(() => undefined);
+  const email = decryptPhi(row?.email_enc);
+  if (!email) return;
+  const who = row?.first_name?.trim() || "Hola";
+  const result = await sendClinicEmail(
+    email,
+    "Thrive Formative – Tienes un formulario por responder",
+    `Hola ${who},\n\nTienes un formulario por responder: ${formName}.\n\nEntra aquí para completarlo:\n${link}`
+  );
+  if (!result.ok) log.warn("notify", "correo de formulario no enviado");
 }
 
 export async function assignmentByToken(token: string) {
