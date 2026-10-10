@@ -84,12 +84,12 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
     setQ(initialQuery);
     load(1, initialQuery).catch((e) => setError(e.message));
     Promise.all([
-      api<{ rows: { id: string; name: string; country?: string | null }[] }>("/api/admin/settings/locations"),
+      api<{ rows: { id: string; name: string; country?: string | null; is_active?: boolean }[] }>("/api/admin/settings/locations"),
       api<{ rows: { id: string; first_name: string; last_name: string }[] }>("/api/admin/settings/staff"),
       api<{ rows: { id: string; name: string; is_active?: boolean }[] }>("/api/admin/settings/marketing-sources"),
       api<{ rows: { id: string; label: string; field_type: string; entity: string; is_required?: boolean }[] }>("/api/admin/settings/custom-fields"),
     ]).then(([locations, staff, sources, fields]) => setOptions({
-      locations: locations.rows.filter((row) => countryCode(row.country) === scope.country),
+      locations: locations.rows.filter((row) => row.is_active !== false && countryCode(row.country) === scope.country),
       staff: staff.rows,
       sources: sources.rows.filter((row) => row.is_active !== false),
       fields: fields.rows.filter((row) => row.entity === "patient"),
@@ -505,16 +505,16 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
       </header>
       {error ? <div className="admin-alert" role="alert">{error}</div> : null}
       {notice ? <p className="admin-banner" role="status">{notice}</p> : null}
-      <nav className="admin-tabs admin-chart-tabs" data-tour="chart-tabs" aria-label="Ficha del paciente">
-        {TABS.map(([item, label]) => <Link key={item} className={active === item ? "is-active" : ""} href={item === "resumen" ? `/admin/pacientes/${id}` : `/admin/pacientes/${id}/${item}`}>{label}</Link>)}
+      <nav className="admin-nav admin-nav--row" data-tour="chart-tabs" aria-label="Ficha del paciente">
+        {TABS.map(([item, label]) => <Link key={item} className={`admin-nav__item${active === item ? " admin-nav__item--active" : ""}`} href={item === "resumen" ? `/admin/pacientes/${id}` : `/admin/pacientes/${id}/${item}`} aria-current={active === item ? "page" : undefined}>{label}</Link>)}
       </nav>
       <div data-tour="chart-panel">
       {active === "resumen" ? <PatientSummary patient={patient} /> : null}
       {active === "expediente" ? (
         <>
-          <nav className="admin-tabs admin-chart-tabs" aria-label="Secciones del expediente">
+          <nav className="admin-nav admin-nav--row" aria-label="Secciones del expediente">
             {[["notas", "Notas"], ["alergias", "Alergias"], ["formularios", "Formularios"], ["fotos", "Fotos"], ["documentos", "Documentos"]].map(([item, label]) => (
-              <button key={item} type="button" className={folder === item ? "is-active" : ""} onClick={() => setFolder(item)}>{label}</button>
+              <button key={item} type="button" className={`admin-nav__item${folder === item ? " admin-nav__item--active" : ""}`} aria-pressed={folder === item} onClick={() => setFolder(item)}>{label}</button>
             ))}
           </nav>
           {folder === "notas" ? (

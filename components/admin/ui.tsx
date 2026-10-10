@@ -62,9 +62,9 @@ export function Tabs({
   tour?: string;
 }) {
   return (
-    <nav className="admin-tabs admin-tabs--line" aria-label={label} data-tour={tour}>
+    <nav className="admin-nav admin-nav--row" aria-label={label} data-tour={tour}>
       {items.map((item) => (
-        <button key={item.id} type="button" className={value === item.id ? "is-active" : ""} onClick={() => onChange(item.id)}>
+        <button key={item.id} type="button" aria-pressed={value === item.id} className={`admin-nav__item${value === item.id ? " admin-nav__item--active" : ""}`} onClick={() => onChange(item.id)}>
           {item.label}
           {errors?.[item.id] ? <span className="admin-tab-dot" aria-label="Con errores" /> : null}
         </button>
@@ -87,13 +87,13 @@ export function SegmentedControl({
   tour?: string;
 }) {
   return (
-    <div className="admin-segment" role="tablist" aria-label={label} data-tour={tour}>
+    <nav className="admin-nav admin-nav--row" aria-label={label} data-tour={tour}>
       {items.map((item) => (
-        <button key={item.id} type="button" role="tab" aria-selected={value === item.id} className={value === item.id ? "is-active" : ""} onClick={() => onChange(item.id)}>
+        <button key={item.id} type="button" aria-pressed={value === item.id} className={`admin-nav__item${value === item.id ? " admin-nav__item--active" : ""}`} onClick={() => onChange(item.id)}>
           {item.label}
         </button>
       ))}
-    </div>
+    </nav>
   );
 }
 

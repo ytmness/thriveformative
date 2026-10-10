@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/components/admin/clinic/client";
-import { useClinicScope } from "@/components/admin/clinic/ClinicScope";
+import { countryCode, useClinicScope } from "@/components/admin/clinic/ClinicScope";
 import { CreateOffer } from "@/components/admin/tutorial";
 
 type Item = { itemType: string; referenceId?: string; description: string; quantity: number; unitPrice?: number; taxRate?: number; imageUrl?: string | null };
@@ -43,7 +43,7 @@ export default function PosScreen() {
   const [saleId, setSaleId] = useState<string | null>(null);
   const [readerLink, setReaderLink] = useState<string | null>(null);
   const [locationId, setLocationId] = useState("");
-  const [locations, setLocations] = useState<{ id: string; name: string }[]>([]);
+  const [locations, setLocations] = useState<{ id: string; name: string; country?: string | null; is_active?: boolean }[]>([]);
   const scope = useClinicScope();
   const [catalogReady, setCatalogReady] = useState(false);
   const stripeRef = useRef<{ confirmPayment: (opts: { elements: unknown; redirect: string }) => Promise<{ error?: { message?: string }; paymentIntent?: { id: string } }> } | null>(null);
@@ -61,18 +61,18 @@ export default function PosScreen() {
       const preferred = active.find((row) => row.key === "cash") || active[0];
       if (preferred) setMethod((current) => current || preferred.key);
     }).catch(() => undefined).finally(() => setMethodsReady(true));
-    api<{ rows: { id: string; name: string }[] }>("/api/admin/settings/locations").then((r) => {
+    api<{ rows: { id: string; name: string; country?: string | null; is_active?: boolean }[] }>("/api/admin/settings/locations").then((r) => {
       setLocations(r.rows);
     }).catch(() => undefined);
   }, [scope.query]);
 
   useEffect(() => {
-    const sites = scope.visible.length ? scope.visible : locations;
+    const sites = locations.filter((row) => row.is_active !== false && countryCode(row.country) === scope.country);
     const next = scope.locationId && sites.some((row) => row.id === scope.locationId) ? scope.locationId : sites[0]?.id || "";
     if (next) setLocationId(next);
-  }, [scope.locationId, scope.visible, locations]);
+  }, [scope.locationId, scope.country, locations]);
 
-  const siteChoices = scope.visible.length ? scope.visible : locations;
+  const siteChoices = locations.filter((row) => row.is_active !== false && countryCode(row.country) === scope.country);
   const scopedServices = services.filter((item) => {
     const ids = item.locationIds || [];
     if (!ids.length) return true;
@@ -200,11 +200,11 @@ export default function PosScreen() {
         <h1 className="admin-header__title">Cobrar</h1>
         <p className="admin-header__desc">Toca una ficha para agregarla al ticket. Para crear o editar el catálogo, ve a Servicios y productos.</p>
       </header>
-      <div className="admin-tabs" data-tour="sales-tabs">
+      <nav className="admin-nav admin-nav--row" data-tour="sales-tabs" aria-label="Qué cobrar">
         {[["service", "Servicios"], ["product", "Productos"], ["package", "Paquetes"], ["membership", "Membresías"]].map(([id, label]) => (
-          <button key={id} type="button" className={tab === id ? "is-active" : ""} onClick={() => setTab(id)}>{label}</button>
+          <button key={id} type="button" className={`admin-nav__item${tab === id ? " admin-nav__item--active" : ""}`} aria-pressed={tab === id} onClick={() => setTab(id)}>{label}</button>
         ))}
-      </div>
+      </nav>
       <div className="admin-pos">
         <div className="pos-menu" data-tour="sales-catalog">
           {catalog.map((item) => {

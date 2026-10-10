@@ -148,7 +148,7 @@ export function ReportView({ slug }: { slug?: string }) {
   return (
     <>
       <header className="admin-header"><h1 className="admin-header__title">Reportes</h1><p className="admin-header__desc">Últimos 30 días.</p></header>
-      <nav className="admin-tabs admin-tabs--wrap" data-tour="report-tabs">{links.map(([id, label]) => <a key={id} className={active === id ? "is-active" : ""} href={`/admin/reportes/${id}`}>{label}</a>)}</nav>
+      <nav className="admin-nav admin-nav--row" data-tour="report-tabs" aria-label="Reportes">{links.map(([id, label]) => <a key={id} className={`admin-nav__item${active === id ? " admin-nav__item--active" : ""}`} href={`/admin/reportes/${id}`} aria-current={active === id ? "page" : undefined}>{label}</a>)}</nav>
       <div className="admin-table-wrap" data-tour="report-table">
         <div className="admin-table__row admin-table__head">{keys.length ? keys.map((key) => <span key={key}>{labels[key] || key}</span>) : <span>Resultado</span>}</div>
         {rows.map((row, index) => (

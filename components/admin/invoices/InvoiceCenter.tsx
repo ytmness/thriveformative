@@ -86,11 +86,11 @@ export function InvoiceCenter() {
         <p className="admin-header__desc">Abre cualquier fila para ver el documento, con conceptos, impuestos y lo pagado.</p>
       </header>
       {error ? <div className="admin-alert">{error}</div> : null}
-      <div className="admin-tabs" data-tour="invoice-tabs">
+      <nav className="admin-nav admin-nav--row" data-tour="invoice-tabs" aria-label="Documentos">
         {[["invoices", "Facturas"], ["quotes", "Cotizaciones"], ["credits", "Notas de crédito"]].map(([id, label]) => (
-          <button key={id} className={kind === id ? "is-active" : ""} type="button" onClick={() => setKind(id)}>{label}</button>
+          <button key={id} className={`admin-nav__item${kind === id ? " admin-nav__item--active" : ""}`} type="button" aria-pressed={kind === id} onClick={() => setKind(id)}>{label}</button>
         ))}
-      </div>
+      </nav>
       {kind !== "invoices" ? (
         <form className="admin-toolbar" data-tour="invoice-form" onSubmit={async (event) => {
           event.preventDefault();
