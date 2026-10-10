@@ -39,6 +39,7 @@
     "noImage": "Sin imagen",
     "viewProduct": "Ver detalle",
     "addToCart": "Agregar al carrito",
+    "visitStore": "Ver en la tienda",
     "addedToCart": "Agregado",
     "cartLabel": "Carrito",
     "cartTitle": "Tu carrito",
@@ -280,6 +281,11 @@
     "plan3Item4": "Acceso directo por WhatsApp",
     "plan3Item5": "Reporte mensual de progreso",
     "chooseBtn": "Elegir"
+  },
+  "account": {
+    "manage": "Gestionar mi cita",
+    "manageEmpty": "No tienes una cita próxima para gestionar.",
+    "cancel": "Cancelar"
   },
   "booking": {
     "title": "Agenda tu cita",

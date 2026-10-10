@@ -39,6 +39,7 @@
     "noImage": "이미지 없음",
     "viewProduct": "자세히 보기",
     "addToCart": "장바구니에 담기",
+    "visitStore": "스토어에서 보기",
     "addedToCart": "담김",
     "cartLabel": "장바구니",
     "cartTitle": "장바구니",
@@ -280,6 +281,11 @@
     "plan3Item4": "WhatsApp 직접 연락",
     "plan3Item5": "월간 진행 보고서",
     "chooseBtn": "선택"
+  },
+  "account": {
+    "manage": "내 예약 관리",
+    "manageEmpty": "관리할 예정된 예약이 없습니다.",
+    "cancel": "취소"
   },
   "booking": {
     "title": "예약하기",

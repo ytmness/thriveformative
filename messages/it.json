@@ -39,6 +39,7 @@
     "noImage": "Nessuna immagine",
     "viewProduct": "Vedi dettagli",
     "addToCart": "Aggiungi al carrello",
+    "visitStore": "Vedi nel negozio",
     "addedToCart": "Aggiunto",
     "cartLabel": "Carrello",
     "cartTitle": "Il tuo carrello",
@@ -273,6 +274,11 @@
     "plan3Item5": "Report mensile di progressi",
     "recommendedBadge": "Consigliato",
     "chooseBtn": "Scegli"
+  },
+  "account": {
+    "manage": "Gestisci il mio appuntamento",
+    "manageEmpty": "Non hai un appuntamento prossimo da gestire.",
+    "cancel": "Annulla"
   },
   "booking": {
     "title": "Prenota la tua visita",

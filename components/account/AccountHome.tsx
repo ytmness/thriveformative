@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { api } from "@/components/admin/clinic/client";
 
 type Order = {
@@ -43,6 +43,7 @@ const KIND: Record<Order["kind"], string> = {
 
 export default function AccountHome() {
   const locale = useLocale();
+  const t = useTranslations("account");
   const [home, setHome] = useState<Home | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -82,6 +83,24 @@ export default function AccountHome() {
       <h1 className="type-page-title">{home.patient.name || "Hola"}</h1>
       <p className="visit-sheet__when">{home.patient.email}</p>
       {error ? <p className="booking-error" role="alert">{error}</p> : null}
+
+      <section id="gestionar">
+        <h2>{t("manage")}</h2>
+        {home.orders.some((row) => row.kind === "cita" && row.status !== "cancelled" && row.status !== "completed") ? home.orders.filter((row) => row.kind === "cita" && row.status !== "cancelled" && row.status !== "completed").map((row) => (
+          <div key={row.id} className="account-row">
+            <div>
+              <strong>{row.title}</strong>
+              <p>
+                {new Date(row.at).toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" })}
+                {row.detail ? ` · ${row.detail}` : ""}
+                {" · "}
+                {STATUS[row.status] || row.status}
+              </p>
+            </div>
+            <button type="button" className="booking-form__submit" onClick={() => void cancel(row)}>{t("cancel")}</button>
+          </div>
+        )) : <p className="booking-slots__empty">{t("manageEmpty")}</p>}
+      </section>
 
       <section id="ordenes">
         <h2>Órdenes</h2>

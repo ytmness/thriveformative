@@ -154,7 +154,6 @@ export default function Header({ preview }: HeaderProps = {}) {
   }
 
   const secondaryMobileItems: NavItem[] = [
-    { key: "booking", href: PABAU_BOOKING_URL },
     { key: "contact", href: `/${locale}/info#contacto` },
   ];
 
@@ -240,14 +239,6 @@ export default function Header({ preview }: HeaderProps = {}) {
                       Admin
                     </motion.a>
                   )}
-                  <motion.a
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    href={PABAU_BOOKING_URL}
-                    className="type-ui text-xs font-medium text-[rgb(var(--primary))] hover:opacity-80 hidden xl:inline"
-                  >
-                    {t("nav.booking")}
-                  </motion.a>
                   <button
                     type="button"
                     onClick={() => {
@@ -382,13 +373,6 @@ export default function Header({ preview }: HeaderProps = {}) {
                         Admin
                       </a>
                     )}
-                    <a
-                      href={PABAU_BOOKING_URL}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="type-ui font-medium text-[rgb(var(--primary))] text-sm"
-                    >
-                      {t("nav.booking")}
-                    </a>
                     <button
                       type="button"
                       onClick={() => {

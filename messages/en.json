@@ -39,6 +39,7 @@
     "noImage": "No image",
     "viewProduct": "View details",
     "addToCart": "Add to cart",
+    "visitStore": "View in store",
     "addedToCart": "Added",
     "cartLabel": "Cart",
     "cartTitle": "Your cart",
@@ -280,6 +281,11 @@
     "plan3Item4": "Direct WhatsApp access",
     "plan3Item5": "Monthly progress report",
     "chooseBtn": "Choose"
+  },
+  "account": {
+    "manage": "Manage my appointment",
+    "manageEmpty": "You don't have an upcoming appointment to manage.",
+    "cancel": "Cancel"
   },
   "booking": {
     "title": "Book your appointment",
