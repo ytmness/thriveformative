@@ -168,7 +168,8 @@ export async function listPatients(url: URL) {
          count(*) FILTER (WHERE lower(btrim(coalesce(p.sex, ''))) = 'masculino')::int AS masculino,
          count(*) FILTER (WHERE lower(btrim(coalesce(p.sex, ''))) = 'otro')::int AS otro,
          count(*) FILTER (WHERE lower(btrim(coalesce(p.sex, ''))) NOT IN ${KNOWN_SEX})::int AS sin_dato
-       FROM patients p ${whereBase} ${sourceSql}`,
+       FROM patients p ${whereBase} ${sourceSql}
+       AND ($7::text IS NULL OR $7::text IS NOT NULL)`,
       filters
     ),
     query<{ id: string; name: string; total: number }>(
@@ -178,6 +179,7 @@ export async function listPatients(url: URL) {
        FROM patients p
        LEFT JOIN marketing_sources ms ON ms.id = p.marketing_source_id
        ${whereBase} ${sexSql}
+       AND ($10::text IS NULL OR $10::text IS NOT NULL)
        GROUP BY p.marketing_source_id, ms.name
        ORDER BY total DESC, name ASC`,
       filters
