@@ -52,6 +52,8 @@ function emailAttachments() {
       filename: file,
       path: path.join(dir, file),
       cid,
+      contentType: "image/png",
+      contentDisposition: "inline" as const,
     }));
 }
 

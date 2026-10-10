@@ -31,10 +31,6 @@ export const EMAIL_IMAGE_CIDS = {
   footerPhone: "thrive-footer-phone",
 } as const;
 
-function assetUrl(assetPath: string): string {
-  return `${getEmailAssetBaseUrl()}${assetPath}`;
-}
-
 function cid(id: string): string {
   return `cid:${id}`;
 }
@@ -59,9 +55,10 @@ export function buildThriveEmailHtml(bodyHtml: string): string {
   const watermarkWidth = 380;
 
   const headerSrc = cid(EMAIL_IMAGE_CIDS.header);
-  const watermarkSrc = assetUrl(ASSETS.watermark.path);
-  const footerBarSrc = assetUrl(ASSETS.footerBar.path);
+  const watermarkSrc = cid(EMAIL_IMAGE_CIDS.watermark);
+  const footerBarSrc = cid(EMAIL_IMAGE_CIDS.footerBar);
   const footerPhoneSrc = cid(EMAIL_IMAGE_CIDS.footerPhone);
+  const watermarkHeight = scaledHeight(ASSETS.watermark.width, ASSETS.watermark.height, watermarkWidth);
   const siteUrl = getEmailAssetBaseUrl();
 
   return `<!DOCTYPE html>
@@ -84,7 +81,8 @@ export function buildThriveEmailHtml(bodyHtml: string): string {
           </tr>
 
           <tr>
-            <td bgcolor="#ffffff" background="${watermarkSrc}" style="padding:36px 40px 32px;background-color:#ffffff;background-image:url('${watermarkSrc}');background-repeat:no-repeat;background-position:center center;background-size:${watermarkWidth}px auto;">
+            <td bgcolor="#ffffff" style="padding:28px 40px 24px;background-color:#ffffff;">
+              <img src="${watermarkSrc}" alt="" width="${watermarkWidth}" height="${watermarkHeight}" style="display:block;margin:8px auto -${Math.round(watermarkHeight * 0.72)}px;border:0;max-width:100%;height:auto;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
                 <tr>
                   <td style="font-size:15px;line-height:1.65;color:#333333;">
@@ -96,16 +94,19 @@ export function buildThriveEmailHtml(bodyHtml: string): string {
           </tr>
 
           <tr>
-            <td bgcolor="#cdbba8" background="${footerBarSrc}" style="padding:0;background-color:#cdbba8;background-image:url('${footerBarSrc}');background-repeat:no-repeat;background-position:right bottom;background-size:${EMAIL_WIDTH}px auto;border-radius:0 0 20px 20px;">
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+            <td bgcolor="#cdbba8" style="padding:0;line-height:0;font-size:0;background-color:#cdbba8;border-radius:0 0 20px 20px;">
+              <a href="${siteUrl}" style="text-decoration:none;">
+                <img src="${footerBarSrc}" alt="thriveformative.com" width="${EMAIL_WIDTH}" height="${footerBarHeight}" style="display:block;width:100%;max-width:${EMAIL_WIDTH}px;height:auto;border:0;">
+              </a>
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:-${footerBarHeight}px;">
                 <tr>
-                  <td valign="middle" style="padding:${Math.max(14, Math.round(footerBarHeight * 0.28))}px 20px ${Math.max(10, Math.round(footerBarHeight * 0.18))}px 22px;min-height:${footerBarHeight}px;">
+                  <td height="${footerBarHeight}" valign="middle" style="padding:0 12px 0 22px;height:${footerBarHeight}px;">
                     <a href="tel:+528120036699" style="text-decoration:none;">
                       <img src="${footerPhoneSrc}" alt="81 2003 6699" width="${footerPhoneWidth}" height="${footerPhoneHeight}" style="display:block;border:0;height:auto;max-width:100%;">
                     </a>
                   </td>
-                  <td width="42%" valign="middle" align="right" style="padding:0;line-height:0;font-size:0;min-height:${footerBarHeight}px;">
-                    <a href="${siteUrl}" style="text-decoration:none;display:block;width:100%;min-height:${footerBarHeight}px;line-height:${footerBarHeight}px;">&nbsp;</a>
+                  <td width="46%" height="${footerBarHeight}" valign="middle" align="right" style="height:${footerBarHeight}px;">
+                    <a href="${siteUrl}" style="text-decoration:none;display:block;width:100%;height:${footerBarHeight}px;line-height:${footerBarHeight}px;">&nbsp;</a>
                   </td>
                 </tr>
               </table>
