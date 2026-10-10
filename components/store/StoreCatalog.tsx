@@ -5,7 +5,9 @@ import { Search, X } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState, useTransition } from "react";
+import { readMarket, writeMarket, type SiteMarket } from "@/lib/site/market";
 import AddToCart from "@/components/store/AddToCart";
 import StoreProductPrice from "@/components/store/StoreProductPrice";
 import { fetchStoreCategories, fetchStoreProducts } from "@/lib/store/fetch";
@@ -17,24 +19,30 @@ import "@/app/styles/tienda.css";
 export default function StoreCatalog() {
   const t = useTranslations("tienda");
   const locale = useLocale();
+  const router = useRouter();
+  const [, startTransition] = useTransition();
   const [products, setProducts] = useState<StoreProduct[]>([]);
   const [categories, setCategories] = useState<StoreCategory[]>([]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [query, setQuery] = useState("");
-  const [country, setCountry] = useState<"MX" | "US">("MX");
+  const [country, setCountry] = useState<SiteMarket | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const saved = window.localStorage.getItem("tf-store-country");
-    if (saved === "US" || saved === "MX") setCountry(saved);
+    setCountry(readMarket());
   }, []);
 
-  useEffect(() => {
-    window.localStorage.setItem("tf-store-country", country);
-  }, [country]);
+  function chooseCountry(next: SiteMarket) {
+    if (next === country) return;
+    writeMarket(next);
+    setCountry(next);
+    setActiveCategory(null);
+    startTransition(() => router.refresh());
+  }
 
   useEffect(() => {
+    if (!country) return;
     let cancelled = false;
     setLoading(true);
     setError(null);
@@ -72,8 +80,8 @@ export default function StoreCatalog() {
   const hasActiveFilters = Boolean(activeCategory || query.trim());
   const countries = (
     <div className="tienda-countries" role="group" aria-label="País">
-      <button type="button" className={country === "MX" ? "is-active" : ""} aria-pressed={country === "MX"} onClick={() => { setCountry("MX"); setActiveCategory(null); }}>México</button>
-      <button type="button" className={country === "US" ? "is-active" : ""} aria-pressed={country === "US"} onClick={() => { setCountry("US"); setActiveCategory(null); }}>Estados Unidos</button>
+      <button type="button" className={country === "MX" ? "is-active" : ""} aria-pressed={country === "MX"} onClick={() => chooseCountry("MX")}>México</button>
+      <button type="button" className={country === "US" ? "is-active" : ""} aria-pressed={country === "US"} onClick={() => chooseCountry("US")}>Estados Unidos</button>
     </div>
   );
 

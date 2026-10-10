@@ -15,6 +15,7 @@ import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { readMarket, type SiteMarket } from "@/lib/site/market";
 import "@/app/styles/tienda.css";
 
 function ProductDetailContent() {
@@ -25,8 +26,14 @@ function ProductDetailContent() {
   const [product, setProduct] = useState<StoreProduct | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [country, setCountry] = useState<SiteMarket | null>(null);
 
   useEffect(() => {
+    setCountry(readMarket());
+  }, []);
+
+  useEffect(() => {
+    if (!country) return;
     if (!ref) {
       setNotFound(true);
       setLoading(false);
@@ -35,7 +42,7 @@ function ProductDetailContent() {
     let cancelled = false;
     setLoading(true);
     setNotFound(false);
-    fetchStoreProductByRef(locale as Locale, ref)
+    fetchStoreProductByRef(locale as Locale, ref, { country })
       .then((row) => {
         if (cancelled) return;
         if (!row) setNotFound(true);
@@ -50,7 +57,7 @@ function ProductDetailContent() {
     return () => {
       cancelled = true;
     };
-  }, [locale, ref]);
+  }, [locale, ref, country]);
 
   return (
     <>

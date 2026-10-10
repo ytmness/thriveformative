@@ -70,11 +70,15 @@ export async function fetchStoreProductsFromDb(
 export async function fetchStoreProductByRefFromDb(
   locale: Locale,
   ref: string,
-  options?: { includeUnpublished?: boolean }
+  options?: { includeUnpublished?: boolean; country?: string | null }
 ): Promise<StoreProduct | null> {
   const includeUnpublished = options?.includeUnpublished ?? false;
   const params: unknown[] = [locale, ref];
   let sql = `SELECT ${PRODUCT_FIELDS_SQL}, source_payload FROM store_products WHERE locale = $1 AND ref = $2`;
+  if (options?.country) {
+    params.push(countryOf(options.country));
+    sql += ` AND country = $${params.length}`;
+  }
   if (!includeUnpublished) {
     sql += ` AND is_published = true`;
   }

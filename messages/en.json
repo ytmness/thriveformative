@@ -14,6 +14,12 @@
     "schedule": "Book",
     "tienda": "Shop"
   },
+  "site": {
+    "usHere": "You're in the USA,",
+    "enterMx": "but you can enter Thrive Formative MX",
+    "mxHere": "You're in Mexico,",
+    "enterUs": "but you can enter Thrive Formative USA"
+  },
   "tienda": {
     "eyebrow": "Recommendations",
     "pageTitle": "Shop",

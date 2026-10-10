@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { SITE_LOGO_SRC } from "@/lib/branding";
 import { PABAU_BOOKING_URL } from "@/lib/pabau";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import SiteSwitch from "@/components/SiteSwitch";
 import { useUser, signOut } from "@/lib/useUser";
 import { useRouter, usePathname } from "next/navigation";
 import NotificationBell from "@/components/NotificationBell";
@@ -173,6 +174,7 @@ export default function Header({ preview }: HeaderProps = {}) {
       transition={{ duration: 0.6, ease: "easeOut" }}
       className="site-nav sticky top-0 z-40"
     >
+      {!preview && !pathname.startsWith("/admin") ? <SiteSwitch /> : null}
       <div className="site-nav__inner">
         <motion.a
           href={preview ? "#inicio" : `/${locale}`}

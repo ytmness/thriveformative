@@ -15,6 +15,7 @@ import { Minus, Plus } from "lucide-react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
+import { readMarket } from "@/lib/site/market";
 import "@/app/styles/tienda.css";
 
 function CheckoutContent() {
@@ -33,6 +34,10 @@ function CheckoutContent() {
   const [state, setState] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [country, setCountry] = useState<"MX" | "US">("MX");
+
+  useEffect(() => {
+    setCountry(readMarket());
+  }, []);
   const payable = cart.currency ? cart.lines.filter((line) => line.currency === cart.currency) : cart.lines;
   const blocked = cart.lines.filter((line) => cart.currency && line.currency !== cart.currency);
   const totalMinor = payable.reduce((sum, line) => sum + line.unitAmount * line.quantity, 0);

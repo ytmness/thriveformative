@@ -51,13 +51,14 @@ export async function fetchStoreProducts(
 export async function fetchStoreProductByRef(
   locale: Locale,
   ref: string,
-  options?: { includeUnpublished?: boolean }
+  options?: { includeUnpublished?: boolean; country?: string | null }
 ): Promise<StoreProduct | null> {
   if (typeof window === "undefined") {
     const { fetchStoreProductByRefFromDb } = await import("@/lib/store/db");
     return fetchStoreProductByRefFromDb(locale, ref, options);
   }
   const params = new URLSearchParams({ locale, ref });
+  if (options?.country) params.set("country", options.country);
   if (options?.includeUnpublished) params.set("all", "1");
   return storeApi(`/api/store/product?${params.toString()}`);
 }

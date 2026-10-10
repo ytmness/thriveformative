@@ -15,8 +15,9 @@ export async function GET(req: Request) {
     }
     const wantAll = url.searchParams.get("all") === "1";
     const includeUnpublished = wantAll && (await isAdminAuthenticated());
+    const country = url.searchParams.get("country");
     return NextResponse.json(
-      await fetchStoreProductByRefFromDb(locale, ref, { includeUnpublished })
+      await fetchStoreProductByRefFromDb(locale, ref, { includeUnpublished, country })
     );
   } catch (e) {
     return NextResponse.json(

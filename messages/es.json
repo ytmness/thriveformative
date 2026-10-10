@@ -14,6 +14,12 @@
     "schedule": "Agendar",
     "tienda": "Tienda"
   },
+  "site": {
+    "usHere": "Estás en USA,",
+    "enterMx": "pero puedes entrar a Thrive Formative MX",
+    "mxHere": "Estás en México,",
+    "enterUs": "pero puedes entrar a Thrive Formative USA"
+  },
   "tienda": {
     "eyebrow": "Recomendaciones",
     "pageTitle": "Tienda",

@@ -236,3 +236,50 @@
 .site-nav__mobile-link--active {
   color: var(--site-nav-fg);
 }
+
+.site-switch {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 2.15rem;
+  padding: 0.35rem 1rem;
+  border-bottom: 1px solid var(--site-nav-bar-border);
+  background: rgb(var(--surface) / 0.55);
+  text-align: center;
+}
+
+.site-switch p {
+  margin: 0;
+  max-width: 42rem;
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--site-nav-muted);
+}
+
+.site-switch button {
+  border: 0;
+  padding: 0.1rem 0.15rem;
+  background: transparent;
+  color: var(--site-nav-accent);
+  font: inherit;
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  cursor: pointer;
+}
+
+.site-switch button:hover {
+  opacity: 0.82;
+}
+
+.site-switch button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(var(--primary) / 0.28);
+  border-radius: 0.2rem;
+}
+
+.site-switch button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}

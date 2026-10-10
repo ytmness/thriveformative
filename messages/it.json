@@ -14,6 +14,12 @@
     "schedule": "Prenota",
     "tienda": "Negozio"
   },
+  "site": {
+    "usHere": "Sei negli USA,",
+    "enterMx": "ma puoi entrare in Thrive Formative MX",
+    "mxHere": "Sei in Messico,",
+    "enterUs": "ma puoi entrare in Thrive Formative USA"
+  },
   "tienda": {
     "eyebrow": "Consigliati",
     "pageTitle": "Negozio",
