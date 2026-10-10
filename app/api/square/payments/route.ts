@@ -18,6 +18,7 @@ import {
 } from "@/lib/security/request";
 import { isValidRef } from "@/lib/store/slug";
 import { assertPickupStock, insertStoreOrder } from "@/lib/store/storeOrders";
+import { deductUsOnlineSale } from "@/lib/store/usInventory";
 import { requestMarket } from "@/lib/site/requestMarket";
 import { sellableVariations } from "@/lib/store/variations";
 
@@ -68,6 +69,8 @@ type ProductPayRow = {
   source_payload: unknown;
   price_min: unknown;
   currency: string | null;
+  country: string | null;
+  referral_url: string | null;
 };
 
 export async function POST(request: NextRequest) {
@@ -93,7 +96,7 @@ export async function POST(request: NextRequest) {
 
     const location = await getSquareLocation();
     const result = await query<ProductPayRow>(
-      `SELECT ref, name, image_url, source, source_payload, price_min, currency
+      `SELECT ref, name, image_url, source, source_payload, price_min, currency, country, referral_url
        FROM store_products
        WHERE locale = $1 AND is_published = true AND ref = ANY($2::text[])`,
       [parsed.data.locale, lines.map((line) => line.ref)]
@@ -108,6 +111,8 @@ export async function POST(request: NextRequest) {
       amount: number;
       currency: string;
       imageUrl: string | null;
+      catalogObjectId: string | null;
+      trackUs: boolean;
     }[] = [];
     for (const line of lines) {
       const product = byRef.get(line.ref);
@@ -131,6 +136,11 @@ export async function POST(request: NextRequest) {
         amount: variation.amount,
         currency: variation.currency,
         imageUrl: product.image_url,
+        catalogObjectId:
+          product.country === "US" && product.source === "square" && !(product.referral_url || "").trim() && variation.id !== "default"
+            ? variation.id
+            : null,
+        trackUs: product.country === "US" && !(product.referral_url || "").trim(),
       });
     }
 
@@ -164,6 +174,7 @@ export async function POST(request: NextRequest) {
         quantity: line.quantity,
         amount: line.amount,
         currency: line.currency,
+        catalogObjectId: line.catalogObjectId,
       })),
       fulfillment,
     });
@@ -185,6 +196,17 @@ export async function POST(request: NextRequest) {
     if (payment.status !== "COMPLETED" && payment.status !== "APPROVED") {
       return jsonError(402, "El pago no se completó. Revisa la tarjeta e inténtalo de nuevo.");
     }
+
+    await deductUsOnlineSale({
+      lines: orderLines.filter((line) => line.trackUs).map((line) => ({
+        ref: line.ref,
+        variationId: line.catalogObjectId || "default",
+        quantity: line.quantity,
+        name: line.name,
+      })),
+      locationId,
+      reason: `tienda:${payment.id}`,
+    }).catch(() => undefined);
 
     let saved = null;
     try {

@@ -175,7 +175,7 @@ const GUIDES: Record<GuideId, Record<Lang, Pack>> = {
     ko: { title: "콘텐츠", steps: ["여기서 미리보기나 목록, 그리고 편집할 언어를 고릅니다.", "페이지 블록을 눌러 그 글이나 이미지를 고칩니다.", "왼쪽 메뉴가 패널의 나머지로 돌아갑니다."] },
   },
   catalog: {
-    es: { title: "Catálogo", steps: ["El menú elige servicios, productos, paquetes, membresías, categorías o proveedores.", "Pulsa + Nuevo para crear.", "La tabla lista lo que ya existe. El menú ⋯ edita o archiva."] },
+    es: { title: "Catálogo", steps: ["El menú elige servicios, productos, tienda web, paquetes, membresías, categorías o proveedores.", "Pulsa + Nuevo para crear.", "La tabla lista lo que ya existe. El menú ⋯ edita o archiva."] },
     en: { title: "Catalog", steps: ["The menu picks services, products, packages, memberships, categories, or suppliers.", "Press + New to create.", "The table lists what exists. The ⋯ menu edits or archives."] },
     it: { title: "Catalogo", steps: ["Il menu sceglie servizi, prodotti, pacchetti, abbonamenti, categorie o fornitori.", "Premi + Nuovo per creare.", "La tabella elenca ciò che esiste. Il menu ⋯ modifica o archivia."] },
     ko: { title: "목록", steps: ["메뉴에서 서비스, 제품, 패키지, 멤버십, 분류, 공급자를 고릅니다.", "+ 새로 만들기로 만듭니다.", "표가 목록입니다. ⋯ 메뉴에서 고치거나 보관합니다."] },
@@ -260,6 +260,7 @@ const MATCH: { id: GuideId; test: (path: string) => boolean }[] = [
   { id: "services", test: (path) => path.includes("/catalogo/servicios") },
   { id: "categories", test: (path) => path.includes("/catalogo/categorias") },
   { id: "products", test: (path) => path.includes("/catalogo/productos") },
+  { id: "store", test: (path) => path.includes("/catalogo/tienda") },
   { id: "catalog", test: (path) => path.includes("/catalogo") },
   { id: "forms", test: (path) => path.includes("/formularios") },
   { id: "comms", test: (path) => path.includes("/comunicaciones") },
@@ -274,7 +275,6 @@ const MATCH: { id: GuideId; test: (path: string) => boolean }[] = [
   { id: "fields", test: (path) => path.includes("/configuracion/campos") },
   { id: "policies", test: (path) => path.includes("/configuracion/politicas") },
   { id: "content", test: (path) => path.includes("/contenido") },
-  { id: "store", test: (path) => path.includes("/tienda") },
 ];
 
 function asLang(value: string): Lang {

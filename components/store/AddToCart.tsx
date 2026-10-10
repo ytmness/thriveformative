@@ -1,7 +1,9 @@
 "use client";
 
 import { useStoreCart } from "@/components/store/StoreCart";
+import { sellsOnSite } from "@/lib/store/sellsHere";
 import BrandCtaButton from "@/components/ui/BrandCtaButton";
+import { BRAND_CTA_BASE_CLASS } from "@/lib/brandCta";
 import { minorToMajor } from "@/lib/square/money";
 import { formatStorePrice } from "@/lib/store/formatPrice";
 import type { StoreProduct } from "@/lib/store/types";
@@ -21,6 +23,19 @@ export default function AddToCart({ product, locale, appearance }: Props) {
   const payable = cart.currency ? options.filter((row) => row.currency === cart.currency) : [];
   const [variationId, setVariationId] = useState(payable[0]?.id ?? options[0]?.id ?? "");
   const [added, setAdded] = useState(false);
+  const referral = (product.referral_url || "").trim();
+  if (!sellsOnSite(product) && referral) {
+    return (
+      <a
+        className={appearance === "detail" ? `${BRAND_CTA_BASE_CLASS} brand-cta brand-cta--block` : "tienda-card__buy"}
+        href={referral}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {t("visitStore")}
+      </a>
+    );
+  }
   const selected = payable.find((row) => row.id === variationId) ?? payable[0];
 
   function add() {

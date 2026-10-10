@@ -8,6 +8,7 @@ import type { ProductRow } from "@/lib/store/fields";
 import type { Locale } from "@/lib/store/types";
 import { slugifyRef } from "@/lib/store/slug";
 import { normalizeCountry } from "@/lib/domain/scope";
+import { pushUsStoreProduct } from "@/lib/square/catalogPush";
 
 async function requireAdmin() {
   if (!(await isAdminAuthenticated())) {
@@ -76,12 +77,28 @@ export async function POST(req: Request) {
         );
       }
       const cats = await fetchStoreCategoriesFromDb(p.locale as Locale, country);
+      let squareWarning: string | null = null;
+      if (country === "US" && res.rows[0]?.id) {
+        try {
+          await pushUsStoreProduct(String(res.rows[0].id));
+        } catch (error) {
+          squareWarning = error instanceof Error ? error.message : "Square no recibió el producto.";
+        }
+      }
       return NextResponse.json({
         data: attachCategoryToProduct(res.rows[0], cats),
+        squareWarning,
       });
     }
 
     if (body.op === "deleteProduct") {
+      if (!body.id) return NextResponse.json({ error: "Falta el producto." }, { status: 400 });
+      await query(`UPDATE store_products SET is_published = false WHERE id=$1`, [body.id]);
+      try {
+        await pushUsStoreProduct(body.id);
+      } catch {
+        /* El producto se borra de la tienda aunque Square no responda. */
+      }
       await query(`DELETE FROM store_products WHERE id=$1`, [body.id]);
       return NextResponse.json({ ok: true });
     }
@@ -94,6 +111,13 @@ export async function POST(req: Request) {
       );
       const locale = (res.rows[0]?.locale || body.locale || "es") as Locale;
       const cats = await fetchStoreCategoriesFromDb(locale, res.rows[0]?.country);
+      if (res.rows[0]?.id) {
+        try {
+          await pushUsStoreProduct(String(res.rows[0].id));
+        } catch {
+          /* Publicar o ocultar no debe fallar si Square no responde. */
+        }
+      }
       return NextResponse.json({
         data: attachCategoryToProduct(res.rows[0], cats),
       });

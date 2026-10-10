@@ -17,6 +17,7 @@ import {
   getTerminalCheckout,
   requireTerminalDevice,
 } from "@/lib/square/terminal";
+import { mirrorClinicSaleToSquare } from "@/lib/store/usInventory";
 import { emitWebhook } from "@/lib/webhooks/emit";
 
 export type SaleItemInput = {
@@ -231,6 +232,7 @@ export async function createSale(
     stripe = await addPayment(saleId, input.payment.methodKey, input.payment.amount, actor);
   }
   await emitWebhook("sale.created", { saleId });
+  await mirrorClinicSaleToSquare(saleId).catch(() => undefined);
   await writeAudit({
     actorType: "staff",
     actorId: actor.staff.id,

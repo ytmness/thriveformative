@@ -42,22 +42,31 @@ function createEmptyDraft(locale: Locale, sortOrder: number, country: string): S
   };
 }
 
-function validateProduct(row: Pick<StoreProduct, "name" | "ref" | "referral_url">): string | null {
+function validateProduct(row: Pick<StoreProduct, "name" | "ref" | "referral_url" | "price_min">): string | null {
   if (!row.name.trim()) return "El nombre es obligatorio.";
   const ref = row.ref.trim();
-  if (!ref) return "El ref (slug) es obligatorio.";
+  if (!ref) return "No se pudo armar el enlace del producto a partir del nombre.";
   if (!isValidRef(ref)) {
-    return "El ref debe usar solo letras minúsculas, números y guiones (ej. vitamina-d).";
+    return "El nombre necesita letras o números para armar el enlace.";
   }
   const url = row.referral_url.trim();
-  if (!url) return "El enlace de referido es obligatorio.";
-  try {
-    const parsed = new URL(url);
-    if (!["http:", "https:"].includes(parsed.protocol)) {
-      return "El enlace de referido debe ser http o https.";
+  const hasPrice = row.price_min != null && Number(row.price_min) > 0;
+  if (url && hasPrice) {
+    return "Pon el precio para venderlo aquí, o el enlace para redirigir. No los dos.";
+  }
+  if (url) {
+    try {
+      const parsed = new URL(url);
+      if (!["http:", "https:"].includes(parsed.protocol)) {
+        return "El enlace de referido debe ser http o https.";
+      }
+    } catch {
+      return "El enlace de referido no es una URL válida.";
     }
-  } catch {
-    return "El enlace de referido no es una URL válida.";
+    return null;
+  }
+  if (row.price_min == null || Number(row.price_min) <= 0) {
+    return "Pon un precio para venderlo aquí, o un enlace si solo quieres redirigir.";
   }
   return null;
 }
@@ -154,7 +163,11 @@ export function useStoreAdmin(initialLocale: Locale, country: string) {
   }
 
   async function saveDraft() {
-    const validation = validateProduct(draft);
+    const referral = draft.referral_url.trim();
+    const selling = !referral && draft.price_min != null && Number(draft.price_min) > 0;
+    const ref = editingId === null ? slugifyRef(draft.name) : draft.ref.trim();
+    const ready = { ...draft, ref, referral_url: referral };
+    const validation = validateProduct(ready);
     if (validation) {
       setMessage({ type: "err", text: validation });
       return false;
@@ -168,22 +181,22 @@ export function useStoreAdmin(initialLocale: Locale, country: string) {
       sort_order: draft.sort_order,
       name: draft.name.trim(),
       description: draft.description.trim(),
-      ref: draft.ref.trim(),
-      referral_url: draft.referral_url.trim(),
+      ref,
+      referral_url: selling ? "" : referral,
       image_url: draft.image_url?.trim() || null,
       category_id: draft.category_id || null,
       is_published: draft.is_published,
-      price_min: draft.price_min,
-      price_max: draft.price_max,
-      compare_at_price_min: draft.compare_at_price_min,
-      currency: draft.currency?.trim() || (country === "US" ? "USD" : "MXN"),
+      price_min: selling ? Number(draft.price_min) : null,
+      price_max: selling ? Number(draft.price_min) : null,
+      compare_at_price_min: null,
+      currency: country === "US" ? "USD" : draft.currency?.trim() || "MXN",
       source: draft.source?.trim() || null,
       source_handle: draft.source_handle?.trim() || null,
     };
 
     const isNew = editingId === null;
     try {
-      const { data } = await mutateStore<{ data: StoreProduct }>({
+      const { data, squareWarning } = await mutateStore<{ data: StoreProduct; squareWarning?: string | null }>({
         op: "saveProduct",
         id: isNew ? undefined : editingId,
         payload,
@@ -195,8 +208,12 @@ export function useStoreAdmin(initialLocale: Locale, country: string) {
       setDraft(createEmptyDraft(locale, nextSortOrder(nextProducts), country));
       setEditingId(null);
       setMessage({
-        type: "ok",
-        text: isNew ? "Producto añadido. Puedes agregar otro." : "Producto actualizado.",
+        type: squareWarning ? "err" : "ok",
+        text: squareWarning
+          ? `Se guardó en la tienda, pero Square no lo recibió: ${squareWarning}`
+          : isNew
+            ? "Producto añadido. Puedes agregar otro."
+            : "Producto actualizado.",
       });
       return true;
     } catch (e) {
@@ -340,73 +357,6 @@ export function useStoreAdmin(initialLocale: Locale, country: string) {
     }
   }
 
-  async function syncSquareCatalog() {
-    setMessage(null);
-    setSaving(true);
-    try {
-      const response = await fetch("/api/square/catalog/sync", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({ country }),
-      });
-      const body = (await response.json()) as {
-        ok?: boolean;
-        error?: string;
-        products?: number;
-        environment?: string;
-      };
-      if (!response.ok || !body.ok) {
-        setMessage({ type: "err", text: body.error || "No se pudo sincronizar Square." });
-        return false;
-      }
-      await load();
-      setMessage({
-        type: "ok",
-        text: `Catálogo de Square (${body.environment ?? "sandbox"}) actualizado: ${body.products ?? 0} productos.`,
-      });
-      return true;
-    } catch {
-      setMessage({ type: "err", text: "No se pudo sincronizar Square." });
-      return false;
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function copyToPos() {
-    setMessage(null);
-    setSaving(true);
-    try {
-      const response = await fetch("/api/admin/store/pos-sync", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({ country }),
-      });
-      const body = (await response.json()) as {
-        ok?: boolean;
-        error?: string;
-        products?: number;
-        rows?: number;
-      };
-      if (!response.ok || !body.ok) {
-        setMessage({ type: "err", text: body.error || "No se pudo copiar al punto de venta." });
-        return false;
-      }
-      setMessage({
-        type: "ok",
-        text: `Punto de venta actualizado: ${body.rows ?? 0} presentaciones de ${body.products ?? 0} productos.`,
-      });
-      return true;
-    } catch {
-      setMessage({ type: "err", text: "No se pudo copiar al punto de venta." });
-      return false;
-    } finally {
-      setSaving(false);
-    }
-  }
-
   return {
     locale,
     setLocale,
@@ -430,8 +380,6 @@ export function useStoreAdmin(initialLocale: Locale, country: string) {
     startNewProduct,
     startEditProduct,
     suggestRefFromName,
-    syncSquareCatalog,
-    copyToPos,
   };
 }
 

@@ -42,8 +42,6 @@ export default function StorePanel({ siteLocale }: Props) {
     startNewProduct,
     startEditProduct,
     suggestRefFromName,
-    syncSquareCatalog,
-    copyToPos,
   } = useStoreAdmin(siteLocale as Locale, scope.country);
   const [editingCat, setEditingCat] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
@@ -57,44 +55,12 @@ export default function StorePanel({ siteLocale }: Props) {
   return (
     <section className="admin-cms" aria-label="Tienda web">
       <header className="admin-header">
-        <p className="admin-header__eyebrow">Sitio web</p>
+        <p className="admin-header__eyebrow">Catálogo · {scope.label}</p>
         <h1 className="admin-header__title">Tienda web</h1>
         <p className="admin-header__desc">
-          Catálogo público de {scope.label}. México y Estados Unidos tienen productos distintos.
-          Los artículos de Square se importan con el botón de sincronizar. El catálogo publicado se copia al punto de venta para cobrarlo en mostrador.
+          Lo que se vende en el sitio. Con precio y sin enlace, se cobra aquí. Con enlace de referido, solo redirige.
+          En Estados Unidos el precio se publica en Square al guardar.
         </p>
-        <button
-          type="button"
-          className="admin-cms__btn"
-          disabled={saving}
-          onClick={() => {
-            if (
-              window.confirm(
-                `¿Importar el catálogo de Square a ${scope.label}? Los productos ya importados de este país se actualizan.`
-              )
-            ) {
-              void syncSquareCatalog();
-            }
-          }}
-        >
-          {saving ? "Sincronizando…" : "Sincronizar catálogo de Square"}
-        </button>
-        <button
-          type="button"
-          className="admin-cms__btn"
-          disabled={saving}
-          onClick={() => {
-            if (
-              window.confirm(
-                `¿Copiar los productos publicados de ${scope.label} al punto de venta? Si ya existen, se actualizan precio y nombre. El stock nuevo queda en 0.`
-              )
-            ) {
-              void copyToPos();
-            }
-          }}
-        >
-          {saving ? "Copiando…" : "Pasar al punto de venta"}
-        </button>
       </header>
       <div className="admin-cms__toolbar">
         <div className="admin-cms__locale-select">
@@ -112,8 +78,7 @@ export default function StorePanel({ siteLocale }: Props) {
           </select>
         </div>
         <p className="text-sm text-muted max-w-xl">
-          Gestiona categorías y productos con enlace de referido. Al guardar un producto nuevo, el
-          formulario se limpia.
+          Si pones precio y no hay enlace, se vende aquí. Si pones un enlace y dejas el precio vacío, solo redirige.
         </p>
       </div>
 
@@ -219,6 +184,7 @@ export default function StorePanel({ siteLocale }: Props) {
 
         <ProductForm
           locale={locale}
+          country={scope.country}
           draft={draft}
           categories={categories}
           saving={saving}
@@ -276,9 +242,6 @@ export default function StorePanel({ siteLocale }: Props) {
                         {product.is_published ? "Publicado" : "Borrador"}
                       </span>
                     </div>
-                    <p className="text-sm text-muted mt-1 truncate">
-                      /{locale}/tienda/{product.ref}
-                    </p>
                     {product.description ? (
                       <p className="text-sm text-muted mt-1 line-clamp-2">{product.description}</p>
                     ) : null}
@@ -326,6 +289,7 @@ export default function StorePanel({ siteLocale }: Props) {
 
 function ProductForm({
   locale,
+  country,
   draft,
   categories,
   saving,
@@ -335,6 +299,7 @@ function ProductForm({
   suggestRefFromName,
 }: {
   locale: Locale;
+  country: string;
   draft: ReturnType<typeof useStoreAdmin>["draft"];
   categories: ReturnType<typeof useStoreAdmin>["categories"];
   saving: boolean;
@@ -387,78 +352,41 @@ function ProductForm({
       </div>
 
       <div className="admin-cms__field">
-        <label>
-          Ref (slug){" "}
-          <span className="text-muted font-normal">
-            → /{locale}/tienda/{draft.ref || "…"}
-          </span>
-        </label>
-        <input
-          value={draft.ref}
-          placeholder="vitamina-d"
-          onChange={(e) => onChange({ ref: slugifyInput(e.target.value) })}
-        />
-      </div>
-
-      <div className="admin-cms__field">
-        <label>Enlace de referido (tienda externa)</label>
+        <label>Enlace de referido</label>
         <input
           type="url"
           value={draft.referral_url}
-          placeholder="https://…"
+          placeholder="Vacío si se vende aquí. https://… si solo redirige"
           onChange={(e) => onChange({ referral_url: e.target.value })}
         />
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         <div className="admin-cms__field">
-          <label>Precio mín.</label>
+          <label>Precio</label>
           <input
             type="number"
             min={0}
             step="0.01"
             value={draft.price_min ?? ""}
-            onChange={(e) =>
-              onChange({
-                price_min: e.target.value === "" ? null : Number(e.target.value),
-              })
-            }
-          />
-        </div>
-        <div className="admin-cms__field">
-          <label>Precio máx.</label>
-          <input
-            type="number"
-            min={0}
-            step="0.01"
-            value={draft.price_max ?? ""}
-            onChange={(e) =>
-              onChange({
-                price_max: e.target.value === "" ? null : Number(e.target.value),
-              })
-            }
-          />
-        </div>
-        <div className="admin-cms__field">
-          <label>Compare at</label>
-          <input
-            type="number"
-            min={0}
-            step="0.01"
-            value={draft.compare_at_price_min ?? ""}
-            onChange={(e) =>
-              onChange({
-                compare_at_price_min: e.target.value === "" ? null : Number(e.target.value),
-              })
-            }
+            placeholder="Vacío si solo redirige"
+            onChange={(e) => {
+              const price = e.target.value === "" ? null : Number(e.target.value);
+              onChange({ price_min: price, price_max: price, compare_at_price_min: null });
+            }}
           />
         </div>
         <div className="admin-cms__field">
           <label>Moneda</label>
           <input
-            value={draft.currency ?? "USD"}
+            value={country === "US" ? "USD" : draft.currency ?? "MXN"}
             maxLength={3}
-            onChange={(e) => onChange({ currency: e.target.value.toUpperCase() })}
+            readOnly={country === "US"}
+            aria-readonly={country === "US"}
+            onChange={(e) => {
+              if (country === "US") return;
+              onChange({ currency: e.target.value.toUpperCase() });
+            }}
           />
         </div>
       </div>
@@ -495,12 +423,4 @@ function ProductForm({
       </div>
     </div>
   );
-}
-
-function slugifyInput(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9-]/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-+|-+$/g, "");
 }

@@ -121,3 +121,71 @@ export async function copyStoreProductsToPos(countryInput?: string | null): Prom
 
   return { country, products: chosen.size, rows };
 }
+
+export async function ensureStoreProductInPos(ref: string) {
+  const listed = await query<StoreRow>(
+    `SELECT p.locale, p.ref, p.name, p.description, p.image_url, p.currency, p.source,
+            p.source_payload, p.price_min, c.name AS category_name
+     FROM store_products p
+     LEFT JOIN store_categories c ON c.id = p.category_id
+     WHERE p.is_published = true AND p.country = 'US' AND p.ref = $1
+       AND coalesce(p.referral_url, '') = '' AND p.price_min > 0`,
+    [ref]
+  );
+  const product = listed.rows.sort((a, b) => (LOCALE_RANK[a.locale] ?? 9) - (LOCALE_RANK[b.locale] ?? 9))[0];
+  if (!product) return;
+  await withTx(async (q) => {
+    const variations = sellableVariations({
+      source: product.source,
+      sourcePayload: product.source_payload,
+      priceMin: product.price_min,
+      currency: product.currency,
+    });
+    let categoryId: string | null = null;
+    const categoryName = product.category_name?.trim();
+    if (categoryName) {
+      const category = await q<{ id: string }>(
+        `INSERT INTO product_categories (name) VALUES ($1)
+         ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
+         RETURNING id`,
+        [categoryName]
+      );
+      categoryId = category.rows[0]?.id ?? null;
+    }
+    for (const variation of variations) {
+      const several = variations.length > 1 && variation.name !== "Estándar";
+      const name = several ? `${product.name} · ${variation.name}` : product.name;
+      const price = minorToMajor(variation.amount, variation.currency);
+      const sku = posSku("US", product.ref, variation.id);
+      const existing = await q<{ id: string }>(
+        `SELECT id FROM products WHERE sku = $1 OR lower(name) = lower($2) ORDER BY created_at LIMIT 1`,
+        [sku, name]
+      );
+      let productId = existing.rows[0]?.id ?? null;
+      if (productId) {
+        await q(
+          `UPDATE products SET category_id = $2, name = $3, sku = $4, description = $5,
+             image_url = COALESCE($6, image_url), price = $7, is_active = true, updated_at = now()
+           WHERE id = $1`,
+          [productId, categoryId, name, sku, product.description || "", product.image_url, price]
+        );
+      } else {
+        const inserted = await q<{ id: string }>(
+          `INSERT INTO products (category_id, name, sku, description, image_url, price, is_active)
+           VALUES ($1,$2,$3,$4,$5,$6,true)
+           RETURNING id`,
+          [categoryId, name, sku, product.description || "", product.image_url, price]
+        );
+        productId = inserted.rows[0]?.id ?? null;
+      }
+      if (!productId) continue;
+      await q(
+        `INSERT INTO product_stock (product_id, location_id, quantity)
+         SELECT $1, l.id, 0 FROM locations l
+         WHERE upper(l.country) IN ('US', 'USA', 'UNITED STATES', 'ESTADOS UNIDOS')
+         ON CONFLICT (product_id, location_id) DO NOTHING`,
+        [productId]
+      );
+    }
+  });
+}

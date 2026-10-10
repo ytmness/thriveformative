@@ -13,9 +13,9 @@ Ventas (/admin/ventas): hoy, semana, mes y ticket promedio. La tabla lista las v
 
 Facturas (/admin/facturas): pestañas de facturas, cotizaciones y notas de crédito. Abrir una fila muestra el documento para imprimirlo. En cotizaciones o notas, el formulario crea el documento.
 
-Servicios y productos (/admin/catalogo/servicios, /admin/catalogo/productos, /admin/catalogo/paquetes, /admin/catalogo/membresias, /admin/catalogo/categorias, /admin/catalogo/proveedores): + Nuevo crea el registro. El menú de la fila edita o archiva. Los servicios se asignan a las sedes del país seleccionado. El stock de productos se ajusta por sede.
+Servicios y productos (/admin/catalogo/servicios, /admin/catalogo/productos, /admin/catalogo/tienda, /admin/catalogo/paquetes, /admin/catalogo/membresias, /admin/catalogo/categorias, /admin/catalogo/proveedores): + Nuevo crea el registro. El menú de la fila edita o archiva. Los servicios se asignan a las sedes del país seleccionado. El stock de productos se ajusta por sede.
 
-Tienda web (/admin/tienda): catálogo público, distinto del inventario de la clínica, separado por país. El formulario crea o edita el producto y lo publica. Arriba se crean o renombran categorías.
+Tienda web (/admin/catalogo/tienda): el catálogo público del sitio, dentro de Catálogo, separado por país. El formulario pide nombre, precio o enlace de referido, y lo publica. El enlace del producto se arma solo. Arriba se crean o renombran categorías.
 
 Contenido (/admin/contenido): elige vista previa o lista y el idioma. Clic en un bloque para editar ese texto o esa imagen.
 
@@ -37,11 +37,12 @@ const SCREENS: { test: (path: string) => boolean; hint: string }[] = [
   { test: (path) => path.includes("/cobrar"), hint: "Está en Cobrar." },
   { test: (path) => path.includes("/ventas"), hint: "Está en Ventas." },
   { test: (path) => path.includes("/facturas"), hint: "Está en Facturas." },
+  { test: (path) => path.includes("/catalogo/tienda"), hint: "Está en la Tienda web, dentro de Catálogo." },
   { test: (path) => path.includes("/catalogo"), hint: "Está en Servicios y productos." },
   { test: (path) => path.includes("/formularios"), hint: "Está en Formularios." },
   { test: (path) => path.includes("/comunicaciones"), hint: "Está en Comunicaciones." },
   { test: (path) => path.includes("/reportes"), hint: "Está en Reportes." },
-  { test: (path) => path.includes("/tienda"), hint: "Está en la Tienda web." },
+  { test: (path) => path.includes("/tienda/pedidos"), hint: "Está en Pedidos en línea." },
   { test: (path) => path.includes("/contenido"), hint: "Está en Contenido." },
   { test: (path) => path.includes("/configuracion"), hint: "Está en Configuración." },
 ];

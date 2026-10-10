@@ -57,7 +57,7 @@ function squareFulfillment(input: StoreFulfillment) {
 export async function createSquareOrder(input: {
   idempotencyKey: string;
   locationId: string;
-  lines: { name: string; quantity: number; amount: number; currency: string }[];
+  lines: { name: string; quantity: number; amount: number; currency: string; catalogObjectId?: string | null }[];
   fulfillment: StoreFulfillment;
 }): Promise<{ id: string; totalAmount: number; currency: string }> {
   const body = await squareFetch<CreateOrderResponse>("/v2/orders", {
@@ -66,14 +66,19 @@ export async function createSquareOrder(input: {
       idempotency_key: input.idempotencyKey,
       order: {
         location_id: input.locationId,
-        line_items: input.lines.map((line) => ({
-          name: line.name.slice(0, 255),
-          quantity: String(line.quantity),
-          base_price_money: {
-            amount: line.amount,
-            currency: line.currency,
-          },
-        })),
+        line_items: input.lines.map((line) =>
+          line.catalogObjectId
+            ? {
+                catalog_object_id: line.catalogObjectId,
+                quantity: String(line.quantity),
+                base_price_money: { amount: line.amount, currency: line.currency },
+              }
+            : {
+                name: line.name.slice(0, 255),
+                quantity: String(line.quantity),
+                base_price_money: { amount: line.amount, currency: line.currency },
+              }
+        ),
         fulfillments: [squareFulfillment(input.fulfillment)],
       },
     },

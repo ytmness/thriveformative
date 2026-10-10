@@ -150,9 +150,11 @@ function ProductDetailView({
 
         <div className="tienda-detail__cta-wrap">
           <AddToCart product={product} locale={locale} appearance="detail" />
-          <Link href={`/${locale}/tienda/checkout`} className="tienda-card__detail">
-            {t("goToCart")} →
-          </Link>
+          {(product.referral_url || "").trim() ? null : (
+            <Link href={`/${locale}/tienda/checkout`} className="tienda-card__detail">
+              {t("goToCart")} →
+            </Link>
+          )}
         </div>
       </div>
     </motion.div>

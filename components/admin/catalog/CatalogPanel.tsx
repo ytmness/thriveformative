@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
+import StorePanel from "@/components/admin/StorePanel";
 import { api } from "@/components/admin/clinic/client";
 import { countryCode, useClinicScope } from "@/components/admin/clinic/ClinicScope";
 import { CloseButton, EmptyState, SegmentedControl } from "@/components/admin/ui";
@@ -10,6 +12,7 @@ import { CreateOffer } from "@/components/admin/tutorial";
 const SECTIONS: [string, string][] = [
   ["servicios", "Servicios"],
   ["productos", "Productos"],
+  ["tienda", "Tienda web"],
   ["paquetes", "Paquetes"],
   ["membresias", "Membresías"],
   ["categorias", "Categorías"],
@@ -40,6 +43,7 @@ export default function CatalogPanel({ section }: { section: string }) {
   const [saved, setSaved] = useState(false);
   const [stock, setStock] = useState({ productId: "", locationId: "", quantity: "", reason: "Ajuste" });
   const scope = useClinicScope();
+  const siteLocale = String(useParams().locale || "es");
   const scopedLocations = locations.filter((row) => countryCode(row.country) === scope.country);
   const stockLocations = scope.locationId ? scopedLocations.filter((row) => row.id === scope.locationId) : scopedLocations;
   const visibleRows = section !== "servicios" || !scopedLocations.length
@@ -79,6 +83,7 @@ export default function CatalogPanel({ section }: { section: string }) {
   }
 
   useEffect(() => {
+    if (section === "tienda") return;
     setError(null);
     setSaved(false);
     setForm({});
@@ -181,7 +186,7 @@ export default function CatalogPanel({ section }: { section: string }) {
 
   async function archive(row: Row) {
     const label = String(row.name || "este registro");
-    if (!window.confirm(section === "categorias" || section === "proveedores" ? `¿Eliminar «${label}»?` : `¿Archivar «${label}»?`)) return;
+    if (!window.confirm(`¿Eliminar «${label}»? Deja de aparecer en el panel.`)) return;
     try {
       if (section === "productos") await api(`/api/admin/products/${row.id}`, { method: "DELETE" });
       else if (section === "paquetes") await api(`/api/admin/products/${row.id}?kind=package`, { method: "DELETE" });
@@ -207,6 +212,7 @@ export default function CatalogPanel({ section }: { section: string }) {
         </div>
       </nav>
       <div>
+        {section === "tienda" ? <StorePanel siteLocale={siteLocale} /> : <>
         <header className="admin-header">
           <p className="admin-header__eyebrow">Catálogo · {scope.label}</p>
           <h1 className="admin-header__title">{title}</h1>
@@ -243,7 +249,7 @@ export default function CatalogPanel({ section }: { section: string }) {
                 <summary aria-label="Acciones">⋯</summary>
                 <div className="admin-menu__list">
                   <button type="button" onClick={() => openEdit(row)}>Editar</button>
-                  <button type="button" onClick={() => archive(row)}>{section === "categorias" || section === "proveedores" ? "Eliminar" : "Archivar"}</button>
+                  <button type="button" onClick={() => archive(row)}>Eliminar</button>
                 </div>
               </details>
             </div>
@@ -286,6 +292,7 @@ export default function CatalogPanel({ section }: { section: string }) {
             </div>
           </>
         ) : null}
+        </>}
       </div>
       {openForm ? (
         <div className="admin-drawer" onClick={() => setOpenForm(false)}>
@@ -516,7 +523,7 @@ function cellsOf(section: string, row: Row, categories: Named[], locationIds: st
 
 function hintOf(section: string) {
   if (section === "servicios") return "Lo que cobras en consulta. Aparece en Cobrar y en la reserva en línea.";
-  if (section === "productos") return "Inventario de la clínica, con existencias por sede. No es la tienda del sitio web.";
+  if (section === "productos") return "Inventario de la clínica, con existencias por sede. La tienda pública está en Tienda web.";
   if (section === "paquetes") return "Un precio cerrado que vendes en Cobrar.";
   if (section === "membresias") return "Un plan que se cobra cada mes o cada año.";
   if (section === "categorias") return "Sirven para ordenar servicios y productos. Elige cuál estás editando.";
