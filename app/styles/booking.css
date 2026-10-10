@@ -334,3 +334,4 @@
 }
 .account-row p { margin: 0.2rem 0 0; }
 .account-row .booking-form__submit { height: 36px; }
+.account-row__actions { display: flex; gap: 0.6rem; align-items: center; }

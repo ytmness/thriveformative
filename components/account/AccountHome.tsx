@@ -4,28 +4,21 @@ import { useEffect, useState } from "react";
 import { useLocale } from "next-intl";
 import { api } from "@/components/admin/clinic/client";
 
-type Visit = {
-  id: string;
-  starts_at: string;
-  status: string;
-  service_name: string | null;
-  location_name: string | null;
-  first_name: string | null;
-  last_name: string | null;
-};
 type Order = {
   id: string;
+  kind: "cita" | "consulta" | "online";
+  title: string;
+  detail: string;
   status: string;
-  fulfillment: string;
-  currency: string;
-  total_amount: number;
-  created_at: string;
-  receipt_url: string | null;
+  at: string;
+  amount: number | null;
+  currency: string | null;
+  minor: boolean;
+  receiptUrl: string | null;
 };
 type Invoice = { id: string; invoice_number: string; status: string; total: number };
 type Home = {
   patient: { name: string; email: string };
-  appointments: Visit[];
   orders: Order[];
   invoices: Invoice[];
 };
@@ -38,6 +31,14 @@ const STATUS: Record<string, string> = {
   cancelled: "Cancelada",
   paid: "Pagado",
   ready: "Listo",
+  open: "Abierta",
+  partial: "Pago parcial",
+  void: "Anulada",
+};
+const KIND: Record<Order["kind"], string> = {
+  cita: "Cita",
+  consulta: "Consulta",
+  online: "Pedido en línea",
 };
 
 export default function AccountHome() {
@@ -55,14 +56,20 @@ export default function AccountHome() {
 
   if (!home) return <p className="booking-slots__empty">{error || "Cargando tu cuenta…"}</p>;
 
-  async function cancel(id: string) {
-    if (!window.confirm("¿Cancelar esta cita?")) return;
+  function money(row: Order) {
+    if (row.amount == null) return "";
+    const value = row.minor ? row.amount / 100 : row.amount;
+    return value.toLocaleString(locale, { style: "currency", currency: row.currency || "MXN" });
+  }
+
+  async function cancel(row: Order) {
+    if (row.kind !== "cita" || !window.confirm("¿Cancelar esta cita?")) return;
     setError(null);
     try {
-      await api("/api/portal/appointments", { method: "POST", body: JSON.stringify({ appointmentId: id, action: "cancel" }) });
+      await api("/api/portal/appointments", { method: "POST", body: JSON.stringify({ appointmentId: row.id.slice("cita:".length), action: "cancel" }) });
       setHome({
         ...home!,
-        appointments: home!.appointments.map((row) => (row.id === id ? { ...row, status: "cancelled" } : row)),
+        orders: home!.orders.map((item) => (item.id === row.id ? { ...item, status: "cancelled" } : item)),
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo cancelar.");
@@ -76,45 +83,28 @@ export default function AccountHome() {
       <p className="visit-sheet__when">{home.patient.email}</p>
       {error ? <p className="booking-error" role="alert">{error}</p> : null}
 
-      <section id="citas">
-        <h2>Citas</h2>
-        {home.appointments.length ? home.appointments.map((row) => (
-          <div key={row.id} className="account-row">
-            <div>
-              <strong>{row.service_name || "Cita"}</strong>
-              <p>
-                {new Date(row.starts_at).toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" })}
-                {" · "}
-                {[row.first_name, row.last_name].filter(Boolean).join(" ")}
-                {row.location_name ? ` · ${row.location_name}` : ""}
-                {" · "}
-                {STATUS[row.status] || row.status}
-              </p>
-            </div>
-            {row.status === "cancelled" || row.status === "completed" ? null : (
-              <button type="button" className="booking-form__submit" onClick={() => void cancel(row.id)}>Cancelar</button>
-            )}
-          </div>
-        )) : <p className="booking-slots__empty">Todavía no hay citas en esta cuenta.</p>}
-      </section>
-
-      <section id="pedidos">
-        <h2>Pedidos</h2>
+      <section id="ordenes">
+        <h2>Órdenes</h2>
         {home.orders.length ? home.orders.map((row) => (
           <div key={row.id} className="account-row">
             <div>
-              <strong>{row.fulfillment === "shipping" ? "Envío" : "Recoger en sede"}</strong>
+              <strong>{KIND[row.kind]} · {row.title}</strong>
               <p>
-                {new Date(row.created_at).toLocaleDateString(locale)}
+                {new Date(row.at).toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" })}
+                {row.detail ? ` · ${row.detail}` : ""}
                 {" · "}
                 {STATUS[row.status] || row.status}
-                {" · "}
-                {(row.total_amount / 100).toLocaleString(locale, { style: "currency", currency: row.currency || "USD" })}
+                {row.amount != null ? ` · ${money(row)}` : ""}
               </p>
             </div>
-            {row.receipt_url ? <a href={row.receipt_url}>Recibo</a> : null}
+            <div className="account-row__actions">
+              {row.receiptUrl ? <a href={row.receiptUrl}>Recibo</a> : null}
+              {row.kind === "cita" && row.status !== "cancelled" && row.status !== "completed" ? (
+                <button type="button" className="booking-form__submit" onClick={() => void cancel(row)}>Cancelar</button>
+              ) : null}
+            </div>
           </div>
-        )) : <p className="booking-slots__empty">No hay pedidos de la tienda con este correo.</p>}
+        )) : <p className="booking-slots__empty">No hay citas, consultas ni pedidos en línea en esta cuenta.</p>}
       </section>
 
       <section id="facturas">
