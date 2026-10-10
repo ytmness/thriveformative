@@ -196,6 +196,25 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
     }
   }
 
+  async function setStatus(status: "confirmed" | "cancelled") {
+    if (!draft?.id) return;
+    setError(null);
+    try {
+      await api(`/api/admin/appointments/${draft.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          status,
+          cancelReason: status === "cancelled" ? "Cancelada desde el calendario" : null,
+        }),
+      });
+      setDraft(null);
+      setNotice(status === "confirmed" ? "Cita confirmada." : "Cita cancelada.");
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo actualizar la cita.");
+    }
+  }
+
   async function addBlock(e: React.FormEvent) {
     e.preventDefault();
     if (!block) return;
@@ -345,6 +364,14 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
             </div>
             <div className="admin-toolbar">
               <button className="admin-btn admin-btn--primary" type="submit">Guardar</button>
+              {draft.id && draft.status !== "confirmed" && draft.status !== "cancelled" ? (
+                <button className="admin-btn admin-btn--primary" type="button" onClick={() => void setStatus("confirmed")}>Confirmar</button>
+              ) : null}
+              {draft.id && draft.status !== "cancelled" ? (
+                <button className="admin-btn admin-btn--danger" type="button" onClick={() => {
+                  if (!window.confirm("¿Cancelar esta cita? El paciente recibe el aviso.")) void setStatus("cancelled");
+                }}>Cancelar</button>
+              ) : null}
               {draft.id ? <button className="admin-btn" type="button" onClick={async () => {
                 if (!window.confirm("¿Archivar esta cita? Quedará cancelada y saldrá del calendario. El registro se conserva.")) return;
                 try {

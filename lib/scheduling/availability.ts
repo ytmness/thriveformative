@@ -16,6 +16,7 @@ export async function availabilityForDate(input: {
   locationId?: string | null;
   staffUserId?: string | null;
   country?: string | null;
+  ignoreAppointmentId?: string | null;
 }) {
   const service = await query<{
     id: string;
@@ -91,8 +92,9 @@ export async function availabilityForDate(input: {
   const dayEnd = new Date(dayStart.getTime() + 36 * 60 * 60 * 1000);
   const appts = await query<{ staff_user_id: string; room_id: string | null; starts_at: string; ends_at: string }>(
     `SELECT staff_user_id, room_id, starts_at, ends_at FROM appointments
-     WHERE status NOT IN ('cancelled', 'no_show') AND starts_at < $2 AND ends_at > $1`,
-    [dayStart.toISOString(), dayEnd.toISOString()]
+     WHERE status NOT IN ('cancelled', 'no_show') AND starts_at < $2 AND ends_at > $1
+       AND ($3::uuid IS NULL OR id <> $3)`,
+    [dayStart.toISOString(), dayEnd.toISOString(), input.ignoreAppointmentId ?? null]
   );
   const blocks = await query<{
     staff_user_id: string | null;
@@ -130,6 +132,7 @@ export async function availabilityForDate(input: {
     color: string;
     locationId: string;
     locationName: string;
+    timezone: string;
     slots: Slot[];
   }[] = [];
 
@@ -185,9 +188,10 @@ export async function availabilityForDate(input: {
           staffUserId: staff.id,
           staffName: `${staff.first_name} ${staff.last_name}`,
           color: staff.calendar_color,
-          locationId: location.id,
-          locationName: location.name,
-          slots,
+    locationId: location.id,
+    locationName: location.name,
+    timezone: location.timezone,
+    slots,
         });
       }
     }

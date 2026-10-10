@@ -3,9 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { api } from "@/components/admin/clinic/client";
+import { useUser } from "@/lib/useUser";
 
 type Slot = { start: string; end: string; roomId: string | null };
-type Group = { staffUserId: string; staffName: string; locationId: string; locationName: string; slots: Slot[] };
+type Group = { staffUserId: string; staffName: string; locationId: string; locationName: string; timezone?: string; slots: Slot[] };
 type Catalog = {
   services: { id: string; name: string; duration_minutes: number }[];
   locations: { id: string; name: string }[];
@@ -24,6 +25,7 @@ function dateKey(year: number, month: number, day: number) {
 export default function PublicCalendar() {
   const t = useTranslations("booking");
   const locale = useLocale();
+  const { user } = useUser();
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [serviceId, setServiceId] = useState("");
   const [locationId, setLocationId] = useState("");
@@ -38,6 +40,17 @@ export default function PublicCalendar() {
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phone: "", acceptTerms: false });
   const [done, setDone] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user?.email) return;
+    const parts = (user.name || "").trim().split(/\s+/).filter(Boolean);
+    setForm((current) => ({
+      ...current,
+      email: user.email,
+      firstName: current.firstName || parts[0] || "",
+      lastName: current.lastName || parts.slice(1).join(" "),
+    }));
+  }, [user]);
 
   useEffect(() => {
     api<Catalog>("/api/public/booking/catalog")
@@ -184,7 +197,7 @@ export default function PublicCalendar() {
                   className={`booking-slot${slot?.start === item.start && slot.staffUserId === group.staffUserId ? " booking-slot--selected" : ""}`}
                   onClick={() => setSlot({ ...item, staffUserId: group.staffUserId, locationId: group.locationId })}
                 >
-                  <span className="booking-slot__time">{new Date(item.start).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })}</span>
+                  <span className="booking-slot__time">{new Date(item.start).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit", timeZone: group.timezone || undefined })}</span>
                   <span className="booking-slot__sub">{group.staffName}</span>
                 </button>
               )))}
@@ -196,7 +209,20 @@ export default function PublicCalendar() {
         <form className="booking-form" onSubmit={submit}>
           <label><span>{t("firstName")} *</span><input required value={form.firstName} onChange={(event) => setForm({ ...form, firstName: event.target.value })} /></label>
           <label><span>{t("lastName")} *</span><input required value={form.lastName} onChange={(event) => setForm({ ...form, lastName: event.target.value })} /></label>
-          <label><span>{t("email")} *</span><input required type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} /></label>
+          <label>
+            <span>{t("email")} *</span>
+            <input
+              required
+              type="email"
+              value={user?.email || form.email}
+              readOnly={Boolean(user?.email)}
+              aria-readonly={Boolean(user?.email)}
+              onChange={(event) => {
+                if (user?.email) return;
+                setForm({ ...form, email: event.target.value });
+              }}
+            />
+          </label>
           <label><span>{t("phone")} *</span><input required value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} /></label>
           <label className="booking-form__terms">
             <input type="checkbox" checked={form.acceptTerms} onChange={(event) => setForm({ ...form, acceptTerms: event.target.checked })} required={catalog?.settings?.require_terms !== false} />

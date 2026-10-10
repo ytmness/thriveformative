@@ -300,5 +300,37 @@
 .booking-wizard {
   max-width: 72rem;
   margin: 0 auto;
-  padding: 2.5rem 1.25rem 4rem;
+  padding: 6.5rem 1.25rem 4rem;
 }
+.visit-sheet { max-width: 40rem; }
+.visit-sheet__eyebrow {
+  margin: 0 0 0.4rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(122 62 40);
+}
+.visit-sheet__when { margin: 0.6rem 0 1.2rem; font-size: 1.05rem; }
+.visit-sheet__facts {
+  display: grid;
+  gap: 0.8rem;
+  margin: 0 0 1.4rem;
+}
+.visit-sheet__facts div { display: grid; gap: 0.15rem; }
+.visit-sheet__facts dt { font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.7; }
+.visit-sheet__facts dd { margin: 0; font-size: 1.05rem; }
+.visit-sheet__cancel { margin-bottom: 1.5rem; background: transparent; color: rgb(122 62 40); border: 1px solid rgb(122 62 40); }
+.visit-sheet__move h2 { margin: 0 0 0.35rem; font-size: 1.25rem; }
+.visit-sheet__move > p { margin: 0 0 1rem; }
+.account-home section { margin-top: 2rem; }
+.account-home h2 { margin: 0 0 0.8rem; font-size: 1.25rem; }
+.account-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.9rem 0;
+  border-top: 1px solid rgb(var(--border) / 0.35);
+}
+.account-row p { margin: 0.2rem 0 0; }
+.account-row .booking-form__submit { height: 36px; }

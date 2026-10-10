@@ -1,3 +1,4 @@
+import { currentPatient } from "@/lib/auth/patientAccess";
 import { contactHash } from "@/lib/crypto/phi";
 import { createPortalAccount } from "@/lib/auth/portal";
 import { query } from "@/lib/db";
@@ -5,6 +6,8 @@ import { locationCountrySql } from "@/lib/domain/scope";
 import { DomainError } from "@/lib/http";
 import { createAppointment, findByManageToken, updateAppointment } from "@/lib/domain/appointments";
 import { createPatient } from "@/lib/domain/patients";
+import { availabilityForDate } from "@/lib/scheduling/availability";
+import { formatDate } from "@/lib/scheduling/time";
 import type { SiteMarket } from "@/lib/site/market";
 
 export async function bookPublic(body: Record<string, unknown>, meta?: { ip?: string | null; userAgent?: string | null }, market: SiteMarket = "MX") {
@@ -12,9 +15,10 @@ export async function bookPublic(body: Record<string, unknown>, meta?: { ip?: st
   if (settings.rows[0]?.require_terms && body.acceptTerms !== true) {
     throw new DomainError("Debes aceptar los términos y el aviso de privacidad.");
   }
+  const session = await currentPatient().catch(() => null);
   const firstName = String(body.firstName || "").trim();
   const lastName = String(body.lastName || "").trim();
-  const email = String(body.email || "").trim();
+  const email = (session?.email || String(body.email || "")).trim();
   const mobile = String(body.phone || "").trim();
   if (!firstName || !lastName || !email || !mobile) throw new DomainError("Nombre, apellido, email y teléfono son obligatorios.");
   const existing = await query<{ id: string }>(
@@ -93,6 +97,7 @@ export async function managePublic(token: string, body: Record<string, unknown>,
   }
   if (body.action === "reschedule") {
     if (settings.rows[0] && settings.rows[0].allow_reschedule === false) throw new DomainError("La reprogramación en línea está desactivada.");
+    await assertClinicSlot(current, String(body.startsAt || ""));
     return updateAppointment(
       String(current.id),
       { startsAt: String(body.startsAt || ""), endsAt: body.endsAt ? String(body.endsAt) : null, status: "booked" },
@@ -101,6 +106,27 @@ export async function managePublic(token: string, body: Record<string, unknown>,
     );
   }
   throw new DomainError("Acción no válida.");
+}
+
+async function assertClinicSlot(
+  current: { id?: unknown; serviceId?: unknown; locationId?: unknown; staffUserId?: unknown; timezone?: unknown },
+  startsAt: string
+) {
+  const when = new Date(startsAt);
+  if (Number.isNaN(when.getTime())) throw new DomainError("Elige un horario de la agenda.");
+  const timezone = String(current.timezone || "America/Mexico_City");
+  const groups = await availabilityForDate({
+    serviceId: String(current.serviceId || ""),
+    date: formatDate(when, timezone),
+    locationId: String(current.locationId || ""),
+    staffUserId: String(current.staffUserId || ""),
+    ignoreAppointmentId: String(current.id || ""),
+  });
+  const target = when.getTime();
+  const open = groups.some((group) =>
+    group.slots.some((slot) => Math.abs(new Date(slot.start).getTime() - target) < 60_000)
+  );
+  if (!open) throw new DomainError("Ese horario no está en la agenda de la clínica. Elige uno de los disponibles.");
 }
 
 export async function joinWaitlist(body: Record<string, unknown>) {

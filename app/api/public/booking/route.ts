@@ -48,6 +48,7 @@ export async function GET(req: Request) {
       serviceName: appointment.serviceName,
       staffName: appointment.staffName,
       locationName: appointment.locationName,
+      timezone: appointment.timezone,
       locationId: appointment.locationId,
       serviceId: appointment.serviceId,
       staffUserId: appointment.staffUserId,

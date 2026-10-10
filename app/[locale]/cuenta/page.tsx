@@ -1,12 +1,12 @@
 "use client";
 
-import BookingWizard from "@/components/booking/BookingWizard";
+import AccountHome from "@/components/account/AccountHome";
 import SiteFrame from "@/components/site/SiteFrame";
 
 export default function Page() {
   return (
     <SiteFrame>
-      <BookingWizard />
+      <AccountHome />
     </SiteFrame>
   );
 }

@@ -222,6 +222,14 @@ export default function Header({ preview }: HeaderProps = {}) {
                   <span className="type-ui-muted hidden xl:inline truncate max-w-[100px] text-xs">
                     {user.email}
                   </span>
+                  <motion.a
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    href={`/${locale}/cuenta`}
+                    className="type-ui text-xs font-medium hover:opacity-80 whitespace-nowrap"
+                  >
+                    Mi cuenta
+                  </motion.a>
                   {role === "admin" && (
                     <motion.a
                       whileHover={{ scale: 1.03 }}
@@ -358,6 +366,13 @@ export default function Header({ preview }: HeaderProps = {}) {
                 {user ? (
                   <>
                     <span className="type-ui-muted truncate text-sm">{user.email}</span>
+                    <a
+                      href={`/${locale}/cuenta`}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="type-ui font-medium text-sm"
+                    >
+                      Mi cuenta
+                    </a>
                     {role === "admin" && (
                       <a
                         href={`/${locale}/admin`}
