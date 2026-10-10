@@ -3,7 +3,7 @@ Dashboard (/admin): citas, ingresos y leads de hoy. El botón Crear abre pacient
 
 Calendario (/admin/calendario): cambia día, semana o mes, filtra al profesional y abre + Cita. Clic en un hueco libre o arrastra una cita para moverla. Hay que elegir paciente, servicio, profesional y sede.
 
-Pacientes (/admin/pacientes): busca por nombre, código, email o teléfono. + Paciente pide nombre y apellido (el asterisco es obligatorio) en Datos, Contacto, Dirección y Consentimientos. Abrir una fila entra a la ficha (/admin/pacientes/{id}) con resumen, citas, expediente, finanzas, comunicaciones y membresías. Archivar oculta al paciente de la lista; el expediente se queda.
+Pacientes (/admin/pacientes): busca por nombre, código, email o teléfono. El menú lateral filtra por sexo (Mujeres, Hombres, Otro y Sin dato) y por cómo nos descubrieron (Instagram, Facebook u otra fuente). Quien no tiene sexo guardado aparece en Sin dato, no en Otro. + Paciente pide nombre y apellido (el asterisco es obligatorio) en Datos, Contacto, Dirección y Consentimientos. En Contacto, Cómo nos descubrieron guarda el origen. Abrir una fila entra a la ficha (/admin/pacientes/{id}) con resumen, citas, expediente, finanzas, comunicaciones y membresías. Archivar oculta al paciente de la lista; el expediente se queda.
 
 Leads (/admin/leads): nombre, apellido y etapa son obligatorios. Arrastrar la tarjeta cambia de columna. Abrirla permite convertirla en paciente o archivarla.
 
@@ -25,7 +25,7 @@ Comunicaciones (/admin/comunicaciones): cada tarjeta es una plantilla. Editar e 
 
 Reportes (/admin/reportes/citas, /admin/reportes/ingresos, /admin/reportes/servicios, /admin/reportes/profesionales, /admin/reportes/marketing, /admin/reportes/no-shows): cada ruta es un reporte de los últimos 30 días, filtrado por el país y la sede elegidos.
 
-Configuración: sedes (/admin/configuracion/sedes), salas (/admin/configuracion/salas), impuestos (/admin/configuracion/impuestos), pagos (/admin/configuracion/pagos), facturación (/admin/configuracion/facturacion), campos (/admin/configuracion/campos) y políticas de reserva (/admin/configuracion/politicas). Una sede hace falta antes de salas y citas.
+Clínica, en el menú: horarios (/admin/configuracion/horarios) y equipo y roles (/admin/configuracion/equipo). Configuración: sedes (/admin/configuracion/sedes), salas (/admin/configuracion/salas), horarios, equipo, impuestos (/admin/configuracion/impuestos), pagos (/admin/configuracion/pagos), facturación (/admin/configuracion/facturacion), campos (/admin/configuracion/campos) y políticas de reserva (/admin/configuracion/politicas). Una sede hace falta antes de salas, horarios y citas. En equipo, nombre, correo y contraseña crean el acceso; Atiende citas lo muestra en el calendario. Sin horario, la reserva pública no ofrece esas horas.
 `.trim();
 
 const SCREENS: { test: (path: string) => boolean; hint: string }[] = [

@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Calendar,
   ClipboardList,
+  Clock,
   CreditCard,
   FileText,
   LayoutDashboard,
@@ -14,6 +15,7 @@ import {
   ShoppingBag,
   Receipt,
   Store,
+  UserCog,
   Users,
   Wallet,
   BarChart3,
@@ -35,6 +37,7 @@ type NavItem = {
   icon: typeof LayoutDashboard;
   exact?: boolean;
   match?: string;
+  exclude?: string[];
 };
 
 const NAV: NavItem[] = [
@@ -52,7 +55,9 @@ const NAV: NavItem[] = [
   { group: "Clínica", href: "/admin/formularios", label: "Formularios", perms: ["forms.read"], icon: ClipboardList },
   { group: "Clínica", href: "/admin/comunicaciones", label: "Comunicaciones", perms: ["communications.read"], icon: MessageSquare },
   { group: "Clínica", href: "/admin/reportes", label: "Reportes", perms: ["reports.read"], icon: BarChart3, match: "/admin/reportes" },
-  { group: "Clínica", href: "/admin/configuracion/sedes", label: "Configuración", perms: ["settings.read"], icon: Settings, match: "/admin/configuracion" },
+  { group: "Clínica", href: "/admin/configuracion/horarios", label: "Horarios", perms: ["settings.read"], icon: Clock, match: "/admin/configuracion/horarios" },
+  { group: "Clínica", href: "/admin/configuracion/equipo", label: "Equipo y roles", perms: ["settings.read"], icon: UserCog, match: "/admin/configuracion/equipo" },
+  { group: "Clínica", href: "/admin/configuracion/sedes", label: "Configuración", perms: ["settings.read"], icon: Settings, match: "/admin/configuracion", exclude: ["/admin/configuracion/horarios", "/admin/configuracion/equipo"] },
 ];
 
 export default function AdminShell({
@@ -97,7 +102,8 @@ export default function AdminShell({
               <div key={group.label} className="admin-nav__block">
                 <p className="admin-nav__group">{group.label}</p>
                 {group.items.map((item) => {
-                  const active = item.exact ? pathname === item.href : pathname.startsWith(item.match || item.href);
+                  const matched = item.exact ? pathname === item.href : pathname.startsWith(item.match || item.href);
+                  const active = matched && !(item.exclude || []).some((prefix) => pathname.startsWith(prefix));
                   const Icon = item.icon;
                   return (
                     <Link key={item.href} href={item.href} className={`admin-nav__item${active ? " admin-nav__item--active" : ""}`}>
