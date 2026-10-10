@@ -1,6 +1,9 @@
+import fs from "fs";
+import path from "path";
 import nodemailer from "nodemailer";
 import {
   buildThriveEmailHtml,
+  EMAIL_IMAGE_CIDS,
   emailParagraph,
   emailSignOff,
   escapeHtml,
@@ -27,9 +30,41 @@ function isValidEmail(s: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s || "");
 }
 
+function emailAssetDir() {
+  const candidates = [
+    path.join(process.cwd(), "public", "emails"),
+    path.join(process.cwd(), "..", "..", "public", "emails"),
+  ];
+  return candidates.find((dir) => fs.existsSync(path.join(dir, "header.png"))) || candidates[0];
+}
+
+function emailAttachments() {
+  const dir = emailAssetDir();
+  const files: Record<string, string> = {
+    [EMAIL_IMAGE_CIDS.header]: "header.png",
+    [EMAIL_IMAGE_CIDS.watermark]: "watermark.png",
+    [EMAIL_IMAGE_CIDS.footerBar]: "footer-bar.png",
+    [EMAIL_IMAGE_CIDS.footerPhone]: "footer-phone.png",
+  };
+  return Object.entries(files)
+    .filter(([, file]) => fs.existsSync(path.join(dir, file)))
+    .map(([cid, file]) => ({
+      filename: file,
+      path: path.join(dir, file),
+      cid,
+    }));
+}
+
 async function deliverMail(to: string, subject: string, text: string, html: string) {
   const transport = getTransport();
-  const info = await transport.sendMail({ from: FROM, to, subject, text, html });
+  const info = await transport.sendMail({
+    from: FROM,
+    to,
+    subject,
+    text,
+    html,
+    attachments: emailAttachments(),
+  });
   return info.messageId;
 }
 
@@ -39,7 +74,13 @@ export async function sendClinicEmail(to: string, subject: string, text: string)
   const paragraphs = text
     .split(/\n{2,}/)
     .filter(Boolean)
-    .map((block) => emailParagraph(escapeHtml(block).replace(/\n/g, "<br>")))
+    .map((block) => {
+      const safe = escapeHtml(block).replace(/\n/g, "<br>");
+      if (/^\d{6,8}$/.test(block.trim())) {
+        return `<p style="margin:4px 0 22px;font-size:32px;line-height:1.2;letter-spacing:0.28em;font-weight:700;color:#8a735b;font-family:Arial,Helvetica,sans-serif;">${safe}</p>`;
+      }
+      return emailParagraph(safe);
+    })
     .join("");
   try {
     const id = await deliverMail(to, subject, text, buildThriveEmailHtml(`${paragraphs}${emailSignOff()}`));

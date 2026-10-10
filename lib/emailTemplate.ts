@@ -24,8 +24,15 @@ export function getEmailAssetBaseUrl(): string {
   return url.replace(/\/$/, "");
 }
 
-function assetUrl(path: string): string {
-  return `${getEmailAssetBaseUrl()}${path}`;
+export const EMAIL_IMAGE_CIDS = {
+  header: "thrive-header",
+  watermark: "thrive-watermark",
+  footerBar: "thrive-footer-bar",
+  footerPhone: "thrive-footer-phone",
+} as const;
+
+function cid(id: string): string {
+  return `cid:${id}`;
 }
 
 function scaledHeight(originalWidth: number, originalHeight: number, targetWidth: number): number {
@@ -47,10 +54,10 @@ export function buildThriveEmailHtml(bodyHtml: string): string {
   const footerPhoneHeight = scaledHeight(ASSETS.footerPhone.width, ASSETS.footerPhone.height, footerPhoneWidth);
   const watermarkWidth = 380;
 
-  const headerSrc = assetUrl(ASSETS.header.path);
-  const watermarkSrc = assetUrl(ASSETS.watermark.path);
-  const footerBarSrc = assetUrl(ASSETS.footerBar.path);
-  const footerPhoneSrc = assetUrl(ASSETS.footerPhone.path);
+  const headerSrc = cid(EMAIL_IMAGE_CIDS.header);
+  const watermarkSrc = cid(EMAIL_IMAGE_CIDS.watermark);
+  const footerBarSrc = cid(EMAIL_IMAGE_CIDS.footerBar);
+  const footerPhoneSrc = cid(EMAIL_IMAGE_CIDS.footerPhone);
   const siteUrl = getEmailAssetBaseUrl();
 
   return `<!DOCTYPE html>
@@ -85,19 +92,15 @@ export function buildThriveEmailHtml(bodyHtml: string): string {
           </tr>
 
           <tr>
-            <td bgcolor="#cdbba8" background="${footerBarSrc}" style="padding:0;background-color:#cdbba8;background-image:url('${footerBarSrc}');background-repeat:no-repeat;background-position:right bottom;background-size:${EMAIL_WIDTH}px auto;border-radius:0 0 20px 20px;">
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-                <tr>
-                  <td valign="middle" style="padding:${Math.max(14, Math.round(footerBarHeight * 0.28))}px 20px ${Math.max(10, Math.round(footerBarHeight * 0.18))}px 22px;min-height:${footerBarHeight}px;">
-                    <a href="tel:+528120036699" style="text-decoration:none;">
-                      <img src="${footerPhoneSrc}" alt="81 2003 6699" width="${footerPhoneWidth}" height="${footerPhoneHeight}" style="display:block;border:0;height:auto;max-width:100%;">
-                    </a>
-                  </td>
-                  <td width="42%" valign="middle" align="right" style="padding:0;line-height:0;font-size:0;min-height:${footerBarHeight}px;">
-                    <a href="${siteUrl}" style="text-decoration:none;display:block;width:100%;min-height:${footerBarHeight}px;line-height:${footerBarHeight}px;">&nbsp;</a>
-                  </td>
-                </tr>
-              </table>
+            <td bgcolor="#cdbba8" style="padding:0;line-height:0;font-size:0;background-color:#cdbba8;">
+              <a href="${siteUrl}" style="text-decoration:none;">
+                <img src="${footerBarSrc}" alt="" width="${EMAIL_WIDTH}" height="${footerBarHeight}" style="display:block;width:100%;max-width:${EMAIL_WIDTH}px;height:auto;border:0;">
+              </a>
+              <div style="margin-top:-${footerBarHeight}px;padding:${Math.max(12, Math.round((footerBarHeight - footerPhoneHeight) / 2))}px 0 0 22px;">
+                <a href="tel:+528120036699" style="text-decoration:none;">
+                  <img src="${footerPhoneSrc}" alt="81 2003 6699" width="${footerPhoneWidth}" height="${footerPhoneHeight}" style="display:block;border:0;height:auto;max-width:70%;">
+                </a>
+              </div>
             </td>
           </tr>
 
