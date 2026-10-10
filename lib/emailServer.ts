@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import nodemailer from "nodemailer";
+import sharp from "sharp";
 import {
   buildThriveEmailHtml,
   EMAIL_IMAGE_CIDS,
@@ -38,23 +39,42 @@ function emailAssetDir() {
   return candidates.find((dir) => fs.existsSync(path.join(dir, "header.png"))) || candidates[0];
 }
 
-function emailAttachments() {
+async function composedFooter(dir: string) {
+  const barWidth = 600;
+  const barHeight = Math.round((191 / 1991) * barWidth);
+  const phoneWidth = 210;
+  const phoneHeight = Math.round((68 / 525) * phoneWidth);
+  const bar = await sharp(path.join(dir, "footer-bar.png")).resize(barWidth, barHeight).png().toBuffer();
+  const phone = await sharp(path.join(dir, "footer-phone.png")).resize(phoneWidth, phoneHeight).png().toBuffer();
+  return sharp(bar)
+    .composite([{ input: phone, left: 22, top: Math.max(0, Math.round((barHeight - phoneHeight) / 2)) }])
+    .png()
+    .toBuffer();
+}
+
+async function emailAttachments() {
   const dir = emailAssetDir();
-  const files: Record<string, string> = {
-    [EMAIL_IMAGE_CIDS.header]: "header.png",
-    [EMAIL_IMAGE_CIDS.watermark]: "watermark.png",
-    [EMAIL_IMAGE_CIDS.footerBar]: "footer-bar.png",
-    [EMAIL_IMAGE_CIDS.footerPhone]: "footer-phone.png",
-  };
-  return Object.entries(files)
-    .filter(([, file]) => fs.existsSync(path.join(dir, file)))
-    .map(([cid, file]) => ({
-      filename: file,
-      path: path.join(dir, file),
-      cid,
+  const headerPath = path.join(dir, "header.png");
+  const attachments = [];
+  if (fs.existsSync(headerPath)) {
+    attachments.push({
+      filename: "header.png",
+      path: headerPath,
+      cid: EMAIL_IMAGE_CIDS.header,
       contentType: "image/png",
       contentDisposition: "inline" as const,
-    }));
+    });
+  }
+  if (fs.existsSync(path.join(dir, "footer-bar.png")) && fs.existsSync(path.join(dir, "footer-phone.png"))) {
+    attachments.push({
+      filename: "footer.png",
+      content: await composedFooter(dir),
+      cid: EMAIL_IMAGE_CIDS.footerBar,
+      contentType: "image/png",
+      contentDisposition: "inline" as const,
+    });
+  }
+  return attachments;
 }
 
 async function deliverMail(to: string, subject: string, text: string, html: string) {
@@ -65,7 +85,7 @@ async function deliverMail(to: string, subject: string, text: string, html: stri
     subject,
     text,
     html,
-    attachments: emailAttachments(),
+    attachments: await emailAttachments(),
   });
   return info.messageId;
 }
