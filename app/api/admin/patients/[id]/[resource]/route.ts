@@ -1,9 +1,9 @@
 import { isSession, requirePermission } from "@/lib/auth/guard";
 import { listPatientForms } from "@/lib/domain/forms";
-import { addSensitive, createNote, listNotes, listSensitive, lockNote } from "@/lib/domain/patients";
+import { addSensitive, createNote, listNotes, listSensitive, lockNote, removeSensitive } from "@/lib/domain/patients";
 import { listAppointments } from "@/lib/domain/appointments";
 import { query } from "@/lib/db";
-import { savePrivateFile } from "@/lib/files/privateStore";
+import { deletePrivateFile, privateFileExists, savePrivateFile } from "@/lib/files/privateStore";
 import { readJson, requestMeta, toErrorResponse, DomainError } from "@/lib/http";
 import { writeAudit } from "@/lib/audit";
 
@@ -25,12 +25,16 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string; res
       return Response.json({ rows: await listAppointments(from, to, { patientId: id }) });
     }
     if (resource === "documents") {
-      const rows = await query(
-        `SELECT id, title, mime_type, size_bytes, is_photo, taken_at, created_at FROM patient_documents WHERE patient_id = $1 ORDER BY created_at DESC`,
+      const rows = await query<{ id: string; title: string; mime_type: string | null; size_bytes: number | null; is_photo: boolean; taken_at: string | null; created_at: string; storage_path: string }>(
+        `SELECT id, title, mime_type, size_bytes, is_photo, taken_at, created_at, storage_path FROM patient_documents WHERE patient_id = $1 ORDER BY created_at DESC`,
         [id]
       );
       await writeAudit({ actorType: "staff", actorId: session.staff.id, action: "documents.view", entityType: "patient", entityId: id, patientId: id, ip: meta.ip, userAgent: meta.userAgent });
-      return Response.json({ rows: rows.rows });
+      const listed = await Promise.all(rows.rows.map(async (row) => {
+        const { storage_path: storagePath, ...rest } = row;
+        return { ...rest, missing: !(await privateFileExists(storagePath)) };
+      }));
+      return Response.json({ rows: listed });
     }
     if (resource === "messages") {
       const rows = await query(
@@ -92,6 +96,34 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string; re
       );
       await writeAudit({ actorType: "staff", actorId: session.staff.id, action: "documents.upload", entityType: "document", entityId: inserted.rows[0].id, patientId: id });
       return Response.json({ id: inserted.rows[0].id });
+    }
+    throw new DomainError("Recurso no encontrado.", 404);
+  } catch (error) {
+    return toErrorResponse(error);
+  }
+}
+
+export async function DELETE(req: Request, ctx: { params: Promise<{ id: string; resource: string }> }) {
+  const { id, resource } = await ctx.params;
+  const session = await requirePermission(KINDS.has(resource) ? "clinical.write" : "patients.write");
+  if (!isSession(session)) return session;
+  try {
+    const body = await readJson(req);
+    const rowId = String(body.id || "");
+    if (KINDS.has(resource)) {
+      await removeSensitive(id, resource as "allergies", rowId, session);
+      return Response.json({ ok: true });
+    }
+    if (resource === "documents") {
+      const row = await query<{ storage_path: string }>(
+        `SELECT storage_path FROM patient_documents WHERE id = $1 AND patient_id = $2`,
+        [rowId, id]
+      );
+      if (!row.rows[0]) throw new DomainError("Documento no encontrado.", 404);
+      await query(`DELETE FROM patient_documents WHERE id = $1 AND patient_id = $2`, [rowId, id]);
+      await deletePrivateFile(row.rows[0].storage_path);
+      await writeAudit({ actorType: "staff", actorId: session.staff.id, action: "documents.delete", entityType: "document", entityId: rowId, patientId: id });
+      return Response.json({ ok: true });
     }
     throw new DomainError("Recurso no encontrado.", 404);
   } catch (error) {

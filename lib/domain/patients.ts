@@ -415,6 +415,23 @@ export async function addSensitive(
   return { id: inserted.rows[0].id };
 }
 
+export async function removeSensitive(patientId: string, kind: keyof typeof LISTS, rowId: string, actor: StaffSession) {
+  if (!rowId) throw new DomainError("Falta el registro.");
+  const deleted = await query<{ id: string }>(
+    `DELETE FROM ${LISTS[kind]} WHERE id = $1 AND patient_id = $2 RETURNING id`,
+    [rowId, patientId]
+  );
+  if (!deleted.rows[0]) throw new DomainError("No se encontró el registro.", 404);
+  await writeAudit({
+    actorType: "staff",
+    actorId: actor.staff.id,
+    action: `patient.${kind}.delete`,
+    entityType: kind,
+    entityId: rowId,
+    patientId,
+  });
+}
+
 export async function listNotes(patientId: string, actor: StaffSession, meta?: { ip?: string | null; userAgent?: string | null }) {
   const rows = await query(
     `SELECT n.*, u.first_name, u.last_name

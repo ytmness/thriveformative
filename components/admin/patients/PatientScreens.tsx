@@ -555,14 +555,42 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
             </>
           ) : null}
           {folder === "alergias" ? (
-            <form onSubmit={async (e) => { e.preventDefault(); await api(`/api/admin/patients/${id}/${kind}`, { method: "POST", body: JSON.stringify({ value }) }); setNotice("Registro guardado."); location.reload(); }}>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                await api(`/api/admin/patients/${id}/${kind}`, { method: "POST", body: JSON.stringify({ value }) });
+                setValue("");
+                setNotice("Registro guardado.");
+                const pairs = await Promise.all(["allergies", "conditions", "medications"].map((name) => api<{ rows: Record<string, unknown>[] }>(`/api/admin/patients/${id}/${name}`).then((r) => [name, r.rows] as const)));
+                setClinical(Object.fromEntries(pairs));
+              } catch (err) {
+                setError(err instanceof Error ? err.message : "No se pudo guardar.");
+              }
+            }}>
               <div className="admin-toolbar">
                 <select value={kind} onChange={(e) => setKind(e.target.value as typeof kind)}><option value="allergies">Alergia</option><option value="conditions">Condición</option><option value="medications">Medicamento</option></select>
-                <input value={value} onChange={(e) => setValue(e.target.value)} placeholder="Descripción" />
+                <input value={value} onChange={(e) => setValue(e.target.value)} placeholder="Descripción" required />
                 <button className="admin-btn admin-btn--primary" type="submit">Agregar</button>
               </div>
               {(["allergies", "conditions", "medications"] as const).map((name) => (
-                <section key={name} className="chart-block"><h2>{name === "allergies" ? "Alergias" : name === "conditions" ? "Condiciones" : "Medicamentos"}</h2>{(clinical[name] || []).map((row) => <div key={String(row.id)} className="admin-table__row">{String(row.value)}</div>)}</section>
+                <section key={name} className="chart-block">
+                  <h2>{name === "allergies" ? "Alergias" : name === "conditions" ? "Condiciones" : "Medicamentos"}</h2>
+                  {(clinical[name] || []).map((row) => (
+                    <div key={String(row.id)} className="admin-table__row">
+                      <span>{String(row.value)}{row.severity ? ` · ${String(row.severity)}` : ""}</span>
+                      <button className="admin-btn" type="button" onClick={async () => {
+                        if (!window.confirm("¿Eliminar este registro?")) return;
+                        try {
+                          await api(`/api/admin/patients/${id}/${name}`, { method: "DELETE", body: JSON.stringify({ id: row.id }) });
+                          setClinical((current) => ({ ...current, [name]: (current[name] || []).filter((item) => item.id !== row.id) }));
+                        } catch (err) {
+                          setError(err instanceof Error ? err.message : "No se pudo eliminar.");
+                        }
+                      }}>Eliminar</button>
+                    </div>
+                  ))}
+                  {!(clinical[name] || []).length ? <p className="admin-table__empty">Sin registros.</p> : null}
+                </section>
               ))}
             </form>
           ) : null}
@@ -592,7 +620,20 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
               location.reload();
             }}>
               <div className="admin-toolbar"><input name="title" placeholder="Título" /><input name="file" type="file" required /><button className="admin-btn admin-btn--primary" type="submit">Subir</button></div>
-              {rows.filter((row) => folder === "fotos" ? row.is_photo : !row.is_photo).map((row) => <a key={String(row.id)} className="admin-table__row" href={`/api/admin/documents/${row.id}`}>{String(row.title)}</a>)}
+              {rows.filter((row) => folder === "fotos" ? row.is_photo : !row.is_photo).map((row) => (
+                <div key={String(row.id)} className="admin-table__row">
+                  {row.missing ? <span>{String(row.title)} · archivo no disponible, vuelve a subirlo</span> : <a href={`/api/admin/documents/${row.id}`}>{String(row.title)}</a>}
+                  <button className="admin-btn" type="button" onClick={async () => {
+                    if (!window.confirm("¿Eliminar este archivo del expediente?")) return;
+                    try {
+                      await api(`/api/admin/patients/${id}/documents`, { method: "DELETE", body: JSON.stringify({ id: row.id }) });
+                      setRows(rows.filter((item) => item.id !== row.id));
+                    } catch (err) {
+                      setError(err instanceof Error ? err.message : "No se pudo eliminar el archivo.");
+                    }
+                  }}>Eliminar</button>
+                </div>
+              ))}
             </form>
           ) : null}
         </div>
