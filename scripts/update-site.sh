@@ -14,7 +14,7 @@ npm run build
 
 echo "==> Reiniciando thriveformative..."
 if command -v pm2 >/dev/null 2>&1 && pm2 describe thriveformative >/dev/null 2>&1; then
-  pm2 restart thriveformative --update-env
+  pm2 startOrReload "$APP_DIR/ecosystem.config.cjs" --update-env
   pm2 save
 elif systemctl is-active --quiet thriveformative 2>/dev/null; then
   systemctl restart thriveformative

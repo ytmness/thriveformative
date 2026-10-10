@@ -1,9 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase";
 
-type SiteUser = { id: string; email: string };
+type SiteUser = { id: string; email: string; name?: string };
+
+const listeners = new Set<() => void>();
+
+function notify() {
+  listeners.forEach((listener) => listener());
+}
 
 export function useUser() {
   const [user, setUser] = useState<SiteUser | null>(null);
@@ -11,31 +16,15 @@ export function useUser() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const supabase = createClient();
     let cancelled = false;
 
     async function load() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        if (!cancelled) setUser({ id: session.user.id, email: session.user.email || "" });
-        const { data } = await supabase.from("profiles").select("role").eq("id", session.user.id).maybeSingle();
-        if (!cancelled) {
-          setRole(data?.role ?? "client");
-          setLoading(false);
-        }
-        return;
-      }
       try {
-        const response = await fetch("/api/admin/me", { credentials: "same-origin" });
-        const body = (await response.json()) as { authenticated?: boolean };
+        const response = await fetch("/api/auth/me", { credentials: "same-origin" });
+        const body = (await response.json()) as { user?: SiteUser | null };
         if (!cancelled) {
-          if (body.authenticated) {
-            setUser({ id: "admin", email: "admin" });
-            setRole("admin");
-          } else {
-            setUser(null);
-            setRole(null);
-          }
+          setUser(body.user?.id ? body.user : null);
+          setRole(body.user?.id ? "client" : null);
         }
       } catch {
         if (!cancelled) {
@@ -48,12 +37,10 @@ export function useUser() {
     }
 
     load();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      load();
-    });
+    listeners.add(load);
     return () => {
       cancelled = true;
-      subscription.unsubscribe();
+      listeners.delete(load);
     };
   }, []);
 
@@ -61,7 +48,6 @@ export function useUser() {
 }
 
 export async function signOut() {
-  const supabase = createClient();
-  await supabase.auth.signOut();
-  await fetch("/api/admin/logout", { method: "POST", credentials: "same-origin" });
+  await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" });
+  notify();
 }

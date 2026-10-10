@@ -5,7 +5,6 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useLocale } from "next-intl";
 import { useTranslations } from "next-intl";
-import { createClient } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import ThemeProvider from "@/components/theme/ThemeProvider";
 import ThemeSwitcher from "@/components/theme/ThemeSwitcher";
@@ -42,7 +41,6 @@ export default function RegisterPage() {
   const [pendingEmail, setPendingEmail] = useState("");
   const [otpCode, setOtpCode] = useState("");
   const [verifying, setVerifying] = useState(false);
-  const [verifyType, setVerifyType] = useState<"magiclink" | "invite">("magiclink");
 
   function computeAgeFromBirthDate(iso: string) {
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
@@ -68,15 +66,14 @@ export default function RegisterPage() {
     const response = await fetch("/api/auth/email-code", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, locale }),
+      body: JSON.stringify({ email, locale, purpose: "register" }),
     });
-    const body = (await response.json().catch(() => ({}))) as { error?: string; verifyType?: "magiclink" | "invite" };
+    const body = (await response.json().catch(() => ({}))) as { error?: string };
     setLoading(false);
     if (!response.ok) {
       setError(body.error || t("rateLimit"));
       return;
     }
-    setVerifyType(body.verifyType || "magiclink");
     setPendingEmail(email);
     setCodeSent(true);
     if (typeof window !== "undefined") {
@@ -107,58 +104,37 @@ export default function RegisterPage() {
     if (!pendingEmail || !otpCode.trim()) return;
     setError(null);
     setVerifying(true);
-    const supabase = createClient();
-    const redirectTo =
-      typeof window !== "undefined"
-        ? `${window.location.origin}/${locale}`
-        : undefined;
-    const { error: err } = await supabase.auth.verifyOtp({
-      email: pendingEmail,
-      token: otpCode.trim(),
-      type: verifyType,
-      options: redirectTo ? { redirectTo } : undefined,
+    const response = await fetch("/api/auth/verify-code", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({
+        email: pendingEmail,
+        code: otpCode.trim(),
+        purpose: "register",
+        profile: {
+          fullName: fullName.trim() || null,
+          phone: phone.trim() || null,
+          birthDate: birthDate || null,
+          sex: sex || null,
+          address: address.trim() || null,
+          contactPreference: contactPreference || null,
+          referralSource: referralSource || null,
+          referralSourceOther: referralSource === "other" ? referralOther.trim() || null : null,
+          locale,
+        },
+      }),
     });
+    const body = (await response.json().catch(() => ({}))) as { error?: string };
     setVerifying(false);
-    if (err) {
-      setError(t("invalidCode"));
+    if (!response.ok) {
+      setError(body.error || t("invalidCode"));
       return;
     }
-
-    // Guardar datos extra del registro en profiles
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (user?.id) {
-      const parsedAge = age.trim() ? Number(age) : null;
-      const safeAge =
-        parsedAge !== null && Number.isFinite(parsedAge) ? parsedAge : null;
-      const { error: upsertErr } = await supabase.from("profiles").upsert(
-        {
-          id: user.id,
-          full_name: fullName.trim() || null,
-          email: pendingEmail.trim() || user.email || null,
-          phone: phone.trim() || null,
-          birth_date: birthDate || null,
-          age: safeAge,
-          contact_preference: contactPreference || null,
-          address: address.trim() || null,
-          sex: sex || null,
-          referral_source: referralSource || null,
-          referral_source_other:
-            referralSource === "other" ? referralOther.trim() || null : null,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "id" }
-      );
-      if (upsertErr) {
-        setError("No se pudieron guardar los datos del perfil. Intenta de nuevo.");
-        return;
-      }
-      try {
-        if (typeof window !== "undefined") sessionStorage.removeItem("thrive_pending_profile");
-      } catch {
-        /* ignore */
-      }
+    try {
+      if (typeof window !== "undefined") sessionStorage.removeItem("thrive_pending_profile");
+    } catch {
+      /* ignore */
     }
 
     router.push(`/${locale}#citas`);

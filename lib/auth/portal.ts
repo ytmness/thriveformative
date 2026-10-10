@@ -33,12 +33,17 @@ export async function portalLogin(email: string, password: string, meta?: { ip?:
   if (!account || !account.is_active || !(await verifyPassword(password, account.password_hash))) {
     throw new DomainError("Correo o contraseña incorrectos.", 401);
   }
+  await openPortalSession(account.id, meta);
+  return { patientId: account.patient_id };
+}
+
+export async function openPortalSession(accountId: string, meta?: { ip?: string | null; userAgent?: string | null }) {
   const token = randomBytes(32).toString("base64url");
   await query(
     `INSERT INTO patient_portal_sessions (account_id, token_hash, expires_at, ip, user_agent) VALUES ($1,$2,$3,$4,$5)`,
-    [account.id, hashToken(token), new Date(Date.now() + ABSOLUTE_SEC * 1000).toISOString(), meta?.ip ?? null, meta?.userAgent ?? null]
+    [accountId, hashToken(token), new Date(Date.now() + ABSOLUTE_SEC * 1000).toISOString(), meta?.ip ?? null, meta?.userAgent ?? null]
   );
-  await query(`UPDATE patient_portal_accounts SET last_login_at = now() WHERE id = $1`, [account.id]);
+  await query(`UPDATE patient_portal_accounts SET last_login_at = now() WHERE id = $1`, [accountId]);
   const jar = await cookies();
   jar.set(COOKIE, token, {
     httpOnly: true,
@@ -47,7 +52,6 @@ export async function portalLogin(email: string, password: string, meta?: { ip?:
     path: "/",
     maxAge: ABSOLUTE_SEC,
   });
-  return { patientId: account.patient_id };
 }
 
 export async function getPortalSession() {

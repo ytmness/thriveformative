@@ -5,7 +5,6 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useLocale } from "next-intl";
 import { useTranslations } from "next-intl";
-import { createClient } from "@/lib/supabase";
 import { useSearchParams, useRouter } from "next/navigation";
 import ThemeProvider from "@/components/theme/ThemeProvider";
 import ThemeSwitcher from "@/components/theme/ThemeSwitcher";
@@ -23,7 +22,6 @@ export default function LoginPage() {
   const [pendingEmail, setPendingEmail] = useState("");
   const [otpCode, setOtpCode] = useState("");
   const [verifying, setVerifying] = useState(false);
-  const [verifyType, setVerifyType] = useState<"magiclink" | "invite">("magiclink");
 
   useEffect(() => {
     const err = searchParams.get("error");
@@ -37,15 +35,14 @@ export default function LoginPage() {
     const response = await fetch("/api/auth/email-code", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, locale }),
+      body: JSON.stringify({ email, locale, purpose: "login" }),
     });
-    const body = (await response.json().catch(() => ({}))) as { error?: string; verifyType?: "magiclink" | "invite" };
+    const body = (await response.json().catch(() => ({}))) as { error?: string };
     setLoading(false);
     if (!response.ok) {
       setError(body.error || t("rateLimit"));
       return;
     }
-    setVerifyType(body.verifyType || "magiclink");
     setPendingEmail(email);
     setCodeSent(true);
   }
@@ -55,35 +52,17 @@ export default function LoginPage() {
     if (!pendingEmail || !otpCode.trim()) return;
     setError(null);
     setVerifying(true);
-    const supabase = createClient();
-    const redirectTo =
-      typeof window !== "undefined"
-        ? `${window.location.origin}/${locale}`
-        : undefined;
-    const { data, error: err } = await supabase.auth.verifyOtp({
-      email: pendingEmail,
-      token: otpCode.trim(),
-      type: verifyType,
-      options: redirectTo ? { redirectTo } : undefined,
+    const response = await fetch("/api/auth/verify-code", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ email: pendingEmail, code: otpCode.trim(), purpose: "login" }),
     });
+    const body = (await response.json().catch(() => ({}))) as { error?: string };
     setVerifying(false);
-    if (err) {
-      setError(t("invalidCode"));
+    if (!response.ok) {
+      setError(body.error || t("invalidCode"));
       return;
-    }
-    const user = data?.user;
-    if (user) {
-      await new Promise((r) => setTimeout(r, 150));
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .maybeSingle();
-      if (profile?.role === "admin") {
-        router.push(`/${locale}/admin`);
-        router.refresh();
-        return;
-      }
     }
     router.push(`/${locale}#citas`);
     router.refresh();
