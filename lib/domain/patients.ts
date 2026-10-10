@@ -364,7 +364,9 @@ const LISTS = {
 export async function listSensitive(patientId: string, kind: keyof typeof LISTS, actor: StaffSession, meta?: { ip?: string | null; userAgent?: string | null }) {
   const table = LISTS[kind];
   const rows = await query(
-    `SELECT id, value_enc, severity, recorded_by, created_at FROM ${table} WHERE patient_id = $1 ORDER BY created_at DESC`,
+    kind === "allergies"
+      ? `SELECT id, value_enc, severity, recorded_by, created_at FROM ${table} WHERE patient_id = $1 ORDER BY created_at DESC`
+      : `SELECT id, value_enc, NULL::text AS severity, recorded_by, created_at FROM ${table} WHERE patient_id = $1 ORDER BY created_at DESC`,
     [patientId]
   );
   await writeAudit({
