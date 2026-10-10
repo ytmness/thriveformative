@@ -7,8 +7,7 @@ import { CloseButton, EmptyState, SegmentedControl } from "@/components/admin/ui
 import { CreateOffer } from "@/components/admin/tutorial";
 
 const GROUPS: [string, [string, string][]][] = [
-  ["Clínica", [["sedes", "Sedes"], ["salas", "Salas"], ["horarios", "Horarios"]]],
-  ["Equipo", [["equipo", "Equipo y roles"]]],
+  ["Clínica", [["sedes", "Sedes"], ["salas", "Salas"]]],
   ["Finanzas", [["impuestos", "Impuestos"], ["pagos", "Métodos de pago"], ["facturacion", "Facturación"]]],
   ["Marketing y ventas", [["fuentes", "Fuentes"], ["etapas", "Etapas de leads"]]],
   ["Avanzado", [["campos", "Campos personalizados"], ["politicas", "Políticas"]]],

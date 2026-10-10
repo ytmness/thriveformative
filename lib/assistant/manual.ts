@@ -25,7 +25,7 @@ Comunicaciones (/admin/comunicaciones): cada tarjeta es una plantilla. Editar e 
 
 Reportes (/admin/reportes/citas, /admin/reportes/ingresos, /admin/reportes/servicios, /admin/reportes/profesionales, /admin/reportes/marketing, /admin/reportes/no-shows): cada ruta es un reporte de los últimos 30 días, filtrado por el país y la sede elegidos.
 
-Configuración: sedes (/admin/configuracion/sedes), salas (/admin/configuracion/salas), horarios (/admin/configuracion/horarios), equipo (/admin/configuracion/equipo), impuestos (/admin/configuracion/impuestos), pagos (/admin/configuracion/pagos), facturación (/admin/configuracion/facturacion), campos (/admin/configuracion/campos) y políticas de reserva (/admin/configuracion/politicas). Una sede hace falta antes de salas, horarios y citas. En equipo, nombre, correo y contraseña crean el acceso; Atiende citas lo muestra en el calendario. Sin horario, la reserva pública no ofrece esas horas.
+Configuración: sedes (/admin/configuracion/sedes), salas (/admin/configuracion/salas), impuestos (/admin/configuracion/impuestos), pagos (/admin/configuracion/pagos), facturación (/admin/configuracion/facturacion), campos (/admin/configuracion/campos) y políticas de reserva (/admin/configuracion/politicas). Una sede hace falta antes de salas y citas.
 `.trim();
 
 const SCREENS: { test: (path: string) => boolean; hint: string }[] = [
