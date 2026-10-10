@@ -74,13 +74,7 @@ export async function sendClinicEmail(to: string, subject: string, text: string)
   const paragraphs = text
     .split(/\n{2,}/)
     .filter(Boolean)
-    .map((block) => {
-      const safe = escapeHtml(block).replace(/\n/g, "<br>");
-      if (/^\d{6,8}$/.test(block.trim())) {
-        return `<p style="margin:4px 0 22px;font-size:32px;line-height:1.2;letter-spacing:0.28em;font-weight:700;color:#8a735b;font-family:Arial,Helvetica,sans-serif;">${safe}</p>`;
-      }
-      return emailParagraph(safe);
-    })
+    .map((block) => emailParagraph(escapeHtml(block).replace(/\n/g, "<br>")))
     .join("");
   try {
     const id = await deliverMail(to, subject, text, buildThriveEmailHtml(`${paragraphs}${emailSignOff()}`));
