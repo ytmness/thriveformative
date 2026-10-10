@@ -4,7 +4,7 @@ import type { StaffSession } from "@/lib/auth/session";
 import { decryptPhi, encryptPhi } from "@/lib/crypto/phi";
 import { generateTotpSecret, verifyTotp } from "@/lib/auth/totp";
 import { query } from "@/lib/db";
-import { DomainError } from "@/lib/http";
+import { DomainError, isPgError } from "@/lib/http";
 
 type Column = { key: string; column: string };
 
@@ -192,6 +192,7 @@ export async function listSection(section: string) {
        FROM staff_users u
        LEFT JOIN staff_user_roles sur ON sur.staff_user_id = u.id
        LEFT JOIN roles r ON r.id = sur.role_id
+       WHERE u.is_active
        GROUP BY u.id
        ORDER BY u.last_name, u.first_name`
     );
@@ -207,7 +208,8 @@ export async function listSection(section: string) {
   if (section === "lead-stages") return (await query(`SELECT * FROM lead_stages ORDER BY sort_order, name`)).rows;
   const spec = SIMPLE[section];
   if (!spec) throw new DomainError("Sección no encontrada.", 404);
-  const rows = await query(`SELECT * FROM ${spec.table} ORDER BY 1`);
+  const activeOnly = section === "locations" ? " WHERE is_active" : "";
+  const rows = await query(`SELECT * FROM ${spec.table}${activeOnly} ORDER BY 1`);
   return rows.rows;
 }
 
@@ -250,7 +252,16 @@ export async function deleteSection(section: string, id: string, actor: StaffSes
   }
   const spec = section === "services" ? { table: "services" } : SIMPLE[section];
   if (!spec) throw new DomainError("Sección no encontrada.", 404);
-  await query(`DELETE FROM ${spec.table} WHERE id = $1`, [id]);
+  if (section === "locations") {
+    try {
+      await query(`DELETE FROM locations WHERE id = $1`, [id]);
+    } catch (error) {
+      if (!isPgError(error, "23503")) throw error;
+      await query(`UPDATE locations SET is_active = false WHERE id = $1`, [id]);
+    }
+  } else {
+    await query(`DELETE FROM ${spec.table} WHERE id = $1`, [id]);
+  }
   await writeAudit({ actorType: "staff", actorId: actor.staff.id, action: `${section}.delete`, entityType: section, entityId: id });
   return { id };
 }

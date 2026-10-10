@@ -221,10 +221,16 @@ export default function SettingsPanel({ section }: { section: string }) {
                     <div className="admin-menu__list">
                       <button type="button" onClick={() => openEdit(row)}>Editar</button>
                       <button type="button" onClick={async () => {
-                        if (!window.confirm(`¿Archivar «${labelOf(apiSection, row)}»?`)) return;
-                        await api(`/api/admin/settings/${apiSection}/${row.id}`, { method: "DELETE" });
-                        await load();
-                      }}>Archivar</button>
+                        const label = labelOf(apiSection, row);
+                        if (!window.confirm(`¿Eliminar «${label}»? Deja de aparecer en el panel.`)) return;
+                        setError(null);
+                        try {
+                          await api(`/api/admin/settings/${apiSection}/${row.id}`, { method: "DELETE" });
+                          await load();
+                        } catch (err) {
+                          setError(err instanceof Error ? err.message : "No se pudo eliminar.");
+                        }
+                      }}>Eliminar</button>
                     </div>
                   </details>
                 </div>
