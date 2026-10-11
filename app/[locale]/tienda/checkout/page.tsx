@@ -35,11 +35,11 @@ function CheckoutContent() {
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [postalCode, setPostalCode] = useState("");
-  const [country, setCountry] = useState<"MX" | "US">("MX");
+  const [country, setCountry] = useState<"MX" | "US">(locale === "en" ? "US" : "MX");
 
   useEffect(() => {
-    setCountry(readMarket());
-  }, []);
+    setCountry(readMarket() === "US" || locale === "en" ? "US" : "MX");
+  }, [locale]);
   const payable = cart.currency ? cart.lines.filter((line) => line.currency === cart.currency) : cart.lines;
   const blocked = cart.lines.filter((line) => cart.currency && line.currency !== cart.currency);
   const totalMinor = payable.reduce((sum, line) => sum + line.unitAmount * line.quantity, 0);
