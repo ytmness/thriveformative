@@ -910,7 +910,15 @@ function SessionCard({ patientId, row, onChange, onDelete, onError }: { patientI
         } else if (!notesRef.current.trim() && !runningRef.current) {
           setStatus("Escribe una nota y guarda para empezar el tiempo.");
         }
-        await persist(start);
+        try {
+          await persist(start);
+        } catch (err) {
+          if (start) {
+            runningRef.current = false;
+            setRunning(false);
+          }
+          throw err;
+        }
       } catch (err) {
         onError(err instanceof Error ? err.message : "No se pudo guardar la sesión.");
       }
