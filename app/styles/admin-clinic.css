@@ -61,12 +61,15 @@
 .chart-sheet {
   padding-top: 1.15rem;
 }
+.chart-plan {
+  width: min(42rem, 100%);
+  margin-inline: auto;
+}
 .chart-note {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: minmax(12rem, 1fr) minmax(12rem, 1fr) auto;
-  gap: 1rem 1.25rem;
-  min-height: calc(100dvh - 16.5rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: calc(100dvh - 18rem);
 }
 .chart-note .admin-field {
   display: flex;
@@ -83,9 +86,8 @@
   resize: vertical;
 }
 .chart-note__actions {
-  grid-column: 1 / -1;
   display: flex;
-  justify-content: flex-start;
+  justify-content: flex-end;
   padding-top: 0.85rem;
   border-top: 1px solid rgb(var(--border) / 0.16);
 }
@@ -119,12 +121,8 @@
   border-top: 1px solid rgb(var(--border) / 0.16);
 }
 @media (max-width: 720px) {
-  .chart-note {
-    grid-template-columns: 1fr;
-    grid-template-rows: none;
-    min-height: 0;
-  }
-  .chart-note textarea { min-height: 8rem; height: 8rem; }
+  .chart-note { min-height: 0; }
+  .chart-note textarea { min-height: 12rem; height: 12rem; }
 }
 .admin-form-grid { display: grid; gap: 16px; grid-template-columns: 1fr; align-items: start; }
 @media (min-width: 720px) { .admin-form-grid { grid-template-columns: 1fr 1fr; } }

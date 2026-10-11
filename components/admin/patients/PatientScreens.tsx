@@ -408,7 +408,7 @@ const TABS = [
 ] as const;
 
 const FOLDERS = [
-  ["notas", "Notas", "expediente"],
+  ["notas", "Plan de 90 días", "expediente"],
   ["sesiones", "Sesiones", "sesiones"],
   ["estudios", "Estudios clínicos", "estudios"],
   ["alergias", "Alergias", "alergias"],
@@ -482,7 +482,7 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [note, setNote] = useState({ title: "", body: "" });
+  const [note, setNote] = useState("");
   const [sessionDraft, setSessionDraft] = useState({ title: "" });
   const [study, setStudy] = useState<(typeof STUDIES)[number][0]>("imaging");
   const [value, setValue] = useState("");
@@ -491,7 +491,7 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
   const [receipt, setReceipt] = useState<StoreReceiptData | null>(null);
   const active = TAB_ALIAS[tab] || tab || "resumen";
   const folder = tab === "formularios" ? "estudios" : tab === "alergias" || tab === "fotos" || tab === "documentos" || tab === "sesiones" || tab === "estudios" ? tab : "notas";
-  const folderLabel = FOLDERS.find(([key]) => key === folder)?.[1] || "Notas";
+  const folderLabel = FOLDERS.find(([key]) => key === folder)?.[1] || "Plan de 90 días";
 
   useEffect(() => {
     if (params.get("creado") === "1") setNotice("Paciente guardado.");
@@ -555,31 +555,30 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
       {active === "expediente" ? (
         <div className="chart-sheet">
           {folder === "notas" ? (
-            <>
+            <div className="chart-plan">
               <form className="chart-note" onSubmit={async (e) => {
                 e.preventDefault();
                 try {
-                  await api(`/api/admin/patients/${id}/notes`, { method: "POST", body: JSON.stringify({ title: note.title, body: note.body, noteType: "free", lock: true }) });
-                  setNote({ title: "", body: "" });
-                  setNotice("Nota guardada.");
+                  await api(`/api/admin/patients/${id}/notes`, { method: "POST", body: JSON.stringify({ body: note, noteType: "free", lock: true }) });
+                  setNote("");
+                  setNotice("Plan guardado.");
                   const next = await api<{ rows: Record<string, unknown>[] }>(`/api/admin/patients/${id}/notes`);
                   setRows(next.rows);
                 } catch (err) {
-                  setError(err instanceof Error ? err.message : "No se pudo guardar la nota.");
+                  setError(err instanceof Error ? err.message : "No se pudo guardar el plan.");
                 }
               }}>
-                <label className="admin-field">Título<input value={note.title} placeholder="Plan de 90 días" onChange={(e) => setNote({ ...note, title: e.target.value })} /></label>
-                <label className="admin-field">Notas<textarea required value={note.body} onChange={(e) => setNote({ ...note, body: e.target.value })} /></label>
+                <label className="admin-field">Notas<textarea required value={note} onChange={(e) => setNote(e.target.value)} /></label>
                 <div className="chart-note__actions">
-                  <button className="admin-btn admin-btn--primary" type="submit">Guardar nota</button>
+                  <button className="admin-btn admin-btn--primary" type="submit">Guardar</button>
                 </div>
               </form>
               {rows.length ? (
                 <section className="chart-note__saved">
-                  <h2>Notas</h2>
+                  <h2>Guardados</h2>
                   {rows.map((row) => (
                     <article key={String(row.id)} className="chart-note__past">
-                      <strong>{String(row.title || "Nota")}</strong>
+                      {row.title ? <strong>{String(row.title)}</strong> : null}
                       <p>{String(row.body || row.subjective || "")}</p>
                       <button className="admin-btn" type="button" onClick={async () => {
                         if (!window.confirm("¿Eliminar esta nota?")) return;
@@ -590,7 +589,7 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
                   ))}
                 </section>
               ) : null}
-            </>
+            </div>
           ) : null}
           {folder === "sesiones" ? (
             <>
