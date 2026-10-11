@@ -108,6 +108,36 @@
   gap: 0.35rem;
 }
 
+.cms-image-field__drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  min-height: 11rem;
+  padding: 1.25rem;
+  text-align: center;
+  border: 1px dashed rgb(var(--border) / 0.55);
+  border-radius: 0.85rem;
+  background: rgb(var(--bg) / 0.35);
+  color: rgb(var(--muted));
+}
+.cms-image-field__drop.is-over {
+  border-color: rgb(var(--primary));
+  background: rgb(var(--primary) / 0.06);
+}
+.cms-image-field__drop p { margin: 0; font-size: 0.92rem; }
+.cms-image-field__drop label {
+  color: rgb(var(--primary));
+  text-decoration: underline;
+  cursor: pointer;
+}
+.cms-image-field__drop-icon { color: rgb(var(--muted)); }
+.cms-image-field__drop-preview {
+  width: min(100%, 16rem);
+  max-height: 10rem;
+  object-fit: contain;
+}
 .cms-image-field__url-row input {
   width: 100%;
   border-radius: 0.65rem;

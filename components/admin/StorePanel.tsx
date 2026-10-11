@@ -1,7 +1,7 @@
 "use client";
 
 import { CMS_LOCALES, type Locale } from "@/lib/cms/types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useClinicScope } from "@/components/admin/clinic/ClinicScope";
 import { useStoreAdmin } from "@/hooks/useStoreAdmin";
 import CmsImageField from "@/components/admin/cms/CmsImageField";
@@ -170,10 +170,10 @@ export default function StorePanel({ siteLocale }: Props) {
         )}
       </div>
 
-      <div className="admin-cms__card mt-6" data-tour="store-form">
+      <div className="store-composer-wrap mt-6" data-tour="store-form">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-          <h2 className="text-lg font-semibold">
-            {isEditing ? "Editar producto" : "Nuevo producto"}
+          <h2 className="admin-header__title" style={{ fontSize: "1.65rem" }}>
+            {isEditing ? "Editar producto" : "Crear producto"}
           </h2>
           {isEditing ? (
             <button type="button" className="admin-cms__btn admin-cms__btn--ghost" onClick={startNewProduct}>
@@ -239,7 +239,7 @@ export default function StorePanel({ siteLocale }: Props) {
                             : "border-theme text-muted bg-surface"
                         }`}
                       >
-                        {product.is_published ? "Publicado" : "Borrador"}
+                        {product.is_published ? "Disponible" : "Oculto"}
                       </span>
                     </div>
                     {product.description ? (
@@ -308,119 +308,154 @@ function ProductForm({
   onSave: () => void;
   suggestRefFromName: (name: string) => string;
 }) {
+  const fresh = draft.id === "draft" && !draft.name && !(draft.referral_url || "").trim() && draft.price_min == null && !draft.image_url;
+  const [offer, setOffer] = useState<"tienda" | "enlace">((draft.referral_url || "").trim() ? "enlace" : "tienda");
+  useEffect(() => {
+    setOffer((draft.referral_url || "").trim() ? "enlace" : "tienda");
+  }, [draft.id, fresh]);
+
+  function chooseOffer(next: "tienda" | "enlace") {
+    setOffer(next);
+    if (next === "tienda") onChange({ referral_url: "" });
+    else onChange({ price_min: null, price_max: null, compare_at_price_min: null });
+  }
+
   return (
-    <div className="admin-cms__row">
-      <div className="admin-cms__field">
-        <label>Nombre</label>
-        <input
-          value={draft.name}
-          onChange={(e) => {
-            const name = e.target.value;
-            const patch: Partial<typeof draft> = { name };
-            if (!isEditing && (!draft.ref.trim() || draft.id === "draft")) {
-              patch.ref = suggestRefFromName(name);
-            }
-            onChange(patch);
-          }}
-        />
-      </div>
+    <div className="store-composer">
+      <div className="store-composer__main">
+        <label className="store-field">
+          <span>Tipo</span>
+          <select value={offer} onChange={(e) => chooseOffer(e.target.value as "tienda" | "enlace")}>
+            <option value="tienda">Producto de la tienda</option>
+            <option value="enlace">Enlace de referido</option>
+          </select>
+        </label>
 
-      <div className="admin-cms__field">
-        <label>Categoría</label>
-        <select
-          value={draft.category_id ?? ""}
-          onChange={(e) =>
-            onChange({ category_id: e.target.value ? e.target.value : null })
-          }
-        >
-          <option value="">Sin categoría</option>
-          {categories.map((cat) => (
-            <option key={cat.id} value={cat.id}>
-              {cat.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="admin-cms__field">
-        <label>Descripción</label>
-        <textarea
-          value={draft.description}
-          rows={3}
-          onChange={(e) => onChange({ description: e.target.value })}
-        />
-      </div>
-
-      <div className="admin-cms__field">
-        <label>Enlace de referido</label>
-        <input
-          type="url"
-          value={draft.referral_url}
-          placeholder="Vacío si se vende aquí. https://… si solo redirige"
-          onChange={(e) => onChange({ referral_url: e.target.value })}
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        <div className="admin-cms__field">
-          <label>Precio</label>
+        <label className="store-field">
+          <span>Nombre</span>
           <input
-            type="number"
-            min={0}
-            step="0.01"
-            value={draft.price_min ?? ""}
-            placeholder="Vacío si solo redirige"
+            required
+            value={draft.name}
+            placeholder="Nombre"
             onChange={(e) => {
-              const price = e.target.value === "" ? null : Number(e.target.value);
-              onChange({ price_min: price, price_max: price, compare_at_price_min: null });
+              const name = e.target.value;
+              const patch: Partial<typeof draft> = { name };
+              if (!isEditing && (!draft.ref.trim() || draft.id === "draft")) {
+                patch.ref = suggestRefFromName(name);
+              }
+              onChange(patch);
             }}
           />
-        </div>
-        <div className="admin-cms__field">
-          <label>Moneda</label>
-          <input
-            value={country === "US" ? "USD" : draft.currency ?? "MXN"}
-            maxLength={3}
-            readOnly={country === "US"}
-            aria-readonly={country === "US"}
-            onChange={(e) => {
-              if (country === "US") return;
-              onChange({ currency: e.target.value.toUpperCase() });
-            }}
+        </label>
+
+        {offer === "tienda" ? (
+          <div className="store-field store-field--split">
+            <label>
+              <span>Precio</span>
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                value={draft.price_min ?? ""}
+                placeholder="0.00"
+                onChange={(e) => {
+                  const price = e.target.value === "" ? null : Number(e.target.value);
+                  onChange({ price_min: price, price_max: price, compare_at_price_min: null });
+                }}
+              />
+            </label>
+            <label className="store-field__aside">
+              <span>Moneda</span>
+              <input
+                value={country === "US" ? "USD" : draft.currency ?? "MXN"}
+                maxLength={3}
+                readOnly={country === "US"}
+                aria-readonly={country === "US"}
+                onChange={(e) => {
+                  if (country === "US") return;
+                  onChange({ currency: e.target.value.toUpperCase() });
+                }}
+              />
+            </label>
+          </div>
+        ) : (
+          <label className="store-field">
+            <span>Enlace de referido</span>
+            <input
+              type="url"
+              value={draft.referral_url}
+              placeholder="https://"
+              onChange={(e) => onChange({ referral_url: e.target.value })}
+            />
+          </label>
+        )}
+
+        <label className="store-field">
+          <span>Descripción para el cliente</span>
+          <textarea
+            value={draft.description}
+            rows={4}
+            onChange={(e) => onChange({ description: e.target.value })}
           />
-        </div>
-      </div>
+        </label>
 
-      <div className="admin-cms__field">
-        <label>Orden</label>
-        <input
-          type="number"
-          value={draft.sort_order}
-          onChange={(e) => onChange({ sort_order: Number(e.target.value) || 0 })}
+        <CmsImageField
+          layout="drop"
+          locale={locale}
+          uploadFolder="products"
+          label="Imagen"
+          value={draft.image_url}
+          onChange={(image_url) => onChange({ image_url })}
         />
       </div>
 
-      <CmsImageField
-        locale={locale}
-        uploadFolder="products"
-        value={draft.image_url}
-        onChange={(image_url) => onChange({ image_url })}
-      />
+      <aside className="store-composer__side">
+        <section className="store-side">
+          <div className="store-side__head">
+            <h3>Estado</h3>
+            <span className={`store-status${draft.is_published ? " is-on" : ""}`}>
+              {draft.is_published ? "Disponible" : "Oculto"}
+            </span>
+          </div>
+          <select
+            value={draft.is_published ? "on" : "off"}
+            onChange={(e) => onChange({ is_published: e.target.value === "on" })}
+          >
+            <option value="on">Disponible</option>
+            <option value="off">Oculto</option>
+          </select>
+        </section>
 
-      <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          checked={draft.is_published}
-          onChange={(e) => onChange({ is_published: e.target.checked })}
-        />
-        Publicado
-      </label>
+        <section className="store-side">
+          <h3>Categoría</h3>
+          <select
+            value={draft.category_id ?? ""}
+            onChange={(e) => onChange({ category_id: e.target.value ? e.target.value : null })}
+          >
+            <option value="">Sin categoría</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>{cat.name}</option>
+            ))}
+          </select>
+        </section>
 
-      <div className="admin-cms__actions">
-        <button type="button" className="admin-cms__btn" disabled={saving} onClick={onSave}>
-          {saving ? "Guardando…" : isEditing ? "Guardar cambios" : "Añadir producto"}
+        <section className="store-side">
+          <h3>Catálogo</h3>
+          <p className="store-side__meta">{country === "US" ? "Estados Unidos · el precio se publica en Square al guardar" : "México"}</p>
+          <label className="store-side__order">
+            <span>Orden</span>
+            <input
+              type="number"
+              value={draft.sort_order}
+              onChange={(e) => onChange({ sort_order: Number(e.target.value) || 0 })}
+            />
+          </label>
+        </section>
+
+        <button type="button" className="admin-cms__btn store-composer__save" disabled={saving} onClick={onSave}>
+          {saving ? "Guardando…" : isEditing ? "Guardar cambios" : "Crear producto"}
         </button>
-      </div>
+      </aside>
     </div>
   );
 }
