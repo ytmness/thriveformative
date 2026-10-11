@@ -483,7 +483,7 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [note, setNote] = useState({ title: "", body: "" });
-  const [sessionDraft, setSessionDraft] = useState({ title: "", sessionDate: "", notes: "" });
+  const [sessionDraft, setSessionDraft] = useState({ title: "" });
   const [study, setStudy] = useState<(typeof STUDIES)[number][0]>("imaging");
   const [value, setValue] = useState("");
   const [kind, setKind] = useState<"allergies" | "conditions" | "medications">("allergies");
@@ -597,8 +597,10 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
             <form className="chart-block" onSubmit={async (e) => {
               e.preventDefault();
               try {
-                await api(`/api/admin/patients/${id}/sessions`, { method: "POST", body: JSON.stringify(sessionDraft) });
-                setSessionDraft({ title: "", sessionDate: "", notes: "" });
+                const today = new Date();
+                const sessionDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+                await api(`/api/admin/patients/${id}/sessions`, { method: "POST", body: JSON.stringify({ title: sessionDraft.title, sessionDate }) });
+                setSessionDraft({ title: "" });
                 setNotice("Sesión guardada.");
                 const next = await api<{ rows: Record<string, unknown>[] }>(`/api/admin/patients/${id}/sessions`);
                 setRows(next.rows);
@@ -804,23 +806,119 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
   );
 }
 
+function formatClock(total: number) {
+  const safe = Math.max(0, Math.floor(total));
+  const hours = Math.floor(safe / 3600);
+  const minutes = Math.floor((safe % 3600) / 60);
+  const seconds = safe % 60;
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return hours > 0 ? `${pad(hours)}:${pad(minutes)}:${pad(seconds)}` : `${pad(minutes)}:${pad(seconds)}`;
+}
+
 function SessionCard({ patientId, row, onChange, onDelete, onError }: { patientId: string; row: Record<string, unknown>; onChange: (row: Record<string, unknown>) => void; onDelete: () => void; onError: (message: string) => void }) {
   const [title, setTitle] = useState(String(row.title || ""));
-  const [sessionDate, setSessionDate] = useState(String(row.sessionDate || "").slice(0, 10));
   const [notes, setNotes] = useState(String(row.notes || ""));
+  const [seconds, setSeconds] = useState(Number(row.durationSeconds || 0));
+  const [running, setRunning] = useState(false);
+  const [status, setStatus] = useState("");
+  const titleRef = useRef(title);
+  const notesRef = useRef(notes);
+  const secondsRef = useRef(seconds);
+  const runningRef = useRef(false);
+  const savedNotes = useRef(String(row.notes || ""));
+  const savedTitle = useRef(String(row.title || ""));
+  const persistRef = useRef<(startTimer: boolean) => Promise<void>>(async () => undefined);
+  const sessionDate = String(row.sessionDate || "").slice(0, 10);
+  titleRef.current = title;
+  notesRef.current = notes;
+  secondsRef.current = seconds;
+  runningRef.current = running;
+
+  async function persist(startTimer: boolean) {
+    const saved = await api<{ durationSeconds?: number; timerStarted?: boolean; sessionDate?: string }>(`/api/admin/patients/${patientId}/sessions`, {
+      method: "POST",
+      body: JSON.stringify({
+        id: row.id,
+        title: titleRef.current,
+        notes: notesRef.current,
+        durationSeconds: secondsRef.current,
+        startTimer,
+      }),
+    });
+    savedNotes.current = notesRef.current;
+    savedTitle.current = titleRef.current;
+    onChange({
+      ...row,
+      title: titleRef.current,
+      notes: notesRef.current,
+      durationSeconds: secondsRef.current,
+      timerStarted: Boolean(saved.timerStarted || row.timerStarted || startTimer),
+      sessionDate: saved.sessionDate || row.sessionDate,
+    });
+    setStatus(runningRef.current ? "Guardado · el tiempo sigue" : "Guardado");
+  }
+
+  persistRef.current = persist;
+
+  useEffect(() => {
+    let last = Date.now();
+    const clock = window.setInterval(() => {
+      const now = Date.now();
+      if (runningRef.current && document.visibilityState === "visible") {
+        const delta = Math.floor((now - last) / 1000);
+        if (delta > 0) {
+          secondsRef.current += delta;
+          setSeconds(secondsRef.current);
+        }
+      }
+      last = now;
+    }, 1000);
+    const autosave = window.setInterval(() => {
+      const dirty = notesRef.current !== savedNotes.current || titleRef.current !== savedTitle.current;
+      if (!dirty && !runningRef.current) return;
+      void persistRef.current(false).catch(() => undefined);
+    }, 20000);
+    function flush() {
+      if (runningRef.current || notesRef.current !== savedNotes.current || titleRef.current !== savedTitle.current) {
+        void persistRef.current(false).catch(() => undefined);
+      }
+    }
+    function onHide() {
+      if (document.visibilityState === "hidden") flush();
+      else last = Date.now();
+    }
+    document.addEventListener("visibilitychange", onHide);
+    window.addEventListener("pagehide", flush);
+    return () => {
+      window.clearInterval(clock);
+      window.clearInterval(autosave);
+      document.removeEventListener("visibilitychange", onHide);
+      window.removeEventListener("pagehide", flush);
+      flush();
+    };
+  }, []);
+
+  const started = Boolean(row.timerStarted) || running;
   return (
     <form className="chart-block" onSubmit={async (e) => {
       e.preventDefault();
       try {
-        await api(`/api/admin/patients/${patientId}/sessions`, { method: "POST", body: JSON.stringify({ id: row.id, title, sessionDate, notes }) });
-        onChange({ ...row, title, sessionDate, notes });
+        const start = !runningRef.current && notesRef.current.trim().length > 0;
+        if (start) {
+          runningRef.current = true;
+          setRunning(true);
+        } else if (!notesRef.current.trim() && !runningRef.current) {
+          setStatus("Escribe una nota y guarda para empezar el tiempo.");
+        }
+        await persist(start);
       } catch (err) {
         onError(err instanceof Error ? err.message : "No se pudo guardar la sesión.");
       }
     }}>
       <div className="admin-toolbar">
-        <input required value={title} onChange={(e) => setTitle(e.target.value)} />
-        <input type="date" value={sessionDate} onChange={(e) => setSessionDate(e.target.value)} />
+        <input required value={title} aria-label="Nombre de la sesión" onChange={(e) => setTitle(e.target.value)} />
+        <span className="admin-metric__label">{sessionDate ? new Date(`${sessionDate}T12:00:00`).toLocaleDateString("es-MX", { dateStyle: "medium" }) : "Hoy"}</span>
+        <span className={`session-clock${running ? " session-clock--live" : ""}`} aria-live="polite">{formatClock(seconds)}</span>
         <button className="admin-btn admin-btn--primary" type="submit">Guardar</button>
         <button className="admin-btn" type="button" onClick={async () => {
           if (!window.confirm("¿Eliminar esta sesión?")) return;
@@ -828,6 +926,10 @@ function SessionCard({ patientId, row, onChange, onDelete, onError }: { patientI
           onDelete();
         }}>Eliminar</button>
       </div>
+      <p className="admin-metric__label">
+        {running ? "En curso" : started ? "En pausa. Guardar continúa el tiempo." : "La fecha es de hoy. El tiempo empieza al guardar, después de escribir."}
+        {status ? ` · ${status}` : ""}
+      </p>
       <label className="admin-field">Notas de la sesión<textarea value={notes} onChange={(e) => setNotes(e.target.value)} /></label>
     </form>
   );

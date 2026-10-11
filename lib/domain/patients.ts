@@ -564,7 +564,7 @@ export async function deleteNote(patientId: string, noteId: string, actor: Staff
 
 export async function listSessions(patientId: string, actor: StaffSession, meta?: { ip?: string | null; userAgent?: string | null }) {
   const rows = await query(
-    `SELECT id, title, session_date, notes_enc, created_at
+    `SELECT id, title, session_date::text AS session_date, notes_enc, duration_seconds, timer_started, created_at
      FROM patient_sessions WHERE patient_id = $1
      ORDER BY session_date DESC NULLS LAST, created_at DESC`,
     [patientId]
@@ -584,30 +584,52 @@ export async function listSessions(patientId: string, actor: StaffSession, meta?
     title: row.title,
     sessionDate: row.session_date,
     notes: decryptPhi(row.notes_enc as Buffer | null),
+    durationSeconds: Number(row.duration_seconds || 0),
+    timerStarted: Boolean(row.timer_started),
     createdAt: row.created_at,
   }));
 }
 
 export async function saveSession(
   patientId: string,
-  input: { id?: string | null; title?: string | null; sessionDate?: string | null; notes?: string | null },
+  input: {
+    id?: string | null;
+    title?: string | null;
+    sessionDate?: string | null;
+    notes?: string | null;
+    durationSeconds?: number | null;
+    startTimer?: boolean;
+  },
   actor: StaffSession
 ) {
   const title = String(input.title || "").trim();
   if (!title) throw new DomainError("El nombre de la sesión es obligatorio.");
   const date = input.sessionDate && /^\d{4}-\d{2}-\d{2}$/.test(input.sessionDate) ? input.sessionDate : null;
+  const duration = Math.max(0, Math.min(18 * 3600, Math.round(Number(input.durationSeconds || 0))));
+  const startTimer = Boolean(input.startTimer) && Boolean(String(input.notes || "").trim());
   if (input.id) {
-    const updated = await query<{ id: string }>(
-      `UPDATE patient_sessions SET title = $3, session_date = $4, notes_enc = $5
-       WHERE id = $1 AND patient_id = $2 RETURNING id`,
-      [input.id, patientId, title, date, encryptPhi(input.notes)]
+    const updated = await query<{ id: string; duration_seconds: number; timer_started: boolean; session_date: string }>(
+      `UPDATE patient_sessions SET
+         title = $3,
+         notes_enc = $4,
+         session_date = COALESCE(session_date, $5::date, CURRENT_DATE),
+         duration_seconds = GREATEST(duration_seconds, $6),
+         timer_started = timer_started OR $7
+       WHERE id = $1 AND patient_id = $2
+       RETURNING id, duration_seconds, timer_started, session_date::text AS session_date`,
+      [input.id, patientId, title, encryptPhi(input.notes), date, duration, startTimer]
     );
     if (!updated.rows[0]) throw new DomainError("Sesión no encontrada.", 404);
-    return { id: updated.rows[0].id };
+    return {
+      id: updated.rows[0].id,
+      durationSeconds: Number(updated.rows[0].duration_seconds || 0),
+      timerStarted: Boolean(updated.rows[0].timer_started),
+      sessionDate: updated.rows[0].session_date,
+    };
   }
-  const inserted = await query<{ id: string }>(
+  const inserted = await query<{ id: string; session_date: string }>(
     `INSERT INTO patient_sessions (patient_id, title, session_date, notes_enc, recorded_by)
-     VALUES ($1,$2,$3,$4,$5) RETURNING id`,
+     VALUES ($1,$2, COALESCE($3::date, CURRENT_DATE), $4, $5) RETURNING id, session_date::text AS session_date`,
     [patientId, title, date, encryptPhi(input.notes), actor.staff.id]
   );
   await writeAudit({

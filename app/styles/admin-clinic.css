@@ -104,6 +104,15 @@
   border-top: 1px solid rgb(var(--border) / 0.1);
 }
 .chart-note__past p { margin: 0; }
+.session-clock {
+  font-variant-numeric: tabular-nums;
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+  min-width: 4.5rem;
+}
+.session-clock--live {
+  color: rgb(var(--primary));
+}
 .chart-block + .chart-block {
   margin-top: 1.25rem;
   padding-top: 1.15rem;

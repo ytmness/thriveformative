@@ -85,6 +85,8 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string; re
         title: String(body.title || ""),
         sessionDate: body.sessionDate ? String(body.sessionDate) : null,
         notes: body.notes ? String(body.notes) : null,
+        durationSeconds: Number(body.durationSeconds || 0),
+        startTimer: body.startTimer === true,
       }, session));
     }
     if (resource === "notes-lock") {
