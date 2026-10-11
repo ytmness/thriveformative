@@ -44,41 +44,42 @@ function createEmptyDraft(locale: Locale, sortOrder: number, country: string): S
   };
 }
 
-function validateProduct(row: Pick<StoreProduct, "name" | "ref" | "referral_url" | "price_min">): string | null {
-  if (!row.name.trim()) return "El nombre es obligatorio.";
+function validateProduct(row: Pick<StoreProduct, "name" | "ref" | "referral_url" | "price_min">, english: boolean): string | null {
+  if (!row.name.trim()) return english ? "The name is required." : "El nombre es obligatorio.";
   const ref = row.ref.trim();
-  if (!ref) return "No se pudo armar el enlace del producto a partir del nombre.";
+  if (!ref) return english ? "The product link could not be built from the name." : "No se pudo armar el enlace del producto a partir del nombre.";
   if (!isValidRef(ref)) {
-    return "El nombre necesita letras o números para armar el enlace.";
+    return english ? "The name needs letters or numbers to build the link." : "El nombre necesita letras o números para armar el enlace.";
   }
   const url = row.referral_url.trim();
   const hasPrice = row.price_min != null && Number(row.price_min) > 0;
   if (url && hasPrice) {
-    return "Pon el precio para venderlo aquí, o el enlace para redirigir. No los dos.";
+    return english ? "Set a price to sell it here, or a link to redirect. Not both." : "Pon el precio para venderlo aquí, o el enlace para redirigir. No los dos.";
   }
   if (url) {
     try {
       const parsed = new URL(url);
       if (!["http:", "https:"].includes(parsed.protocol)) {
-        return "El enlace de referido debe ser http o https.";
+        return english ? "The referral link must be http or https." : "El enlace de referido debe ser http o https.";
       }
     } catch {
-      return "El enlace de referido no es una URL válida.";
+      return english ? "The referral link is not a valid URL." : "El enlace de referido no es una URL válida.";
     }
     return null;
   }
   if (row.price_min == null || Number(row.price_min) <= 0) {
-    return "Pon un precio para venderlo aquí, o un enlace si solo quieres redirigir.";
+    return english ? "Set a price to sell it here, or a link if you only want to redirect." : "Pon un precio para venderlo aquí, o un enlace si solo quieres redirigir.";
   }
   return null;
 }
 
-function validateCategoryName(name: string): string | null {
-  if (!name.trim()) return "El nombre de la categoría es obligatorio.";
+function validateCategoryName(name: string, english: boolean): string | null {
+  if (!name.trim()) return english ? "The category name is required." : "El nombre de la categoría es obligatorio.";
   return null;
 }
 
 export function useStoreAdmin(initialLocale: Locale, country: string) {
+  const english = country === "US";
   const [locale, setLocale] = useState<Locale>(initialLocale);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -125,7 +126,7 @@ export function useStoreAdmin(initialLocale: Locale, country: string) {
         text:
           e instanceof Error
             ? e.message
-            : "No se pudo cargar la tienda. ¿Ejecutaste las migraciones 012 y 013?",
+            : english ? "The store could not be loaded." : "No se pudo cargar la tienda. ¿Ejecutaste las migraciones 012 y 013?",
       });
     } finally {
       setLoading(false);
@@ -170,7 +171,7 @@ export function useStoreAdmin(initialLocale: Locale, country: string) {
     const selling = !referral && draft.price_min != null && Number(draft.price_min) > 0;
     const ref = editingId === null ? slugifyRef(draft.name) : draft.ref.trim();
     const ready = { ...draft, ref, referral_url: referral };
-    const validation = validateProduct(ready);
+    const validation = validateProduct(ready, english);
     if (validation) {
       setMessage({ type: "err", text: validation });
       return false;
@@ -214,10 +215,10 @@ export function useStoreAdmin(initialLocale: Locale, country: string) {
       setMessage({
         type: squareWarning ? "err" : "ok",
         text: squareWarning
-          ? `Se guardó en la tienda, pero Square no lo recibió: ${squareWarning}`
+          ? (english ? `Saved in the store, but Square did not receive it: ${squareWarning}` : `Se guardó en la tienda, pero Square no lo recibió: ${squareWarning}`)
           : isNew
-            ? "Producto añadido. Puedes agregar otro."
-            : "Producto actualizado.",
+            ? (english ? "Product added. You can add another." : "Producto añadido. Puedes agregar otro.")
+            : (english ? "Product updated." : "Producto actualizado."),
       });
       return true;
     } catch (e) {
@@ -232,13 +233,12 @@ export function useStoreAdmin(initialLocale: Locale, country: string) {
     setMessage(null);
     try {
       await mutateStore({ op: "deleteProduct", id });
-      const nextProducts = products.filter((p) => p.id !== id);
-      setProducts(nextProducts);
+      setProducts((current) => current.filter((p) => p.id !== id));
       if (editingId === id) {
-        setDraft(createEmptyDraft(locale, nextSortOrder(nextProducts), country));
+        setDraft(createEmptyDraft(locale, 0, country));
         setEditingId(null);
       }
-      setMessage({ type: "ok", text: "Producto eliminado." });
+      setMessage({ type: "ok", text: english ? "Product deleted." : "Producto eliminado." });
       return true;
     } catch (e) {
       setMessage({ type: "err", text: e instanceof Error ? e.message : "Error" });
@@ -273,7 +273,7 @@ export function useStoreAdmin(initialLocale: Locale, country: string) {
   }
 
   async function addCategory() {
-    const validation = validateCategoryName(categoryName);
+    const validation = validateCategoryName(categoryName, english);
     if (validation) {
       setMessage({ type: "err", text: validation });
       return false;
@@ -284,7 +284,7 @@ export function useStoreAdmin(initialLocale: Locale, country: string) {
     const slug = slugifyRef(categoryName);
     if (!slug) {
       setSaving(false);
-      setMessage({ type: "err", text: "No se pudo generar un slug válido para la categoría." });
+      setMessage({ type: "err", text: english ? "Could not build a valid category slug." : "No se pudo generar un slug válido para la categoría." });
       return false;
     }
 
@@ -300,7 +300,7 @@ export function useStoreAdmin(initialLocale: Locale, country: string) {
       );
       setDraft((prev) => ({ ...prev, category_id: data.id, category: data }));
       setCategoryName("");
-      setMessage({ type: "ok", text: "Categoría añadida." });
+      setMessage({ type: "ok", text: english ? "Category added." : "Categoría añadida." });
       return true;
     } catch (e) {
       setMessage({ type: "err", text: e instanceof Error ? e.message : "Error" });
@@ -311,7 +311,7 @@ export function useStoreAdmin(initialLocale: Locale, country: string) {
   }
 
   async function renameCategory(id: string, name: string) {
-    const validation = validateCategoryName(name);
+    const validation = validateCategoryName(name, english);
     if (validation) {
       setMessage({ type: "err", text: validation });
       return false;
@@ -328,7 +328,7 @@ export function useStoreAdmin(initialLocale: Locale, country: string) {
       setCategories((prev) =>
         prev.map((cat) => (cat.id === id ? data : cat)).sort((a, b) => a.sort_order - b.sort_order)
       );
-      setMessage({ type: "ok", text: "Categoría actualizada." });
+      setMessage({ type: "ok", text: english ? "Category updated." : "Categoría actualizada." });
       return true;
     } catch (e) {
       setMessage({ type: "err", text: e instanceof Error ? e.message : "Error" });
@@ -352,7 +352,7 @@ export function useStoreAdmin(initialLocale: Locale, country: string) {
       if (draft.category_id === id) {
         updateDraft({ category_id: null, category: null });
       }
-      setMessage({ type: "ok", text: "Categoría eliminada." });
+      setMessage({ type: "ok", text: english ? "Category deleted." : "Categoría eliminada." });
       return true;
     } catch (e) {
       setMessage({ type: "err", text: e instanceof Error ? e.message : "Error" });
