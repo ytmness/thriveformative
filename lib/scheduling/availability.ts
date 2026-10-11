@@ -1,5 +1,6 @@
 import { query } from "@/lib/db";
 import { locationCountrySql, normalizeCountry } from "@/lib/domain/scope";
+import { serviceDayBlock } from "@/lib/scheduling/serviceRules";
 import { addDaysToDateKey, todayKey, weekdayIndex, zonedTimeToUtc } from "@/lib/scheduling/time";
 
 type Range = { start: number; end: number; staffId?: string | null; roomId?: string | null; locationId?: string | null };
@@ -17,6 +18,7 @@ export async function availabilityForDate(input: {
   staffUserId?: string | null;
   country?: string | null;
   ignoreAppointmentId?: string | null;
+  patientId?: string | null;
 }) {
   const service = await query<{
     id: string;
@@ -90,10 +92,23 @@ export async function availabilityForDate(input: {
 
   const dayStart = zonedTimeToUtc(input.date, "00:00", locations.rows[0]?.timezone || "America/Chicago");
   const dayEnd = new Date(dayStart.getTime() + 36 * 60 * 60 * 1000);
-  const appts = await query<{ staff_user_id: string; room_id: string | null; starts_at: string; ends_at: string }>(
-    `SELECT staff_user_id, room_id, starts_at, ends_at FROM appointments
-     WHERE status NOT IN ('cancelled', 'no_show') AND starts_at < $2 AND ends_at > $1
-       AND ($3::uuid IS NULL OR id <> $3)`,
+  const appts = await query<{
+    staff_user_id: string;
+    room_id: string | null;
+    starts_at: string;
+    ends_at: string;
+    buffer_before_minutes: number;
+    buffer_after_minutes: number;
+  }>(
+    `SELECT a.staff_user_id, a.room_id, a.starts_at, a.ends_at,
+            COALESCE(s.buffer_before_minutes, 0) AS buffer_before_minutes,
+            COALESCE(s.buffer_after_minutes, 0) AS buffer_after_minutes
+     FROM appointments a
+     LEFT JOIN services s ON s.id = a.service_id
+     WHERE a.status NOT IN ('cancelled', 'no_show')
+       AND a.starts_at < $2
+       AND a.ends_at + make_interval(mins => COALESCE(s.buffer_after_minutes, 0)) > $1
+       AND ($3::uuid IS NULL OR a.id <> $3)`,
     [dayStart.toISOString(), dayEnd.toISOString(), input.ignoreAppointmentId ?? null]
   );
   const blocks = await query<{
@@ -111,8 +126,8 @@ export async function availabilityForDate(input: {
 
   const busy: Range[] = [
     ...appts.rows.map((row) => ({
-      start: new Date(row.starts_at).getTime(),
-      end: new Date(row.ends_at).getTime(),
+      start: new Date(row.starts_at).getTime() - row.buffer_before_minutes * 60000,
+      end: new Date(row.ends_at).getTime() + row.buffer_after_minutes * 60000,
       staffId: row.staff_user_id,
       roomId: row.room_id,
     })),
@@ -142,6 +157,15 @@ export async function availabilityForDate(input: {
     if (input.date > maxDay) continue;
     const dow = weekdayIndex(input.date, location.timezone);
     const minStart = now + cfg.min_advance_hours * 60 * 60 * 1000;
+    const closed = await serviceDayBlock({
+      serviceId: input.serviceId,
+      locationId: location.id,
+      date: input.date,
+      timezone: location.timezone,
+      patientId: input.patientId,
+      ignoreAppointmentId: input.ignoreAppointmentId,
+    });
+    if (closed) continue;
 
     for (const staff of staffRes.rows) {
       const schedules = await query<{ start_time: string; end_time: string }>(
@@ -172,7 +196,7 @@ export async function availabilityForDate(input: {
           const locationRooms = rooms.rows.filter((room) => room.location_id === location.id);
           const free = locationRooms.find(
             (room) =>
-              !busy.some((range) => range.roomId === room.id && overlaps(t, t + duration, range.start, range.end))
+              !busy.some((range) => range.roomId === room.id && overlaps(windowStart, windowEnd, range.start, range.end))
           );
           if (requiresRoom && !free) continue;
           const roomId = free?.id ?? null;

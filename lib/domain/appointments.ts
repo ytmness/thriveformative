@@ -9,6 +9,7 @@ import { log } from "@/lib/log";
 import { notifyAppointment } from "@/lib/domain/clinicNotify";
 import { countrySql, normalizeCountry } from "@/lib/domain/scope";
 import { dispatchDueMessages, enqueueForAppointment } from "@/lib/messaging/queue";
+import { assertBookable } from "@/lib/scheduling/serviceRules";
 import { addDaysToDateKey, addMonthsToDateKey, formatDate, formatHm, parseClinicDateTime, zonedTimeToUtc } from "@/lib/scheduling/time";
 import { emitWebhook } from "@/lib/webhooks/emit";
 
@@ -186,6 +187,19 @@ export async function createAppointment(input: AppointmentInput, actor: StaffSes
       const starts = i === 0 || !rule ? base.starts : shiftStart(base.starts, tz, rule.freq, i, interval);
       if (starts.getTime() > until) break;
       const ends = new Date(starts.getTime() + base.duration * 60000);
+      await assertBookable(
+        {
+          serviceId: input.serviceId,
+          patientId: input.patientId,
+          locationId: input.locationId,
+          staffUserId: input.staffUserId,
+          roomId: input.roomId,
+          startsAt: starts,
+          endsAt: ends,
+          timezone: tz,
+        },
+        q
+      );
       const id = await insertOne(
         q,
         input,
@@ -270,6 +284,19 @@ export async function updateAppointment(
   if (patch.startsAt) next.startsAt = parseClinicDateTime(patch.startsAt, tz).toISOString();
   if (patch.endsAt) next.endsAt = parseClinicDateTime(patch.endsAt, tz).toISOString();
   const window = await resolveWindow(next);
+  if (window.status !== "cancelled") {
+    await assertBookable({
+      serviceId: next.serviceId,
+      patientId: next.patientId,
+      locationId: next.locationId,
+      staffUserId: next.staffUserId,
+      roomId: next.roomId,
+      startsAt: window.starts,
+      endsAt: window.ends,
+      timezone: tz,
+      ignoreAppointmentId: id,
+    });
+  }
   await query(
     `UPDATE appointments SET
        patient_id=$2, service_id=$3, staff_user_id=$4, location_id=$5, room_id=$6,

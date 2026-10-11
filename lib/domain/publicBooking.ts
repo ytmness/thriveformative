@@ -82,7 +82,7 @@ export async function managePublic(token: string, body: Record<string, unknown>,
 }
 
 async function assertClinicSlot(
-  current: { id?: unknown; serviceId?: unknown; locationId?: unknown; staffUserId?: unknown; timezone?: unknown },
+  current: { id?: unknown; serviceId?: unknown; locationId?: unknown; staffUserId?: unknown; timezone?: unknown; patientId?: unknown },
   startsAt: string
 ) {
   const when = new Date(startsAt);
@@ -94,6 +94,7 @@ async function assertClinicSlot(
     locationId: String(current.locationId || ""),
     staffUserId: String(current.staffUserId || ""),
     ignoreAppointmentId: String(current.id || ""),
+    patientId: current.patientId ? String(current.patientId) : null,
   });
   const target = when.getTime();
   const open = groups.some((group) =>
