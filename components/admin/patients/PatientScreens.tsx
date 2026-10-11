@@ -32,7 +32,8 @@ function sexLabel(value: unknown) {
   const sex = String(value || "").trim().toLowerCase();
   if (sex === "femenino") return "Mujer";
   if (sex === "masculino") return "Hombre";
-  if (sex === "otro") return "Otro";
+  if (sex === "otro") return "Otro / otra designación";
+  if (sex === "prefiere_no") return "Prefiere no responder";
   return "Sin dato";
 }
 
@@ -339,7 +340,7 @@ export function PatientFields({ form, setForm, options, section = "identidad" }:
             <label className="admin-field"><span className="admin-field__label">Apellido<span className="admin-req"> *</span></span><input required value={String(form.lastName || "")} onChange={(e) => set("lastName", e.target.value)} /></label>
           </div>
           <div className="admin-patient-row admin-patient-row--2">
-            <label className="admin-field"><span className="admin-field__label">Sexo</span><select value={String(form.sex || "")} onChange={(e) => set("sex", e.target.value)}><option value="">—</option><option value="masculino">Masculino</option><option value="femenino">Femenino</option><option value="otro">Otro</option></select></label>
+            <label className="admin-field"><span className="admin-field__label">Sexo</span><select value={String(form.sex || "")} onChange={(e) => set("sex", e.target.value)}><option value="">—</option><option value="masculino">Masculino</option><option value="femenino">Femenino</option><option value="otro">Otro / otra designación</option><option value="prefiere_no">Prefiere no responder</option></select></label>
             <label className="admin-field"><span className="admin-field__label">Nacimiento</span><input type="date" value={String(form.birthDate || "").slice(0, 10)} onChange={(e) => set("birthDate", e.target.value)} /></label>
           </div>
           <div className="admin-patient-row admin-patient-row--2">
@@ -361,13 +362,7 @@ export function PatientFields({ form, setForm, options, section = "identidad" }:
         </>
       ) : null}
       {section === "direccion" ? (
-        <>
-          <label className="admin-field span-2">Calle<input value={String(form.street || "")} onChange={(e) => set("street", e.target.value)} /></label>
-          <label className="admin-field">Ciudad<input value={String(form.city || "")} onChange={(e) => set("city", e.target.value)} /></label>
-          <label className="admin-field">Estado<input value={String(form.state || "")} onChange={(e) => set("state", e.target.value)} /></label>
-          <label className="admin-field">País<input value={String(form.country || "")} onChange={(e) => set("country", e.target.value)} /></label>
-          <label className="admin-field">Código postal<input value={String(form.postalCode || "")} onChange={(e) => set("postalCode", e.target.value)} /></label>
-        </>
+        <AddressFields form={form} set={set} />
       ) : null}
       {section === "consentimiento" ? (
         <>
@@ -388,6 +383,21 @@ export function PatientFields({ form, setForm, options, section = "identidad" }:
   );
 }
 
+function AddressFields({ form, set }: { form: Record<string, unknown>; set: (key: string, value: unknown) => void }) {
+  const scope = useClinicScope();
+  const us = scope.country === "US";
+  return (
+    <>
+      <label className="admin-field span-2">Calle<input value={String(form.street || "")} onChange={(e) => set("street", e.target.value)} /></label>
+      {us ? null : <label className="admin-field">Código postal<input value={String(form.postalCode || "")} onChange={(e) => set("postalCode", e.target.value)} /></label>}
+      <label className="admin-field">Ciudad<input value={String(form.city || "")} onChange={(e) => set("city", e.target.value)} /></label>
+      <label className="admin-field">Estado<input value={String(form.state || "")} onChange={(e) => set("state", e.target.value)} /></label>
+      {us ? <label className="admin-field">ZIP<input value={String(form.postalCode || "")} onChange={(e) => set("postalCode", e.target.value)} /></label> : null}
+      <label className="admin-field">País<input value={String(form.country || "")} onChange={(e) => set("country", e.target.value)} /></label>
+    </>
+  );
+}
+
 const TABS = [
   ["resumen", "Resumen"],
   ["citas", "Citas"],
@@ -399,10 +409,18 @@ const TABS = [
 
 const FOLDERS = [
   ["notas", "Notas", "expediente"],
+  ["sesiones", "Sesiones", "sesiones"],
+  ["estudios", "Estudios clínicos", "estudios"],
   ["alergias", "Alergias", "alergias"],
-  ["formularios", "Formularios", "formularios"],
   ["fotos", "Fotos", "fotos"],
   ["documentos", "Documentos", "documentos"],
+] as const;
+
+const STUDIES = [
+  ["imaging", "Imagenología"],
+  ["labs", "Sangre / orina / saliva"],
+  ["microbiota", "Microbiota"],
+  ["procedures", "Procedimientos"],
 ] as const;
 
 const SALE_RECEIPT_LABELS = {
@@ -450,6 +468,8 @@ function saleToReceipt(sale: ClinicSale, patientName: string): StoreReceiptData 
 const TAB_ALIAS: Record<string, string> = {
   ventas: "finanzas",
   formularios: "expediente",
+  estudios: "expediente",
+  sesiones: "expediente",
   alergias: "expediente",
   fotos: "expediente",
   documentos: "expediente",
@@ -462,15 +482,15 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [note, setNote] = useState({ subjective: "", objective: "", assessment: "", plan: "" });
+  const [note, setNote] = useState({ title: "", body: "" });
+  const [sessionDraft, setSessionDraft] = useState({ title: "", sessionDate: "", notes: "" });
+  const [study, setStudy] = useState<(typeof STUDIES)[number][0]>("imaging");
   const [value, setValue] = useState("");
   const [kind, setKind] = useState<"allergies" | "conditions" | "medications">("allergies");
   const [clinical, setClinical] = useState<Record<string, Record<string, unknown>[]>>({});
-  const [templates, setTemplates] = useState<{ id: string; name: string }[]>([]);
-  const [templateId, setTemplateId] = useState("");
   const [receipt, setReceipt] = useState<StoreReceiptData | null>(null);
   const active = TAB_ALIAS[tab] || tab || "resumen";
-  const folder = tab === "formularios" || tab === "alergias" || tab === "fotos" || tab === "documentos" ? tab : "notas";
+  const folder = tab === "formularios" ? "estudios" : tab === "alergias" || tab === "fotos" || tab === "documentos" || tab === "sesiones" || tab === "estudios" ? tab : "notas";
   const folderLabel = FOLDERS.find(([key]) => key === folder)?.[1] || "Notas";
 
   useEffect(() => {
@@ -479,7 +499,6 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
 
   useEffect(() => {
     api<{ patient: Patient }>(`/api/admin/patients/${id}`).then((r) => setPatient(r.patient)).catch((e) => setError(e.message));
-    api<{ rows: { id: string; name: string }[] }>("/api/admin/forms").then((r) => setTemplates(r.rows)).catch(() => undefined);
   }, [id]);
   useEffect(() => {
     if (active === "expediente" && folder === "alergias") {
@@ -488,7 +507,7 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
       }).catch((e) => setError(e.message));
       return;
     }
-    const resource = active === "citas" ? "appointments" : active === "finanzas" ? "sales" : active === "comunicaciones" ? "messages" : active === "membresias" ? "memberships" : active === "expediente" && folder === "notas" ? "notes" : active === "expediente" && folder === "formularios" ? "forms" : active === "expediente" && (folder === "fotos" || folder === "documentos") ? "documents" : "";
+    const resource = active === "citas" ? "appointments" : active === "finanzas" ? "sales" : active === "comunicaciones" ? "messages" : active === "membresias" ? "memberships" : active === "expediente" && folder === "notas" ? "notes" : active === "expediente" && folder === "sesiones" ? "sessions" : active === "expediente" && (folder === "fotos" || folder === "documentos" || folder === "estudios") ? "documents" : "";
     if (!resource) return;
     api<{ rows: Record<string, unknown>[] }>(`/api/admin/patients/${id}/${resource}`).then((r) => setRows(r.rows)).catch((e) => setError(e.message));
   }, [id, active, folder]);
@@ -537,21 +556,65 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
         <div className="chart-sheet">
           {folder === "notas" ? (
             <>
-              <form className="chart-note" onSubmit={async (e) => { e.preventDefault(); await api(`/api/admin/patients/${id}/notes`, { method: "POST", body: JSON.stringify({ ...note, lock: true }) }); setNotice("Nota guardada."); location.reload(); }}>
-                <label className="admin-field">Subjetivo<textarea value={note.subjective} onChange={(e) => setNote({ ...note, subjective: e.target.value })} /></label>
-                <label className="admin-field">Objetivo<textarea value={note.objective} onChange={(e) => setNote({ ...note, objective: e.target.value })} /></label>
-                <label className="admin-field">Evaluación<textarea value={note.assessment} onChange={(e) => setNote({ ...note, assessment: e.target.value })} /></label>
-                <label className="admin-field">Plan<textarea value={note.plan} onChange={(e) => setNote({ ...note, plan: e.target.value })} /></label>
+              <form className="chart-note" onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  await api(`/api/admin/patients/${id}/notes`, { method: "POST", body: JSON.stringify({ title: note.title, body: note.body, noteType: "free", lock: true }) });
+                  setNote({ title: "", body: "" });
+                  setNotice("Nota guardada.");
+                  const next = await api<{ rows: Record<string, unknown>[] }>(`/api/admin/patients/${id}/notes`);
+                  setRows(next.rows);
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "No se pudo guardar la nota.");
+                }
+              }}>
+                <label className="admin-field">Título<input value={note.title} placeholder="Plan de 90 días" onChange={(e) => setNote({ ...note, title: e.target.value })} /></label>
+                <label className="admin-field">Notas<textarea required value={note.body} onChange={(e) => setNote({ ...note, body: e.target.value })} /></label>
                 <div className="chart-note__actions">
-                  <button className="admin-btn admin-btn--primary" type="submit">Firmar nota SOAP</button>
+                  <button className="admin-btn admin-btn--primary" type="submit">Guardar nota</button>
                 </div>
               </form>
               {rows.length ? (
                 <section className="chart-note__saved">
-                  <h2>Notas firmadas</h2>
-                  {rows.map((row) => <article key={String(row.id)} className="chart-note__past"><p>{String(row.subjective || row.body || "")}</p><p className="admin-metric__label">{row.lockedAt ? "Firmada" : "Borrador"} · {String(row.authorName || "")}</p></article>)}
+                  <h2>Notas</h2>
+                  {rows.map((row) => (
+                    <article key={String(row.id)} className="chart-note__past">
+                      <strong>{String(row.title || "Nota")}</strong>
+                      <p>{String(row.body || row.subjective || "")}</p>
+                      <button className="admin-btn" type="button" onClick={async () => {
+                        if (!window.confirm("¿Eliminar esta nota?")) return;
+                        await api(`/api/admin/patients/${id}/notes`, { method: "DELETE", body: JSON.stringify({ id: row.id }) });
+                        setRows(rows.filter((item) => item.id !== row.id));
+                      }}>Eliminar</button>
+                    </article>
+                  ))}
                 </section>
               ) : null}
+            </>
+          ) : null}
+          {folder === "sesiones" ? (
+            <>
+            <form className="chart-block" onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                await api(`/api/admin/patients/${id}/sessions`, { method: "POST", body: JSON.stringify(sessionDraft) });
+                setSessionDraft({ title: "", sessionDate: "", notes: "" });
+                setNotice("Sesión guardada.");
+                const next = await api<{ rows: Record<string, unknown>[] }>(`/api/admin/patients/${id}/sessions`);
+                setRows(next.rows);
+              } catch (err) {
+                setError(err instanceof Error ? err.message : "No se pudo guardar la sesión.");
+              }
+            }}>
+              <div className="admin-toolbar">
+                <input required value={sessionDraft.title} placeholder="Nombre de la sesión" onChange={(e) => setSessionDraft({ ...sessionDraft, title: e.target.value })} />
+                <button className="admin-btn admin-btn--primary" type="submit">Agregar sesión</button>
+              </div>
+            </form>
+            {rows.map((row) => (
+              <SessionCard key={String(row.id)} patientId={id} row={row} onChange={(next) => setRows(rows.map((item) => item.id === row.id ? next : item))} onDelete={() => setRows(rows.filter((item) => item.id !== row.id))} onError={setError} />
+            ))}
+            {!rows.length ? <p className="admin-table__empty">Sin sesiones.</p> : null}
             </>
           ) : null}
           {folder === "alergias" ? (
@@ -594,21 +657,43 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
               ))}
             </form>
           ) : null}
-          {folder === "formularios" ? (
-            <div className="admin-table-wrap">
-              <form className="admin-toolbar" onSubmit={async (e) => {
-                e.preventDefault();
-                await api("/api/admin/forms", { method: "POST", body: JSON.stringify({ action: "assign", templateId, patientId: id }) });
-                setNotice("Formulario asignado. El paciente puede abrirlo desde el enlace del portal.");
-                const next = await api<{ rows: Record<string, unknown>[] }>(`/api/admin/patients/${id}/forms`);
+          {folder === "estudios" ? (
+            <form className="chart-block" onSubmit={async (e) => {
+              e.preventDefault();
+              const data = new FormData(e.currentTarget);
+              data.set("kind", study);
+              try {
+                await api(`/api/admin/patients/${id}/documents`, { method: "POST", body: data });
+                setNotice("PDF guardado.");
+                const next = await api<{ rows: Record<string, unknown>[] }>(`/api/admin/patients/${id}/documents`);
                 setRows(next.rows);
-              }}>
-                <select required value={templateId} onChange={(e) => setTemplateId(e.target.value)}><option value="">Plantilla</option>{templates.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
-                <button className="admin-btn admin-btn--primary" type="submit">Asignar</button>
-              </form>
-              {rows.map((row) => <div key={String(row.id)} className="admin-table__row"><div className="admin-table__cell-title">{String(row.name || "Formulario")}</div><div className="admin-table__cell-sub">{String(row.status || "")}</div></div>)}
-              {!rows.length ? <div className="admin-table__empty">Sin formularios.</div> : null}
-            </div>
+                e.currentTarget.reset();
+              } catch (err) {
+                setError(err instanceof Error ? err.message : "No se pudo guardar el PDF.");
+              }
+            }}>
+              <div className="admin-toolbar">
+                {STUDIES.map(([key, label]) => (
+                  <button key={key} className={`admin-btn${study === key ? " admin-btn--primary" : ""}`} type="button" onClick={() => setStudy(key)}>{label}</button>
+                ))}
+              </div>
+              <div className="admin-toolbar">
+                <input name="title" placeholder="Título del estudio" />
+                <input name="file" type="file" accept="application/pdf,.pdf" required />
+                <button className="admin-btn admin-btn--primary" type="submit">Subir PDF</button>
+              </div>
+              {rows.filter((row) => row.kind === study).map((row) => (
+                <div key={String(row.id)} className="admin-table__row">
+                  {row.missing ? <span>{String(row.title)} · archivo no disponible, vuelve a subirlo</span> : <a href={`/api/admin/documents/${row.id}`}>{String(row.title)}</a>}
+                  <button className="admin-btn" type="button" onClick={async () => {
+                    if (!window.confirm("¿Eliminar este estudio?")) return;
+                    await api(`/api/admin/patients/${id}/documents`, { method: "DELETE", body: JSON.stringify({ id: row.id }) });
+                    setRows(rows.filter((item) => item.id !== row.id));
+                  }}>Eliminar</button>
+                </div>
+              ))}
+              {!rows.some((row) => row.kind === study) ? <p className="admin-table__empty">Sin PDFs en esta carpeta.</p> : null}
+            </form>
           ) : null}
           {(folder === "fotos" || folder === "documentos") ? (
             <form className="chart-block" onSubmit={async (e) => {
@@ -620,7 +705,7 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
               location.reload();
             }}>
               <div className="admin-toolbar"><input name="title" placeholder="Título" /><input name="file" type="file" required /><button className="admin-btn admin-btn--primary" type="submit">Subir</button></div>
-              {rows.filter((row) => folder === "fotos" ? row.is_photo : !row.is_photo).map((row) => (
+              {rows.filter((row) => folder === "fotos" ? row.is_photo : !row.is_photo && !STUDIES.some(([key]) => key === row.kind)).map((row) => (
                 <div key={String(row.id)} className="admin-table__row">
                   {row.missing ? <span>{String(row.title)} · archivo no disponible, vuelve a subirlo</span> : <a href={`/api/admin/documents/${row.id}`}>{String(row.title)}</a>}
                   <button className="admin-btn" type="button" onClick={async () => {
@@ -719,6 +804,35 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
   );
 }
 
+function SessionCard({ patientId, row, onChange, onDelete, onError }: { patientId: string; row: Record<string, unknown>; onChange: (row: Record<string, unknown>) => void; onDelete: () => void; onError: (message: string) => void }) {
+  const [title, setTitle] = useState(String(row.title || ""));
+  const [sessionDate, setSessionDate] = useState(String(row.sessionDate || "").slice(0, 10));
+  const [notes, setNotes] = useState(String(row.notes || ""));
+  return (
+    <form className="chart-block" onSubmit={async (e) => {
+      e.preventDefault();
+      try {
+        await api(`/api/admin/patients/${patientId}/sessions`, { method: "POST", body: JSON.stringify({ id: row.id, title, sessionDate, notes }) });
+        onChange({ ...row, title, sessionDate, notes });
+      } catch (err) {
+        onError(err instanceof Error ? err.message : "No se pudo guardar la sesión.");
+      }
+    }}>
+      <div className="admin-toolbar">
+        <input required value={title} onChange={(e) => setTitle(e.target.value)} />
+        <input type="date" value={sessionDate} onChange={(e) => setSessionDate(e.target.value)} />
+        <button className="admin-btn admin-btn--primary" type="submit">Guardar</button>
+        <button className="admin-btn" type="button" onClick={async () => {
+          if (!window.confirm("¿Eliminar esta sesión?")) return;
+          await api(`/api/admin/patients/${patientId}/sessions`, { method: "DELETE", body: JSON.stringify({ id: row.id }) });
+          onDelete();
+        }}>Eliminar</button>
+      </div>
+      <label className="admin-field">Notas de la sesión<textarea value={notes} onChange={(e) => setNotes(e.target.value)} /></label>
+    </form>
+  );
+}
+
 function PatientSummary({ patient }: { patient: Patient }) {
   const address = [patient.street, patient.city, patient.state, patient.postalCode, patient.country].filter(Boolean).join(", ");
   const facts: [string, unknown][] = [
@@ -727,7 +841,8 @@ function PatientSummary({ patient }: { patient: Patient }) {
     ["Móvil", patient.mobile],
     ["Teléfono", patient.phone],
     ["Nacimiento", patient.birthDate],
-    ["Sexo", sexLabel(patient.sex)],
+    ["Sexo", [sexLabel(patient.sex), patient.sex === "otro" ? patient.sexDetail : ""].filter(Boolean).join(" · ")],
+    ["Contacto de emergencia", [patient.emergencyName, patient.emergencyPhone, patient.emergencyRelation].filter(Boolean).join(" · ")],
     ["Cómo nos descubrieron", patient.marketingSource || "Sin fuente"],
     ["Idioma", patient.preferredLanguage],
     ["Dirección", address],

@@ -15,6 +15,16 @@ export type RegisterProfile = {
   birthDate?: string | null;
   sex?: string | null;
   address?: string | null;
+  street?: string | null;
+  city?: string | null;
+  state?: string | null;
+  postalCode?: string | null;
+  country?: string | null;
+  sexDetail?: string | null;
+  emergencyName?: string | null;
+  emergencyPhone?: string | null;
+  emergencyRelation?: string | null;
+  acceptedPolicies?: boolean | null;
   contactPreference?: string | null;
   referralSource?: string | null;
   referralSourceOther?: string | null;
@@ -42,7 +52,8 @@ function mapSex(value: string | null | undefined) {
   const sex = String(value || "").toLowerCase();
   if (sex === "female" || sex === "femenino") return "femenino";
   if (sex === "male" || sex === "masculino") return "masculino";
-  if (sex === "other" || sex === "otro") return "otro";
+  if (sex === "other" || sex === "otro" || sex === "another") return "otro";
+  if (sex === "prefer_not" || sex === "prefiere_no") return "prefiere_no";
   return null;
 }
 
@@ -93,10 +104,15 @@ async function ensureAccount(patientId: string, email: string) {
 }
 
 async function saveProfile(email: string, profile: RegisterProfile) {
+  if (profile.acceptedPolicies !== true) {
+    throw new DomainError(profile.locale === "en" ? "Read and accept the policies before continuing." : "Lee y acepta las políticas antes de continuar.");
+  }
   const names = splitName(profile.fullName);
   const sex = mapSex(profile.sex);
   const phone = normalizePhone(profile.phone);
+  const emergencyPhone = normalizePhone(profile.emergencyPhone);
   const birth = profile.birthDate && /^\d{4}-\d{2}-\d{2}$/.test(profile.birthDate) ? profile.birthDate : null;
+  const street = profile.street?.trim() || profile.address?.trim() || null;
   const source = await sourceId(profile.referralSource);
   const referred = profile.referralSource === "other" ? profile.referralSourceOther || null : profile.referralSource || null;
   const preference = profile.contactPreference || "";
@@ -107,16 +123,18 @@ async function saveProfile(email: string, profile: RegisterProfile) {
     );
     const inserted = await query<{ id: string }>(
       `INSERT INTO patients (
-         client_code, first_name, last_name, sex, birth_date, preferred_language, marketing_source_id,
-         referred_by_name, email_enc, email_hash, mobile_enc, mobile_hash, street,
-         consent_email, consent_phone, consent_sms
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,true,$14,$15)
+         client_code, first_name, last_name, sex, sex_detail, birth_date, preferred_language, marketing_source_id,
+         referred_by_name, email_enc, email_hash, mobile_enc, mobile_hash, street, city, state, postal_code, country,
+         emergency_name_enc, emergency_phone_enc, emergency_relation,
+         consent_email, consent_phone, consent_sms, privacy_policy_status
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,true,$22,$23,'aceptado')
        RETURNING id`,
       [
         code.rows[0].code,
         names.first,
         names.last,
         sex,
+        sex === "otro" ? profile.sexDetail?.trim() || null : null,
         birth,
         profile.locale === "en" ? "en" : "es",
         source,
@@ -125,7 +143,14 @@ async function saveProfile(email: string, profile: RegisterProfile) {
         contactHash("email", email),
         encryptPhi(phone),
         contactHash("phone", phone),
-        profile.address?.trim() || null,
+        street,
+        profile.city?.trim() || null,
+        profile.state?.trim() || null,
+        profile.postalCode?.trim() || null,
+        profile.country?.trim() || null,
+        encryptPhi(profile.emergencyName?.trim() || null),
+        encryptPhi(emergencyPhone),
+        profile.emergencyRelation?.trim() || null,
         preference === "call",
         preference === "whatsapp",
       ]
@@ -137,13 +162,22 @@ async function saveProfile(email: string, profile: RegisterProfile) {
          first_name = $2,
          last_name = $3,
          sex = COALESCE($4, sex),
-         birth_date = COALESCE($5, birth_date),
-         marketing_source_id = COALESCE($6, marketing_source_id),
-         referred_by_name = COALESCE($7, referred_by_name),
-         mobile_enc = COALESCE($8, mobile_enc),
-         mobile_hash = COALESCE($9, mobile_hash),
-         street = COALESCE($10, street),
+         sex_detail = CASE WHEN $4 = 'otro' THEN $5 ELSE sex_detail END,
+         birth_date = COALESCE($6, birth_date),
+         marketing_source_id = COALESCE($7, marketing_source_id),
+         referred_by_name = COALESCE($8, referred_by_name),
+         mobile_enc = COALESCE($9, mobile_enc),
+         mobile_hash = COALESCE($10, mobile_hash),
+         street = COALESCE($11, street),
+         city = COALESCE($12, city),
+         state = COALESCE($13, state),
+         postal_code = COALESCE($14, postal_code),
+         country = COALESCE($15, country),
+         emergency_name_enc = COALESCE($16, emergency_name_enc),
+         emergency_phone_enc = COALESCE($17, emergency_phone_enc),
+         emergency_relation = COALESCE($18, emergency_relation),
          consent_email = true,
+         privacy_policy_status = 'aceptado',
          updated_at = now()
        WHERE id = $1`,
       [
@@ -151,12 +185,20 @@ async function saveProfile(email: string, profile: RegisterProfile) {
         names.first,
         names.last,
         sex,
+        profile.sexDetail?.trim() || null,
         birth,
         source,
         referred,
         encryptPhi(phone),
         contactHash("phone", phone),
-        profile.address?.trim() || null,
+        street,
+        profile.city?.trim() || null,
+        profile.state?.trim() || null,
+        profile.postalCode?.trim() || null,
+        profile.country?.trim() || null,
+        encryptPhi(profile.emergencyName?.trim() || null),
+        encryptPhi(emergencyPhone),
+        profile.emergencyRelation?.trim() || null,
       ]
     );
   }

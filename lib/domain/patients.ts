@@ -13,6 +13,7 @@ export type PatientInput = {
   firstName: string;
   lastName: string;
   sex?: string | null;
+  sexDetail?: string | null;
   birthDate?: string | null;
   preferredLanguage?: string | null;
   marketingSourceId?: string | null;
@@ -30,11 +31,14 @@ export type PatientInput = {
   consentPhone?: boolean;
   consentPostal?: boolean;
   privacyPolicyStatus?: string | null;
+  emergencyName?: string | null;
+  emergencyPhone?: string | null;
+  emergencyRelation?: string | null;
   tagIds?: string[];
   customFields?: { fieldId: string; value: unknown }[];
 };
 
-const SEX = new Set(["masculino", "femenino", "otro"]);
+const SEX = new Set(["masculino", "femenino", "otro", "prefiere_no"]);
 const PRIVACY = new Set(["sin_respuesta", "aceptado", "rechazado"]);
 
 function mapPatient(row: Record<string, unknown>) {
@@ -47,6 +51,7 @@ function mapPatient(row: Record<string, unknown>) {
     firstName: row.first_name,
     lastName: row.last_name,
     sex: row.sex,
+    sexDetail: row.sex_detail,
     birthDate: row.birth_date,
     preferredLanguage: row.preferred_language,
     marketingSourceId: row.marketing_source_id,
@@ -65,6 +70,9 @@ function mapPatient(row: Record<string, unknown>) {
     consentPhone: row.consent_phone,
     consentPostal: row.consent_postal,
     privacyPolicyStatus: row.privacy_policy_status,
+    emergencyName: decryptPhi(row.emergency_name_enc as Buffer | null),
+    emergencyPhone: decryptPhi(row.emergency_phone_enc as Buffer | null),
+    emergencyRelation: row.emergency_relation,
     createdBy: row.created_by,
     createdAt: row.created_at,
     tags: row.tags ?? [],
@@ -115,7 +123,7 @@ const BASE = `
   LEFT JOIN marketing_sources ms ON ms.id = p.marketing_source_id
 `;
 
-const KNOWN_SEX = `('femenino', 'masculino', 'otro')`;
+const KNOWN_SEX = `('femenino', 'masculino', 'otro', 'prefiere_no')`;
 
 export async function listPatients(url: URL) {
   const { page, pageSize, offset } = pageParams(url);
@@ -451,6 +459,7 @@ export async function listNotes(patientId: string, actor: StaffSession, meta?: {
   });
   return rows.rows.map((row) => ({
     id: row.id,
+    title: row.title,
     appointmentId: row.appointment_id,
     authorName: `${row.first_name || ""} ${row.last_name || ""}`.trim(),
     noteType: row.note_type,
@@ -476,6 +485,7 @@ export async function createNote(
     assessment?: string | null;
     plan?: string | null;
     body?: string | null;
+    title?: string | null;
     lock?: boolean;
   },
   actor: StaffSession
@@ -489,20 +499,21 @@ export async function createNote(
   const inserted = await query<{ id: string }>(
     `INSERT INTO clinical_notes (
        patient_id, appointment_id, author_id, note_type, parent_note_id,
-       subjective_enc, objective_enc, assessment_enc, plan_enc, body_enc, locked_at, signed_by
-     ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10, CASE WHEN $11 THEN now() ELSE NULL END, CASE WHEN $11 THEN $3 ELSE NULL END)
+       subjective_enc, objective_enc, assessment_enc, plan_enc, body_enc, title, locked_at, signed_by
+     ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11, CASE WHEN $12 THEN now() ELSE NULL END, CASE WHEN $12 THEN $3 ELSE NULL END)
      RETURNING id`,
     [
       patientId,
       input.appointmentId ?? null,
       actor.staff.id,
-      input.parentNoteId ? "addendum" : input.noteType || "soap",
+      input.parentNoteId ? "addendum" : input.noteType || "free",
       input.parentNoteId ?? null,
       encryptPhi(input.subjective),
       encryptPhi(input.objective),
       encryptPhi(input.assessment),
       encryptPhi(input.plan),
       encryptPhi(input.body),
+      input.title?.trim() || null,
       Boolean(input.lock),
     ]
   );
@@ -532,5 +543,96 @@ export async function lockNote(id: string, actor: StaffSession) {
     entityType: "clinical_note",
     entityId: id,
     patientId: note.rows[0].patient_id,
+  });
+}
+
+export async function deleteNote(patientId: string, noteId: string, actor: StaffSession) {
+  const deleted = await query<{ id: string }>(
+    `DELETE FROM clinical_notes WHERE id = $1 AND patient_id = $2 RETURNING id`,
+    [noteId, patientId]
+  );
+  if (!deleted.rows[0]) throw new DomainError("Nota no encontrada.", 404);
+  await writeAudit({
+    actorType: "staff",
+    actorId: actor.staff.id,
+    action: "clinical_notes.delete",
+    entityType: "clinical_note",
+    entityId: noteId,
+    patientId,
+  });
+}
+
+export async function listSessions(patientId: string, actor: StaffSession, meta?: { ip?: string | null; userAgent?: string | null }) {
+  const rows = await query(
+    `SELECT id, title, session_date, notes_enc, created_at
+     FROM patient_sessions WHERE patient_id = $1
+     ORDER BY session_date DESC NULLS LAST, created_at DESC`,
+    [patientId]
+  );
+  await writeAudit({
+    actorType: "staff",
+    actorId: actor.staff.id,
+    action: "patient.sessions.view",
+    entityType: "patient",
+    entityId: patientId,
+    patientId,
+    ip: meta?.ip,
+    userAgent: meta?.userAgent,
+  });
+  return rows.rows.map((row) => ({
+    id: row.id,
+    title: row.title,
+    sessionDate: row.session_date,
+    notes: decryptPhi(row.notes_enc as Buffer | null),
+    createdAt: row.created_at,
+  }));
+}
+
+export async function saveSession(
+  patientId: string,
+  input: { id?: string | null; title?: string | null; sessionDate?: string | null; notes?: string | null },
+  actor: StaffSession
+) {
+  const title = String(input.title || "").trim();
+  if (!title) throw new DomainError("El nombre de la sesión es obligatorio.");
+  const date = input.sessionDate && /^\d{4}-\d{2}-\d{2}$/.test(input.sessionDate) ? input.sessionDate : null;
+  if (input.id) {
+    const updated = await query<{ id: string }>(
+      `UPDATE patient_sessions SET title = $3, session_date = $4, notes_enc = $5
+       WHERE id = $1 AND patient_id = $2 RETURNING id`,
+      [input.id, patientId, title, date, encryptPhi(input.notes)]
+    );
+    if (!updated.rows[0]) throw new DomainError("Sesión no encontrada.", 404);
+    return { id: updated.rows[0].id };
+  }
+  const inserted = await query<{ id: string }>(
+    `INSERT INTO patient_sessions (patient_id, title, session_date, notes_enc, recorded_by)
+     VALUES ($1,$2,$3,$4,$5) RETURNING id`,
+    [patientId, title, date, encryptPhi(input.notes), actor.staff.id]
+  );
+  await writeAudit({
+    actorType: "staff",
+    actorId: actor.staff.id,
+    action: "patient.sessions.create",
+    entityType: "session",
+    entityId: inserted.rows[0].id,
+    patientId,
+  });
+  return { id: inserted.rows[0].id };
+}
+
+export async function deleteSession(patientId: string, sessionId: string, actor: StaffSession) {
+  const deleted = await query<{ id: string }>(
+    `DELETE FROM patient_sessions WHERE id = $1 AND patient_id = $2 RETURNING id`,
+    [sessionId, patientId]
+  );
+  if (!deleted.rows[0]) throw new DomainError("Sesión no encontrada.", 404);
+  await writeAudit({
+    actorType: "staff",
+    actorId: actor.staff.id,
+    action: "patient.sessions.delete",
+    entityType: "session",
+    entityId: sessionId,
+    patientId,
   });
 }

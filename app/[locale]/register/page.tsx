@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useLocale } from "next-intl";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import { readMarket, type SiteMarket } from "@/lib/site/market";
 import ThemeProvider from "@/components/theme/ThemeProvider";
 import ThemeSwitcher from "@/components/theme/ThemeSwitcher";
 import Header from "@/components/Header";
@@ -22,8 +23,19 @@ export default function RegisterPage() {
   const [contactPreference, setContactPreference] = useState<
     "email" | "call" | "whatsapp" | ""
   >("");
-  const [address, setAddress] = useState("");
-  const [sex, setSex] = useState<"female" | "male" | "other" | "" >("");
+  const [market, setMarket] = useState<SiteMarket>("MX");
+  const [street, setStreet] = useState("");
+  const [city, setCity] = useState("");
+  const [region, setRegion] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [sex, setSex] = useState<"female" | "male" | "other" | "prefer_not" | "">("");
+  const [sexDetail, setSexDetail] = useState("");
+  const [emergencyName, setEmergencyName] = useState("");
+  const [emergencyPhone, setEmergencyPhone] = useState("");
+  const [emergencyRelation, setEmergencyRelation] = useState("");
+  const [policyRead, setPolicyRead] = useState(false);
+  const [acceptedPolicies, setAcceptedPolicies] = useState(false);
+  const policyRef = useRef<HTMLDivElement>(null);
   const [referralSource, setReferralSource] = useState<
     | "website"
     | "doctor"
@@ -41,6 +53,45 @@ export default function RegisterPage() {
   const [pendingEmail, setPendingEmail] = useState("");
   const [otpCode, setOtpCode] = useState("");
   const [verifying, setVerifying] = useState(false);
+
+  useEffect(() => {
+    setMarket(readMarket());
+  }, []);
+
+  useEffect(() => {
+    const box = policyRef.current;
+    if (box && box.scrollHeight <= box.clientHeight + 12) setPolicyRead(true);
+  }, [locale, market]);
+
+  function markPolicyRead(target: HTMLDivElement) {
+    if (target.scrollTop + target.clientHeight >= target.scrollHeight - 12) setPolicyRead(true);
+  }
+
+  function profilePayload() {
+    const us = market === "US";
+    return {
+      email: email.trim(),
+      fullName: fullName.trim() || null,
+      phone: phone.trim() || null,
+      birthDate: birthDate || null,
+      age: age.trim() || null,
+      contactPreference: contactPreference || null,
+      street: street.trim() || null,
+      city: city.trim() || null,
+      state: region.trim() || null,
+      postalCode: postalCode.trim() || null,
+      country: us ? "US" : "MX",
+      sex: sex || null,
+      sexDetail: sex === "other" ? sexDetail.trim() || null : null,
+      emergencyName: emergencyName.trim() || null,
+      emergencyPhone: emergencyPhone.trim() || null,
+      emergencyRelation: emergencyRelation.trim() || null,
+      acceptedPolicies,
+      referralSource: referralSource || null,
+      referralSourceOther: referralSource === "other" ? referralOther.trim() || null : null,
+      locale,
+    };
+  }
 
   function computeAgeFromBirthDate(iso: string) {
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
@@ -61,6 +112,10 @@ export default function RegisterPage() {
 
   async function handleSendCode(e: React.FormEvent) {
     e.preventDefault();
+    if (!acceptedPolicies) {
+      setError(t("policyRequired"));
+      return;
+    }
     setError(null);
     setLoading(true);
     const response = await fetch("/api/auth/email-code", {
@@ -78,21 +133,7 @@ export default function RegisterPage() {
     setCodeSent(true);
     if (typeof window !== "undefined") {
       try {
-        sessionStorage.setItem(
-          "thrive_pending_profile",
-          JSON.stringify({
-            email: email.trim(),
-            fullName: fullName.trim() || null,
-            phone: phone.trim() || null,
-            birthDate: birthDate || null,
-            age: age.trim() || null,
-            contactPreference: contactPreference || null,
-            address: address.trim() || null,
-            sex: sex || null,
-            referralSource: referralSource || null,
-            referralSourceOther: referralSource === "other" ? referralOther.trim() || null : null,
-          })
-        );
+        sessionStorage.setItem("thrive_pending_profile", JSON.stringify(profilePayload()));
       } catch {
         /* ignore */
       }
@@ -112,17 +153,7 @@ export default function RegisterPage() {
         email: pendingEmail,
         code: otpCode.trim(),
         purpose: "register",
-        profile: {
-          fullName: fullName.trim() || null,
-          phone: phone.trim() || null,
-          birthDate: birthDate || null,
-          sex: sex || null,
-          address: address.trim() || null,
-          contactPreference: contactPreference || null,
-          referralSource: referralSource || null,
-          referralSourceOther: referralSource === "other" ? referralOther.trim() || null : null,
-          locale,
-        },
+        profile: profilePayload(),
       }),
     });
     const body = (await response.json().catch(() => ({}))) as { error?: string };
@@ -246,18 +277,22 @@ export default function RegisterPage() {
             <option value="whatsapp">{t("contactWhatsapp")}</option>
           </select>
         </div>
-        <div>
-          <label htmlFor="address" className="block text-base font-medium text-muted mb-2">
-            {t("address")}
-          </label>
-          <input
-            id="address"
-            type="text"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]"
-            placeholder={t("addressPlaceholder")}
-          />
+        <div className="space-y-4">
+          <label htmlFor="street" className="block text-base font-medium text-muted mb-2">{t("address")}</label>
+          <input id="street" value={street} onChange={(e) => setStreet(e.target.value)} className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]" placeholder={market === "US" ? t("addressStreetUs") : t("addressPlaceholder")} />
+          {market === "US" ? (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <input aria-label={t("addressCity")} value={city} onChange={(e) => setCity(e.target.value)} placeholder={t("addressCity")} className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]" />
+              <input aria-label={t("addressState")} value={region} onChange={(e) => setRegion(e.target.value)} placeholder={t("addressState")} className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]" />
+              <input aria-label={t("addressZip")} value={postalCode} onChange={(e) => setPostalCode(e.target.value)} placeholder={t("addressZip")} className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <input aria-label={t("addressPostal")} value={postalCode} onChange={(e) => setPostalCode(e.target.value)} placeholder={t("addressPostal")} className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]" />
+              <input aria-label={t("addressCity")} value={city} onChange={(e) => setCity(e.target.value)} placeholder={t("addressCity")} className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]" />
+              <input aria-label={t("addressState")} value={region} onChange={(e) => setRegion(e.target.value)} placeholder={t("addressState")} className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]" />
+            </div>
+          )}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -273,7 +308,8 @@ export default function RegisterPage() {
               <option value="">{t("selectOption")}</option>
               <option value="female">{t("sexFemale")}</option>
               <option value="male">{t("sexMale")}</option>
-              <option value="other">{t("sexOther")}</option>
+              <option value="other">{t("sexAnother")}</option>
+              <option value="prefer_not">{t("sexPreferNot")}</option>
             </select>
           </div>
           <div>
@@ -297,6 +333,39 @@ export default function RegisterPage() {
             </select>
           </div>
         </div>
+        {sex === "other" ? (
+          <div>
+            <label htmlFor="sexDetail" className="block text-base font-medium text-muted mb-2">{t("sexDetail")}</label>
+            <input id="sexDetail" value={sexDetail} onChange={(e) => setSexDetail(e.target.value)} className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]" placeholder={t("sexDetail")} />
+          </div>
+        ) : null}
+        <fieldset className="space-y-4">
+          <legend className="text-base font-medium text-muted mb-2">{t("emergencyTitle")}</legend>
+          <input aria-label={t("emergencyName")} value={emergencyName} onChange={(e) => setEmergencyName(e.target.value)} placeholder={t("emergencyName")} className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]" />
+          <input aria-label={t("emergencyPhone")} type="tel" value={emergencyPhone} onChange={(e) => setEmergencyPhone(e.target.value)} placeholder={t("emergencyPhone")} className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]" />
+          <input aria-label={t("emergencyRelation")} value={emergencyRelation} onChange={(e) => setEmergencyRelation(e.target.value)} placeholder={t("emergencyRelation")} className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]" />
+        </fieldset>
+        <div>
+          <p className="text-base font-medium text-muted mb-2">{t("policyTitle")}</p>
+          <p className="text-sm text-muted mb-2">{t("policyHint")}</p>
+          <div
+            ref={policyRef}
+            onScroll={(e) => markPolicyRead(e.currentTarget)}
+            className="max-h-40 overflow-y-auto rounded-xl border border-theme bg-surface px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap"
+          >
+            {t("policyBody")}
+          </div>
+          <label className="mt-3 flex items-start gap-3 text-sm">
+            <input
+              type="checkbox"
+              className="mt-1"
+              checked={acceptedPolicies}
+              disabled={!policyRead}
+              onChange={(e) => setAcceptedPolicies(e.target.checked)}
+            />
+            <span>{t("policyAccept")}</span>
+          </label>
+        </div>
         {referralSource === "other" && (
           <div>
             <label htmlFor="referralOther" className="block text-base font-medium text-muted mb-2">
@@ -314,7 +383,7 @@ export default function RegisterPage() {
         )}
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !acceptedPolicies}
           className="btn-primary w-full rounded-xl px-5 py-4 text-base md:text-lg font-medium disabled:opacity-60"
         >
           {loading ? t("submittingRegister") : t("submitRegister")}

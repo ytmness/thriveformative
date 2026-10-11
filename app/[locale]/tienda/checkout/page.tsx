@@ -321,29 +321,48 @@ function CheckoutContent() {
                         <span>{t("addressLine")}</span>
                         <input value={line1} autoComplete="address-line1" onChange={(event) => setLine1(event.target.value)} />
                       </label>
-                      <div className="tienda-fulfill__pair">
-                        <label className="tienda-fulfill__field">
-                          <span>{t("city")}</span>
-                          <input value={city} autoComplete="address-level2" onChange={(event) => setCity(event.target.value)} />
-                        </label>
-                        <label className="tienda-fulfill__field">
-                          <span>{t("state")}</span>
-                          <input value={state} autoComplete="address-level1" onChange={(event) => setState(event.target.value)} />
-                        </label>
-                      </div>
-                      <div className="tienda-fulfill__pair">
-                        <label className="tienda-fulfill__field">
-                          <span>{t("postalCode")}</span>
-                          <input value={postalCode} autoComplete="postal-code" inputMode="text" onChange={(event) => setPostalCode(event.target.value)} />
-                        </label>
-                        <label className="tienda-fulfill__field">
-                          <span>{t("country")}</span>
-                          <select value={country} autoComplete="country" onChange={(event) => setCountry(event.target.value === "US" ? "US" : "MX")}>
-                            <option value="MX">{t("countryMx")}</option>
-                            <option value="US">{t("countryUs")}</option>
-                          </select>
-                        </label>
-                      </div>
+                      {country === "US" ? (
+                        <>
+                          <div className="tienda-fulfill__pair">
+                            <label className="tienda-fulfill__field">
+                              <span>{t("city")}</span>
+                              <input value={city} autoComplete="address-level2" onChange={(event) => setCity(event.target.value)} />
+                            </label>
+                            <label className="tienda-fulfill__field">
+                              <span>{t("state")}</span>
+                              <input value={state} autoComplete="address-level1" onChange={(event) => setState(event.target.value)} />
+                            </label>
+                          </div>
+                          <label className="tienda-fulfill__field">
+                            <span>{t("zipCode")}</span>
+                            <input value={postalCode} autoComplete="postal-code" inputMode="text" onChange={(event) => setPostalCode(event.target.value)} />
+                          </label>
+                        </>
+                      ) : (
+                        <>
+                          <label className="tienda-fulfill__field">
+                            <span>{t("postalCode")}</span>
+                            <input value={postalCode} autoComplete="postal-code" inputMode="text" onChange={(event) => setPostalCode(event.target.value)} />
+                          </label>
+                          <div className="tienda-fulfill__pair">
+                            <label className="tienda-fulfill__field">
+                              <span>{t("city")}</span>
+                              <input value={city} autoComplete="address-level2" onChange={(event) => setCity(event.target.value)} />
+                            </label>
+                            <label className="tienda-fulfill__field">
+                              <span>{t("state")}</span>
+                              <input value={state} autoComplete="address-level1" onChange={(event) => setState(event.target.value)} />
+                            </label>
+                          </div>
+                        </>
+                      )}
+                      <label className="tienda-fulfill__field">
+                        <span>{t("country")}</span>
+                        <select value={country} autoComplete="country" onChange={(event) => setCountry(event.target.value === "US" ? "US" : "MX")}>
+                          <option value="MX">{t("countryMx")}</option>
+                          <option value="US">{t("countryUs")}</option>
+                        </select>
+                      </label>
                     </>
                   ) : null}
                   {!fulfillment ? <p className="tienda-detail__disclaimer">{t("deliveryHint")}</p> : null}
