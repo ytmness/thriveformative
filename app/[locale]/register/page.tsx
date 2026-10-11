@@ -458,9 +458,9 @@ export default function RegisterPage() {
             <input id="postalCode" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} autoComplete="postal-code" className={fieldClass} />
           </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-[8.75rem_minmax(0,1fr)] gap-4 items-end">
           <div className="min-w-0">
-            <label htmlFor="sex" className="auth-label-equal block text-base font-medium text-muted mb-2">
+            <label htmlFor="sex" className="block whitespace-nowrap text-base font-medium text-muted mb-2">
               {t("sex")}
             </label>
             <select
@@ -476,8 +476,8 @@ export default function RegisterPage() {
               <option value="prefer_not">{t("sexPreferNot")}</option>
             </select>
           </div>
-          <div className="min-w-0 sm:col-span-2">
-            <label htmlFor="referralSource" className="block text-base font-medium text-muted mb-2">
+          <div className="min-w-0">
+            <label htmlFor="referralSource" className="block whitespace-nowrap text-base font-medium text-muted mb-2">
               {t("referralSource")}
             </label>
             <select
@@ -624,7 +624,7 @@ export default function RegisterPage() {
           transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
           className="flex-1 flex items-center justify-center md:justify-end px-6 py-12 md:pr-96 md:pl-8 relative z-10"
         >
-          <div className="w-full max-w-md md:max-w-lg">
+          <div className="w-full max-w-md md:max-w-xl">
             {formContent}
             <p className="mt-8 text-center md:text-left text-muted text-base">
               {t("hasAccount")}{" "}
