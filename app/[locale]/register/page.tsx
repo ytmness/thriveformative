@@ -24,6 +24,7 @@ export default function RegisterPage() {
     "email" | "call" | "whatsapp" | ""
   >("");
   const [market, setMarket] = useState<SiteMarket>("MX");
+  const usAddress = market === "US" || locale === "en";
   const [street, setStreet] = useState("");
   const [city, setCity] = useState("");
   const [region, setRegion] = useState("");
@@ -68,7 +69,7 @@ export default function RegisterPage() {
   }
 
   function profilePayload() {
-    const us = market === "US";
+    const us = usAddress;
     return {
       email: email.trim(),
       fullName: fullName.trim() || null,
@@ -279,8 +280,8 @@ export default function RegisterPage() {
         </div>
         <div className="space-y-4">
           <label htmlFor="street" className="block text-base font-medium text-muted mb-2">{t("address")}</label>
-          <input id="street" value={street} onChange={(e) => setStreet(e.target.value)} className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]" placeholder={market === "US" ? t("addressStreetUs") : t("addressPlaceholder")} />
-          {market === "US" ? (
+          <input id="street" value={street} onChange={(e) => setStreet(e.target.value)} className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]" placeholder={usAddress ? t("addressStreetUs") : t("addressPlaceholder")} />
+          {usAddress ? (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <input aria-label={t("addressCity")} value={city} onChange={(e) => setCity(e.target.value)} placeholder={t("addressCity")} className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]" />
               <input aria-label={t("addressState")} value={region} onChange={(e) => setRegion(e.target.value)} placeholder={t("addressState")} className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]" />
