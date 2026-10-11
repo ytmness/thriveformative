@@ -182,14 +182,14 @@ export default function RegisterPage() {
       firstName: firstName.trim() || null,
       middleName: middleName.trim() || null,
       paternalSurname: paternalSurname.trim() || null,
-      maternalSurname: maternalSurname.trim() || null,
+      maternalSurname: usAddress ? null : maternalSurname.trim() || null,
       phone: withCallingCode(phone, phoneCountry),
       birthDate: birthIso || null,
       age: age.trim() || null,
       contactPreference: contactPreference || null,
       street: street.trim() || null,
       streetNumber: streetNumber.trim() || null,
-      neighborhood: neighborhood.trim() || null,
+      neighborhood: usAddress ? null : neighborhood.trim() || null,
       city: city.trim() || null,
       state: region.trim() || null,
       postalCode: postalCode.trim() || null,
@@ -312,14 +312,16 @@ export default function RegisterPage() {
             <label htmlFor="middleName" className="block text-base font-medium text-muted mb-2">{t("middleName")}</label>
             <input id="middleName" type="text" value={middleName} onChange={(e) => setMiddleName(e.target.value)} autoComplete="additional-name" className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]" placeholder={t("middleNamePlaceholder")} />
           </div>
-          <div>
-            <label htmlFor="paternalSurname" className="block text-base font-medium text-muted mb-2">{t("paternalSurname")}</label>
-            <input id="paternalSurname" type="text" value={paternalSurname} onChange={(e) => setPaternalSurname(e.target.value)} required autoComplete="family-name" className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]" placeholder={t("paternalSurnamePlaceholder")} />
+          <div className={usAddress ? "sm:col-span-2" : undefined}>
+            <label htmlFor="paternalSurname" className="block text-base font-medium text-muted mb-2">{usAddress ? t("lastName") : t("paternalSurname")}</label>
+            <input id="paternalSurname" type="text" value={paternalSurname} onChange={(e) => setPaternalSurname(e.target.value)} required autoComplete="family-name" className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]" placeholder={usAddress ? t("lastNamePlaceholder") : t("paternalSurnamePlaceholder")} />
           </div>
+          {usAddress ? null : (
           <div>
             <label htmlFor="maternalSurname" className="block text-base font-medium text-muted mb-2">{t("maternalSurname")}</label>
             <input id="maternalSurname" type="text" value={maternalSurname} onChange={(e) => setMaternalSurname(e.target.value)} className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]" placeholder={t("maternalSurnamePlaceholder")} />
           </div>
+          )}
         </div>
         <div>
           <label htmlFor="email" className="block text-base font-medium text-muted mb-2">
@@ -421,18 +423,28 @@ export default function RegisterPage() {
           </select>
         </div>
         <div className="space-y-4">
+          {usAddress ? (
+            <div>
+              <label htmlFor="streetNumber" className="block text-base font-medium text-muted mb-2">{t("addressNumber")}</label>
+              <input id="streetNumber" value={streetNumber} onChange={(e) => setStreetNumber(e.target.value)} className={fieldClass} />
+            </div>
+          ) : null}
           <div>
             <label htmlFor="street" className="block text-base font-medium text-muted mb-2">{t("addressStreet")}</label>
             <input id="street" value={street} onChange={(e) => setStreet(e.target.value)} autoComplete="address-line1" className={fieldClass} />
           </div>
-          <div>
-            <label htmlFor="streetNumber" className="block text-base font-medium text-muted mb-2">{t("addressNumber")}</label>
-            <input id="streetNumber" value={streetNumber} onChange={(e) => setStreetNumber(e.target.value)} className={fieldClass} />
-          </div>
-          <div>
-            <label htmlFor="neighborhood" className="block text-base font-medium text-muted mb-2">{t("addressNeighborhood")}</label>
-            <input id="neighborhood" value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)} className={fieldClass} />
-          </div>
+          {usAddress ? null : (
+            <div>
+              <label htmlFor="streetNumber" className="block text-base font-medium text-muted mb-2">{t("addressNumber")}</label>
+              <input id="streetNumber" value={streetNumber} onChange={(e) => setStreetNumber(e.target.value)} className={fieldClass} />
+            </div>
+          )}
+          {usAddress ? null : (
+            <div>
+              <label htmlFor="neighborhood" className="block text-base font-medium text-muted mb-2">{t("addressNeighborhood")}</label>
+              <input id="neighborhood" value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)} className={fieldClass} />
+            </div>
+          )}
           <div>
             <label htmlFor="city" className="block text-base font-medium text-muted mb-2">{t("addressCity")}</label>
             <input id="city" value={city} onChange={(e) => setCity(e.target.value)} autoComplete="address-level2" className={fieldClass} />

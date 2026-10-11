@@ -332,6 +332,8 @@
     "firstNamePlaceholder": "Mary",
     "middleName": "Middle name",
     "middleNamePlaceholder": "Ann",
+    "lastName": "Last name",
+    "lastNamePlaceholder": "Smith",
     "paternalSurname": "Paternal last name",
     "paternalSurnamePlaceholder": "García",
     "maternalSurname": "Maternal last name",

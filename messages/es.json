@@ -332,6 +332,8 @@
     "firstNamePlaceholder": "María",
     "middleName": "Segundo nombre",
     "middleNamePlaceholder": "José",
+    "lastName": "Apellido",
+    "lastNamePlaceholder": "García",
     "paternalSurname": "Apellido paterno",
     "paternalSurnamePlaceholder": "García",
     "maternalSurname": "Apellido materno",

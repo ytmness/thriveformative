@@ -37,15 +37,12 @@ export default function StorePanel({ siteLocale }: Props) {
     saveDraft,
     deleteProduct,
     deleteCategory,
-    renameCategory,
     addCategory,
     togglePublished,
     startNewProduct,
     startEditProduct,
     suggestRefFromName,
   } = useStoreAdmin(siteLocale as Locale, scope.country);
-  const [editingCat, setEditingCat] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState("");
 
   if (loading) {
     return <div className="mt-10 animate-pulse h-48 bg-surface rounded-2xl border border-theme" />;
@@ -87,91 +84,7 @@ export default function StorePanel({ siteLocale }: Props) {
         <div className={`admin-cms__msg admin-cms__msg--${message.type}`}>{message.text}</div>
       )}
 
-      <div className="admin-cms__card" data-tour="store-cats">
-        <h2 className="text-lg font-semibold mb-4">Categorías ({categories.length})</h2>
-
-        <div className="flex flex-wrap gap-2 mb-4">
-          <input
-            className="flex-1 min-w-[12rem] rounded-xl border border-theme bg-[rgb(var(--bg)/0.35)] px-3 py-2 text-sm"
-            value={categoryName}
-            placeholder="Nueva categoría (ej. Suplementos)"
-            onChange={(e) => setCategoryName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                void addCategory();
-              }
-            }}
-          />
-          <button
-            type="button"
-            className="admin-cms__btn"
-            disabled={saving || !categoryName.trim()}
-            onClick={() => void addCategory()}
-          >
-            Añadir categoría
-          </button>
-        </div>
-
-        {categories.length === 0 ? (
-          <p className="text-muted text-sm">Sin categorías. Los productos pueden quedar sin categoría.</p>
-        ) : (
-          <ul className="flex flex-wrap gap-2">
-            {categories.map((cat) => (
-              <li
-                key={cat.id}
-                className="inline-flex items-center gap-2 rounded-full border border-theme bg-[rgb(var(--bg)/0.35)] px-3 py-1.5 text-sm"
-              >
-                {editingCat === cat.id ? (
-                  <input
-                    className="rounded-lg border border-theme bg-transparent px-2 py-0.5 text-sm"
-                    value={editingName}
-                    onChange={(e) => setEditingName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        void renameCategory(cat.id, editingName).then((ok) => { if (ok) setEditingCat(null); });
-                      }
-                    }}
-                  />
-                ) : (
-                  <span>{cat.name}</span>
-                )}
-                <span className="text-muted text-xs">/{cat.slug}</span>
-                <button
-                  type="button"
-                  className="text-xs font-medium"
-                  disabled={saving}
-                  onClick={() => {
-                    if (editingCat === cat.id) {
-                      void renameCategory(cat.id, editingName).then((ok) => { if (ok) setEditingCat(null); });
-                      return;
-                    }
-                    setEditingCat(cat.id);
-                    setEditingName(cat.name);
-                  }}
-                >
-                  {editingCat === cat.id ? "Guardar" : "Editar"}
-                </button>
-                <button
-                  type="button"
-                  className="text-red-600 hover:opacity-80 text-xs font-medium ml-1"
-                  disabled={saving}
-                  onClick={() => {
-                    if (window.confirm(`¿Eliminar categoría "${cat.name}"? Los productos quedarán sin categoría.`)) {
-                      void deleteCategory(cat.id);
-                    }
-                  }}
-                >
-                  Eliminar
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      <div className="store-composer-wrap mt-6" data-tour="store-form">
+      <div className="store-composer-wrap" data-tour="store-form">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <h2 className="admin-header__title" style={{ fontSize: "1.65rem" }}>
             {isEditing ? "Editar producto" : "Crear producto"}
@@ -193,6 +106,10 @@ export default function StorePanel({ siteLocale }: Props) {
           onChange={updateDraft}
           onSave={() => void saveDraft()}
           suggestRefFromName={suggestRefFromName}
+          categoryName={categoryName}
+          onCategoryName={setCategoryName}
+          onAddCategory={() => addCategory()}
+          onDeleteCategory={(id) => deleteCategory(id)}
         />
       </div>
 
@@ -306,6 +223,10 @@ function ProductForm({
   onChange,
   onSave,
   suggestRefFromName,
+  categoryName,
+  onCategoryName,
+  onAddCategory,
+  onDeleteCategory,
 }: {
   locale: Locale;
   country: string;
@@ -316,6 +237,10 @@ function ProductForm({
   onChange: (patch: Partial<typeof draft>) => void;
   onSave: () => void;
   suggestRefFromName: (name: string) => string;
+  categoryName: string;
+  onCategoryName: (name: string) => void;
+  onAddCategory: () => Promise<boolean>;
+  onDeleteCategory: (id: string) => Promise<boolean>;
 }) {
   const fresh = draft.id === "draft" && !draft.name && !(draft.referral_url || "").trim() && draft.price_min == null && productImageList(draft).length === 0;
   const [offer, setOffer] = useState<"tienda" | "enlace">((draft.referral_url || "").trim() ? "enlace" : "tienda");
@@ -432,7 +357,7 @@ function ProductForm({
           </select>
         </section>
 
-        <section className="store-side">
+        <section className="store-side" data-tour="store-cats">
           <h3>Categoría</h3>
           <select
             value={draft.category_id ?? ""}
@@ -443,6 +368,40 @@ function ProductForm({
               <option key={cat.id} value={cat.id}>{cat.name}</option>
             ))}
           </select>
+          <div className="store-side__actions">
+            <div className="store-side__new">
+              <input
+                value={categoryName}
+                placeholder="Nueva categoría"
+                aria-label="Nueva categoría"
+                onChange={(e) => onCategoryName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    void onAddCategory();
+                  }
+                }}
+              />
+              <button type="button" disabled={saving || !categoryName.trim()} onClick={() => void onAddCategory()}>
+                Agregar
+              </button>
+            </div>
+            {draft.category_id ? (
+              <button
+                type="button"
+                className="store-side__danger"
+                disabled={saving}
+                onClick={() => {
+                  const current = categories.find((cat) => cat.id === draft.category_id);
+                  if (window.confirm(`¿Eliminar la categoría "${current?.name || ""}"? Los productos quedarán sin categoría.`)) {
+                    void onDeleteCategory(draft.category_id as string);
+                  }
+                }}
+              >
+                Eliminar categoría
+              </button>
+            ) : null}
+          </div>
         </section>
 
         <section className="store-side">

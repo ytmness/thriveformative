@@ -298,6 +298,7 @@ export function useStoreAdmin(initialLocale: Locale, country: string) {
       setCategories((prev) =>
         [...prev, data].sort((a, b) => a.sort_order - b.sort_order)
       );
+      setDraft((prev) => ({ ...prev, category_id: data.id, category: data }));
       setCategoryName("");
       setMessage({ type: "ok", text: "Categoría añadida." });
       return true;

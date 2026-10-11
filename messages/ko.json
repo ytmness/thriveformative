@@ -331,6 +331,8 @@
     "firstNamePlaceholder": "María",
     "middleName": "가운데 이름",
     "middleNamePlaceholder": "José",
+    "lastName": "성",
+    "lastNamePlaceholder": "Smith",
     "paternalSurname": "아버지 성",
     "paternalSurnamePlaceholder": "García",
     "maternalSurname": "어머니 성",
