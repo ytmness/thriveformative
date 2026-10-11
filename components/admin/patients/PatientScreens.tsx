@@ -666,12 +666,12 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
               data.set("kind", study);
               try {
                 await api(`/api/admin/patients/${id}/documents`, { method: "POST", body: data });
-                setNotice("PDF guardado.");
+                setNotice("Archivo guardado.");
                 const next = await api<{ rows: Record<string, unknown>[] }>(`/api/admin/patients/${id}/documents`);
                 setRows(next.rows);
                 form.reset();
               } catch (err) {
-                setError(err instanceof Error ? err.message : "No se pudo guardar el PDF.");
+                setError(err instanceof Error ? err.message : "No se pudo guardar el archivo.");
               }
             }}>
               <div className="admin-toolbar">
@@ -681,8 +681,8 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
               </div>
               <div className="admin-toolbar">
                 <input name="title" placeholder="Título del estudio" />
-                <input name="file" type="file" accept="application/pdf,.pdf" required />
-                <button className="admin-btn admin-btn--primary" type="submit">Subir PDF</button>
+                <input name="file" type="file" accept="application/pdf,.pdf,image/jpeg,image/png,.jpg,.jpeg,.png" required />
+                <button className="admin-btn admin-btn--primary" type="submit">Subir archivo</button>
               </div>
               {rows.filter((row) => row.kind === study).map((row) => (
                 <div key={String(row.id)} className="admin-table__row">
@@ -694,7 +694,7 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
                   }}>Eliminar</button>
                 </div>
               ))}
-              {!rows.some((row) => row.kind === study) ? <p className="admin-table__empty">Sin PDFs en esta carpeta.</p> : null}
+              {!rows.some((row) => row.kind === study) ? <p className="admin-table__empty">Sin archivos en esta carpeta.</p> : null}
             </form>
           ) : null}
           {(folder === "fotos" || folder === "documentos") ? (
@@ -859,7 +859,7 @@ function SessionCard({ patientId, row, onChange, onDelete, onError }: { patientI
       timerStarted: Boolean(saved.timerStarted || row.timerStarted || startTimer),
       sessionDate: saved.sessionDate || row.sessionDate,
     });
-    setStatus(runningRef.current ? "Guardado · el tiempo sigue" : "Guardado");
+    setStatus(runningRef.current ? "Notas guardadas" : "Tiempo guardado");
   }
 
   persistRef.current = persist;
@@ -906,24 +906,19 @@ function SessionCard({ patientId, row, onChange, onDelete, onError }: { patientI
   return (
     <form className="chart-block" onSubmit={async (e) => {
       e.preventDefault();
+      if (!runningRef.current) {
+        runningRef.current = true;
+        setRunning(true);
+        setStatus("");
+        return;
+      }
+      runningRef.current = false;
+      setRunning(false);
       try {
-        const start = !runningRef.current && notesRef.current.trim().length > 0;
-        if (start) {
-          runningRef.current = true;
-          setRunning(true);
-        } else if (!notesRef.current.trim() && !runningRef.current) {
-          setStatus("Escribe una nota y guarda para empezar el tiempo.");
-        }
-        try {
-          await persist(start);
-        } catch (err) {
-          if (start) {
-            runningRef.current = false;
-            setRunning(false);
-          }
-          throw err;
-        }
+        await persist(true);
       } catch (err) {
+        runningRef.current = true;
+        setRunning(true);
         onError(err instanceof Error ? err.message : "No se pudo guardar la sesión.");
       }
     }}>
@@ -931,7 +926,7 @@ function SessionCard({ patientId, row, onChange, onDelete, onError }: { patientI
         <input required value={title} aria-label="Nombre de la sesión" onChange={(e) => setTitle(e.target.value)} />
         <span className="admin-metric__label">{sessionDate ? new Date(`${sessionDate}T12:00:00`).toLocaleDateString("es-MX", { dateStyle: "medium" }) : "Hoy"}</span>
         <span className={`session-clock${running ? " session-clock--live" : ""}`} aria-live="polite">{formatClock(seconds)}</span>
-        <button className="admin-btn admin-btn--primary" type="submit">Guardar</button>
+        <button className="admin-btn admin-btn--primary" type="submit">{running ? "Guardar" : "Empezar"}</button>
         <button className="admin-btn" type="button" onClick={async () => {
           if (!window.confirm("¿Eliminar esta sesión?")) return;
           await api(`/api/admin/patients/${patientId}/sessions`, { method: "DELETE", body: JSON.stringify({ id: row.id }) });
@@ -939,7 +934,7 @@ function SessionCard({ patientId, row, onChange, onDelete, onError }: { patientI
         }}>Eliminar</button>
       </div>
       <p className="admin-metric__label">
-        {running ? "En curso" : started ? "En pausa. Guardar continúa el tiempo." : "La fecha es de hoy. El tiempo empieza al guardar, después de escribir."}
+        {running ? "En curso. Guardar termina la sesión y deja el tiempo guardado." : started ? "Tiempo guardado. Empezar vuelve a cronometrar." : "Empezar cronometra la sesión. Guardar la termina."}
         {status ? ` · ${status}` : ""}
       </p>
       <label className="admin-field">Notas de la sesión<textarea value={notes} onChange={(e) => setNotes(e.target.value)} /></label>

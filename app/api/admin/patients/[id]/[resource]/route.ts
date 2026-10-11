@@ -100,8 +100,11 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string; re
       if (!(file instanceof File)) throw new DomainError("Adjunta un archivo.");
       if (file.size > 32 * 1024 * 1024) throw new DomainError("El archivo supera 32 MB.");
       const kind = String(form.get("kind") || "document");
-      const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
-      if (STUDY_KINDS.has(kind) && !isPdf) throw new DomainError("Los estudios clínicos se guardan en PDF.");
+      const filename = file.name.toLowerCase();
+      const studyFile = file.type === "application/pdf" || filename.endsWith(".pdf")
+        || file.type === "image/jpeg" || filename.endsWith(".jpg") || filename.endsWith(".jpeg")
+        || file.type === "image/png" || filename.endsWith(".png");
+      if (STUDY_KINDS.has(kind) && !studyFile) throw new DomainError("Los estudios clínicos aceptan PDF, JPG y PNG.");
       const buffer = Buffer.from(await file.arrayBuffer());
       const storage = await savePrivateFile(id, file.name, buffer);
       const isPhoto = !STUDY_KINDS.has(kind) && (file.type.startsWith("image/") || form.get("isPhoto") === "1");

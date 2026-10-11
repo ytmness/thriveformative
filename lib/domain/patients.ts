@@ -606,7 +606,7 @@ export async function saveSession(
   if (!title) throw new DomainError("El nombre de la sesión es obligatorio.");
   const date = input.sessionDate && /^\d{4}-\d{2}-\d{2}$/.test(input.sessionDate) ? input.sessionDate : null;
   const duration = Math.max(0, Math.min(18 * 3600, Math.round(Number(input.durationSeconds || 0))));
-  const startTimer = Boolean(input.startTimer) && Boolean(String(input.notes || "").trim());
+  const startTimer = Boolean(input.startTimer);
   if (input.id) {
     const updated = await query<{ id: string; duration_seconds: number; timer_started: boolean; session_date: string }>(
       `UPDATE patient_sessions SET
