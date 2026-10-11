@@ -476,15 +476,15 @@ export default function RegisterPage() {
               <option value="prefer_not">{t("sexPreferNot")}</option>
             </select>
           </div>
-          <div className="min-w-0">
-            <label htmlFor="referralSource" className="auth-label-equal block text-base font-medium text-muted mb-2">
+          <div className="min-w-0 sm:col-span-2">
+            <label htmlFor="referralSource" className="block text-base font-medium text-muted mb-2">
               {t("referralSource")}
             </label>
             <select
               id="referralSource"
               value={referralSource}
               onChange={(e) => setReferralSource(e.target.value as typeof referralSource)}
-              className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]"
+              className="w-full min-w-0 rounded-xl border border-theme bg-surface px-3 py-4 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]"
             >
               <option value="">{t("selectOption")}</option>
               <option value="website">{t("refWebsite")}</option>

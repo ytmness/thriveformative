@@ -59,7 +59,14 @@ export default function NotificationBell({ variant = "site" }: { variant?: "site
     setNotifications((prev) => prev.map((item) => (item.id === id ? { ...item, read_at: new Date().toISOString() } : item)));
   }
 
-  const label = unreadCount > 0 ? `${unreadCount} notificaciones sin leer` : "Notificaciones";
+  const english = variant === "site" && locale === "en";
+  const label = english
+    ? unreadCount > 0
+      ? `${unreadCount} unread notifications`
+      : "Notifications"
+    : unreadCount > 0
+      ? `${unreadCount} notificaciones sin leer`
+      : "Notificaciones";
   const sitePanel = "absolute right-0 mt-2 w-80 max-h-[min(24rem,70vh)] overflow-auto rounded-xl border border-theme bg-[rgb(var(--bg))] shadow-lg z-50";
 
   return (
@@ -83,15 +90,15 @@ export default function NotificationBell({ variant = "site" }: { variant?: "site
       </button>
       {open ? (
         <div className={variant === "admin" ? "admin-bell__panel" : sitePanel}>
-          <div className={variant === "admin" ? "admin-bell__head" : "p-3 border-b border-theme font-medium text-sm"}>Notificaciones</div>
+          <div className={variant === "admin" ? "admin-bell__head" : "p-3 border-b border-theme font-medium text-sm"}>{english ? "Notifications" : "Notificaciones"}</div>
           <div>
             {variant === "site" && !user ? (
               <div className="p-4 text-sm">
-                <a href={`/${locale}/login`} className="text-[rgb(var(--primary))] hover:underline">Inicia sesión</a>
-                <span className="text-muted"> para ver los avisos de tus citas.</span>
+                <a href={`/${locale}/login`} className="text-[rgb(var(--primary))] hover:underline">{english ? "Sign in" : "Inicia sesión"}</a>
+                <span className="text-muted">{english ? " to see your appointment notices." : " para ver los avisos de tus citas."}</span>
               </div>
             ) : notifications.length === 0 ? (
-              <div className={variant === "admin" ? "admin-bell__empty" : "p-4 text-sm text-muted"}>No hay notificaciones.</div>
+              <div className={variant === "admin" ? "admin-bell__empty" : "p-4 text-sm text-muted"}>{english ? "No notifications." : "No hay notificaciones."}</div>
             ) : (
               notifications.map((item) => (
                 <div key={item.id} className={variant === "admin" ? `admin-bell__item${!item.read_at ? " is-unread" : ""}` : `p-3 text-sm ${!item.read_at ? "bg-[rgb(var(--primary)/0.08)]" : ""}`}>
@@ -102,7 +109,7 @@ export default function NotificationBell({ variant = "site" }: { variant?: "site
                   </div>
                   {!item.read_at ? (
                     <button type="button" onClick={() => markRead(item.id)} className={variant === "admin" ? "admin-bell__read" : "mt-2 text-xs text-[rgb(var(--primary))] hover:underline"}>
-                      Marcar leído
+                      {english ? "Mark as read" : "Marcar leído"}
                     </button>
                   ) : null}
                 </div>

@@ -7,10 +7,10 @@ import { formatDate, formatHm } from "@/lib/scheduling/time";
 
 type Kind = "pending" | "confirmed" | "cancelled";
 
-const COPY: Record<Kind, { type: string; title: string; patientTitle: string; email: "appointment_pending" | "appointment_confirmed" | "appointment_cancelled" }> = {
-  pending: { type: "appointment_pending", title: "Nueva cita por confirmar", patientTitle: "Cita agendada", email: "appointment_pending" },
-  confirmed: { type: "appointment_confirmed", title: "Cita confirmada", patientTitle: "Cita confirmada", email: "appointment_confirmed" },
-  cancelled: { type: "appointment_cancelled", title: "Cita cancelada", patientTitle: "Cita cancelada", email: "appointment_cancelled" },
+const COPY: Record<Kind, { type: string; title: string; patientTitle: string; patientTitleEn: string; email: "appointment_pending" | "appointment_confirmed" | "appointment_cancelled" }> = {
+  pending: { type: "appointment_pending", title: "Nueva cita por confirmar", patientTitle: "Cita agendada", patientTitleEn: "Appointment booked", email: "appointment_pending" },
+  confirmed: { type: "appointment_confirmed", title: "Cita confirmada", patientTitle: "Cita confirmada", patientTitleEn: "Appointment confirmed", email: "appointment_confirmed" },
+  cancelled: { type: "appointment_cancelled", title: "Cita cancelada", patientTitle: "Cita cancelada", patientTitleEn: "Appointment cancelled", email: "appointment_cancelled" },
 };
 
 export async function notifyAppointment(appointmentId: string, kind: Kind) {
@@ -21,8 +21,9 @@ export async function notifyAppointment(appointmentId: string, kind: Kind) {
     first_name: string | null;
     last_name: string | null;
     timezone: string | null;
+    preferred_language: string | null;
   }>(
-    `SELECT a.starts_at, a.patient_id, p.email_enc, p.first_name, p.last_name, l.timezone
+    `SELECT a.starts_at, a.patient_id, p.email_enc, p.first_name, p.last_name, l.timezone, p.preferred_language
      FROM appointments a
      LEFT JOIN patients p ON p.id = a.patient_id
      LEFT JOIN locations l ON l.id = a.location_id
@@ -37,9 +38,10 @@ export async function notifyAppointment(appointmentId: string, kind: Kind) {
   const timeSlot = formatHm(starts, tz);
   const who = `${row.first_name || ""} ${row.last_name || ""}`.trim() || "Paciente";
   const copy = COPY[kind];
+  const english = row.preferred_language === "en";
   const email = decryptPhi(row.email_enc);
   if (email) {
-    const result = await sendEmailPayload({ kind: copy.email, to: email, date, timeSlot });
+    const result = await sendEmailPayload({ kind: copy.email, to: email, date, timeSlot, locale: english ? "en" : "es" });
     await query(
       `INSERT INTO messages (channel, recipient_enc, patient_id, appointment_id, subject, body, status, scheduled_for, sent_at, error, provider)
        VALUES ('email',$1,$2,$3,$4,$5,$6, now(), CASE WHEN $6 = 'sent' THEN now() ELSE NULL END, $7, 'smtp')`,
@@ -47,8 +49,8 @@ export async function notifyAppointment(appointmentId: string, kind: Kind) {
         encryptPhi(email),
         row.patient_id,
         appointmentId,
-        `Thrive Formative – ${copy.title}`,
-        `${who}: cita del ${date} a las ${timeSlot}.`,
+        english ? `Thrive Formative – ${copy.patientTitleEn}` : `Thrive Formative – ${copy.title}`,
+        english ? `${who}: appointment on ${date} at ${timeSlot}.` : `${who}: cita del ${date} a las ${timeSlot}.`,
         result.ok ? "sent" : "failed",
         result.ok ? null : result.error || "No se pudo enviar",
       ]
@@ -72,7 +74,13 @@ export async function notifyAppointment(appointmentId: string, kind: Kind) {
   if (row.patient_id) {
     await query(
       `INSERT INTO notifications (type, title, body, reference_id, patient_id) VALUES ($1,$2,$3,$4,$5)`,
-      [copy.type, copy.patientTitle, `Tu cita del ${date} a las ${timeSlot}.`, appointmentId, row.patient_id]
+      [
+        copy.type,
+        english ? copy.patientTitleEn : copy.patientTitle,
+        english ? `Your appointment on ${date} at ${timeSlot}.` : `Tu cita del ${date} a las ${timeSlot}.`,
+        appointmentId,
+        row.patient_id,
+      ]
     );
   }
 }

@@ -83,28 +83,37 @@ export async function assignForm(body: Record<string, unknown>, actor: StaffSess
 }
 
 async function notifyFormAssignment(input: { assignmentId: string; patientId: string; templateId: string; token: string }) {
-  const found = await query<{ name: string; email_enc: Buffer | null; first_name: string | null }>(
-    `SELECT t.name, p.email_enc, p.first_name
+  const found = await query<{ name: string; email_enc: Buffer | null; first_name: string | null; preferred_language: string | null }>(
+    `SELECT t.name, p.email_enc, p.first_name, p.preferred_language
      FROM form_templates t
      JOIN patients p ON p.id = $2
      WHERE t.id = $1`,
     [input.templateId, input.patientId]
   );
   const row = found.rows[0];
-  const formName = row?.name || "Formulario";
+  const english = row?.preferred_language === "en";
+  const formName = row?.name || (english ? "Form" : "Formulario");
   const link = `${getSiteUrl().replace(/\/$/, "")}/portal/formularios/${input.token}`;
   await query(
     `INSERT INTO notifications (type, title, body, reference_id, patient_id)
      VALUES ('form_assigned', $1, $2, $3, $4)`,
-    ["Tienes un formulario por responder", `${formName}. Ábrelo desde el correo que te enviamos.`, input.assignmentId, input.patientId]
+    [
+      english ? "You have a form to complete" : "Tienes un formulario por responder",
+      english ? `${formName}. Open it from the email we sent you.` : `${formName}. Ábrelo desde el correo que te enviamos.`,
+      input.assignmentId,
+      input.patientId,
+    ]
   ).catch(() => undefined);
   const email = decryptPhi(row?.email_enc);
   if (!email) return;
-  const who = row?.first_name?.trim() || "Hola";
+  const who = row?.first_name?.trim() || (english ? "Hello" : "Hola");
   const result = await sendClinicEmail(
     email,
-    "Thrive Formative – Tienes un formulario por responder",
-    `Hola ${who},\n\nTienes un formulario por responder: ${formName}.\n\nEntra aquí para completarlo:\n${link}`
+    english ? "Thrive Formative – You have a form to complete" : "Thrive Formative – Tienes un formulario por responder",
+    english
+      ? `Hello ${who},\n\nYou have a form to complete: ${formName}.\n\nOpen this link to finish it:\n${link}`
+      : `Hola ${who},\n\nTienes un formulario por responder: ${formName}.\n\nEntra aquí para completarlo:\n${link}`,
+    english ? "en" : "es",
   );
   if (!result.ok) log.warn("notify", "correo de formulario no enviado");
 }

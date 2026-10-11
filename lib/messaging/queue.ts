@@ -23,10 +23,11 @@ export async function enqueueForAppointment(appointmentId: string, trigger: stri
     location_name: string | null;
     timezone: string | null;
     manage_token_hash: string | null;
+    preferred_language: string | null;
   }>(
     `SELECT a.id, a.starts_at, a.patient_id, p.email_enc, p.mobile_enc, p.first_name,
             s.name AS service_name, u.first_name AS staff_first, u.last_name AS staff_last,
-            l.name AS location_name, l.timezone, a.manage_token_hash
+            l.name AS location_name, l.timezone, a.manage_token_hash, p.preferred_language
      FROM appointments a
      LEFT JOIN patients p ON p.id = a.patient_id
      LEFT JOIN services s ON s.id = a.service_id
@@ -57,16 +58,32 @@ export async function enqueueForAppointment(appointmentId: string, trigger: stri
     subject: string | null;
     body: string;
     template_id: string;
+    template_key: string;
   }>(
-    `SELECT r.id, r.offset_minutes, r.channel, t.subject, t.body, t.id AS template_id
+    `SELECT r.id, r.offset_minutes, r.channel, t.subject, t.body, t.id AS template_id, t.template_key
      FROM message_rules r
      JOIN message_templates t ON t.id = r.template_id
      WHERE r.is_active AND r.trigger_key = $1 AND t.is_active`,
     [trigger]
   );
+  const english = row.preferred_language === "en";
   for (const rule of rules.rows) {
     const recipient = rule.channel === "sms" ? mobile : email;
     if (!recipient) continue;
+    let subject = rule.subject;
+    let body = rule.body;
+    if (english) {
+      const alt = await query<{ subject: string | null; body: string }>(
+        `SELECT subject, body FROM message_templates
+         WHERE channel = $1 AND template_key = $2 AND locale = 'en' AND is_active
+         LIMIT 1`,
+        [rule.channel, rule.template_key]
+      );
+      if (alt.rows[0]) {
+        subject = alt.rows[0].subject;
+        body = alt.rows[0].body;
+      }
+    }
     const scheduled =
       trigger === "recordatorio" ? new Date(starts.getTime() + rule.offset_minutes * 60000) : new Date();
     if (trigger === "recordatorio" && scheduled.getTime() < Date.now()) continue;
@@ -82,16 +99,16 @@ export async function enqueueForAppointment(appointmentId: string, trigger: stri
         appointmentId,
         rule.template_id,
         rule.id,
-        rule.subject ? render(rule.subject, vars) : null,
-        render(rule.body, vars),
+        subject ? render(subject, vars) : null,
+        render(body, vars),
         scheduled.toISOString(),
       ]
     );
   }
 }
 
-async function sendEmail(to: string, subject: string, text: string) {
-  const result = await sendClinicEmail(to, subject, text);
+async function sendEmail(to: string, subject: string, text: string, locale: "en" | "es") {
+  const result = await sendClinicEmail(to, subject, text, locale);
   if (!result.ok) return { error: result.error || "No se pudo enviar el correo" };
   return { id: result.id, provider: "smtp" };
 }
@@ -126,9 +143,14 @@ export async function dispatchDueMessages(limit = 40) {
       recipient_enc: Buffer | null;
       subject: string | null;
       body: string;
-    }>(`SELECT id, channel, recipient_enc, subject, body FROM messages WHERE id = $1 AND status = 'queued'`, [
-      item.id,
-    ]);
+      preferred_language: string | null;
+    }>(
+      `SELECT m.id, m.channel, m.recipient_enc, m.subject, m.body, p.preferred_language
+       FROM messages m
+       LEFT JOIN patients p ON p.id = m.patient_id
+       WHERE m.id = $1 AND m.status = 'queued'`,
+      [item.id]
+    );
     const message = row.rows[0];
     if (!message) continue;
     const recipient = decryptPhi(message.recipient_enc);
@@ -140,7 +162,12 @@ export async function dispatchDueMessages(limit = 40) {
       const result =
         message.channel === "sms"
           ? await sendSms(recipient, message.body)
-          : await sendEmail(recipient, message.subject || "Thrive Formative", message.body);
+          : await sendEmail(
+              recipient,
+              message.subject || "Thrive Formative",
+              message.body,
+              message.preferred_language === "en" ? "en" : "es",
+            );
       if ("skipped" in result && result.skipped) {
         await query(`UPDATE messages SET status = 'skipped', error = $2 WHERE id = $1`, [message.id, result.error]);
       } else if (result.error) {

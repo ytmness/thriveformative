@@ -43,8 +43,9 @@ export function emailParagraph(html: string): string {
   return `<p style="margin:0 0 16px;font-size:15px;line-height:1.65;color:#333333;font-family:'Segoe UI',Arial,Helvetica,sans-serif;">${html}</p>`;
 }
 
-export function emailSignOff(): string {
-  return `${emailParagraph("Saludos,")}${emailParagraph("<strong>Thrive Formative</strong>")}`;
+export function emailSignOff(locale: "en" | "es" = "es"): string {
+  const line = locale === "en" ? "Best regards," : "Saludos,";
+  return `${emailParagraph(line)}${emailParagraph("<strong>Thrive Formative</strong>")}`;
 }
 
 export function buildThriveEmailHtml(bodyHtml: string): string {

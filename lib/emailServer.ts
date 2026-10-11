@@ -91,7 +91,12 @@ async function deliverMail(to: string, subject: string, text: string, html: stri
 }
 
 /** Mismo correo de la clínica, para recordatorios y avisos que ya no pasan por el formulario público. */
-export async function sendClinicEmail(to: string, subject: string, text: string): Promise<{ ok: boolean; id?: string; error?: string }> {
+export async function sendClinicEmail(
+  to: string,
+  subject: string,
+  text: string,
+  locale: "en" | "es" = "es",
+): Promise<{ ok: boolean; id?: string; error?: string }> {
   if (!isValidEmail(to)) return { ok: false, error: "Email destinatario no válido" };
   const paragraphs = text
     .split(/\n{2,}/)
@@ -99,7 +104,7 @@ export async function sendClinicEmail(to: string, subject: string, text: string)
     .map((block) => emailParagraph(escapeHtml(block).replace(/\n/g, "<br>")))
     .join("");
   try {
-    const id = await deliverMail(to, subject, text, buildThriveEmailHtml(`${paragraphs}${emailSignOff()}`));
+    const id = await deliverMail(to, subject, text, buildThriveEmailHtml(`${paragraphs}${emailSignOff(locale)}`));
     return { ok: true, id };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -129,17 +134,84 @@ export async function sendSavedTemplateEmail(input: {
     [input.templateKey, locale]
   ).catch(() => ({ rows: [] as { subject: string | null; body: string }[] }));
   const row = saved.rows[0];
-  const subject = row?.subject ? fillTemplate(row.subject, input.vars) : input.fallbackSubject;
-  const text = row?.body ? fillTemplate(row.body, input.vars) : input.fallbackText;
-  return sendClinicEmail(input.to, subject, text);
+  let subject = row?.subject ? fillTemplate(row.subject, input.vars) : input.fallbackSubject;
+  let text = row?.body ? fillTemplate(row.body, input.vars) : input.fallbackText;
+  const mailLocale = locale === "en" ? "en" : "es";
+  if (mailLocale === "en" && /código|hola,|caduca|correo|saludos/i.test(`${subject}\n${text}`)) {
+    subject = input.fallbackSubject;
+    text = input.fallbackText;
+  }
+  return sendClinicEmail(input.to, subject, text, mailLocale);
 }
 
 export type EmailKind =
-  | { kind: "appointment_pending"; to: string; date: string; timeSlot: string }
-  | { kind: "appointment_confirmed"; to: string; date: string; timeSlot: string }
-  | { kind: "appointment_cancelled"; to: string; date: string; timeSlot: string }
+  | { kind: "appointment_pending"; to: string; date: string; timeSlot: string; locale?: "en" | "es" }
+  | { kind: "appointment_confirmed"; to: string; date: string; timeSlot: string; locale?: "en" | "es" }
+  | { kind: "appointment_cancelled"; to: string; date: string; timeSlot: string; locale?: "en" | "es" }
   | { kind: "contact_confirmation"; to: string; name: string }
   | { kind: "contact_notify_admin"; to: string; name: string; email: string; subject: string | null; message: string };
+
+function appointmentMail(
+  locale: "en" | "es",
+  kind: "appointment_pending" | "appointment_confirmed" | "appointment_cancelled",
+  date: string,
+  timeSlot: string,
+) {
+  const safeDate = escapeHtml(date);
+  const safeTime = escapeHtml(timeSlot);
+  if (locale === "en") {
+    if (kind === "appointment_pending") {
+      return {
+        subject: "Thrive Formative – Appointment received, pending approval",
+        text: `Hello,\n\nYour appointment request for ${date} at ${timeSlot} was received and is pending approval. We will email you when it is confirmed or if we need another time.\n\nBest regards,\nThrive Formative`,
+        html: `${emailParagraph("Hello,")}${emailParagraph(
+          `Your appointment request for <strong>${safeDate}</strong> at <strong>${safeTime}</strong> was received and is <strong>pending approval</strong>. We will email you when it is confirmed or if we need another time.`,
+        )}`,
+      };
+    }
+    if (kind === "appointment_confirmed") {
+      return {
+        subject: "Thrive Formative – Appointment confirmed",
+        text: `Hello,\n\nYour appointment on ${date} at ${timeSlot} is confirmed.\n\nBest regards,\nThrive Formative`,
+        html: `${emailParagraph("Hello,")}${emailParagraph(
+          `Your appointment on <strong>${safeDate}</strong> at <strong>${safeTime}</strong> is <strong>confirmed</strong>.`,
+        )}`,
+      };
+    }
+    return {
+      subject: "Thrive Formative – Appointment cancelled",
+      text: `Hello,\n\nYour appointment on ${date} at ${timeSlot} was cancelled. You can book another time on the website.\n\nBest regards,\nThrive Formative`,
+      html: `${emailParagraph("Hello,")}${emailParagraph(
+        `Your appointment on <strong>${safeDate}</strong> at <strong>${safeTime}</strong> was <strong>cancelled</strong>. You can book another time on the website.`,
+      )}`,
+    };
+  }
+  if (kind === "appointment_pending") {
+    return {
+      subject: "Thrive Formative – Cita recibida, pendiente de aprobación",
+      text: `Hola,\n\nTu solicitud de cita para el ${date} a las ${timeSlot} ha sido recibida y está pendiente de aprobación. Te avisaremos por correo cuando sea confirmada o si necesitamos otro horario.\n\nSaludos,\nThrive Formative`,
+      html: `${emailParagraph("Hola,")}${emailParagraph(
+        `Tu solicitud de cita para el <strong>${safeDate}</strong> a las <strong>${safeTime}</strong> ha sido recibida y está <strong>pendiente de aprobación</strong>. Te avisaremos por correo cuando sea confirmada o si necesitamos otro horario.`,
+      )}`,
+    };
+  }
+  if (kind === "appointment_confirmed") {
+    return {
+      subject: "Thrive Formative – Cita confirmada",
+      text: `Hola,\n\nTu cita del ${date} a las ${timeSlot} ha sido confirmada.\n\nSaludos,\nThrive Formative`,
+      html: `${emailParagraph("Hola,")}${emailParagraph(
+        `Tu cita del <strong>${safeDate}</strong> a las <strong>${safeTime}</strong> ha sido <strong>confirmada</strong>.`,
+      )}`,
+    };
+  }
+  return {
+    subject: "Thrive Formative – Cita cancelada",
+    text: `Hola,\n\nTu cita del ${date} a las ${timeSlot} ha sido cancelada. Si deseas reagendar, puedes hacerlo desde la web.\n\nSaludos,\nThrive Formative`,
+    html: `${emailParagraph("Hola,")}${emailParagraph(
+      `Tu cita del <strong>${safeDate}</strong> a las <strong>${safeTime}</strong> ha sido <strong>cancelada</strong>. Si deseas reagendar, puedes hacerlo desde la web.`,
+    )}`,
+  };
+}
 
 export async function sendEmailPayload(payload: EmailKind): Promise<{ ok: boolean; error?: string }> {
   try {
@@ -150,35 +222,15 @@ export async function sendEmailPayload(payload: EmailKind): Promise<{ ok: boolea
 
     switch (payload.kind) {
       case "appointment_pending":
-        to = payload.to;
-        subject = "Thrive Formative – Cita recibida, pendiente de aprobación";
-        text = `Hola,\n\nTu solicitud de cita para el ${payload.date} a las ${payload.timeSlot} ha sido recibida y está pendiente de aprobación. Te avisaremos por correo cuando sea confirmada o si necesitamos otro horario.\n\nSaludos,\nThrive Formative`;
-        html = buildThriveEmailHtml(
-          `${emailParagraph("Hola,")}${emailParagraph(
-            `Tu solicitud de cita para el <strong>${escapeHtml(payload.date)}</strong> a las <strong>${escapeHtml(payload.timeSlot)}</strong> ha sido recibida y está <strong>pendiente de aprobación</strong>. Te avisaremos por correo cuando sea confirmada o si necesitamos otro horario.`,
-          )}${emailSignOff()}`,
-        );
-        break;
       case "appointment_confirmed":
+      case "appointment_cancelled": {
+        const mail = appointmentMail(payload.locale === "en" ? "en" : "es", payload.kind, payload.date, payload.timeSlot);
         to = payload.to;
-        subject = "Thrive Formative – Cita confirmada";
-        text = `Hola,\n\nTu cita del ${payload.date} a las ${payload.timeSlot} ha sido confirmada.\n\nSaludos,\nThrive Formative`;
-        html = buildThriveEmailHtml(
-          `${emailParagraph("Hola,")}${emailParagraph(
-            `Tu cita del <strong>${escapeHtml(payload.date)}</strong> a las <strong>${escapeHtml(payload.timeSlot)}</strong> ha sido <strong>confirmada</strong>.`,
-          )}${emailSignOff()}`,
-        );
+        subject = mail.subject;
+        text = mail.text;
+        html = buildThriveEmailHtml(`${mail.html}${emailSignOff(payload.locale === "en" ? "en" : "es")}`);
         break;
-      case "appointment_cancelled":
-        to = payload.to;
-        subject = "Thrive Formative – Cita cancelada";
-        text = `Hola,\n\nTu cita del ${payload.date} a las ${payload.timeSlot} ha sido cancelada. Si deseas reagendar, puedes hacerlo desde la web.\n\nSaludos,\nThrive Formative`;
-        html = buildThriveEmailHtml(
-          `${emailParagraph("Hola,")}${emailParagraph(
-            `Tu cita del <strong>${escapeHtml(payload.date)}</strong> a las <strong>${escapeHtml(payload.timeSlot)}</strong> ha sido <strong>cancelada</strong>. Si deseas reagendar, puedes hacerlo desde la web.`,
-          )}${emailSignOff()}`,
-        );
-        break;
+      }
       case "contact_confirmation":
         to = payload.to;
         subject = "Thrive Formative – Hemos recibido tu mensaje";
