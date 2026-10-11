@@ -15,6 +15,7 @@ type Policy = {
   min_days_between: number;
   max_per_patient: number | null;
   max_per_day: number | null;
+  unlocks_after_service_id: string | null;
 };
 
 function dayDistance(a: string, b: string) {
@@ -25,7 +26,8 @@ function dayDistance(a: string, b: string) {
 
 async function policy(run: Run, serviceId: string) {
   const res = await run<Policy>(
-    `SELECT buffer_before_minutes, buffer_after_minutes, min_days_between, max_per_patient, max_per_day
+    `SELECT buffer_before_minutes, buffer_after_minutes, min_days_between, max_per_patient, max_per_day,
+            unlocks_after_service_id
      FROM services WHERE id = $1`,
     [serviceId]
   );
@@ -47,6 +49,21 @@ export async function serviceDayBlock(
   const run = db(q);
   const rules = await policy(run, input.serviceId);
   if (!rules) return null;
+
+  if (input.patientId && rules.unlocks_after_service_id) {
+    const done = await run<{ ok: boolean }>(
+      `SELECT EXISTS (
+         SELECT 1 FROM appointments
+         WHERE patient_id = $1 AND service_id = $2
+           AND status NOT IN ('cancelled', 'no_show')
+           AND (status IN ('arrived', 'completed') OR ends_at <= now())
+       ) AS ok`,
+      [input.patientId, rules.unlocks_after_service_id]
+    );
+    if (!done.rows[0]?.ok) {
+      return "El seguimiento, ShapeScale y el estudio epigenético se desbloquean después de tu cita de 90 días.";
+    }
+  }
 
   if (input.patientId && rules.max_per_patient != null) {
     const count = await run<{ n: number }>(

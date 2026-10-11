@@ -9,7 +9,7 @@ import { useUser } from "@/lib/useUser";
 type Slot = { start: string; end: string; roomId: string | null };
 type Group = { staffUserId: string; staffName: string; locationId: string; locationName: string; timezone?: string; slots: Slot[] };
 type Catalog = {
-  services: { id: string; name: string; duration_minutes: number }[];
+  services: { id: string; name: string; duration_minutes: number; locked?: boolean }[];
   locations: { id: string; name: string }[];
   settings: { max_advance_days?: number; require_terms?: boolean } | null;
   policy: { text?: string } | null;
@@ -35,6 +35,7 @@ export default function PublicCalendar() {
     return { year: now.getFullYear(), month: now.getMonth() };
   });
   const [selected, setSelected] = useState("");
+  const [openDays, setOpenDays] = useState<Set<string> | null>(null);
   const [groups, setGroups] = useState<Group[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [slot, setSlot] = useState<(Slot & { staffUserId: string; locationId: string }) | null>(null);
@@ -58,11 +59,31 @@ export default function PublicCalendar() {
     api<Catalog>("/api/public/booking/catalog")
       .then((data) => {
         setCatalog(data);
-        setServiceId(data.services[0]?.id || "");
+        setServiceId(data.services.find((service) => !service.locked)?.id || "");
         setLocationId(data.locations[0]?.id || "");
       })
       .catch((err) => setError(err instanceof Error ? err.message : "Error"));
   }, [user]);
+
+  const monthKey = `${cursor.year}-${pad(cursor.month + 1)}`;
+
+  useEffect(() => {
+    if (!user || !serviceId) return;
+    let cancelled = false;
+    setOpenDays(null);
+    setSelected("");
+    setSlot(null);
+    api<{ dates: string[] }>(`/api/public/booking/availability?serviceId=${serviceId}&locationId=${locationId}&month=${monthKey}`)
+      .then((result) => {
+        if (!cancelled) setOpenDays(new Set(result.dates));
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : "Error");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user, serviceId, locationId, monthKey]);
 
   useEffect(() => {
     if (!user || !serviceId || !selected) return;
@@ -148,7 +169,7 @@ export default function PublicCalendar() {
         <label>
           <span>{t("service")}</span>
           <select value={serviceId} onChange={(event) => setServiceId(event.target.value)}>
-            {catalog?.services.map((service) => (
+            {catalog?.services.filter((service) => !service.locked).map((service) => (
               <option key={service.id} value={service.id}>{service.name} · {service.duration_minutes} min</option>
             ))}
           </select>
@@ -162,6 +183,7 @@ export default function PublicCalendar() {
           </select>
         </label>
       </div>
+      {catalog?.services.some((service) => service.locked) ? <p className="booking-picker__lock">{t("planUnlockHint")}</p> : null}
       <div className="booking-section__layout">
         <div className="booking-cal-wrap">
           <div className="booking-cal">
@@ -185,7 +207,7 @@ export default function PublicCalendar() {
                 {cells.map((day, index) => {
                   if (!day) return <button key={`pad-${index}`} type="button" className="booking-cal__day booking-cal__day--pad" disabled />;
                   const key = dateKey(cursor.year, cursor.month, day);
-                  const bookable = key >= todayKey && key <= limitKey;
+                  const bookable = key >= todayKey && key <= limitKey && openDays?.has(key) === true;
                   return (
                     <button
                       key={key}

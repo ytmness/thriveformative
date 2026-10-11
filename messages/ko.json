@@ -316,7 +316,8 @@
     "registerToBook": "캘린더를 보려면 가입하세요",
     "registerToBookHint": "환자 계정을 만든 뒤 날짜와 시간을 선택할 수 있습니다.",
     "registerToBookCta": "계정 만들기",
-    "loginToBook": "이미 계정이 있습니다"
+    "loginToBook": "이미 계정이 있습니다",
+    "planUnlockHint": "90일 첫 진료 후에 후속 진료, ShapeScale, 후성유전 검사가 열립니다."
   },
   "auth": {
     "loginTitle": "로그인",

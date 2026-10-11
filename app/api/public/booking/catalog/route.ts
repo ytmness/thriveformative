@@ -1,3 +1,4 @@
+import { currentPatient } from "@/lib/auth/patientAccess";
 import { query } from "@/lib/db";
 import { locationCountrySql } from "@/lib/domain/scope";
 import { toErrorResponse } from "@/lib/http";
@@ -18,8 +19,20 @@ export async function GET(req: Request) {
   if (blocked) return blocked;
   try {
     const market = await requestMarket();
+    const patient = await currentPatient();
     const services = await query(
-      `SELECT s.id, s.name, s.description, s.duration_minutes, s.price, s.category_id
+      `SELECT s.id, s.name, s.description, s.duration_minutes, s.price, s.category_id,
+              CASE
+                WHEN s.unlocks_after_service_id IS NULL THEN false
+                WHEN $2::uuid IS NULL THEN true
+                ELSE NOT EXISTS (
+                  SELECT 1 FROM appointments a
+                  WHERE a.patient_id = $2
+                    AND a.service_id = s.unlocks_after_service_id
+                    AND a.status NOT IN ('cancelled', 'no_show')
+                    AND (a.status IN ('arrived', 'completed') OR a.ends_at <= now())
+                )
+              END AS locked
        FROM services s
        WHERE s.is_active AND s.is_online_bookable
          AND (
@@ -31,7 +44,7 @@ export async function GET(req: Request) {
            )
          )
        ORDER BY s.name`,
-      [market]
+      [market, patient?.id ?? null]
     );
     const locations = await query(
       `SELECT id, name, city, timezone FROM locations

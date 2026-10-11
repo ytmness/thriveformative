@@ -158,6 +158,13 @@
   background: rgb(160 48 48 / 0.1);
   color: rgb(140 36 36);
 }
+.booking-picker__lock {
+  margin: -0.35rem 0 1.25rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  text-align: left;
+  color: rgb(var(--muted));
+}
 .booking-picker__choices {
   display: grid;
   gap: 1rem;

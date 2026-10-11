@@ -144,6 +144,90 @@
   display: flex; justify-content: flex-end; gap: 0.5rem; padding: 0.85rem 1.25rem;
   border-top: 1px solid rgb(var(--border) / 0.12); background: inherit;
 }
+.admin-drawer--rail { background: rgb(0 0 0 / 0.18); }
+.admin-drawer--rail .admin-drawer__panel {
+  width: min(17.5rem, 100%);
+  gap: 1rem;
+  padding: 1.25rem 0.85rem 1rem 1.15rem;
+  background: rgb(var(--bg));
+  border-left: 1px solid rgb(var(--border) / 0.14);
+  box-shadow: none;
+}
+[data-theme="nocturnal"] .admin-drawer--rail .admin-drawer__panel { background: rgb(var(--bg)); }
+.admin-drawer--rail .admin-drawer__head {
+  display: block;
+  padding: 0 0.35rem;
+  border: 0;
+  background: transparent;
+}
+.admin-drawer--rail .admin-drawer__body { padding: 0; }
+.admin-drawer--rail .admin-form-grid { grid-template-columns: 1fr; gap: 0.85rem; }
+.admin-drawer--rail .admin-field {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(var(--muted));
+}
+.admin-drawer--rail .admin-field input,
+.admin-drawer--rail .admin-field select,
+.admin-drawer--rail .admin-field textarea {
+  margin-top: 0.4rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(var(--border) / 0.2);
+  background: rgb(var(--surface) / 0.65);
+  color: rgb(var(--text));
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.admin-drawer--rail .admin-field input:focus,
+.admin-drawer--rail .admin-field select:focus,
+.admin-drawer--rail .admin-field textarea:focus {
+  border-color: rgb(var(--primary) / 0.45);
+  box-shadow: 0 0 0 3px rgb(var(--primary) / 0.2);
+}
+.admin-drawer--rail .admin-drawer__foot {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35rem;
+  margin-top: auto;
+  padding: 0.5rem 0 0;
+  border-top: 1px solid rgb(var(--border) / 0.12);
+  background: transparent;
+}
+.admin-drawer--rail .admin-btn {
+  width: 100%;
+  height: auto;
+  justify-content: flex-start;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.75rem;
+  border-color: transparent;
+  background: transparent;
+  color: rgb(var(--text) / 0.88);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+.admin-drawer--rail .admin-btn:hover {
+  background: rgb(var(--primary) / 0.06);
+  border-color: rgb(var(--border) / 0.15);
+}
+.admin-drawer--rail .admin-btn--primary {
+  background: rgb(var(--primary) / 0.12);
+  border-color: rgb(var(--primary) / 0.32);
+  color: rgb(var(--primary));
+}
+.admin-drawer--rail .admin-btn--primary:hover {
+  background: rgb(var(--primary) / 0.18);
+  border-color: rgb(var(--primary) / 0.4);
+}
+.admin-drawer--rail .admin-btn--danger {
+  color: rgb(185 28 28);
+  background: transparent;
+  border-color: transparent;
+}
+.admin-drawer--rail .admin-btn--ghost { color: rgb(var(--muted)); }
 .admin-icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 0.65rem; border: 1px solid rgb(var(--border) / 0.2); background: transparent; color: inherit; cursor: pointer; }
 .admin-tabs { display: flex; gap: 0.4rem; overflow-x: auto; margin-bottom: 1rem; padding-bottom: 0.2rem; }
 .admin-tabs--wrap { flex-wrap: wrap; overflow: visible; }

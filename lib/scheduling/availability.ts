@@ -222,3 +222,38 @@ export async function availabilityForDate(input: {
   }
   return result;
 }
+
+/** Días del rango que tienen al menos un horario libre. El resto no se puede pulsar. */
+export async function openDates(input: {
+  serviceId: string;
+  from: string;
+  to: string;
+  locationId?: string | null;
+  country?: string | null;
+  patientId?: string | null;
+}) {
+  const keys: string[] = [];
+  let cursor = input.from;
+  while (cursor && cursor <= input.to && keys.length < 42) {
+    keys.push(cursor);
+    cursor = addDaysToDateKey(cursor, 1);
+  }
+  const open: string[] = [];
+  for (let index = 0; index < keys.length; index += 4) {
+    const chunk = keys.slice(index, index + 4);
+    const found = await Promise.all(
+      chunk.map(async (date) => {
+        const groups = await availabilityForDate({
+          serviceId: input.serviceId,
+          date,
+          locationId: input.locationId,
+          country: input.country,
+          patientId: input.patientId,
+        });
+        return groups.some((group) => group.slots.length > 0) ? date : null;
+      })
+    );
+    for (const date of found) if (date) open.push(date);
+  }
+  return open;
+}

@@ -309,7 +309,8 @@
     "registerToBook": "Registrati per vedere il calendario",
     "registerToBookHint": "Crea il tuo account paziente. Poi potrai scegliere data e orario.",
     "registerToBookCta": "Crea account",
-    "loginToBook": "Ho già un account"
+    "loginToBook": "Ho già un account",
+    "planUnlockHint": "Il controllo, ShapeScale e lo studio epigenetico si sbloccano dopo la visita dei 90 giorni."
   },
   "auth": {
     "loginTitle": "Accedi",

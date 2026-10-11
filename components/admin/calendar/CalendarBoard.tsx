@@ -8,7 +8,9 @@ import { CreateOffer } from "@/components/admin/tutorial";
 
 type Appt = {
   id: string;
+  patientId: string | null;
   patientName: string | null;
+  serviceId: string | null;
   serviceName: string | null;
   staffUserId: string;
   staffName: string;
@@ -307,8 +309,16 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
                     else if (staffFilter) next.staffUserId = staffFilter;
                     setDraft(next);
                   }} onOpen={(row) => setDraft({
-                    id: row.id, patientId: "", serviceId: "", staffUserId: row.staffUserId, locationId: row.locationId,
-                    startsAt: clinicWall(row.startsAt, clinicTz).input, status: row.status, notes: row.notes || "",
+                    id: row.id,
+                    patientId: row.patientId || "",
+                    patientName: row.patientName || "",
+                    serviceId: row.serviceId || "",
+                    serviceName: row.serviceName || "",
+                    staffUserId: row.staffUserId,
+                    locationId: row.locationId,
+                    startsAt: clinicWall(row.startsAt, clinicTz).input,
+                    status: row.status,
+                    notes: row.notes || "",
                   })} />
                 ))}
               </div>
@@ -349,42 +359,47 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
         </form>
       ) : null}
       {draft ? (
-        <div className="admin-drawer" role="presentation" onClick={() => setDraft(null)}>
+        <div className="admin-drawer admin-drawer--rail" role="presentation" onClick={() => setDraft(null)}>
           <form className="admin-drawer__panel" onClick={(e) => e.stopPropagation()} onSubmit={(e) => { e.preventDefault(); saveDraft(); }}>
-            <h2 className="admin-header__title">{draft.id ? (english ? "Edit appointment" : "Editar cita") : (english ? "New appointment" : "Nueva cita")}</h2>
-            <div className="admin-form-grid" data-tour="cal-form" style={{ marginTop: "1rem" }}>
-              <label className="admin-field">Paciente<select value={draft.patientId || ""} onChange={(e) => setDraft({ ...draft, patientId: e.target.value })}><option value="">Sin paciente</option>{patients.map((p) => <option key={p.id} value={p.id}>{p.firstName} {p.lastName}</option>)}</select><CreateOffer show={catalogReady && !patients.length} kind="patient" href="/admin/pacientes?nuevo=1" /></label>
-              <label className="admin-field">Servicio<select value={draft.serviceId || ""} onChange={(e) => setDraft({ ...draft, serviceId: e.target.value })}><option value="">—</option>{services.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select><CreateOffer show={catalogReady && !services.length} kind="service" href="/admin/catalogo/servicios?nuevo=1" /></label>
-              <label className="admin-field">Profesional<select required value={draft.staffUserId || ""} onChange={(e) => setDraft({ ...draft, staffUserId: e.target.value })}><option value="">—</option>{staff.map((s) => <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>)}</select><CreateOffer show={catalogReady && !staff.length} kind="staff" href="/admin/configuracion/equipo?nuevo=1" /></label>
-              <label className="admin-field">Sede<select required value={draft.locationId || ""} onChange={(e) => setDraft({ ...draft, locationId: e.target.value })}><option value="">—</option>{siteOptions.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select><CreateOffer show={catalogReady && !siteOptions.length} kind="location" href="/admin/configuracion/sedes?nuevo=1" /></label>
-              <label className="admin-field">Inicio<input type="datetime-local" required value={draft.startsAt || ""} onChange={(e) => setDraft({ ...draft, startsAt: e.target.value })} /></label>
-              <label className="admin-field">Estado<select value={draft.status || "booked"} onChange={(e) => setDraft({ ...draft, status: e.target.value })}>{STATUSES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-              {!draft.id ? <label className="admin-field">Recurrencia<select value={draft.freq || ""} onChange={(e) => setDraft({ ...draft, freq: e.target.value })}><option value="">No se repite</option><option value="DAILY">Diaria</option><option value="WEEKLY">Semanal</option><option value="MONTHLY">Mensual</option></select></label> : null}
-              {!draft.id && draft.freq ? <label className="admin-field">Repeticiones<input type="number" min={1} max={52} value={draft.count || "4"} onChange={(e) => setDraft({ ...draft, count: e.target.value })} /></label> : null}
-              <label className="admin-field span-2">Notas<textarea value={draft.notes || ""} onChange={(e) => setDraft({ ...draft, notes: e.target.value })} /></label>
+            <div className="admin-drawer__head">
+              <p className="admin-sidebar__eyebrow">{english ? "Calendar" : "Calendario"}</p>
+              <h2 className="admin-sidebar__title">{draft.id ? (english ? "Edit appointment" : "Editar cita") : (english ? "New appointment" : "Nueva cita")}</h2>
             </div>
-            <div className="admin-toolbar">
-              <button className="admin-btn admin-btn--primary" type="submit">Guardar</button>
+            <div className="admin-drawer__body">
+              <div className="admin-form-grid" data-tour="cal-form">
+                <label className="admin-field">{english ? "Patient" : "Paciente"}<select value={draft.patientId || ""} onChange={(e) => setDraft({ ...draft, patientId: e.target.value })}><option value="">{english ? "No patient" : "Sin paciente"}</option>{draft.patientId && !patients.some((p) => p.id === draft.patientId) ? <option value={draft.patientId}>{draft.patientName || (english ? "Patient" : "Paciente")}</option> : null}{patients.map((p) => <option key={p.id} value={p.id}>{p.firstName} {p.lastName}</option>)}</select><CreateOffer show={catalogReady && !patients.length} kind="patient" href="/admin/pacientes?nuevo=1" /></label>
+                <label className="admin-field">{english ? "Service" : "Servicio"}<select value={draft.serviceId || ""} onChange={(e) => setDraft({ ...draft, serviceId: e.target.value })}><option value="">—</option>{draft.serviceId && !services.some((s) => s.id === draft.serviceId) ? <option value={draft.serviceId}>{draft.serviceName || (english ? "Service" : "Servicio")}</option> : null}{services.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select><CreateOffer show={catalogReady && !services.length} kind="service" href="/admin/catalogo/servicios?nuevo=1" /></label>
+                <label className="admin-field">{english ? "Provider" : "Profesional"}<select required value={draft.staffUserId || ""} onChange={(e) => setDraft({ ...draft, staffUserId: e.target.value })}><option value="">—</option>{staff.map((s) => <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>)}</select><CreateOffer show={catalogReady && !staff.length} kind="staff" href="/admin/configuracion/equipo?nuevo=1" /></label>
+                <label className="admin-field">{english ? "Location" : "Sede"}<select required value={draft.locationId || ""} onChange={(e) => setDraft({ ...draft, locationId: e.target.value })}><option value="">—</option>{siteOptions.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select><CreateOffer show={catalogReady && !siteOptions.length} kind="location" href="/admin/configuracion/sedes?nuevo=1" /></label>
+                <label className="admin-field">{english ? "Starts" : "Inicio"}<input type="datetime-local" required value={draft.startsAt || ""} onChange={(e) => setDraft({ ...draft, startsAt: e.target.value })} /></label>
+                <label className="admin-field">{english ? "Status" : "Estado"}<select value={draft.status || "booked"} onChange={(e) => setDraft({ ...draft, status: e.target.value })}>{STATUSES.map(([value, label]) => <option key={value} value={value}>{english ? { booked: "Booked", confirmed: "Confirmed", arrived: "Arrived", completed: "Completed", cancelled: "Cancelled", no_show: "No-show" }[value] : label}</option>)}</select></label>
+                {!draft.id ? <label className="admin-field">{english ? "Repeats" : "Recurrencia"}<select value={draft.freq || ""} onChange={(e) => setDraft({ ...draft, freq: e.target.value })}><option value="">{english ? "Does not repeat" : "No se repite"}</option><option value="DAILY">{english ? "Daily" : "Diaria"}</option><option value="WEEKLY">{english ? "Weekly" : "Semanal"}</option><option value="MONTHLY">{english ? "Monthly" : "Mensual"}</option></select></label> : null}
+                {!draft.id && draft.freq ? <label className="admin-field">{english ? "Times" : "Repeticiones"}<input type="number" min={1} max={52} value={draft.count || "4"} onChange={(e) => setDraft({ ...draft, count: e.target.value })} /></label> : null}
+                <label className="admin-field span-2">{english ? "Notes" : "Notas"}<textarea value={draft.notes || ""} onChange={(e) => setDraft({ ...draft, notes: e.target.value })} /></label>
+              </div>
+            </div>
+            <div className="admin-drawer__foot">
+              <button className="admin-btn admin-btn--primary" type="submit">{english ? "Save" : "Guardar"}</button>
               {draft.id && draft.status !== "confirmed" && draft.status !== "cancelled" ? (
-                <button className="admin-btn admin-btn--primary" type="button" onClick={() => void setStatus("confirmed")}>Confirmar</button>
+                <button className="admin-btn" type="button" onClick={() => void setStatus("confirmed")}>{english ? "Confirm" : "Confirmar"}</button>
               ) : null}
               {draft.id && draft.status !== "cancelled" ? (
                 <button className="admin-btn admin-btn--danger" type="button" onClick={() => {
-                  if (!window.confirm("¿Cancelar esta cita? El paciente recibe el aviso.")) void setStatus("cancelled");
-                }}>Cancelar</button>
+                  if (!window.confirm(english ? "Cancel this appointment? The patient is notified." : "¿Cancelar esta cita? El paciente recibe el aviso.")) void setStatus("cancelled");
+                }}>{english ? "Cancel appointment" : "Cancelar"}</button>
               ) : null}
               {draft.id ? <button className="admin-btn" type="button" onClick={async () => {
-                if (!window.confirm("¿Archivar esta cita? Quedará cancelada y saldrá del calendario. El registro se conserva.")) return;
+                if (!window.confirm(english ? "Archive this appointment? It leaves the calendar and stays on record." : "¿Archivar esta cita? Quedará cancelada y saldrá del calendario. El registro se conserva.")) return;
                 try {
                   await api(`/api/admin/appointments/${draft.id}`, { method: "PATCH", body: JSON.stringify({ status: "cancelled", cancelReason: "Archivada desde el calendario" }) });
                   setDraft(null);
-                  setNotice("Cita archivada.");
+                  setNotice(english ? "Appointment archived." : "Cita archivada.");
                   await load();
                 } catch (e) {
                   setError(e instanceof Error ? e.message : "No se pudo archivar la cita.");
                 }
-              }}>Archivar</button> : null}
-              <button className="admin-btn" type="button" onClick={() => setDraft(null)}>Cerrar</button>
+              }}>{english ? "Archive" : "Archivar"}</button> : null}
+              <button className="admin-btn admin-btn--ghost" type="button" onClick={() => setDraft(null)}>{english ? "Close" : "Cerrar"}</button>
             </div>
           </form>
         </div>
