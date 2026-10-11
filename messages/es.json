@@ -311,7 +311,12 @@
     "durationNote": "Las citas tienen un intervalo de agenda de 70 minutos.",
     "embedTitle": "Portal de reservas Thrive Formative",
     "whatsappHint": "¿Tienes una pregunta antes de agendar?",
-    "whatsappCta": "Escribir por WhatsApp"
+    "whatsappCta": "Escribir por WhatsApp",
+    "checkingAccount": "Revisando tu cuenta…",
+    "registerToBook": "Regístrate para ver el calendario",
+    "registerToBookHint": "Crea tu cuenta de paciente. Después podrás elegir fecha y horario.",
+    "registerToBookCta": "Crear cuenta",
+    "loginToBook": "Ya tengo cuenta"
   },
   "auth": {
     "loginTitle": "Iniciar sesión",

@@ -13,7 +13,7 @@ Ventas (/admin/ventas): hoy, semana, mes y ticket promedio. La tabla lista las v
 
 Facturas (/admin/facturas): pestañas de facturas, cotizaciones y notas de crédito. Abrir una fila muestra el documento para imprimirlo. En cotizaciones o notas, el formulario crea el documento.
 
-Servicios y productos (/admin/catalogo/servicios, /admin/catalogo/productos, /admin/catalogo/tienda, /admin/catalogo/paquetes, /admin/catalogo/membresias, /admin/catalogo/categorias, /admin/catalogo/proveedores): + Nuevo crea el registro. El menú de la fila edita o archiva. Los servicios se asignan a las sedes del país seleccionado. El stock de productos se ajusta por sede.
+Servicios y productos (/admin/catalogo/servicios, /admin/catalogo/productos, /admin/catalogo/tienda, /admin/catalogo/paquetes, /admin/catalogo/membresias, /admin/catalogo/categorias): + Nuevo crea el registro, excepto en el punto de venta, que se crea desde Tienda web. El menú de la fila edita o archiva. Los servicios se asignan a las sedes del país seleccionado. El stock de productos se ajusta por sede.
 
 Tienda web (/admin/catalogo/tienda): el catálogo público del sitio, dentro de Catálogo, separado por país. El formulario pide nombre, precio o enlace de referido, y lo publica. El enlace del producto se arma solo. Arriba se crean o renombran categorías.
 

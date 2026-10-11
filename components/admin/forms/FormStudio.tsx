@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/components/admin/clinic/client";
+import { useAdminEnglish } from "@/components/admin/clinic/ClinicScope";
 
 type FormField = {
   id: string;
@@ -48,6 +49,7 @@ function readSchema(value: unknown): FormField[] {
 }
 
 export function FormStudio() {
+  const english = useAdminEnglish();
   const [rows, setRows] = useState<Template[]>([]);
   const [name, setName] = useState("Formulario nuevo");
   const [formType, setFormType] = useState("consent");
@@ -143,16 +145,16 @@ export function FormStudio() {
   return (
     <>
       <header className="admin-header">
-        <p className="admin-header__eyebrow">Clínico</p>
-        <h1 className="admin-header__title">Formularios</h1>
-        <p className="admin-header__desc">Agrega bloques y edítalos sobre la hoja, como al armar una página. El paciente verá esto mismo.</p>
+        <p className="admin-header__eyebrow">{english ? "Clinical" : "Clínico"}</p>
+        <h1 className="admin-header__title">{english ? "Forms" : "Formularios"}</h1>
+        <p className="admin-header__desc">{english ? "Add blocks and edit them on the page. The patient sees the same layout." : "Agrega bloques y edítalos sobre la hoja, como al armar una página. El paciente verá esto mismo."}</p>
       </header>
       {error ? <div className="admin-alert" role="alert">{error}</div> : null}
       {notice ? <p className="admin-notice" role="status">{notice}</p> : null}
       <div className="form-library" data-tour="form-list">
         <button type="button" className={`form-library__card${!templateId ? " is-active" : ""}`} onClick={reset}>
-          <strong>Nuevo</strong>
-          <span>Hoja en blanco</span>
+          <strong>{english ? "New" : "Nuevo"}</strong>
+          <span>{english ? "Blank page" : "Hoja en blanco"}</span>
         </button>
         {rows.map((row) => (
           <button key={String(row.id)} type="button" className={`form-library__card${templateId === row.id ? " is-active" : ""}`} onClick={() => openTemplate(row)}>

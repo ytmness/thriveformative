@@ -1,11 +1,9 @@
 import { currentPatient } from "@/lib/auth/patientAccess";
-import { contactHash } from "@/lib/crypto/phi";
 import { createPortalAccount } from "@/lib/auth/portal";
 import { query } from "@/lib/db";
 import { locationCountrySql } from "@/lib/domain/scope";
 import { DomainError } from "@/lib/http";
 import { createAppointment, findByManageToken, updateAppointment } from "@/lib/domain/appointments";
-import { createPatient } from "@/lib/domain/patients";
 import { availabilityForDate } from "@/lib/scheduling/availability";
 import { formatDate } from "@/lib/scheduling/time";
 import type { SiteMarket } from "@/lib/site/market";
@@ -16,38 +14,13 @@ export async function bookPublic(body: Record<string, unknown>, meta?: { ip?: st
     throw new DomainError("Debes aceptar los términos y el aviso de privacidad.");
   }
   const session = await currentPatient().catch(() => null);
+  if (!session) throw new DomainError("Regístrate para agendar una cita.", 401);
   const firstName = String(body.firstName || "").trim();
   const lastName = String(body.lastName || "").trim();
-  const email = (session?.email || String(body.email || "")).trim();
+  const email = (session.email || String(body.email || "")).trim();
   const mobile = String(body.phone || "").trim();
   if (!firstName || !lastName || !email || !mobile) throw new DomainError("Nombre, apellido, email y teléfono son obligatorios.");
-  const existing = await query<{ id: string }>(
-    `SELECT id FROM patients WHERE email_hash = $1 AND deleted_at IS NULL ORDER BY created_at LIMIT 1`,
-    [contactHash("email", email)]
-  );
-  const patient = existing.rows[0]
-    ? { id: existing.rows[0].id }
-    : await createPatient(
-        {
-          firstName,
-          lastName,
-          email,
-          mobile,
-          locationId: String(body.locationId || "") || null,
-          marketingSourceId: null,
-          privacyPolicyStatus: "aceptado",
-          consentEmail: true,
-          consentSms: true,
-        },
-        null,
-        meta
-      );
-  if (!existing.rows[0]) {
-    const source = await query<{ id: string }>(`SELECT id FROM marketing_sources WHERE name = 'Sitio web' LIMIT 1`);
-    if (source.rows[0]) {
-      await query(`UPDATE patients SET marketing_source_id = $2 WHERE id = $1`, [patient.id, source.rows[0].id]);
-    }
-  }
+  const patient = { id: session.id };
   const place = await query<{ id: string }>(
     `SELECT id FROM locations WHERE id = $1 AND is_active AND ${locationCountrySql("country", "$2")}`,
     [String(body.locationId || ""), market]

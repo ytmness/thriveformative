@@ -139,6 +139,14 @@ export function useClinicScope() {
   return value;
 }
 
+export function useClinicScopeOptional() {
+  return useContext(Ctx);
+}
+
+export function useAdminEnglish() {
+  return useContext(Ctx)?.country === "US";
+}
+
 export function ScopeBar() {
   const { country, setCountry } = useClinicScope();
   function onKey(event: React.KeyboardEvent) {
@@ -147,7 +155,7 @@ export function ScopeBar() {
     setCountry(country === "MX" ? "US" : "MX");
   }
   return (
-    <div className="admin-scope" role="radiogroup" aria-label="Sede" data-country={country} onKeyDown={onKey}>
+    <div className="admin-scope" role="radiogroup" aria-label={country === "US" ? "Location" : "Sede"} data-country={country} onKeyDown={onKey}>
       <span className="admin-scope__thumb" aria-hidden="true" />
       <button type="button" role="radio" aria-checked={country === "MX"} className={country === "MX" ? "is-active" : ""} onClick={() => setCountry("MX")}>
         <FlagMexico />

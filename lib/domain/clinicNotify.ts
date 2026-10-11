@@ -21,12 +21,16 @@ export async function notifyAppointment(appointmentId: string, kind: Kind) {
     first_name: string | null;
     last_name: string | null;
     timezone: string | null;
+    location_name: string | null;
+    service_name: string | null;
     preferred_language: string | null;
   }>(
-    `SELECT a.starts_at, a.patient_id, p.email_enc, p.first_name, p.last_name, l.timezone, p.preferred_language
+    `SELECT a.starts_at, a.patient_id, p.email_enc, p.first_name, p.last_name, l.timezone,
+            l.name AS location_name, s.name AS service_name, p.preferred_language
      FROM appointments a
      LEFT JOIN patients p ON p.id = a.patient_id
      LEFT JOIN locations l ON l.id = a.location_id
+     LEFT JOIN services s ON s.id = a.service_id
      WHERE a.id = $1`,
     [appointmentId]
   );
@@ -37,6 +41,8 @@ export async function notifyAppointment(appointmentId: string, kind: Kind) {
   const date = formatDate(starts, tz);
   const timeSlot = formatHm(starts, tz);
   const who = `${row.first_name || ""} ${row.last_name || ""}`.trim() || "Paciente";
+  const service = row.service_name || "consulta";
+  const place = row.location_name || "Thrive Formative";
   const copy = COPY[kind];
   const english = row.preferred_language === "en";
   const email = decryptPhi(row.email_enc);
@@ -67,9 +73,12 @@ export async function notifyAppointment(appointmentId: string, kind: Kind) {
       ).catch(() => undefined);
     }
   }
+  const clinicBody = kind === "pending"
+    ? `${who} acaba de agendar una cita de ${service} para el ${date} a las ${timeSlot} en ${place}.`
+    : `${who} · ${service} · ${date} a las ${timeSlot} en ${place}`;
   await query(
     `INSERT INTO notifications (type, title, body, reference_id) VALUES ($1,$2,$3,$4)`,
-    [copy.type, copy.title, `${who} · ${date} a las ${timeSlot}`, appointmentId]
+    [copy.type, kind === "pending" ? "Nueva cita agendada" : copy.title, clinicBody, appointmentId]
   );
   if (row.patient_id) {
     await query(

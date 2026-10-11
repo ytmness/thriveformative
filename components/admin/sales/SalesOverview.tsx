@@ -31,6 +31,7 @@ export default function SalesOverview() {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState<Record<string, unknown> | null>(null);
   const scope = useClinicScope();
+  const english = scope.country === "US";
 
   function load() {
     api<{ rows: Sale[]; summary: Summary }>(`/api/admin/sales?${scope.query}`)
@@ -72,25 +73,25 @@ export default function SalesOverview() {
   return (
     <>
       <header className="admin-header">
-        <p className="admin-header__eyebrow">Dinero · {scope.label}</p>
-        <h1 className="admin-header__title">Ventas</h1>
-        <p className="admin-header__desc">Aquí ves cuánto se vendió. Para cobrar en mostrador, abre Cobrar.</p>
+        <p className="admin-header__eyebrow">{english ? "Money" : "Dinero"} · {scope.label}</p>
+        <h1 className="admin-header__title">{english ? "Sales" : "Ventas"}</h1>
+        <p className="admin-header__desc">{english ? "Here you see what was sold. To charge at the counter, open Charge." : "Aquí ves cuánto se vendió. Para cobrar en mostrador, abre Cobrar."}</p>
       </header>
       {error ? <div className="admin-alert" role="alert">{error}</div> : null}
       {message ? <p className="admin-notice" role="status">{message}</p> : null}
       <div className="admin-page-head">
-        <h2 style={{ margin: 0, fontSize: "1.05rem" }}>Resumen</h2>
-        <Link className="admin-btn admin-btn--primary" href="/admin/cobrar" data-tour="sales-charge">Cobrar</Link>
+        <h2 style={{ margin: 0, fontSize: "1.05rem" }}>{english ? "Summary" : "Resumen"}</h2>
+        <Link className="admin-btn admin-btn--primary" href="/admin/cobrar" data-tour="sales-charge">{english ? "Charge" : "Cobrar"}</Link>
       </div>
       <section className="admin-metrics" data-tour="sales-metrics">
-        <div className="admin-metric"><div className="admin-metric__value">{summary ? money(summary.today) : "—"}</div><div className="admin-metric__label">Hoy</div></div>
-        <div className="admin-metric"><div className="admin-metric__value">{summary ? money(summary.week) : "—"}</div><div className="admin-metric__label">Esta semana</div></div>
-        <div className="admin-metric"><div className="admin-metric__value">{summary ? money(summary.month) : "—"}</div><div className="admin-metric__label">Este mes</div></div>
-        <div className="admin-metric"><div className="admin-metric__value">{summary ? money(summary.avg_ticket) : "—"}</div><div className="admin-metric__label">Ticket promedio del mes</div></div>
+        <div className="admin-metric"><div className="admin-metric__value">{summary ? money(summary.today) : "—"}</div><div className="admin-metric__label">{english ? "Today" : "Hoy"}</div></div>
+        <div className="admin-metric"><div className="admin-metric__value">{summary ? money(summary.week) : "—"}</div><div className="admin-metric__label">{english ? "This week" : "Esta semana"}</div></div>
+        <div className="admin-metric"><div className="admin-metric__value">{summary ? money(summary.month) : "—"}</div><div className="admin-metric__label">{english ? "This month" : "Este mes"}</div></div>
+        <div className="admin-metric"><div className="admin-metric__value">{summary ? money(summary.avg_ticket) : "—"}</div><div className="admin-metric__label">{english ? "Average ticket this month" : "Ticket promedio del mes"}</div></div>
       </section>
       {days.length ? (
         <section className="admin-card" style={{ marginBottom: "1.25rem" }}>
-          <h2 style={{ margin: "0 0 0.75rem", fontSize: "1.05rem" }}>Cobros por día</h2>
+          <h2 style={{ margin: "0 0 0.75rem", fontSize: "1.05rem" }}>{english ? "Charges by day" : "Cobros por día"}</h2>
           {days.map((row) => (
             <p key={String(row.day)} className="admin-checkout__line">
               <span>{formatDay(row.day)}</span>
@@ -100,10 +101,10 @@ export default function SalesOverview() {
         </section>
       ) : null}
       <section data-tour="sales-history">
-        <h2 style={{ margin: "0 0 0.75rem", fontSize: "1.05rem" }}>Ventas recientes</h2>
+        <h2 style={{ margin: "0 0 0.75rem", fontSize: "1.05rem" }}>{english ? "Recent sales" : "Ventas recientes"}</h2>
         <label className="section-search">
           <span>Buscar ventas</span>
-          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Folio, cliente, estado o monto" />
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={english ? "Receipt, client, status, or amount" : "Folio, cliente, estado o monto"} />
         </label>
         <div className="admin-table-wrap">
           {visible.map((sale) => (
@@ -122,7 +123,7 @@ export default function SalesOverview() {
               {sale.status !== "void" ? (
                 <button className="admin-btn admin-btn--danger" type="button" onClick={async (event) => {
                   event.stopPropagation();
-                  if (!window.confirm(`¿Anular ${sale.sale_number}? El registro se conserva, pero deja de contar como cobro.`)) return;
+                  if (!window.confirm(english ? `Void ${sale.sale_number}? The record stays, but it no longer counts as a charge.` : `¿Anular ${sale.sale_number}? El registro se conserva, pero deja de contar como cobro.`)) return;
                   try {
                     await api(`/api/admin/sales/${sale.id}`, { method: "POST", body: JSON.stringify({ action: "void", reason: "Anulada en ventas" }) });
                     setMessage("Venta anulada.");
@@ -131,7 +132,7 @@ export default function SalesOverview() {
                   } catch (err) {
                     setMessage(err instanceof Error ? err.message : "No se pudo anular la venta.");
                   }
-                }}>Anular</button>
+                }}>{english ? "Void" : "Anular"}</button>
               ) : null}
             </div>
           ))}

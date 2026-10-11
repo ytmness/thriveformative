@@ -7,14 +7,23 @@ import { countryCode, useClinicScope } from "@/components/admin/clinic/ClinicSco
 import { CloseButton, EmptyState, SegmentedControl } from "@/components/admin/ui";
 import { CreateOffer } from "@/components/admin/tutorial";
 
-const GROUPS: [string, [string, string][]][] = [
-  ["Clínica", [["sedes", "Sedes"], ["salas", "Salas"], ["horarios", "Horarios"]]],
-  ["Equipo", [["equipo", "Equipo y roles"]]],
-  ["Finanzas", [["impuestos", "Impuestos"], ["pagos", "Métodos de pago"], ["facturacion", "Facturación"]]],
-  ["Marketing y ventas", [["fuentes", "Fuentes"], ["etapas", "Etapas de leads"]]],
-  ["Avanzado", [["campos", "Campos personalizados"], ["politicas", "Políticas"]]],
-];
-const SECTIONS: [string, string][] = GROUPS.flatMap((group) => group[1]);
+function settingGroups(english: boolean): [string, [string, string][]][] {
+  return english
+    ? [
+        ["Clinic", [["sedes", "Locations"], ["salas", "Rooms"], ["horarios", "Hours"]]],
+        ["Team", [["equipo", "Team and roles"]]],
+        ["Finance", [["impuestos", "Taxes"], ["pagos", "Payment methods"], ["facturacion", "Billing"]]],
+        ["Marketing and sales", [["fuentes", "Sources"], ["etapas", "Lead stages"]]],
+        ["Advanced", [["campos", "Custom fields"], ["politicas", "Policies"]]],
+      ]
+    : [
+        ["Clínica", [["sedes", "Sedes"], ["salas", "Salas"], ["horarios", "Horarios"]]],
+        ["Equipo", [["equipo", "Equipo y roles"]]],
+        ["Finanzas", [["impuestos", "Impuestos"], ["pagos", "Métodos de pago"], ["facturacion", "Facturación"]]],
+        ["Marketing y ventas", [["fuentes", "Fuentes"], ["etapas", "Etapas de leads"]]],
+        ["Avanzado", [["campos", "Campos personalizados"], ["politicas", "Políticas"]]],
+      ];
+}
 
 const MAP: Record<string, string> = {
   sedes: "locations",
@@ -30,12 +39,16 @@ const MAP: Record<string, string> = {
   facturacion: "clinic",
 };
 
-const DAYS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+const DAYS_ES = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+const DAYS_EN = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 type Row = Record<string, unknown>;
 
 export default function SettingsPanel({ section }: { section: string }) {
   const scope = useClinicScope();
+  const english = scope.country === "US";
+  const groups = settingGroups(english);
+  const sections = groups.flatMap((group) => group[1]);
   const apiSection = MAP[section] || "locations";
   const [rows, setRows] = useState<Row[]>([]);
   const [locations, setLocations] = useState<Row[]>([]);
@@ -115,7 +128,7 @@ export default function SettingsPanel({ section }: { section: string }) {
       setSaved(true);
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo guardar");
+      setError(err instanceof Error ? err.message : (english ? "Could not save" : "No se pudo guardar"));
     }
   }
 
@@ -127,9 +140,9 @@ export default function SettingsPanel({ section }: { section: string }) {
     : apiSection === "rooms" || apiSection === "schedules"
       ? rows.filter((row) => scopedIds.has(String(row.location_id || "")))
       : rows;
-  const title = SECTIONS.find((item) => item[0] === section)?.[1] || "Configuración";
+  const title = sections.find((item) => item[0] === section)?.[1] || (english ? "Settings" : "Configuración");
   const singleton = apiSection === "booking" || apiSection === "clinic";
-  const columns = tableColumns(apiSection);
+  const columns = tableColumns(apiSection, english);
   const recordName = String(form.name || form.label || form.firstName || "");
 
   useEffect(() => {
@@ -161,10 +174,10 @@ export default function SettingsPanel({ section }: { section: string }) {
         <div className="span-2">
           <SegmentedControl
             tour="service-tabs"
-            label="Secciones del servicio"
+            label={english ? "Service sections" : "Secciones del servicio"}
             value={serviceTab}
             onChange={setServiceTab}
-            items={[["general", "General"], ["precios", "Precios"], ["reserva", "Reserva en línea"], ["formularios", "Formularios"]].map(([id, label]) => ({ id, label }))}
+            items={(english ? [["general", "General"], ["precios", "Pricing"], ["reserva", "Online booking"], ["formularios", "Forms"]] : [["general", "General"], ["precios", "Precios"], ["reserva", "Reserva en línea"], ["formularios", "Formularios"]]).map(([id, label]) => ({ id, label }))}
           />
         </div>
       ) : null}
@@ -174,8 +187,8 @@ export default function SettingsPanel({ section }: { section: string }) {
 
   return (
     <div className="admin-settings">
-      <nav className="admin-settings__nav" data-tour="settings-nav" aria-label="Secciones de configuración">
-        {GROUPS.map(([group, items]) => (
+      <nav className="admin-settings__nav" data-tour="settings-nav" aria-label={english ? "Settings sections" : "Secciones de configuración"}>
+        {groups.map(([group, items]) => (
           <div key={group} className="admin-settings__group">
             <p className="admin-settings__label">{group}</p>
             {items.map(([id, label]) => (
@@ -186,7 +199,7 @@ export default function SettingsPanel({ section }: { section: string }) {
       </nav>
       <div>
         <p className="admin-crumb">
-          <Link href="/admin/configuracion/sedes">Configuración</Link>
+          <Link href="/admin/configuracion/sedes">{english ? "Settings" : "Configuración"}</Link>
           {" › "}
           <Link href={`/admin/configuracion/${section}`}>{title}</Link>
           {openForm && recordName ? ` › ${recordName}` : null}
@@ -195,19 +208,19 @@ export default function SettingsPanel({ section }: { section: string }) {
           <h1 className="admin-header__title">{title}</h1>
         </header>
         {error ? <div className="admin-alert" role="alert">{error}</div> : null}
-        {saved ? <p className="admin-notice" role="status">Cambios guardados.</p> : null}
+        {saved ? <p className="admin-notice" role="status">{english ? "Changes saved." : "Cambios guardados."}</p> : null}
         {singleton ? (
           <section className="admin-card">
             {editor}
             <div className="admin-drawer__foot" style={{ marginTop: "1rem", padding: 0, border: 0 }}>
-              <button className="admin-btn admin-btn--primary" type="submit" form="settings-editor" data-tour="settings-save">Guardar</button>
+              <button className="admin-btn admin-btn--primary" type="submit" form="settings-editor" data-tour="settings-save">{english ? "Save" : "Guardar"}</button>
             </div>
           </section>
         ) : (
           <>
             <div className="admin-page-head">
               <h2 style={{ margin: 0, fontSize: "1.05rem" }}>{title}</h2>
-              <button className="admin-btn admin-btn--primary" type="button" data-tour="settings-new" onClick={openNew}>+ Nuevo</button>
+              <button className="admin-btn admin-btn--primary" type="button" data-tour="settings-new" onClick={openNew}>{english ? "+ New" : "+ Nuevo"}</button>
             </div>
             <div className="admin-table-wrap" data-tour="settings-table">
               <div className="admin-table__row admin-table__head" style={{ gridTemplateColumns: columns.template }}>
@@ -217,25 +230,25 @@ export default function SettingsPanel({ section }: { section: string }) {
                 <div key={String(row.id)} className="admin-table__row" style={{ gridTemplateColumns: columns.template }}>
                   {cellsOf(apiSection, row, categories).map((cell, index) => <div key={index}>{cell}</div>)}
                   <details className="admin-menu">
-                    <summary aria-label="Acciones">⋯</summary>
+                    <summary aria-label={english ? "Actions" : "Acciones"}>⋯</summary>
                     <div className="admin-menu__list">
-                      <button type="button" onClick={() => openEdit(row)}>Editar</button>
+                      <button type="button" onClick={() => openEdit(row)}>{english ? "Edit" : "Editar"}</button>
                       <button type="button" onClick={async () => {
                         const label = labelOf(apiSection, row);
-                        if (!window.confirm(`¿Eliminar «${label}»? Deja de aparecer en el panel.`)) return;
+                        if (!window.confirm(english ? `Delete "${label}"? It will disappear from the panel.` : `¿Eliminar «${label}»? Deja de aparecer en el panel.`)) return;
                         setError(null);
                         try {
                           await api(`/api/admin/settings/${apiSection}/${row.id}`, { method: "DELETE" });
                           await load();
                         } catch (err) {
-                          setError(err instanceof Error ? err.message : "No se pudo eliminar.");
+                          setError(err instanceof Error ? err.message : (english ? "Could not delete." : "No se pudo eliminar."));
                         }
-                      }}>Eliminar</button>
+                      }}>{english ? "Delete" : "Eliminar"}</button>
                     </div>
                   </details>
                 </div>
               ))}
-              {!visibleRows.length ? <EmptyState title="Sin registros" text="Crea el primero con + Nuevo." action={<button className="admin-btn admin-btn--primary" type="button" onClick={openNew}>+ Nuevo</button>} /> : null}
+              {!visibleRows.length ? <EmptyState title={english ? "No records" : "Sin registros"} text={english ? "Create the first one with + New." : "Crea el primero con + Nuevo."} action={<button className="admin-btn admin-btn--primary" type="button" onClick={openNew}>{english ? "+ New" : "+ Nuevo"}</button>} /> : null}
             </div>
           </>
         )}
@@ -245,14 +258,14 @@ export default function SettingsPanel({ section }: { section: string }) {
           <div className="admin-drawer__panel" onClick={(e) => e.stopPropagation()}>
             <div className="admin-drawer__head">
               <h2 className="admin-header__title" style={{ margin: 0, fontSize: "1.25rem" }}>
-                {apiSection === "services" && editing ? `Editar servicio: ${recordName || "servicio"}` : editing ? `Editar ${title.toLowerCase()}` : `Nuevo: ${title.toLowerCase()}`}
+                {apiSection === "services" && editing ? (english ? `Edit service: ${recordName || "service"}` : `Editar servicio: ${recordName || "servicio"}`) : editing ? (english ? `Edit ${title.toLowerCase()}` : `Editar ${title.toLowerCase()}`) : (english ? `New: ${title.toLowerCase()}` : `Nuevo: ${title.toLowerCase()}`)}
               </h2>
               <CloseButton onClick={() => setOpenForm(false)} />
             </div>
             <div className="admin-drawer__body">{editor}</div>
             <div className="admin-drawer__foot">
-              <button className="admin-btn" type="button" onClick={() => setOpenForm(false)}>Cancelar</button>
-              <button className="admin-btn admin-btn--primary" type="submit" form="settings-editor" data-tour="settings-save">Guardar</button>
+              <button className="admin-btn" type="button" onClick={() => setOpenForm(false)}>{english ? "Cancel" : "Cancelar"}</button>
+              <button className="admin-btn admin-btn--primary" type="submit" form="settings-editor" data-tour="settings-save">{english ? "Save" : "Guardar"}</button>
             </div>
           </div>
         </div>
@@ -357,7 +370,7 @@ function Fields({ section, form, set, locations, staff, categories, taxes, rooms
     <>
       <Select label="Profesional" value={form.staffUserId} onChange={(v) => set("staffUserId", v)} options={staff.map((row) => [String(row.id), `${row.first_name} ${row.last_name}`])} required ready={ready} empty={{ kind: "staff", href: "/admin/configuracion/equipo?nuevo=1" }} />
       <Select label="Sede" value={form.locationId} onChange={(v) => set("locationId", v)} options={locations.map((row) => [String(row.id), String(row.name)])} required ready={ready} empty={{ kind: "location", href: "/admin/configuracion/sedes?nuevo=1" }} />
-      <Select label="Día" value={form.dayOfWeek ?? "1"} onChange={(v) => set("dayOfWeek", Number(v))} options={DAYS.map((name, index) => [String(index), name])} />
+      <Select label="Día" value={form.dayOfWeek ?? "1"} onChange={(v) => set("dayOfWeek", Number(v))} options={DAYS_ES.map((name, index) => [String(index), name])} />
       <Text label="Desde" value={form.startTime || "09:00"} onChange={(v) => set("startTime", v)} />
       <Text label="Hasta" value={form.endTime || "17:00"} onChange={(v) => set("endTime", v)} />
     </>
@@ -493,10 +506,12 @@ function formFrom(section: string, row: Row): Row {
   return { name: row.name };
 }
 
-function tableColumns(section: string) {
-  if (section === "services") return { labels: ["Nombre", "Duración", "Precio", "Categoría", "Acciones"], template: "minmax(0,1.4fr) minmax(0,0.8fr) minmax(0,0.7fr) minmax(0,1fr) 4.5rem" };
-  if (section === "staff") return { labels: ["Nombre", "Email", "Rol", "Acciones"], template: "minmax(0,1.2fr) minmax(0,1.2fr) minmax(0,1fr) 4.5rem" };
-  return { labels: ["Nombre", "Detalle", "Acciones"], template: "minmax(0,1.4fr) minmax(0,1fr) 4.5rem" };
+function tableColumns(section: string, english = false) {
+  const name = english ? "Name" : "Nombre";
+  const actions = english ? "Actions" : "Acciones";
+  if (section === "services") return { labels: [name, english ? "Duration" : "Duración", english ? "Price" : "Precio", english ? "Category" : "Categoría", actions], template: "minmax(0,1.4fr) minmax(0,0.8fr) minmax(0,0.7fr) minmax(0,1fr) 4.5rem" };
+  if (section === "staff") return { labels: [name, "Email", english ? "Role" : "Rol", actions], template: "minmax(0,1.2fr) minmax(0,1.2fr) minmax(0,1fr) 4.5rem" };
+  return { labels: [name, english ? "Detail" : "Detalle", actions], template: "minmax(0,1.4fr) minmax(0,1fr) 4.5rem" };
 }
 
 function cellsOf(section: string, row: Row, categories: Row[]) {
@@ -510,7 +525,7 @@ function cellsOf(section: string, row: Row, categories: Row[]) {
 
 function labelOf(section: string, row: Row) {
   if (section === "staff") return `${row.first_name} ${row.last_name}`;
-  if (section === "schedules") return `${DAYS[Number(row.day_of_week)] || "Día"} ${String(row.start_time || "").slice(0, 5)}–${String(row.end_time || "").slice(0, 5)}`;
+  if (section === "schedules") return `${DAYS_ES[Number(row.day_of_week)] || "Día"} ${String(row.start_time || "").slice(0, 5)}–${String(row.end_time || "").slice(0, 5)}`;
   return String(row.name || row.key || row.label || "Registro");
 }
 

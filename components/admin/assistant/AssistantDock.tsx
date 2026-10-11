@@ -25,11 +25,11 @@ const FIELD_TYPES = [
   ["signature", "Firma"],
 ] as const;
 
-function suggestions(pathname: string, permissions: string[]): string[] {
-  const items: string[] = ["¿Cómo hago esto en esta pantalla?"];
-  if (pathname.includes("/formularios") && permissions.includes("forms.write")) items.unshift("Créame un consentimiento con 3 campos");
-  if (permissions.includes("dashboard.read")) items.push("¿Cómo va el día de hoy?");
-  if (permissions.includes("reports.read")) items.push("Ingresos de los últimos 30 días");
+function suggestions(pathname: string, permissions: string[], english: boolean): string[] {
+  const items: string[] = [english ? "How do I do this on this screen?" : "¿Cómo hago esto en esta pantalla?"];
+  if (pathname.includes("/formularios") && permissions.includes("forms.write")) items.unshift(english ? "Create a consent form with 3 fields" : "Créame un consentimiento con 3 campos");
+  if (permissions.includes("dashboard.read")) items.push(english ? "How is today going?" : "¿Cómo va el día de hoy?");
+  if (permissions.includes("reports.read")) items.push(english ? "Revenue for the last 30 days" : "Ingresos de los últimos 30 días");
   return items.slice(0, 3);
 }
 
@@ -213,6 +213,7 @@ function FieldEditor({
 
 export function AssistantDock({ pathname, permissions }: { pathname: string; permissions: string[] }) {
   const scope = useClinicScope();
+  const english = scope.country === "US";
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const [lines, setLines] = useState<Line[]>([]);
@@ -220,7 +221,7 @@ export function AssistantDock({ pathname, permissions }: { pathname: string; per
   const [error, setError] = useState<string | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const prompts = suggestions(pathname, permissions);
+  const prompts = suggestions(pathname, permissions, english);
 
   useEffect(() => {
     if (!open) return;
@@ -296,7 +297,7 @@ export function AssistantDock({ pathname, permissions }: { pathname: string; per
     <>
       <button type="button" className="admin-tutorial__btn" aria-expanded={open} onClick={() => setOpen(true)}>
         <Sparkles size={14} aria-hidden />
-        Asistente
+        {english ? "Assistant" : "Asistente"}
       </button>
       {open ? (
         <div className="admin-drawer assistant-drawer" onClick={() => setOpen(false)}>
@@ -304,20 +305,20 @@ export function AssistantDock({ pathname, permissions }: { pathname: string; per
             className="admin-drawer__panel"
             role="dialog"
             aria-modal="true"
-            aria-label="Asistente del panel"
+            aria-label={english ? "Panel assistant" : "Asistente del panel"}
             onClick={(event) => event.stopPropagation()}
           >
             <header className="admin-drawer__head">
               <div>
                 <p className="assistant-kicker">Thrive Formative</p>
-                <h2>Asistente</h2>
+                <h2>{english ? "Assistant" : "Asistente"}</h2>
               </div>
-              <button type="button" className="admin-icon-btn" aria-label="Cerrar asistente" onClick={() => setOpen(false)}>
+              <button type="button" className="admin-icon-btn" aria-label={english ? "Close assistant" : "Cerrar asistente"} onClick={() => setOpen(false)}>
                 <X size={16} />
               </button>
             </header>
             <div className="assistant-log" ref={logRef}>
-              <p className="assistant-note">Las consultas pueden compartir datos de pacientes con el proveedor del modelo. Activa la retención cero en esa cuenta.</p>
+              <p className="assistant-note">{english ? "Questions can share patient data with the model provider. Turn on zero retention on that account." : "Las consultas pueden compartir datos de pacientes con el proveedor del modelo. Activa la retención cero en esa cuenta."}</p>
               {lines.length === 0 ? (
                 <div className="assistant-prompts">
                   {prompts.map((prompt) => (
@@ -329,8 +330,8 @@ export function AssistantDock({ pathname, permissions }: { pathname: string; per
                 <article key={index} className={`assistant-bubble assistant-bubble--${line.role}`}>
                   <RichText text={line.content} />
                   {line.blocks?.length ? <Blocks blocks={line.blocks} /> : null}
-                  {line.settled === "saved" ? <p className="assistant-settled">Guardado</p> : null}
-                  {line.settled === "dismissed" ? <p className="assistant-settled">Cancelado</p> : null}
+                  {line.settled === "saved" ? <p className="assistant-settled">{english ? "Saved" : "Guardado"}</p> : null}
+                  {line.settled === "dismissed" ? <p className="assistant-settled">{english ? "Cancelled" : "Cancelado"}</p> : null}
                   {line.confirm && !line.settled ? (
                     <ConfirmEditor
                       card={line.confirm}
@@ -341,7 +342,7 @@ export function AssistantDock({ pathname, permissions }: { pathname: string; per
                   ) : null}
                 </article>
               ))}
-              {busy ? <p className="assistant-pending">Consultando…</p> : null}
+              {busy ? <p className="assistant-pending">{english ? "Looking it up…" : "Consultando…"}</p> : null}
               {error ? <p className="assistant-error" role="alert">{error}</p> : null}
             </div>
             <form className="assistant-composer" onSubmit={onSubmit}>
@@ -349,8 +350,8 @@ export function AssistantDock({ pathname, permissions }: { pathname: string; per
                 ref={inputRef}
                 rows={2}
                 value={draft}
-                placeholder="Pregunta o pide que cree algo"
-                aria-label="Mensaje para el asistente"
+                placeholder={english ? "Ask a question or ask it to create something" : "Pregunta o pide que cree algo"}
+                aria-label={english ? "Message for the assistant" : "Mensaje para el asistente"}
                 onChange={(event) => setDraft(event.target.value)}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" && !event.shiftKey) {
@@ -359,7 +360,7 @@ export function AssistantDock({ pathname, permissions }: { pathname: string; per
                   }
                 }}
               />
-              <button type="submit" className="admin-btn admin-btn--primary" disabled={busy || !draft.trim()}>Enviar</button>
+              <button type="submit" className="admin-btn admin-btn--primary" disabled={busy || !draft.trim()}>{english ? "Send" : "Enviar"}</button>
             </form>
           </div>
         </div>

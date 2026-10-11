@@ -45,6 +45,7 @@ export default function PosScreen() {
   const [locationId, setLocationId] = useState("");
   const [locations, setLocations] = useState<{ id: string; name: string; country?: string | null; is_active?: boolean }[]>([]);
   const scope = useClinicScope();
+  const english = scope.country === "US";
   const [catalogReady, setCatalogReady] = useState(false);
   const stripeRef = useRef<{ confirmPayment: (opts: { elements: unknown; redirect: string }) => Promise<{ error?: { message?: string }; paymentIntent?: { id: string } }> } | null>(null);
   const elementsRef = useRef<unknown>(null);
@@ -196,12 +197,12 @@ export default function PosScreen() {
   return (
     <>
       <header className="admin-header">
-        <p className="admin-header__eyebrow">Punto de venta</p>
-        <h1 className="admin-header__title">Cobrar</h1>
-        <p className="admin-header__desc">Toca una ficha para agregarla al ticket. Para crear o editar el catálogo, ve a Servicios y productos.</p>
+        <p className="admin-header__eyebrow">{english ? "Point of sale" : "Punto de venta"}</p>
+        <h1 className="admin-header__title">{english ? "Charge" : "Cobrar"}</h1>
+        <p className="admin-header__desc">{english ? "Tap a card to add it to the ticket. To create or edit the catalog, go to Services and products." : "Toca una ficha para agregarla al ticket. Para crear o editar el catálogo, ve a Servicios y productos."}</p>
       </header>
-      <nav className="admin-nav admin-nav--row" data-tour="sales-tabs" aria-label="Qué cobrar">
-        {[["service", "Servicios"], ["product", "Productos"], ["package", "Paquetes"], ["membership", "Membresías"]].map(([id, label]) => (
+      <nav className="admin-nav admin-nav--row" data-tour="sales-tabs" aria-label={english ? "What to charge" : "Qué cobrar"}>
+        {(english ? [["service", "Services"], ["product", "Products"], ["package", "Packages"], ["membership", "Memberships"]] : [["service", "Servicios"], ["product", "Productos"], ["package", "Paquetes"], ["membership", "Membresías"]]).map(([id, label]) => (
           <button key={id} type="button" className={`admin-nav__item${tab === id ? " admin-nav__item--active" : ""}`} aria-pressed={tab === id} onClick={() => setTab(id)}>{label}</button>
         ))}
       </nav>

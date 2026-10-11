@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAdminEnglish } from "@/components/admin/clinic/ClinicScope";
 import { CMS_TEXT_GROUPS } from "@/lib/cms/textKeys";
 import { CMS_LOCALES, type Locale } from "@/lib/cms/types";
 import { useCmsAdmin } from "@/hooks/useCmsAdmin";
@@ -24,6 +25,7 @@ type Props = {
 };
 
 export default function CmsPanel({ siteLocale }: Props) {
+  const english = useAdminEnglish();
   const cms = useCmsAdmin(siteLocale as Locale);
   const [viewMode, setViewMode] = useState<ViewMode>("visual");
   const [subTab, setSubTab] = useState<SubTab>("services");
@@ -54,10 +56,10 @@ export default function CmsPanel({ siteLocale }: Props) {
   }
 
   return (
-    <section className="admin-cms mt-10" aria-label="CMS contenido">
+    <section className="admin-cms mt-10" aria-label={english ? "Site content" : "CMS contenido"}>
       <div className="admin-cms__toolbar" data-tour="content-nav">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="admin-cms__view-toggle" role="tablist" aria-label="Modo de edición">
+          <div className="admin-cms__view-toggle" role="tablist" aria-label={english ? "Editing mode" : "Modo de edición"}>
             <button
               type="button"
               role="tab"
@@ -65,7 +67,7 @@ export default function CmsPanel({ siteLocale }: Props) {
               className={`admin-cms__view-btn${viewMode === "visual" ? " admin-cms__view-btn--active" : ""}`}
               onClick={() => setViewMode("visual")}
             >
-              Vista previa
+              {english ? "Preview" : "Vista previa"}
             </button>
             <button
               type="button"
@@ -74,11 +76,11 @@ export default function CmsPanel({ siteLocale }: Props) {
               className={`admin-cms__view-btn${viewMode === "forms" ? " admin-cms__view-btn--active" : ""}`}
               onClick={() => setViewMode("forms")}
             >
-              Lista / formularios
+              {english ? "List / forms" : "Lista / formularios"}
             </button>
           </div>
           <div className="admin-cms__locale-select">
-            <label htmlFor="cms-locale">Idioma a editar</label>
+            <label htmlFor="cms-locale">{english ? "Language to edit" : "Idioma a editar"}</label>
             <select
               id="cms-locale"
               value={locale}
@@ -94,8 +96,8 @@ export default function CmsPanel({ siteLocale }: Props) {
         </div>
         <p className="text-sm text-muted max-w-md">
           {viewMode === "visual"
-            ? "Haz clic en los bloques de la página para editarlos al instante."
-            : "Vista clásica con formularios por sección."}
+            ? (english ? "Click the blocks on the page to edit them right away." : "Haz clic en los bloques de la página para editarlos al instante.")
+            : (english ? "Classic view with a form for each section." : "Vista clásica con formularios por sección.")}
         </p>
       </div>
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/components/admin/clinic/client";
+import { useAdminEnglish } from "@/components/admin/clinic/ClinicScope";
 import { OrderTrack, type OrderStage } from "@/components/store/OrderTrack";
 import StoreReceipt from "@/components/store/StoreReceipt";
 import type { StoreReceiptData } from "@/lib/store/orderTypes";
@@ -45,6 +46,7 @@ const receiptLabels = {
 };
 
 export default function StoreOrdersPanel() {
+  const english = useAdminEnglish();
   const [rows, setRows] = useState<Row[]>([]);
   const [detail, setDetail] = useState<Detail | null>(null);
   const [query, setQuery] = useState("");
@@ -97,24 +99,24 @@ export default function StoreOrdersPanel() {
   return (
     <>
       <header className="admin-header">
-        <p className="admin-header__eyebrow">Dinero</p>
-        <h1 className="admin-header__title">Pedidos en línea</h1>
-        <p className="admin-header__desc">Pedidos pagados en la tienda. Elige uno para ver el recibo y marcar la entrega.</p>
+        <p className="admin-header__eyebrow">{english ? "Money" : "Dinero"}</p>
+        <h1 className="admin-header__title">{english ? "Online orders" : "Pedidos en línea"}</h1>
+        <p className="admin-header__desc">{english ? "Orders paid in the store. Open one to see the receipt and mark it delivered." : "Pedidos pagados en la tienda. Elige uno para ver el recibo y marcar la entrega."}</p>
       </header>
       {error ? <div className="admin-alert" role="alert">{error}</div> : null}
       <label className="section-search">
-        <span>Buscar pedidos</span>
-        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nombre, sede, estado o monto" />
+        <span>{english ? "Search orders" : "Buscar pedidos"}</span>
+        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={english ? "Name, location, status, or amount" : "Nombre, sede, estado o monto"} />
       </label>
       <div className="admin-table-wrap">
-        {rows.length === 0 ? <p className="admin-table__empty">Todavía no hay pedidos de la tienda.</p> : null}
-        {visible.length === 0 && rows.length > 0 ? <p className="admin-table__empty">Ningún pedido coincide con la búsqueda.</p> : null}
+        {rows.length === 0 ? <p className="admin-table__empty">{english ? "There are no store orders yet." : "Todavía no hay pedidos de la tienda."}</p> : null}
+        {visible.length === 0 && rows.length > 0 ? <p className="admin-table__empty">{english ? "No order matches the search." : "Ningún pedido coincide con la búsqueda."}</p> : null}
         {visible.map((row) => (
           <button key={row.id} className={`admin-table__row${detail?.id === row.id ? " is-open" : ""}`} type="button" onClick={() => void open(row.id)}>
             <div>
               <div className="admin-table__cell-title">{row.recipient_name}</div>
               <div className="admin-table__cell-sub">
-                {row.fulfillment === "pickup" ? row.location_name || "Recoger" : `Envío${row.city ? ` · ${row.city}` : ""}`}
+                {row.fulfillment === "pickup" ? row.location_name || (english ? "Pickup" : "Recoger") : `${english ? "Shipping" : "Envío"}${row.city ? ` · ${row.city}` : ""}`}
                 {" · "}
                 {STATUS[row.status] || row.status}
                 {" · "}

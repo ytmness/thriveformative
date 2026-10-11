@@ -1,6 +1,8 @@
 import type { NextRequest } from "next/server";
 import type { SiteMarket } from "@/lib/site/market";
 
+type WithHeaders = { headers: { get(name: string): string | null } };
+
 function isPublicIp(ip: string) {
   if (!ip || ip === "::1" || ip.startsWith("127.") || ip.startsWith("10.") || ip.startsWith("192.168.") || ip.startsWith("169.254.")) {
     return false;
@@ -13,7 +15,7 @@ function isPublicIp(ip: string) {
   return true;
 }
 
-function clientIp(request: NextRequest) {
+function clientIp(request: WithHeaders) {
   const forwarded = request.headers.get("x-forwarded-for");
   if (forwarded) {
     for (const part of forwarded.split(",")) {
@@ -31,24 +33,27 @@ function marketFromCode(code: string | null | undefined): SiteMarket | null {
   return value === "US" ? "US" : "MX";
 }
 
-export async function detectVisitorMarket(request: NextRequest): Promise<SiteMarket> {
-  const fromHeader = marketFromCode(
-    request.headers.get("cf-ipcountry") || request.headers.get("x-country-code")
-  );
+export async function visitorMarket(request: WithHeaders): Promise<SiteMarket | null> {
+  const headerCode = request.headers.get("cf-ipcountry") || request.headers.get("x-country-code");
+  const fromHeader = marketFromCode(headerCode);
   if (fromHeader) return fromHeader;
 
   const ip = clientIp(request);
-  if (!ip) return "MX";
+  if (!ip) return null;
   try {
     const res = await fetch(`https://ipwho.is/${encodeURIComponent(ip)}`, {
       signal: AbortSignal.timeout(1500),
       headers: { accept: "application/json" },
     });
-    if (!res.ok) return "MX";
+    if (!res.ok) return null;
     const data = (await res.json()) as { success?: boolean; country_code?: string };
-    if (data.success === false) return "MX";
+    if (data.success === false) return null;
     return data.country_code?.toUpperCase() === "US" ? "US" : "MX";
   } catch {
-    return "MX";
+    return null;
   }
+}
+
+export async function detectVisitorMarket(request: NextRequest): Promise<SiteMarket> {
+  return (await visitorMarket(request)) ?? "MX";
 }

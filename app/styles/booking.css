@@ -82,6 +82,38 @@
   margin-bottom: 0;
 }
 
+.booking-gate {
+  max-width: 36rem;
+  margin: 0 auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+.booking-gate__title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+.booking-gate__hint {
+  margin: 0;
+  color: rgb(var(--muted));
+}
+.booking-gate__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.35rem;
+}
+.booking-gate__login {
+  color: rgb(var(--primary));
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
 .booking-section__portal-btn {
   width: auto;
   max-width: 100%;

@@ -311,7 +311,12 @@
     "durationNote": "예약 간격은 70분입니다.",
     "embedTitle": "Thrive Formative 예약 포털",
     "whatsappHint": "예약 전 질문이 있으신가요?",
-    "whatsappCta": "WhatsApp으로 문의"
+    "whatsappCta": "WhatsApp으로 문의",
+    "checkingAccount": "계정을 확인하는 중…",
+    "registerToBook": "캘린더를 보려면 가입하세요",
+    "registerToBookHint": "환자 계정을 만든 뒤 날짜와 시간을 선택할 수 있습니다.",
+    "registerToBookCta": "계정 만들기",
+    "loginToBook": "이미 계정이 있습니다"
   },
   "auth": {
     "loginTitle": "로그인",

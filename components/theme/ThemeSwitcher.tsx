@@ -3,11 +3,27 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Palette, ChevronRight } from "lucide-react";
 import React from "react";
+import { useLocale } from "next-intl";
+import { useClinicScopeOptional } from "@/components/admin/clinic/ClinicScope";
 import { useTheme, useThemes, ThemeId } from "./ThemeProvider";
+
+const THEME_EN: Record<ThemeId, string> = {
+  "golden-sand": "Warm, clinical, minimal.",
+  nocturnal: "Elegant dark, quiet luxury.",
+  metals: "Pearl with gold, rose, and patina.",
+  "earth-modern": "Contemporary earth, balanced contrast.",
+};
+
+function themeCopy(id: string) {
+  return { description: THEME_EN[id as ThemeId] || "" };
+}
 
 export default function ThemeSwitcher() {
   const { theme, setTheme } = useTheme();
   const themes = useThemes();
+  const scope = useClinicScopeOptional();
+  const locale = useLocale();
+  const english = scope ? scope.country === "US" : locale === "en";
   const [open, setOpen] = React.useState(false);
 
   const currentIndex = themes.findIndex(t => t.id === theme);
@@ -28,7 +44,7 @@ export default function ThemeSwitcher() {
               transition={{ duration: 0.18 }}
               className="bg-surface border border-theme shadow-soft rounded-2xl p-3 w-72"
             >
-              <div className="font-display text-sm tracking-wide mb-2">Vistas / Paletas</div>
+              <div className="font-display text-sm tracking-wide mb-2">{english ? "Views / Palettes" : "Vistas / Paletas"}</div>
               <div className="space-y-2">
                 {themes.map(t => (
                   <button
@@ -41,7 +57,7 @@ export default function ThemeSwitcher() {
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="text-sm font-medium">{t.name}</div>
-                        <div className="text-xs text-muted">{t.description}</div>
+                        <div className="text-xs text-muted">{english ? themeCopy(t.id).description : t.description}</div>
                       </div>
                       <ChevronRight className="opacity-60" size={18} />
                     </div>
@@ -51,10 +67,10 @@ export default function ThemeSwitcher() {
 
               <div className="mt-3 flex gap-2">
                 <button className="btn-outline rounded-xl px-3 py-2 text-sm w-1/2" onClick={next}>
-                  Siguiente
+                  {english ? "Next" : "Siguiente"}
                 </button>
                 <button className="btn-primary rounded-xl px-3 py-2 text-sm w-1/2" onClick={() => setOpen(false)}>
-                  Listo
+                  {english ? "Done" : "Listo"}
                 </button>
               </div>
             </motion.div>
@@ -68,7 +84,7 @@ export default function ThemeSwitcher() {
           className="btn-primary rounded-2xl shadow-soft px-4 py-3 flex items-center gap-2"
         >
           <Palette size={18} />
-          <span className="text-sm font-medium">Cambiar vista</span>
+          <span className="text-sm font-medium">{english ? "Change view" : "Cambiar vista"}</span>
         </motion.button>
       </div>
     </div>

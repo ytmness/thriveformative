@@ -130,7 +130,23 @@ async function ensureAccount(patientId: string, email: string) {
   return created.rows[0].id;
 }
 
-async function saveProfile(email: string, profile: RegisterProfile) {
+async function defaultLocationId(country: string | null | undefined) {
+  const code = (country || "MX").trim().toUpperCase();
+  const us = code === "US" || code === "USA" || code === "UNITED STATES" || code === "ESTADOS UNIDOS";
+  const found = await query<{ id: string }>(
+    `SELECT id FROM locations
+     WHERE upper(country) = ANY($1::text[])
+     ORDER BY
+       CASE WHEN name ILIKE $2 OR coalesce(city, '') ILIKE $2 THEN 0 ELSE 1 END,
+       CASE WHEN is_active THEN 0 ELSE 1 END,
+       name
+     LIMIT 1`,
+    [us ? ["US", "USA", "UNITED STATES", "ESTADOS UNIDOS"] : ["MX", "MEXICO", "MÉXICO"], us ? "%laredo%" : "%monterrey%"]
+  );
+  return found.rows[0]?.id ?? null;
+}
+
+async function saveProfile(email: string, profile: RegisterProfile, market?: "MX" | "US" | null) {
   if (profile.acceptedPolicies !== true) {
     throw new DomainError(profile.locale === "en" ? "Read and accept the policies before continuing." : "Lee y acepta las políticas antes de continuar.");
   }
@@ -145,6 +161,7 @@ async function saveProfile(email: string, profile: RegisterProfile) {
   const source = await sourceId(profile.referralSource);
   const referred = profile.referralSource === "other" ? profile.referralSourceOther || null : profile.referralSource || null;
   const preference = profile.contactPreference || "";
+  const locationId = await defaultLocationId(market || profile.country);
   let patientId = await findPatient(email);
   if (!patientId) {
     const code = await query<{ code: string }>(
@@ -155,8 +172,8 @@ async function saveProfile(email: string, profile: RegisterProfile) {
          client_code, first_name, middle_name, paternal_surname, maternal_surname, last_name, sex, sex_detail, birth_date, preferred_language, marketing_source_id,
          referred_by_name, email_enc, email_hash, mobile_enc, mobile_hash, street, street_number, neighborhood, city, state, postal_code, country,
          emergency_name_enc, emergency_phone_enc, emergency_relation,
-         consent_email, consent_phone, consent_sms, privacy_policy_status
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,true,$27,$28,'aceptado')
+         consent_email, consent_phone, consent_sms, privacy_policy_status, location_id
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,true,$27,$28,'aceptado',$29)
        RETURNING id`,
       [
         code.rows[0].code,
@@ -187,6 +204,7 @@ async function saveProfile(email: string, profile: RegisterProfile) {
         profile.emergencyRelation?.trim() || null,
         preference === "call",
         preference === "whatsapp",
+        locationId,
       ]
     );
     patientId = inserted.rows[0].id;
@@ -212,6 +230,7 @@ async function saveProfile(email: string, profile: RegisterProfile) {
          state = COALESCE($18, state),
          postal_code = COALESCE($19, postal_code),
          country = COALESCE($20, country),
+         location_id = COALESCE(location_id, $24),
          emergency_name_enc = COALESCE($21, emergency_name_enc),
          emergency_phone_enc = COALESCE($22, emergency_phone_enc),
          emergency_relation = COALESCE($23, emergency_relation),
@@ -243,6 +262,7 @@ async function saveProfile(email: string, profile: RegisterProfile) {
         encryptPhi(profile.emergencyName?.trim() || null),
         encryptPhi(emergencyPhone),
         profile.emergencyRelation?.trim() || null,
+        locationId,
       ]
     );
   }
@@ -288,6 +308,7 @@ export async function verifyPatientCode(input: {
   code: string;
   purpose: "login" | "register";
   profile?: RegisterProfile;
+  market?: "MX" | "US" | null;
   meta?: { ip?: string | null; userAgent?: string | null };
 }) {
   const email = normalizeEmail(input.email);
@@ -308,7 +329,7 @@ export async function verifyPatientCode(input: {
   }
   await query(`UPDATE patient_login_codes SET consumed_at = now() WHERE id = $1`, [row.id]);
   const accountId = input.purpose === "register"
-    ? await saveProfile(email, input.profile || {})
+    ? await saveProfile(email, input.profile || {}, input.market)
     : await (async () => {
         const patientId = await findPatient(email);
         if (!patientId) throw new DomainError("No hay una cuenta con ese correo. Regístrate.");

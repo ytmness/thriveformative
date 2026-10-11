@@ -304,7 +304,12 @@
     "durationNote": "Le visite usano un intervallo di agenda di 70 minuti.",
     "embedTitle": "Portale di prenotazione Thrive Formative",
     "whatsappHint": "Hai una domanda prima di prenotare?",
-    "whatsappCta": "Scrivici su WhatsApp"
+    "whatsappCta": "Scrivici su WhatsApp",
+    "checkingAccount": "Controllo del tuo account…",
+    "registerToBook": "Registrati per vedere il calendario",
+    "registerToBookHint": "Crea il tuo account paziente. Poi potrai scegliere data e orario.",
+    "registerToBookCta": "Crea account",
+    "loginToBook": "Ho già un account"
   },
   "auth": {
     "loginTitle": "Accedi",

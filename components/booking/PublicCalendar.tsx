@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { api } from "@/components/admin/clinic/client";
 import { useUser } from "@/lib/useUser";
@@ -25,7 +26,7 @@ function dateKey(year: number, month: number, day: number) {
 export default function PublicCalendar() {
   const t = useTranslations("booking");
   const locale = useLocale();
-  const { user } = useUser();
+  const { user, loading: accountLoading } = useUser();
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [serviceId, setServiceId] = useState("");
   const [locationId, setLocationId] = useState("");
@@ -53,6 +54,7 @@ export default function PublicCalendar() {
   }, [user]);
 
   useEffect(() => {
+    if (!user) return;
     api<Catalog>("/api/public/booking/catalog")
       .then((data) => {
         setCatalog(data);
@@ -60,17 +62,17 @@ export default function PublicCalendar() {
         setLocationId(data.locations[0]?.id || "");
       })
       .catch((err) => setError(err instanceof Error ? err.message : "Error"));
-  }, []);
+  }, [user]);
 
   useEffect(() => {
-    if (!serviceId || !selected) return;
+    if (!user || !serviceId || !selected) return;
     setLoadingSlots(true);
     setSlot(null);
     api<{ slots: Group[] }>(`/api/public/booking/availability?serviceId=${serviceId}&date=${selected}&locationId=${locationId}`)
       .then((result) => setGroups(result.slots))
       .catch((err) => setError(err instanceof Error ? err.message : "Error"))
       .finally(() => setLoadingSlots(false));
-  }, [serviceId, selected, locationId]);
+  }, [user, serviceId, selected, locationId]);
 
   const today = new Date();
   const todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
@@ -111,6 +113,23 @@ export default function PublicCalendar() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error");
     }
+  }
+
+  if (accountLoading) {
+    return <p className="booking-gate">{t("checkingAccount")}</p>;
+  }
+
+  if (!user) {
+    return (
+      <div className="booking-gate">
+        <p className="booking-gate__title">{t("registerToBook")}</p>
+        <p className="booking-gate__hint">{t("registerToBookHint")}</p>
+        <div className="booking-gate__actions">
+          <Link href={`/${locale}/register`} className="btn-primary">{t("registerToBookCta")}</Link>
+          <Link href={`/${locale}/login`} className="booking-gate__login">{t("loginToBook")}</Link>
+        </div>
+      </div>
+    );
   }
 
   if (done !== null) {

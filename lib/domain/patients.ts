@@ -1,7 +1,7 @@
 import { writeAudit } from "@/lib/audit";
 import type { StaffSession } from "@/lib/auth/session";
 import { contactHash, decryptPhi, encryptPhi, normalizeEmail } from "@/lib/crypto/phi";
-import { countrySql, normalizeCountry } from "@/lib/domain/scope";
+import { countrySql, locationCountrySql, normalizeCountry } from "@/lib/domain/scope";
 import { query } from "@/lib/db";
 import { DomainError, pageParams } from "@/lib/http";
 import { emitWebhook } from "@/lib/webhooks/emit";
@@ -147,12 +147,20 @@ export async function listPatients(url: URL) {
     WHERE p.deleted_at IS NULL
       AND ($1 = '' OR (p.first_name || ' ' || p.last_name) ILIKE $2 OR p.client_code ILIKE $2
            OR p.email_hash = $3 OR p.mobile_hash = $4 OR p.phone_hash = $4)
-      AND ($5::uuid IS NULL OR p.location_id = $5)
+      AND (
+        $5::uuid IS NULL
+        OR p.location_id = $5
+        OR (p.location_id IS NULL AND ${locationCountrySql("coalesce(p.country, 'MX')", "$9")})
+      )
       AND ($6::uuid IS NULL OR p.owner_staff_id = $6)
       AND ($8::uuid IS NULL OR EXISTS (
         SELECT 1 FROM patient_tags pt WHERE pt.patient_id = p.id AND pt.tag_id = $8
       ))
-      AND ${countrySql("p.location_id", "$9")}
+      AND (
+        $9::text IS NULL
+        OR ${countrySql("p.location_id", "$9")}
+        OR (p.location_id IS NULL AND ${locationCountrySql("coalesce(p.country, 'MX')", "$9")})
+      )
   `;
   const sexSql = `
     AND (

@@ -86,6 +86,7 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
   const [draft, setDraft] = useState<Record<string, string> | null>(openCreate ? { status: "booked", startsAt: nextClinicSlot(CLINIC_TZ) } : null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
   const scope = useClinicScope();
+  const english = scope.country === "US";
   const siteOptions = locations.filter((row) => row.is_active !== false && countryCode(row.country) === scope.country);
   const roomOptions = rooms.filter((row) => siteOptions.some((site) => site.id === row.location_id));
   const preferredLocation = scope.locationId || siteOptions[0]?.id || "";
@@ -230,30 +231,30 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
   return (
     <>
       <header className="admin-header">
-        <p className="admin-header__eyebrow">Agenda</p>
-        <h1 className="admin-header__title">Calendario</h1>
-        <p className="admin-header__desc">Día, semana o mes. Arrastra una cita para moverla. El sistema impide dos reservas del mismo profesional o sala.</p>
+        <p className="admin-header__eyebrow">{english ? "Schedule" : "Agenda"}</p>
+        <h1 className="admin-header__title">{english ? "Calendar" : "Calendario"}</h1>
+        <p className="admin-header__desc">{english ? "Day, week, or month. Drag an appointment to move it. The same provider or room cannot be booked twice." : "Día, semana o mes. Arrastra una cita para moverla. El sistema impide dos reservas del mismo profesional o sala."}</p>
       </header>
       {error ? <div className="admin-alert" role="alert">{error}</div> : null}
       {notice ? <p className="admin-notice" role="status">{notice}</p> : null}
       <div className="admin-toolbar" data-tour="cal-toolbar">
-        <button className="admin-btn" type="button" onClick={() => setAnchor(new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() - (view === "month" ? 30 : view === "week" ? 7 : 1)))}>Anterior</button>
-        <button className="admin-btn" type="button" onClick={() => setAnchor(new Date())}>Hoy</button>
-        <button className="admin-btn" type="button" onClick={() => setAnchor(new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() + (view === "month" ? 30 : view === "week" ? 7 : 1)))}>Siguiente</button>
+        <button className="admin-btn" type="button" onClick={() => setAnchor(new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() - (view === "month" ? 30 : view === "week" ? 7 : 1)))}>{english ? "Previous" : "Anterior"}</button>
+        <button className="admin-btn" type="button" onClick={() => setAnchor(new Date())}>{english ? "Today" : "Hoy"}</button>
+        <button className="admin-btn" type="button" onClick={() => setAnchor(new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() + (view === "month" ? 30 : view === "week" ? 7 : 1)))}>{english ? "Next" : "Siguiente"}</button>
         {(["day", "week", "month"] as const).map((item) => (
-          <button key={item} className={`admin-btn${view === item ? " admin-btn--primary" : ""}`} type="button" onClick={() => setView(item)}>{item === "day" ? "Día" : item === "week" ? "Semana" : "Mes"}</button>
+          <button key={item} className={`admin-btn${view === item ? " admin-btn--primary" : ""}`} type="button" onClick={() => setView(item)}>{item === "day" ? (english ? "Day" : "Día") : item === "week" ? (english ? "Week" : "Semana") : (english ? "Month" : "Mes")}</button>
         ))}
-        <select value={staffFilter} onChange={(e) => setStaffFilter(e.target.value)} aria-label="Profesional">
-          <option value="">Todos los profesionales</option>
+        <select value={staffFilter} onChange={(e) => setStaffFilter(e.target.value)} aria-label={english ? "Provider" : "Profesional"}>
+          <option value="">{english ? "All providers" : "Todos los profesionales"}</option>
           {staff.map((person) => <option key={person.id} value={person.id}>{person.first_name} {person.last_name}</option>)}
         </select>
-        <button className="admin-btn admin-btn--primary" type="button" data-tour="cal-new" onClick={() => setDraft({ status: "booked", startsAt: nextClinicSlot(clinicTz), locationId: preferredLocation, staffUserId: staffFilter })}>+ Cita</button>
-        <button className="admin-btn" type="button" onClick={() => setBlock({ startsAt: "", endsAt: "", reason: "Bloqueo" })}>Bloqueo</button>
+        <button className="admin-btn admin-btn--primary" type="button" data-tour="cal-new" onClick={() => setDraft({ status: "booked", startsAt: nextClinicSlot(clinicTz), locationId: preferredLocation, staffUserId: staffFilter })}>{english ? "+ Appointment" : "+ Cita"}</button>
+        <button className="admin-btn" type="button" onClick={() => setBlock({ startsAt: "", endsAt: "", reason: english ? "Block" : "Bloqueo" })}>{english ? "Block" : "Bloqueo"}</button>
         {view === "day" ? (
-          <select value={columnsBy} onChange={(e) => setColumnsBy(e.target.value as "day" | "staff" | "room")} aria-label="Columnas">
-            <option value="day">Una columna</option>
-            <option value="staff">Por profesional</option>
-            <option value="room">Por sala</option>
+          <select value={columnsBy} onChange={(e) => setColumnsBy(e.target.value as "day" | "staff" | "room")} aria-label={english ? "Columns" : "Columnas"}>
+            <option value="day">{english ? "One column" : "Una columna"}</option>
+            <option value="staff">{english ? "By provider" : "Por profesional"}</option>
+            <option value="room">{english ? "By room" : "Por sala"}</option>
           </select>
         ) : null}
       </div>
@@ -350,7 +351,7 @@ export default function CalendarBoard({ openCreate }: { openCreate?: boolean }) 
       {draft ? (
         <div className="admin-drawer" role="presentation" onClick={() => setDraft(null)}>
           <form className="admin-drawer__panel" onClick={(e) => e.stopPropagation()} onSubmit={(e) => { e.preventDefault(); saveDraft(); }}>
-            <h2 className="admin-header__title">{draft.id ? "Editar cita" : "Nueva cita"}</h2>
+            <h2 className="admin-header__title">{draft.id ? (english ? "Edit appointment" : "Editar cita") : (english ? "New appointment" : "Nueva cita")}</h2>
             <div className="admin-form-grid" data-tour="cal-form" style={{ marginTop: "1rem" }}>
               <label className="admin-field">Paciente<select value={draft.patientId || ""} onChange={(e) => setDraft({ ...draft, patientId: e.target.value })}><option value="">Sin paciente</option>{patients.map((p) => <option key={p.id} value={p.id}>{p.firstName} {p.lastName}</option>)}</select><CreateOffer show={catalogReady && !patients.length} kind="patient" href="/admin/pacientes?nuevo=1" /></label>
               <label className="admin-field">Servicio<select value={draft.serviceId || ""} onChange={(e) => setDraft({ ...draft, serviceId: e.target.value })}><option value="">—</option>{services.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select><CreateOffer show={catalogReady && !services.length} kind="service" href="/admin/catalogo/servicios?nuevo=1" /></label>

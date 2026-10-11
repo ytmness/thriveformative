@@ -305,12 +305,21 @@ export async function updateAppointment(
       log.warn("appointments", "no se pudo avisar de la cancelación", { name: error instanceof Error ? error.name : "error" });
     }
     await emitWebhook("appointment.cancelled", { appointmentId: id });
-  } else if (window.status === "confirmed" && previous !== "confirmed") {
-    try { await notifyAppointment(id, "confirmed"); } catch (error) {
-      log.warn("appointments", "no se pudo avisar de la confirmación", { name: error instanceof Error ? error.name : "error" });
-    }
-    await emitWebhook("appointment.updated", { appointmentId: id });
   } else {
+    const timeChanged = new Date(window.starts).getTime() !== new Date(String(row.starts_at)).getTime();
+    if (timeChanged) {
+      await query(
+        `DELETE FROM messages
+         WHERE appointment_id = $1 AND status IN ('queued', 'skipped') AND rule_id IS NOT NULL`,
+        [id]
+      );
+      await enqueueForAppointment(id, "recordatorio", null);
+    }
+    if (window.status === "confirmed" && previous !== "confirmed") {
+      try { await notifyAppointment(id, "confirmed"); } catch (error) {
+        log.warn("appointments", "no se pudo avisar de la confirmación", { name: error instanceof Error ? error.name : "error" });
+      }
+    }
     await emitWebhook("appointment.updated", { appointmentId: id });
   }
   await writeAudit({

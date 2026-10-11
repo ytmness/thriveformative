@@ -26,6 +26,7 @@ export default function LeadBoard({ startNew }: { startNew?: boolean }) {
   const skipClick = useRef(false);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
   const scope = useClinicScope();
+  const english = scope.country === "US";
 
   async function load() {
     const [leads, stageRows, staffRows, sourceRows, fieldRows] = await Promise.all([
@@ -71,7 +72,7 @@ export default function LeadBoard({ startNew }: { startNew?: boolean }) {
         setRows(rows.map((row) => (row.id === leadId ? { ...row, stage_id: stageId, stage_name: stage?.name || row.stage_name } : row)));
         try {
           await api(`/api/admin/leads/${leadId}`, { method: "PATCH", body: JSON.stringify({ action: "move", stageId }) });
-          setNotice("Etapa actualizada.");
+          setNotice(english ? "Stage updated." : "Etapa actualizada.");
           setError(null);
         } catch (err) {
           setError(err instanceof Error ? err.message : "No se pudo cambiar la etapa.");
@@ -102,7 +103,7 @@ export default function LeadBoard({ startNew }: { startNew?: boolean }) {
               setError(err instanceof Error ? err.message : "No se pudo guardar el lead.");
             }
           }}>
-            <div className="admin-drawer__head"><h2 className="admin-header__title">Nuevo lead</h2><button className="admin-btn" type="button" onClick={() => setOpen(false)}>Cerrar</button></div>
+            <div className="admin-drawer__head"><h2 className="admin-header__title">{english ? "New lead" : "Nuevo lead"}</h2><button className="admin-btn" type="button" onClick={() => setOpen(false)}>{english ? "Close" : "Cerrar"}</button></div>
             {error ? <div className="admin-alert" role="alert">{error}</div> : null}
             <div className="admin-form-grid" data-tour="leads-form">
               <label className="admin-field">Nombre <span className="admin-req">*</span><input required value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} /></label>
@@ -124,7 +125,7 @@ export default function LeadBoard({ startNew }: { startNew?: boolean }) {
       {selected ? (
         <div className="admin-drawer" onClick={() => setSelected(null)}>
           <div className="admin-drawer__panel" onClick={(e) => e.stopPropagation()}>
-            <div className="admin-drawer__head"><h2 className="admin-header__title">{selected.first_name} {selected.last_name}</h2><button className="admin-btn" type="button" onClick={() => setSelected(null)}>Cerrar</button></div>
+            <div className="admin-drawer__head"><h2 className="admin-header__title">{selected.first_name} {selected.last_name}</h2><button className="admin-btn" type="button" onClick={() => setSelected(null)}>{english ? "Close" : "Cerrar"}</button></div>
             <p>{selected.email} · {selected.mobile}</p>
             <div className="admin-toolbar">
               <button className="admin-btn admin-btn--primary" type="button" onClick={async () => { const res = await api<{ patientId: string }>(`/api/admin/leads/${selected.id}/convert`, { method: "POST" }); location.href = `/admin/pacientes/${res.patientId}`; }}>Convertir a paciente</button>

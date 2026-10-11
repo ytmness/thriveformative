@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useLocale } from "next-intl";
+import { useAdminEnglish } from "@/components/admin/clinic/ClinicScope";
 import {
   BarChart3, Calendar, ChevronLeft, ChevronRight, CircleHelp, ClipboardList,
   Clock, Contact, CreditCard, FileText, LayoutDashboard, MapPin, MessageSquare,
@@ -31,8 +32,8 @@ type Pack = { title: string; steps: string[] };
 
 const GUIDES: Record<GuideId, Record<Lang, Pack>> = {
   home: {
-    es: { title: "Inicio", steps: ["Mira las citas, los ingresos y los leads de hoy.", "Crear abre paciente, lead, cita o cobro."] },
-    en: { title: "Home", steps: ["See today’s appointments, revenue, and leads.", "Create starts a patient, lead, visit, or charge."] },
+    es: { title: "Inicio", steps: ["Mira las citas, los ingresos y los leads de hoy.", "El menú de la izquierda abre cada parte del panel."] },
+    en: { title: "Home", steps: ["See today’s appointments, revenue, and leads.", "The left menu opens each part of the panel."] },
     it: { title: "Inizio", steps: ["Vedi visite, incassi e lead di oggi.", "Crea apre paziente, lead, visita o incasso."] },
     ko: { title: "홈", steps: ["오늘의 예약, 매출, 리드를 확인합니다.", "만들기에서 환자, 리드, 예약, 결제를 엽니다."] },
   },
@@ -79,8 +80,8 @@ const GUIDES: Record<GuideId, Record<Lang, Pack>> = {
     ko: { title: "청구", steps: ["이 탭은 청구서, 견적, 신용 전표입니다.", "견적이나 전표에서 이 양식이 문서를 만듭니다.", "표에 발행 내역이 있습니다. 청구서는 판매 결제 때 생깁니다."] },
   },
   products: {
-    es: { title: "Productos", steps: ["Pulsa + Nuevo para crear el producto: nombre, precio y proveedor.", "La tabla muestra SKU, precio y existencias.", "Aquí sumas o restas stock por sede. Sin sede, el aviso te lleva a crearla."] },
-    en: { title: "Products", steps: ["Press + New to create the product: name, price, and supplier.", "The table shows SKU, price, and stock.", "Here you add or remove stock by location. Without a location, the prompt creates one."] },
+    es: { title: "Productos", steps: ["Los productos del punto de venta se crean en Tienda web.", "La tabla muestra SKU, precio y existencias.", "Aquí ajustas el stock por sede."] },
+    en: { title: "Products", steps: ["Point-of-sale products are created in Web store.", "The table shows SKU, price, and stock.", "Here you adjust stock by location."] },
     it: { title: "Prodotti", steps: ["Premi + Nuovo per creare il prodotto: nome, prezzo e fornitore.", "La tabella mostra SKU, prezzo e giacenza.", "Qui sommi o togli stock per sede. Senza sede, l’avviso la crea."] },
     ko: { title: "제품", steps: ["+ 새로 만들기로 이름, 가격, 공급자를 넣습니다.", "표에 SKU, 가격, 재고가 있습니다.", "여기서 지점별 재고를 더하거나 뺍니다. 지점이 없으면 안내가 만들기로 보냅니다."] },
   },
@@ -175,8 +176,8 @@ const GUIDES: Record<GuideId, Record<Lang, Pack>> = {
     ko: { title: "콘텐츠", steps: ["여기서 미리보기나 목록, 그리고 편집할 언어를 고릅니다.", "페이지 블록을 눌러 그 글이나 이미지를 고칩니다.", "왼쪽 메뉴가 패널의 나머지로 돌아갑니다."] },
   },
   catalog: {
-    es: { title: "Catálogo", steps: ["El menú elige servicios, productos, tienda web, paquetes, membresías, categorías o proveedores.", "Pulsa + Nuevo para crear.", "La tabla lista lo que ya existe. El menú ⋯ edita o archiva."] },
-    en: { title: "Catalog", steps: ["The menu picks services, products, packages, memberships, categories, or suppliers.", "Press + New to create.", "The table lists what exists. The ⋯ menu edits or archives."] },
+    es: { title: "Catálogo", steps: ["El menú elige servicios, punto de venta, tienda web, paquetes, membresías o categorías.", "Pulsa + Nuevo para crear, salvo en el punto de venta.", "La tabla lista lo que ya existe. El menú ⋯ edita o archiva."] },
+    en: { title: "Catalog", steps: ["The menu picks services, point of sale, web store, packages, memberships, or categories.", "Press + New to create, except for point of sale.", "The table lists what exists. The ⋯ menu edits or archives."] },
     it: { title: "Catalogo", steps: ["Il menu sceglie servizi, prodotti, pacchetti, abbonamenti, categorie o fornitori.", "Premi + Nuovo per creare.", "La tabella elenca ciò che esiste. Il menu ⋯ modifica o archivia."] },
     ko: { title: "목록", steps: ["메뉴에서 서비스, 제품, 패키지, 멤버십, 분류, 공급자를 고릅니다.", "+ 새로 만들기로 만듭니다.", "표가 목록입니다. ⋯ 메뉴에서 고치거나 보관합니다."] },
   },
@@ -187,8 +188,8 @@ const GUIDES: Record<GuideId, Record<Lang, Pack>> = {
     ko: { title: "스토어", steps: ["이 양식이 제품을 만들거나 고칩니다. 저장하면 공개됩니다.", "아래 목록이 이미 올린 제품입니다.", "위에서 제품에 쓸 분류를 만듭니다."] },
   },
   fallback: {
-    es: { title: "Esta sección", steps: ["El menú de la izquierda abre cada parte del panel.", "Crear abre paciente, lead, cita o cobro."] },
-    en: { title: "This section", steps: ["The left menu opens each part of the panel.", "Create starts a patient, lead, visit, or charge."] },
+    es: { title: "Esta sección", steps: ["El menú de la izquierda abre cada parte del panel."] },
+    en: { title: "This section", steps: ["The left menu opens each part of the panel."] },
     it: { title: "Questa sezione", steps: ["Il menu a sinistra apre ogni parte del pannello.", "Crea apre paziente, lead, visita o incasso."] },
     ko: { title: "이 화면", steps: ["왼쪽 메뉴가 패널의 각 부분을 엽니다.", "만들기에서 환자, 리드, 예약, 결제를 엽니다."] },
   },
@@ -283,23 +284,28 @@ function asLang(value: string): Lang {
 
 function useTutorialLang() {
   const site = useLocale();
-  const [lang, setLang] = useState<Lang>(asLang(site));
+  const panelEnglish = useAdminEnglish();
+  const [lang, setLang] = useState<Lang>(panelEnglish ? "en" : asLang(site));
   useEffect(() => {
+    if (panelEnglish) {
+      setLang("en");
+      return;
+    }
     const saved = window.localStorage.getItem(STORAGE);
-    setLang(saved ? asLang(saved) : asLang(site));
+    setLang(saved ? asLang(saved) : "es");
     function onChange() {
       const next = window.localStorage.getItem(STORAGE);
       if (next) setLang(asLang(next));
     }
     window.addEventListener("thrive-tutorial-locale", onChange);
     return () => window.removeEventListener("thrive-tutorial-locale", onChange);
-  }, [site]);
+  }, [site, panelEnglish]);
   function choose(next: Lang) {
     window.localStorage.setItem(STORAGE, next);
     setLang(next);
     window.dispatchEvent(new Event("thrive-tutorial-locale"));
   }
-  return { lang, choose };
+  return { lang: panelEnglish ? "en" : lang, choose };
 }
 
 function guideId(pathname: string): GuideId {

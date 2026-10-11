@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/components/admin/clinic/client";
-import { countryCode, useClinicScope } from "@/components/admin/clinic/ClinicScope";
+import { countryCode, useAdminEnglish, useClinicScope } from "@/components/admin/clinic/ClinicScope";
 import { Button, CloseButton, EmptyState, Tabs, Toast } from "@/components/admin/ui";
 import StoreReceipt from "@/components/store/StoreReceipt";
 import { majorToMinor } from "@/lib/square/money";
@@ -28,19 +28,19 @@ const EMPTY_FACETS: Facets = {
   sources: [],
 };
 
-function sexLabel(value: unknown) {
+function sexLabel(value: unknown, english = false) {
   const sex = String(value || "").trim().toLowerCase();
-  if (sex === "femenino") return "Mujer";
-  if (sex === "masculino") return "Hombre";
-  if (sex === "otro") return "Otro / otra designación";
-  if (sex === "prefiere_no") return "Prefiere no responder";
-  return "Sin dato";
+  if (sex === "femenino") return english ? "Woman" : "Mujer";
+  if (sex === "masculino") return english ? "Man" : "Hombre";
+  if (sex === "otro") return english ? "Other designation" : "Otro / otra designación";
+  if (sex === "prefiere_no") return english ? "Prefer not to say" : "Prefiere no responder";
+  return english ? "No data" : "Sin dato";
 }
 
-function privacyLabel(status?: string) {
-  if (status === "aceptado") return "Aviso aceptado";
-  if (status === "rechazado") return "Aviso rechazado";
-  return "Aviso sin respuesta";
+function privacyLabel(status?: string, english = false) {
+  if (status === "aceptado") return english ? "Notice accepted" : "Aviso aceptado";
+  if (status === "rechazado") return english ? "Notice declined" : "Aviso rechazado";
+  return english ? "Notice unanswered" : "Aviso sin respuesta";
 }
 
 const EMPTY = {
@@ -72,8 +72,11 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
   const searchRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const scope = useClinicScope();
+  const english = scope.country === "US";
   const [options, setOptions] = useState<{ locations: { id: string; name: string }[]; staff: { id: string; first_name: string; last_name: string }[]; sources: { id: string; name: string }[]; fields: { id: string; label: string; field_type: string; is_required?: boolean }[] }>({ locations: [], staff: [], sources: [], fields: [] });
-  const tabs = [["identidad", "Datos"], ["contacto", "Contacto"], ["direccion", "Dirección"], ["consentimiento", "Consentimientos"]] as const;
+  const tabs = (english
+    ? [["identidad", "Details"], ["contacto", "Contact"], ["direccion", "Address"], ["consentimiento", "Consent"]]
+    : [["identidad", "Datos"], ["contacto", "Contacto"], ["direccion", "Dirección"], ["consentimiento", "Consentimientos"]]) as [string, string][];
 
   async function load(nextPage = page, query = q, nextSex = sex, nextSort = sort, nextSource = source) {
     const data = await api<{ rows: Patient[]; total: number; facets?: Facets }>(`/api/admin/patients?q=${encodeURIComponent(query)}&page=${nextPage}&sex=${encodeURIComponent(nextSex)}&source=${encodeURIComponent(nextSource)}&sort=${encodeURIComponent(nextSort)}&${scope.query}`);
@@ -152,41 +155,41 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
   }
 
   const sexFilters = [
-    ["", "Todos", facets.sex.todos],
-    ["femenino", "Mujeres", facets.sex.femenino],
-    ["masculino", "Hombres", facets.sex.masculino],
-    ["otro", "Otro", facets.sex.otro],
-    ["sin_dato", "Sin dato", facets.sex.sin_dato],
+    ["", english ? "All" : "Todos", facets.sex.todos],
+    ["femenino", english ? "Women" : "Mujeres", facets.sex.femenino],
+    ["masculino", english ? "Men" : "Hombres", facets.sex.masculino],
+    ["otro", english ? "Other" : "Otro", facets.sex.otro],
+    ["sin_dato", english ? "No data" : "Sin dato", facets.sex.sin_dato],
   ] as const;
   const sourceCounts = new Map(facets.sources.map((row) => [row.id, row.total]));
   const knownSourceIds = new Set(options.sources.map((row) => row.id));
   const sourceFilters = [
-    { id: "", name: "Todas", total: facets.sources.reduce((sum, row) => sum + row.total, 0) },
+    { id: "", name: english ? "All" : "Todas", total: facets.sources.reduce((sum, row) => sum + row.total, 0) },
     ...options.sources.map((row) => ({ id: row.id, name: row.name, total: sourceCounts.get(row.id) ?? 0 })),
-    { id: "sin_fuente", name: "Sin fuente", total: sourceCounts.get("sin_fuente") ?? 0 },
+    { id: "sin_fuente", name: english ? "No source" : "Sin fuente", total: sourceCounts.get("sin_fuente") ?? 0 },
     ...facets.sources
       .filter((row) => row.id !== "sin_fuente" && !knownSourceIds.has(row.id))
       .map((row) => ({ id: row.id, name: row.name, total: row.total })),
   ];
   const empty = q
-    ? { title: "Sin coincidencias", text: "Ningún paciente coincide con la búsqueda." }
+    ? { title: english ? "No matches" : "Sin coincidencias", text: english ? "No patient matches the search." : "Ningún paciente coincide con la búsqueda." }
     : sex === "otro" && !source && facets.sex.otro === 0
-      ? { title: "Nadie en Otro", text: "Ningún paciente tiene el sexo Otro. Quienes no tienen sexo guardado están en Sin dato." }
+      ? { title: english ? "Nobody in Other" : "Nadie en Otro", text: english ? "No patient has sex set to Other. Patients without sex are in No data." : "Ningún paciente tiene el sexo Otro. Quienes no tienen sexo guardado están en Sin dato." }
       : sex === "sin_dato" && !source && facets.sex.sin_dato === 0
-        ? { title: "Todos tienen sexo", text: "En este directorio cada paciente ya es Mujer, Hombre u Otro." }
+        ? { title: english ? "Everyone has a sex" : "Todos tienen sexo", text: english ? "In this directory every patient is already Woman, Man, or Other." : "En este directorio cada paciente ya es Mujer, Hombre u Otro." }
         : sex || source
-          ? { title: "Sin coincidencias", text: "Ningún paciente coincide con este filtro." }
-          : { title: "Aún no hay pacientes", text: "Crea el primero para empezar el directorio." };
+          ? { title: english ? "No matches" : "Sin coincidencias", text: english ? "No patient matches this filter." : "Ningún paciente coincide con este filtro." }
+          : { title: english ? "No patients yet" : "Aún no hay pacientes", text: english ? "Create the first one to start the directory." : "Crea el primero para empezar el directorio." };
 
   return (
     <>
-      <header className="admin-header"><p className="admin-header__eyebrow">Directorio · {scope.label}</p><h1 className="admin-header__title">Pacientes</h1></header>
+      <header className="admin-header"><p className="admin-header__eyebrow">{english ? "Directory" : "Directorio"} · {scope.label}</p><h1 className="admin-header__title">{english ? "Patients" : "Pacientes"}</h1></header>
       {error ? <div className="admin-alert" role="alert">{error}</div> : null}
       {notice ? <p className="admin-notice" role="status">{notice}</p> : null}
       <div className="patient-directory">
       <div className="admin-toolbar" data-tour="patients-tools">
         <div className="admin-patient-search">
-          <input ref={searchRef} value={q} placeholder="Buscar nombre, código, email o teléfono" onChange={(e) => { setQ(e.target.value); setPalette(true); }} onFocus={() => setPalette(true)} onKeyDown={(e) => { if (e.key === "Enter") { setPalette(false); setPage(1); load(1, q); } if (e.key === "Escape") setPalette(false); }} />
+          <input ref={searchRef} value={q} placeholder={english ? "Search name, code, email, or phone" : "Buscar nombre, código, email o teléfono"} onChange={(e) => { setQ(e.target.value); setPalette(true); }} onFocus={() => setPalette(true)} onKeyDown={(e) => { if (e.key === "Enter") { setPalette(false); setPage(1); load(1, q); } if (e.key === "Escape") setPalette(false); }} />
           {palette && q.trim().length >= 2 ? (
             <div className="admin-palette" role="listbox">
               {hits.map((hit) => (
@@ -194,23 +197,23 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
                   {hit.firstName} {hit.lastName}<span>{hit.clientCode}</span>
                 </button>
               ))}
-              {!hits.length ? <p>Sin coincidencias</p> : null}
+              {!hits.length ? <p>{english ? "No matches" : "Sin coincidencias"}</p> : null}
             </div>
           ) : null}
         </div>
-        <label className="admin-field patient-directory__sort">Orden
+        <label className="admin-field patient-directory__sort">{english ? "Sort" : "Orden"}
           <select value={sort} onChange={(e) => { setSort(e.target.value); setPage(1); load(1, q, sex, e.target.value); }}>
-            <option value="name">Nombre</option>
-            <option value="recent">Más recientes</option>
+            <option value="name">{english ? "Name" : "Nombre"}</option>
+            <option value="recent">{english ? "Most recent" : "Más recientes"}</option>
           </select>
         </label>
-        <button className="admin-btn" type="button" onClick={() => { setPalette(false); setPage(1); load(1, q); }}>Buscar</button>
-        <button className="admin-btn admin-btn--primary" type="button" data-tour="patients-new" onClick={() => { setForm({ ...EMPTY, locationId: scope.locationId || scope.visible[0]?.id || "" }); setOpen(true); }}>+ Paciente</button>
+        <button className="admin-btn" type="button" onClick={() => { setPalette(false); setPage(1); load(1, q); }}>{english ? "Search" : "Buscar"}</button>
+        <button className="admin-btn admin-btn--primary" type="button" data-tour="patients-new" onClick={() => { setForm({ ...EMPTY, locationId: scope.locationId || scope.visible[0]?.id || "" }); setOpen(true); }}>{english ? "+ Patient" : "+ Paciente"}</button>
       </div>
       <div className="patient-directory__body">
-      <aside className="patient-filters" aria-label="Filtros del directorio">
-        <div className="admin-nav__block" role="group" aria-label="Sexo">
-          <p className="admin-nav__group">Sexo</p>
+      <aside className="patient-filters" aria-label={english ? "Directory filters" : "Filtros del directorio"}>
+        <div className="admin-nav__block" role="group" aria-label={english ? "Sex" : "Sexo"}>
+          <p className="admin-nav__group">{english ? "Sex" : "Sexo"}</p>
           {sexFilters.map(([id, label, count]) => (
             <button key={id || "all-sex"} type="button" className={`admin-nav__item${sex === id ? " admin-nav__item--active" : ""}`} aria-pressed={sex === id} onClick={() => { setSex(id); setPage(1); load(1, q, id, sort, source); }}>
               <span>{label}</span>
@@ -218,8 +221,8 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
             </button>
           ))}
         </div>
-        <div className="admin-nav__block" role="group" aria-label="Cómo nos descubrieron">
-          <p className="admin-nav__group">Cómo nos descubrieron</p>
+        <div className="admin-nav__block" role="group" aria-label={english ? "How they found us" : "Cómo nos descubrieron"}>
+          <p className="admin-nav__group">{english ? "How they found us" : "Cómo nos descubrieron"}</p>
           {sourceFilters.map((item) => (
             <button key={item.id || "all-sources"} type="button" className={`admin-nav__item${source === item.id ? " admin-nav__item--active" : ""}`} aria-pressed={source === item.id} onClick={() => { setSource(item.id); setPage(1); load(1, q, sex, sort, item.id); }}>
               <span>{item.name}</span>
@@ -229,9 +232,9 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
         </div>
       </aside>
       <div className="patient-directory__list">
-      <p className="patient-directory__count">{total} {total === 1 ? "paciente" : "pacientes"}</p>
+      <p className="patient-directory__count">{total} {english ? (total === 1 ? "patient" : "patients") : (total === 1 ? "paciente" : "pacientes")}</p>
       <div className="admin-table-wrap" data-tour="patients-list">
-        <div className="admin-table__head admin-table__head--patients"><span>Paciente</span><span>Contacto</span><span>Ciudad</span><span>Origen</span><span>Alta</span><span /></div>
+        <div className="admin-table__head admin-table__head--patients"><span>{english ? "Patient" : "Paciente"}</span><span>{english ? "Contact" : "Contacto"}</span><span>{english ? "City" : "Ciudad"}</span><span>{english ? "Source" : "Origen"}</span><span>{english ? "Added" : "Alta"}</span><span /></div>
         {rows.map((row) => {
           const tags = Array.isArray(row.tags) ? row.tags as { id?: string; name?: string }[] : [];
           const openRow = expanded === row.id;
@@ -244,68 +247,68 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
                   </button>
                   <span>
                     <span className="admin-table__cell-title">{row.firstName} {row.lastName}</span>
-                    <span className="admin-table__cell-sub">{sexLabel(row.sex)} · {row.clientCode}</span>
+                    <span className="admin-table__cell-sub">{sexLabel(row.sex, english)} · {row.clientCode}</span>
                   </span>
                 </div>
                 <div>
-                  <div>{row.email || "Sin email"}</div>
-                  <div className="admin-table__cell-sub">{row.mobile || row.phone || "Sin teléfono"}</div>
+                  <div>{row.email || (english ? "No email" : "Sin email")}</div>
+                  <div className="admin-table__cell-sub">{row.mobile || row.phone || (english ? "No phone" : "Sin teléfono")}</div>
                 </div>
                 <div>{[row.city, row.state].filter(Boolean).join(", ") || "—"}</div>
-                <div>{row.marketingSource || "Sin fuente"}</div>
-                <div>{row.createdAt ? new Date(String(row.createdAt)).toLocaleDateString("es-MX") : "—"}</div>
+                <div>{row.marketingSource || (english ? "No source" : "Sin fuente")}</div>
+                <div>{row.createdAt ? new Date(String(row.createdAt)).toLocaleDateString(english ? "en-US" : "es-MX") : "—"}</div>
                 <details className="admin-menu" onClick={(e) => e.stopPropagation()}>
-                  <summary aria-label="Acciones">⋯</summary>
+                  <summary aria-label={english ? "Actions" : "Acciones"}>⋯</summary>
                   <div className="admin-menu__list">
-                    <Link href={`/admin/pacientes/${row.id}`}>Abrir expediente</Link>
+                    <Link href={`/admin/pacientes/${row.id}`}>{english ? "Open chart" : "Abrir expediente"}</Link>
                     <button type="button" onClick={async () => {
-                      if (!window.confirm(`¿Archivar a ${row.firstName} ${row.lastName}? El expediente se conserva, pero dejará de aparecer en la lista.`)) return;
+                      if (!window.confirm(english ? `Archive ${row.firstName} ${row.lastName}? The chart stays, but they leave the list.` : `¿Archivar a ${row.firstName} ${row.lastName}? El expediente se conserva, pero dejará de aparecer en la lista.`)) return;
                       try {
                         await api(`/api/admin/patients/${row.id}`, { method: "DELETE" });
-                        setNotice("Paciente archivado. El expediente se conserva.");
+                        setNotice(english ? "Patient archived. The chart stays." : "Paciente archivado. El expediente se conserva.");
                         setError(null);
                         await load();
                       } catch (err) {
-                        setError(err instanceof Error ? err.message : "No se pudo archivar el paciente.");
+                        setError(err instanceof Error ? err.message : (english ? "Could not archive the patient." : "No se pudo archivar el paciente."));
                       }
-                    }}>Archivar</button>
+                    }}>{english ? "Archive" : "Archivar"}</button>
                   </div>
                 </details>
               </div>
               {openRow ? (
                 <div className="patient-directory__detail">
-                  <p>{String(row.marketingSource || "Sin origen")} · {privacyLabel(row.privacyPolicyStatus)}</p>
+                  <p>{String(row.marketingSource || (english ? "No source" : "Sin origen"))} · {privacyLabel(row.privacyPolicyStatus, english)}</p>
                   <div className="patient-directory__tags">
-                    {tags.length ? tags.map((tag) => <span key={tag.id || tag.name}>{tag.name}</span>) : <span>Sin etiquetas</span>}
+                    {tags.length ? tags.map((tag) => <span key={tag.id || tag.name}>{tag.name}</span>) : <span>{english ? "No tags" : "Sin etiquetas"}</span>}
                   </div>
-                  <Link href={`/admin/pacientes/${row.id}`}>Abrir expediente</Link>
+                  <Link href={`/admin/pacientes/${row.id}`}>{english ? "Open chart" : "Abrir expediente"}</Link>
                 </div>
               ) : null}
             </div>
           );
         })}
-        {!rows.length ? <EmptyState title={empty.title} text={empty.text} action={!q && !sex && !source ? <button className="admin-btn admin-btn--primary" type="button" onClick={() => setOpen(true)}>+ Paciente</button> : undefined} /> : null}
+        {!rows.length ? <EmptyState title={empty.title} text={empty.text} action={!q && !sex && !source ? <button className="admin-btn admin-btn--primary" type="button" onClick={() => setOpen(true)}>{english ? "+ Patient" : "+ Paciente"}</button> : undefined} /> : null}
       </div>
       </div>
       </div>
       <div className="admin-toolbar">
-        <button className="admin-btn" type="button" disabled={page <= 1} onClick={() => { const n = page - 1; setPage(n); load(n); }}>Anterior</button>
+        <button className="admin-btn" type="button" disabled={page <= 1} onClick={() => { const n = page - 1; setPage(n); load(n); }}>{english ? "Previous" : "Anterior"}</button>
         <span>{page} / {Math.max(1, Math.ceil(total / 25))}</span>
-        <button className="admin-btn" type="button" disabled={page * 25 >= total} onClick={() => { const n = page + 1; setPage(n); load(n); }}>Siguiente</button>
+        <button className="admin-btn" type="button" disabled={page * 25 >= total} onClick={() => { const n = page + 1; setPage(n); load(n); }}>{english ? "Next" : "Siguiente"}</button>
       </div>
       </div>
       {open ? (
         <div className="admin-drawer" onClick={() => setOpen(false)}>
           <form className="admin-drawer__panel" onClick={(e) => e.stopPropagation()} onSubmit={save}>
             <div className="admin-drawer__head">
-              <h2 className="admin-header__title" style={{ margin: 0, fontSize: "1.35rem" }}>Nuevo paciente</h2>
+              <h2 className="admin-header__title" style={{ margin: 0, fontSize: "1.35rem" }}>{english ? "New patient" : "Nuevo paciente"}</h2>
               <CloseButton onClick={() => setOpen(false)} />
             </div>
             <div className="admin-drawer__body">
               {error ? <div className="admin-alert" role="alert">{error}</div> : null}
               <Tabs
                 tour="patient-tabs"
-                label="Secciones del paciente"
+                label={english ? "Patient sections" : "Secciones del paciente"}
                 value={section}
                 onChange={setSection}
                 items={tabs.map(([id, label]) => ({ id, label }))}
@@ -314,51 +317,52 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
               <PatientFields form={form} setForm={setForm} options={options} section={section} />
             </div>
             <div className="admin-drawer__foot" data-tour="patient-save">
-              <Button type="button" onClick={() => setOpen(false)}>Cancelar</Button>
+              <Button type="button" onClick={() => setOpen(false)}>{english ? "Cancel" : "Cancelar"}</Button>
               {section !== "consentimiento" ? (
-                <Button type="button" onClick={() => setSection(tabs[tabs.findIndex((item) => item[0] === section) + 1][0])}>Siguiente</Button>
+                <Button type="button" onClick={() => setSection(tabs[tabs.findIndex((item) => item[0] === section) + 1][0])}>{english ? "Next" : "Siguiente"}</Button>
               ) : null}
-              <Button variant="primary" type="submit">Guardar paciente</Button>
+              <Button variant="primary" type="submit">{english ? "Save patient" : "Guardar paciente"}</Button>
             </div>
           </form>
         </div>
       ) : null}
-      {toast ? <Toast message="Paciente creado" href={`/admin/pacientes/${toast}`} onClose={() => setToast(null)} /> : null}
+      {toast ? <Toast message={english ? "Patient created" : "Paciente creado"} href={`/admin/pacientes/${toast}`} hrefLabel={english ? "Open chart" : "Ver ficha"} onClose={() => setToast(null)} /> : null}
     </>
   );
 }
 
 export function PatientFields({ form, setForm, options, section = "identidad" }: { form: Record<string, unknown>; setForm: (v: Record<string, unknown>) => void; options: { locations: { id: string; name: string }[]; staff: { id: string; first_name: string; last_name: string }[]; sources: { id: string; name: string }[]; fields?: { id: string; label: string; field_type: string; is_required?: boolean }[] }; section?: string }) {
+  const english = useAdminEnglish();
   const set = (key: string, value: unknown) => setForm({ ...form, [key]: value });
   return (
     <div className="admin-form-grid" style={{ margin: "1rem 0" }}>
       {section === "identidad" ? (
         <div className="span-2">
           <div className="admin-patient-row admin-patient-row--3">
-            <label className="admin-field"><span className="admin-field__label">Saludo</span><select value={String(form.salutation || "")} onChange={(e) => set("salutation", e.target.value)}><option value="">ninguno</option><option>Sr.</option><option>Sra.</option><option>Srta.</option><option>Dr.</option><option>Dra.</option></select></label>
-            <label className="admin-field"><span className="admin-field__label">Nombre<span className="admin-req"> *</span></span><input required value={String(form.firstName || "")} onChange={(e) => set("firstName", e.target.value)} /></label>
-            <label className="admin-field"><span className="admin-field__label">Apellido<span className="admin-req"> *</span></span><input required value={String(form.lastName || "")} onChange={(e) => set("lastName", e.target.value)} /></label>
+            <label className="admin-field"><span className="admin-field__label">{english ? "Title" : "Saludo"}</span><select value={String(form.salutation || "")} onChange={(e) => set("salutation", e.target.value)}><option value="">{english ? "none" : "ninguno"}</option><option>Sr.</option><option>Sra.</option><option>Srta.</option><option>Dr.</option><option>Dra.</option></select></label>
+            <label className="admin-field"><span className="admin-field__label">{english ? "First name" : "Nombre"}<span className="admin-req"> *</span></span><input required value={String(form.firstName || "")} onChange={(e) => set("firstName", e.target.value)} /></label>
+            <label className="admin-field"><span className="admin-field__label">{english ? "Last name" : "Apellido"}<span className="admin-req"> *</span></span><input required value={String(form.lastName || "")} onChange={(e) => set("lastName", e.target.value)} /></label>
           </div>
           <div className="admin-patient-row admin-patient-row--2">
-            <label className="admin-field"><span className="admin-field__label">Sexo</span><select value={String(form.sex || "")} onChange={(e) => set("sex", e.target.value)}><option value="">—</option><option value="masculino">Masculino</option><option value="femenino">Femenino</option><option value="otro">Otro / otra designación</option><option value="prefiere_no">Prefiere no responder</option></select></label>
-            <label className="admin-field"><span className="admin-field__label">Nacimiento</span><input type="date" value={String(form.birthDate || "").slice(0, 10)} onChange={(e) => set("birthDate", e.target.value)} /></label>
+            <label className="admin-field"><span className="admin-field__label">{english ? "Sex" : "Sexo"}</span><select value={String(form.sex || "")} onChange={(e) => set("sex", e.target.value)}><option value="">—</option><option value="masculino">{english ? "Male" : "Masculino"}</option><option value="femenino">{english ? "Female" : "Femenino"}</option><option value="otro">{english ? "Other designation" : "Otro / otra designación"}</option><option value="prefiere_no">{english ? "Prefer not to say" : "Prefiere no responder"}</option></select></label>
+            <label className="admin-field"><span className="admin-field__label">{english ? "Date of birth" : "Nacimiento"}</span><input type="date" value={String(form.birthDate || "").slice(0, 10)} onChange={(e) => set("birthDate", e.target.value)} /></label>
           </div>
           <div className="admin-patient-row admin-patient-row--2">
-            <label className="admin-field"><span className="admin-field__label">Idioma</span><select value={String(form.preferredLanguage || "es")} onChange={(e) => set("preferredLanguage", e.target.value)}><option value="es">Español</option><option value="en">Inglés</option></select></label>
-            <label className="admin-field"><span className="admin-field__label">Sede</span><select value={String(form.locationId || "")} onChange={(e) => set("locationId", e.target.value)}><option value="">—</option>{options.locations.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
+            <label className="admin-field"><span className="admin-field__label">{english ? "Language" : "Idioma"}</span><select value={String(form.preferredLanguage || "es")} onChange={(e) => set("preferredLanguage", e.target.value)}><option value="es">{english ? "Spanish" : "Español"}</option><option value="en">{english ? "English" : "Inglés"}</option></select></label>
+            <label className="admin-field"><span className="admin-field__label">{english ? "Location" : "Sede"}</span><select value={String(form.locationId || "")} onChange={(e) => set("locationId", e.target.value)}><option value="">—</option>{options.locations.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
           </div>
           <div className="admin-patient-row admin-patient-row--1">
-            <label className="admin-field"><span className="admin-field__label">Responsable</span><select value={String(form.ownerStaffId || "")} onChange={(e) => set("ownerStaffId", e.target.value)}><option value="">—</option>{options.staff.map((o) => <option key={o.id} value={o.id}>{o.first_name} {o.last_name}</option>)}</select></label>
+            <label className="admin-field"><span className="admin-field__label">{english ? "Owner" : "Responsable"}</span><select value={String(form.ownerStaffId || "")} onChange={(e) => set("ownerStaffId", e.target.value)}><option value="">—</option>{options.staff.map((o) => <option key={o.id} value={o.id}>{o.first_name} {o.last_name}</option>)}</select></label>
           </div>
         </div>
       ) : null}
       {section === "contacto" ? (
         <>
-          <label className="admin-field"><span className="admin-field__label">Cómo nos descubrieron</span><select value={String(form.marketingSourceId || "")} onChange={(e) => set("marketingSourceId", e.target.value)}><option value="">—</option>{options.sources.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
-          <label className="admin-field">Referido por<input value={String(form.referredByName || "")} onChange={(e) => set("referredByName", e.target.value)} /></label>
+          <label className="admin-field"><span className="admin-field__label">{english ? "How they found us" : "Cómo nos descubrieron"}</span><select value={String(form.marketingSourceId || "")} onChange={(e) => set("marketingSourceId", e.target.value)}><option value="">—</option>{options.sources.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
+          <label className="admin-field">{english ? "Referred by" : "Referido por"}<input value={String(form.referredByName || "")} onChange={(e) => set("referredByName", e.target.value)} /></label>
           <label className="admin-field">Email<input type="email" value={String(form.email || "")} onChange={(e) => set("email", e.target.value)} /></label>
-          <label className="admin-field">Móvil<input value={String(form.mobile || "")} onChange={(e) => set("mobile", e.target.value)} /></label>
-          <label className="admin-field">Teléfono<input value={String(form.phone || "")} onChange={(e) => set("phone", e.target.value)} /></label>
+          <label className="admin-field">{english ? "Mobile" : "Móvil"}<input value={String(form.mobile || "")} onChange={(e) => set("mobile", e.target.value)} /></label>
+          <label className="admin-field">{english ? "Phone" : "Teléfono"}<input value={String(form.phone || "")} onChange={(e) => set("phone", e.target.value)} /></label>
         </>
       ) : null}
       {section === "direccion" ? (
@@ -366,11 +370,11 @@ export function PatientFields({ form, setForm, options, section = "identidad" }:
       ) : null}
       {section === "consentimiento" ? (
         <>
-          <label className="admin-field">Aviso de privacidad<select value={String(form.privacyPolicyStatus || "sin_respuesta")} onChange={(e) => set("privacyPolicyStatus", e.target.value)}><option value="sin_respuesta">Sin respuesta</option><option value="aceptado">Aceptado</option><option value="rechazado">Rechazado</option></select></label>
+          <label className="admin-field">{english ? "Privacy notice" : "Aviso de privacidad"}<select value={String(form.privacyPolicyStatus || "sin_respuesta")} onChange={(e) => set("privacyPolicyStatus", e.target.value)}><option value="sin_respuesta">{english ? "No answer" : "Sin respuesta"}</option><option value="aceptado">{english ? "Accepted" : "Aceptado"}</option><option value="rechazado">{english ? "Declined" : "Rechazado"}</option></select></label>
           <label className="admin-check"><input type="checkbox" checked={Boolean(form.consentSms)} onChange={(e) => set("consentSms", e.target.checked)} />SMS</label>
           <label className="admin-check"><input type="checkbox" checked={Boolean(form.consentEmail)} onChange={(e) => set("consentEmail", e.target.checked)} />Email</label>
-          <label className="admin-check"><input type="checkbox" checked={Boolean(form.consentPhone)} onChange={(e) => set("consentPhone", e.target.checked)} />Teléfono</label>
-          <label className="admin-check"><input type="checkbox" checked={Boolean(form.consentPostal)} onChange={(e) => set("consentPostal", e.target.checked)} />Correo postal</label>
+          <label className="admin-check"><input type="checkbox" checked={Boolean(form.consentPhone)} onChange={(e) => set("consentPhone", e.target.checked)} />{english ? "Phone" : "Teléfono"}</label>
+          <label className="admin-check"><input type="checkbox" checked={Boolean(form.consentPostal)} onChange={(e) => set("consentPostal", e.target.checked)} />{english ? "Mail" : "Correo postal"}</label>
           {(options.fields || []).map((field) => (
             <label key={field.id} className="admin-field">
               <span className="admin-field__label">{field.label}{field.is_required ? <span className="admin-req"> *</span> : null}</span>
@@ -388,12 +392,12 @@ function AddressFields({ form, set }: { form: Record<string, unknown>; set: (key
   const us = scope.country === "US";
   return (
     <>
-      <label className="admin-field span-2">Calle<input value={String(form.street || "")} onChange={(e) => set("street", e.target.value)} /></label>
+      <label className="admin-field span-2">{us ? "Street" : "Calle"}<input value={String(form.street || "")} onChange={(e) => set("street", e.target.value)} /></label>
       {us ? null : <label className="admin-field">Código postal<input value={String(form.postalCode || "")} onChange={(e) => set("postalCode", e.target.value)} /></label>}
-      <label className="admin-field">Ciudad<input value={String(form.city || "")} onChange={(e) => set("city", e.target.value)} /></label>
-      <label className="admin-field">Estado<input value={String(form.state || "")} onChange={(e) => set("state", e.target.value)} /></label>
+      <label className="admin-field">{us ? "City" : "Ciudad"}<input value={String(form.city || "")} onChange={(e) => set("city", e.target.value)} /></label>
+      <label className="admin-field">{us ? "State" : "Estado"}<input value={String(form.state || "")} onChange={(e) => set("state", e.target.value)} /></label>
       {us ? <label className="admin-field">ZIP<input value={String(form.postalCode || "")} onChange={(e) => set("postalCode", e.target.value)} /></label> : null}
-      <label className="admin-field">País<input value={String(form.country || "")} onChange={(e) => set("country", e.target.value)} /></label>
+      <label className="admin-field">{us ? "Country" : "País"}<input value={String(form.country || "")} onChange={(e) => set("country", e.target.value)} /></label>
     </>
   );
 }
@@ -476,6 +480,7 @@ const TAB_ALIAS: Record<string, string> = {
 };
 
 export function PatientChart({ id, tab }: { id: string; tab: string }) {
+  const english = useAdminEnglish();
   const router = useRouter();
   const params = useSearchParams();
   const [patient, setPatient] = useState<Patient | null>(null);
@@ -491,11 +496,17 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
   const [receipt, setReceipt] = useState<StoreReceiptData | null>(null);
   const active = TAB_ALIAS[tab] || tab || "resumen";
   const folder = tab === "formularios" ? "estudios" : tab === "alergias" || tab === "fotos" || tab === "documentos" || tab === "sesiones" || tab === "estudios" ? tab : "notas";
-  const folderLabel = FOLDERS.find(([key]) => key === folder)?.[1] || "Plan de 90 días";
+  const folderNames: Record<string, string> = english
+    ? { notas: "90-day plan", sesiones: "Sessions", estudios: "Clinical studies", alergias: "Allergies", fotos: "Photos", documentos: "Documents" }
+    : { notas: "Plan de 90 días", sesiones: "Sesiones", estudios: "Estudios clínicos", alergias: "Alergias", fotos: "Fotos", documentos: "Documentos" };
+  const tabNames: Record<string, string> = english
+    ? { resumen: "Summary", citas: "Appointments", expediente: "Chart", finanzas: "Purchases", comunicaciones: "Messages", membresias: "Memberships" }
+    : { resumen: "Resumen", citas: "Citas", expediente: "Expediente", finanzas: "Compras", comunicaciones: "Comunicaciones", membresias: "Membresías" };
+  const folderLabel = folderNames[folder] || (english ? "90-day plan" : "Plan de 90 días");
 
   useEffect(() => {
-    if (params.get("creado") === "1") setNotice("Paciente guardado.");
-  }, [params]);
+    if (params.get("creado") === "1") setNotice(english ? "Patient saved." : "Paciente guardado.");
+  }, [params, english]);
 
   useEffect(() => {
     api<{ patient: Patient }>(`/api/admin/patients/${id}`).then((r) => setPatient(r.patient)).catch((e) => setError(e.message));
@@ -519,35 +530,35 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
         <div className="admin-header__copy">
           <p className="admin-header__eyebrow">{String(patient.clientCode || "")}</p>
           <h1 className="admin-header__title">{patient.firstName} {patient.lastName}</h1>
-          <p className="admin-header__desc">Creado {patient.createdAt ? new Date(String(patient.createdAt)).toLocaleString("es-MX") : ""}</p>
+          <p className="admin-header__desc">{english ? "Created" : "Creado"} {patient.createdAt ? new Date(String(patient.createdAt)).toLocaleString(english ? "en-US" : "es-MX") : ""}</p>
         </div>
         <button className="admin-btn admin-btn--ghost admin-chart-archive" type="button" data-tour="chart-archive" onClick={async () => {
-          if (!window.confirm(`¿Archivar a ${patient.firstName} ${patient.lastName}? El expediente se conserva, pero dejará de aparecer en la lista.`)) return;
+          if (!window.confirm(english ? `Archive ${patient.firstName} ${patient.lastName}? The chart stays, but they leave the list.` : `¿Archivar a ${patient.firstName} ${patient.lastName}? El expediente se conserva, pero dejará de aparecer en la lista.`)) return;
           try {
             await api(`/api/admin/patients/${id}`, { method: "DELETE" });
             router.push("/admin/pacientes?archivado=1");
           } catch (err) {
-            setError(err instanceof Error ? err.message : "No se pudo archivar el paciente.");
+            setError(err instanceof Error ? err.message : (english ? "Could not archive the patient." : "No se pudo archivar el paciente."));
           }
-        }}>Archivar</button>
+        }}>{english ? "Archive" : "Archivar"}</button>
       </header>
       {error ? <div className="admin-alert" role="alert">{error}</div> : null}
       {notice ? <p className="admin-banner" role="status">{notice}</p> : null}
-      <nav className="admin-nav admin-nav--row chart-tabs" data-tour="chart-tabs" aria-label="Ficha del paciente">
-        {TABS.map(([item, label]) => item === "expediente" ? (
+      <nav className="admin-nav admin-nav--row chart-tabs" data-tour="chart-tabs" aria-label={english ? "Patient chart" : "Ficha del paciente"}>
+        {TABS.map(([item]) => item === "expediente" ? (
           <details key={item} className={`chart-drop${active === "expediente" ? " is-current" : ""}`}>
             <summary className={`admin-nav__item${active === "expediente" ? " admin-nav__item--active" : ""}`}>
-              <span>Expediente{active === "expediente" ? ` · ${folderLabel}` : ""}</span>
+              <span>{tabNames.expediente}{active === "expediente" ? ` · ${folderLabel}` : ""}</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
             </summary>
             <div className="chart-drop__menu" role="menu">
-              {FOLDERS.map(([key, name, slug]) => (
-                <Link key={key} role="menuitem" href={`/admin/pacientes/${id}/${slug}`} aria-current={active === "expediente" && folder === key ? "page" : undefined} onClick={(event) => { const menu = event.currentTarget.closest("details"); if (menu) menu.open = false; }}>{name}</Link>
+              {FOLDERS.map(([key, , slug]) => (
+                <Link key={key} role="menuitem" href={`/admin/pacientes/${id}/${slug}`} aria-current={active === "expediente" && folder === key ? "page" : undefined} onClick={(event) => { const menu = event.currentTarget.closest("details"); if (menu) menu.open = false; }}>{folderNames[key]}</Link>
               ))}
             </div>
           </details>
         ) : (
-          <Link key={item} className={`admin-nav__item${active === item ? " admin-nav__item--active" : ""}`} href={item === "resumen" ? `/admin/pacientes/${id}` : `/admin/pacientes/${id}/${item}`} aria-current={active === item ? "page" : undefined}>{label}</Link>
+          <Link key={item} className={`admin-nav__item${active === item ? " admin-nav__item--active" : ""}`} href={item === "resumen" ? `/admin/pacientes/${id}` : `/admin/pacientes/${id}/${item}`} aria-current={active === item ? "page" : undefined}>{tabNames[item]}</Link>
         ))}
       </nav>
       <div data-tour="chart-panel">

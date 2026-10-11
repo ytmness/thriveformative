@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { api } from "@/components/admin/clinic/client";
+import { useAdminEnglish } from "@/components/admin/clinic/ClinicScope";
 import { CloseButton, EmptyState } from "@/components/admin/ui";
 
 function statusLabel(value: string) {
@@ -10,6 +11,7 @@ function statusLabel(value: string) {
 }
 
 export function CommsAdmin() {
+  const english = useAdminEnglish();
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [templates, setTemplates] = useState<Record<string, unknown>[]>([]);
   const [draft, setDraft] = useState<Record<string, unknown> | null>(null);
@@ -52,7 +54,7 @@ export function CommsAdmin() {
   }
   return (
     <>
-      <header className="admin-header"><p className="admin-header__eyebrow">Mensajes</p><h1 className="admin-header__title">Comunicaciones</h1></header>
+      <header className="admin-header"><p className="admin-header__eyebrow">{english ? "Messages" : "Mensajes"}</p><h1 className="admin-header__title">{english ? "Communications" : "Comunicaciones"}</h1></header>
       <div className="admin-chips" aria-label="Variables">
         {variables.map((name) => <span key={name} className="admin-badge admin-badge--muted">{`{{${name}}}`}</span>)}
       </div>
@@ -127,36 +129,37 @@ export function CommsAdmin() {
             </div>
           );
         })}
-        {!rows.length ? <EmptyState title="La cola está vacía" text="Los recordatorios se crean al agendar una cita." /> : null}
+        {!rows.length ? <EmptyState title={english ? "The queue is empty" : "La cola está vacía"} text={english ? "Reminders are created when an appointment is booked." : "Los recordatorios se crean al agendar una cita."} /> : null}
       </div>
     </>
   );
 }
 
 export function ReportView({ slug }: { slug?: string }) {
+  const english = useAdminEnglish();
   const [data, setData] = useState<{ rows: Record<string, unknown>[] } | null>(null);
   const active = slug || "citas";
   useEffect(() => { api<{ rows: Record<string, unknown>[] }>(`/api/admin/reports/${active}`).then(setData); }, [active]);
-  const links = [["citas", "Citas"], ["ingresos", "Ingresos"], ["servicios", "Servicios"], ["profesionales", "Profesionales"], ["marketing", "Marketing"], ["no-shows", "No-shows"]];
-  const labels: Record<string, string> = {
-    status: "Estado", total: "Total", day: "Día", description: "Concepto", quantity: "Cantidad",
-    first_name: "Nombre", last_name: "Apellido", completed: "Completadas", no_shows: "Inasistencias",
-    revenue: "Ingresos", source: "Fuente", week: "Semana",
-  };
+  const links = english
+    ? [["citas", "Appointments"], ["ingresos", "Revenue"], ["servicios", "Services"], ["profesionales", "Providers"], ["marketing", "Marketing"], ["no-shows", "No-shows"]]
+    : [["citas", "Citas"], ["ingresos", "Ingresos"], ["servicios", "Servicios"], ["profesionales", "Profesionales"], ["marketing", "Marketing"], ["no-shows", "No-shows"]];
+  const labels: Record<string, string> = english
+    ? { status: "Status", total: "Total", day: "Day", description: "Item", quantity: "Quantity", first_name: "First name", last_name: "Last name", completed: "Completed", no_shows: "No-shows", revenue: "Revenue", source: "Source", week: "Week" }
+    : { status: "Estado", total: "Total", day: "Día", description: "Concepto", quantity: "Cantidad", first_name: "Nombre", last_name: "Apellido", completed: "Completadas", no_shows: "Inasistencias", revenue: "Ingresos", source: "Fuente", week: "Semana" };
   const rows = data?.rows || [];
   const keys = rows[0] ? Object.keys(rows[0]) : [];
   return (
     <>
-      <header className="admin-header"><h1 className="admin-header__title">Reportes</h1><p className="admin-header__desc">Últimos 30 días.</p></header>
-      <nav className="admin-nav admin-nav--row" data-tour="report-tabs" aria-label="Reportes">{links.map(([id, label]) => <a key={id} className={`admin-nav__item${active === id ? " admin-nav__item--active" : ""}`} href={`/admin/reportes/${id}`} aria-current={active === id ? "page" : undefined}>{label}</a>)}</nav>
+      <header className="admin-header"><h1 className="admin-header__title">{english ? "Reports" : "Reportes"}</h1><p className="admin-header__desc">{english ? "Last 30 days." : "Últimos 30 días."}</p></header>
+      <nav className="admin-nav admin-nav--row" data-tour="report-tabs" aria-label={english ? "Reports" : "Reportes"}>{links.map(([id, label]) => <a key={id} className={`admin-nav__item${active === id ? " admin-nav__item--active" : ""}`} href={`/admin/reportes/${id}`} aria-current={active === id ? "page" : undefined}>{label}</a>)}</nav>
       <div className="admin-table-wrap" data-tour="report-table">
-        <div className="admin-table__row admin-table__head">{keys.length ? keys.map((key) => <span key={key}>{labels[key] || key}</span>) : <span>Resultado</span>}</div>
+        <div className="admin-table__row admin-table__head">{keys.length ? keys.map((key) => <span key={key}>{labels[key] || key}</span>) : <span>{english ? "Result" : "Resultado"}</span>}</div>
         {rows.map((row, index) => (
           <div key={index} className="admin-table__row">
             {Object.entries(row).map(([key, value]) => <span key={key}>{formatReport(key, value)}</span>)}
           </div>
         ))}
-        {!rows.length ? <div className="admin-table__empty">No hay datos en este periodo. Aparecerán cuando haya citas, cobros o pacientes nuevos.</div> : null}
+        {!rows.length ? <div className="admin-table__empty">{english ? "No data in this period. It will appear when there are appointments, charges, or new patients." : "No hay datos en este periodo. Aparecerán cuando haya citas, cobros o pacientes nuevos."}</div> : null}
       </div>
     </>
   );

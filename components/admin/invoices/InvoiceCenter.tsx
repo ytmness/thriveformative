@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/components/admin/clinic/client";
+import { useAdminEnglish } from "@/components/admin/clinic/ClinicScope";
 import { CloseButton, EmptyState } from "@/components/admin/ui";
 import { CreateOffer } from "@/components/admin/tutorial";
 
@@ -50,6 +51,7 @@ function place(row: Row) {
 }
 
 export function InvoiceCenter() {
+  const english = useAdminEnglish();
   const [rows, setRows] = useState<Row[]>([]);
   const [kind, setKind] = useState("invoices");
   const [error, setError] = useState<string | null>(null);
@@ -95,13 +97,13 @@ export function InvoiceCenter() {
   return (
     <>
       <header className="admin-header">
-        <p className="admin-header__eyebrow">Cobros</p>
-        <h1 className="admin-header__title">Facturas y pagos</h1>
-        <p className="admin-header__desc">Abre cualquier fila para ver el documento, con conceptos, impuestos y lo pagado.</p>
+        <p className="admin-header__eyebrow">{english ? "Billing" : "Cobros"}</p>
+        <h1 className="admin-header__title">{english ? "Invoices and payments" : "Facturas y pagos"}</h1>
+        <p className="admin-header__desc">{english ? "Open any row to see the document, with line items, tax, and what was paid." : "Abre cualquier fila para ver el documento, con conceptos, impuestos y lo pagado."}</p>
       </header>
       {error ? <div className="admin-alert">{error}</div> : null}
-      <nav className="admin-nav admin-nav--row" data-tour="invoice-tabs" aria-label="Documentos">
-        {[["invoices", "Facturas"], ["quotes", "Cotizaciones"], ["credits", "Notas de crédito"]].map(([id, label]) => (
+      <nav className="admin-nav admin-nav--row" data-tour="invoice-tabs" aria-label={english ? "Documents" : "Documentos"}>
+        {(english ? [["invoices", "Invoices"], ["quotes", "Quotes"], ["credits", "Credit notes"]] : [["invoices", "Facturas"], ["quotes", "Cotizaciones"], ["credits", "Notas de crédito"]]).map(([id, label]) => (
           <button key={id} className={`admin-nav__item${kind === id ? " admin-nav__item--active" : ""}`} type="button" aria-pressed={kind === id} onClick={() => setKind(id)}>{label}</button>
         ))}
       </nav>
@@ -116,15 +118,15 @@ export function InvoiceCenter() {
           }
           location.reload();
         }}>
-          <input name="desc" placeholder={kind === "quotes" ? "Descripción" : "Motivo"} required />
-          <input name="amount" type="number" step="0.01" placeholder="Monto" required />
-          {kind === "credits" ? <input name="invoice" placeholder="ID de factura" required /> : null}
-          <button className="admin-btn admin-btn--primary" type="submit">{kind === "quotes" ? "Nueva cotización" : "Nota de crédito"}</button>
+          <input name="desc" placeholder={kind === "quotes" ? (english ? "Description" : "Descripción") : (english ? "Reason" : "Motivo")} required />
+          <input name="amount" type="number" step="0.01" placeholder={english ? "Amount" : "Monto"} required />
+          {kind === "credits" ? <input name="invoice" placeholder={english ? "Invoice ID" : "ID de factura"} required /> : null}
+          <button className="admin-btn admin-btn--primary" type="submit">{kind === "quotes" ? (english ? "New quote" : "Nueva cotización") : (english ? "Credit note" : "Nota de crédito")}</button>
         </form>
       ) : null}
       <label className="section-search">
         <span>Buscar documentos</span>
-        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Número, paciente, estado o monto" />
+        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={english ? "Number, patient, status, or amount" : "Número, paciente, estado o monto"} />
       </label>
       <div className="admin-table-wrap" data-tour="invoice-table">
         <div className="admin-table__row admin-table__head invoice-list"><span>Número</span><span>Paciente</span><span>Fecha</span><span>Estado</span><span>Total</span><span /></div>

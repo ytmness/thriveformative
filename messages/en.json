@@ -311,7 +311,12 @@
     "durationNote": "Appointments use a 70-minute scheduling interval.",
     "embedTitle": "Thrive Formative booking portal",
     "whatsappHint": "Have a question before booking?",
-    "whatsappCta": "Message us on WhatsApp"
+    "whatsappCta": "Message us on WhatsApp",
+    "checkingAccount": "Checking your account…",
+    "registerToBook": "Register to see the calendar",
+    "registerToBookHint": "Create your patient account. Then you can choose a date and time.",
+    "registerToBookCta": "Create account",
+    "loginToBook": "I already have an account"
   },
   "auth": {
     "loginTitle": "Sign in",

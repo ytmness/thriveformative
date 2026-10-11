@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useLocale } from "next-intl";
+import { useAdminEnglish } from "@/components/admin/clinic/ClinicScope";
 import { useUser } from "@/lib/useUser";
 
 type NotificationRow = {
@@ -13,6 +15,16 @@ type NotificationRow = {
   read_at: string | null;
   created_at: string;
 };
+
+function clinicNotice(item: NotificationRow, english: boolean) {
+  if (!english || item.type !== "appointment_pending" || !item.body) return { title: item.title, body: item.body };
+  const match = item.body.match(/^(.*) acaba de agendar una cita de (.*) para el (\d{4}-\d{2}-\d{2}) a las (\d{2}:\d{2}) en (.*)\.$/);
+  if (!match) return { title: "New appointment", body: item.body };
+  return {
+    title: "New appointment",
+    body: `${match[1]} just booked a ${match[2]} appointment for ${match[3]} at ${match[4]} at ${match[5]}.`,
+  };
+}
 
 export default function NotificationBell({ variant = "site" }: { variant?: "site" | "admin" }) {
   const { user } = useUser();
@@ -34,7 +46,7 @@ export default function NotificationBell({ variant = "site" }: { variant?: "site
       if (!cancelled) setNotifications(body.rows ?? []);
     }
     load().catch(() => undefined);
-    const timer = window.setInterval(() => { load().catch(() => undefined); }, 60000);
+    const timer = window.setInterval(() => { load().catch(() => undefined); }, 30000);
     return () => {
       cancelled = true;
       window.clearInterval(timer);
@@ -59,7 +71,8 @@ export default function NotificationBell({ variant = "site" }: { variant?: "site
     setNotifications((prev) => prev.map((item) => (item.id === id ? { ...item, read_at: new Date().toISOString() } : item)));
   }
 
-  const english = variant === "site" && locale === "en";
+  const panelEnglish = useAdminEnglish();
+  const english = variant === "admin" ? panelEnglish : locale === "en";
   const label = english
     ? unreadCount > 0
       ? `${unreadCount} unread notifications`
@@ -100,12 +113,15 @@ export default function NotificationBell({ variant = "site" }: { variant?: "site
             ) : notifications.length === 0 ? (
               <div className={variant === "admin" ? "admin-bell__empty" : "p-4 text-sm text-muted"}>{english ? "No notifications." : "No hay notificaciones."}</div>
             ) : (
-              notifications.map((item) => (
+              notifications.map((item) => {
+                const notice = clinicNotice(item, english && variant === "admin");
+                const chartHref = variant === "admin" && item.type.startsWith("appointment_") ? "/admin/calendario" : null;
+                return (
                 <div key={item.id} className={variant === "admin" ? `admin-bell__item${!item.read_at ? " is-unread" : ""}` : `p-3 text-sm ${!item.read_at ? "bg-[rgb(var(--primary)/0.08)]" : ""}`}>
-                  <div className="font-medium">{item.title}</div>
-                  {item.body ? <div className={variant === "admin" ? "admin-bell__body" : "text-muted text-xs mt-0.5"}>{item.body}</div> : null}
+                  <div className="font-medium">{chartHref ? <Link href={chartHref}>{notice.title}</Link> : notice.title}</div>
+                  {notice.body ? <div className={variant === "admin" ? "admin-bell__body" : "text-muted text-xs mt-0.5"}>{notice.body}</div> : null}
                   <div className={variant === "admin" ? "admin-bell__time" : "text-muted text-xs mt-1"}>
-                    {new Date(item.created_at).toLocaleString(locale)}
+                    {new Date(item.created_at).toLocaleString(english ? "en-US" : locale)}
                   </div>
                   {!item.read_at ? (
                     <button type="button" onClick={() => markRead(item.id)} className={variant === "admin" ? "admin-bell__read" : "mt-2 text-xs text-[rgb(var(--primary))] hover:underline"}>
@@ -113,7 +129,8 @@ export default function NotificationBell({ variant = "site" }: { variant?: "site
                     </button>
                   ) : null}
                 </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

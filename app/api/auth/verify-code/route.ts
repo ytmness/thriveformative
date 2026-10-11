@@ -1,6 +1,7 @@
 import { verifyPatientCode, type RegisterProfile } from "@/lib/auth/patientAccess";
 import { requestMeta, toErrorResponse } from "@/lib/http";
 import { checkRateLimit } from "@/lib/rate-limit/memory";
+import { visitorMarket } from "@/lib/site/detect";
 
 export async function POST(req: Request) {
   const meta = requestMeta(req);
@@ -16,11 +17,13 @@ export async function POST(req: Request) {
       profile?: RegisterProfile;
     } | null;
     const purpose = body?.purpose === "register" ? "register" : "login";
+    const market = purpose === "register" ? await visitorMarket(req) : null;
     await verifyPatientCode({
       email: String(body?.email || ""),
       code: String(body?.code || ""),
       purpose,
       profile: body?.profile,
+      market,
       meta,
     });
     return Response.json({ ok: true });

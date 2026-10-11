@@ -18,7 +18,6 @@ function sectionNav(english: boolean): [string, string][] {
         ["paquetes", "Packages"],
         ["membresias", "Memberships"],
         ["categorias", "Categories"],
-        ["proveedores", "Suppliers"],
       ]
     : [
         ["servicios", "Servicios"],
@@ -27,7 +26,6 @@ function sectionNav(english: boolean): [string, string][] {
         ["paquetes", "Paquetes"],
         ["membresias", "Membresías"],
         ["categorias", "Categorías"],
-        ["proveedores", "Proveedores"],
       ];
 }
 
@@ -44,7 +42,6 @@ export default function CatalogPanel({ section }: { section: string }) {
   const [productCategories, setProductCategories] = useState<Named[]>([]);
   const [taxes, setTaxes] = useState<Named[]>([]);
   const [rooms, setRooms] = useState<Named[]>([]);
-  const [suppliers, setSuppliers] = useState<Named[]>([]);
   const [templates, setTemplates] = useState<Named[]>([]);
   const [depsReady, setDepsReady] = useState(false);
   const [form, setForm] = useState<Row>({});
@@ -102,7 +99,7 @@ export default function CatalogPanel({ section }: { section: string }) {
       setRows((await api<{ rows: Row[] }>("/api/admin/settings/services")).rows);
       return;
     }
-    const path = section === "proveedores" ? "suppliers" : categoryKind === "productos" ? "product-categories" : "service-categories";
+    const path = categoryKind === "productos" ? "product-categories" : "service-categories";
     setRows((await api<{ rows: Row[] }>(`/api/admin/settings/${path}`)).rows);
   }
 
@@ -126,16 +123,14 @@ export default function CatalogPanel({ section }: { section: string }) {
       api<{ rows: Named[] }>("/api/admin/settings/product-categories").catch(() => ({ rows: [] })),
       api<{ rows: Named[] }>("/api/admin/settings/taxes").catch(() => ({ rows: [] })),
       api<{ rows: Named[] }>("/api/admin/settings/rooms").catch(() => ({ rows: [] })),
-      api<{ rows: Named[] }>("/api/admin/settings/suppliers").catch(() => ({ rows: [] })),
       api<{ rows: Named[] }>("/api/admin/forms").catch(() => ({ rows: [] })),
-    ]).then(([locationRows, staffRows, serviceRows, productRows, taxRows, roomRows, supplierRows, formRows]) => {
+    ]).then(([locationRows, staffRows, serviceRows, productRows, taxRows, roomRows, formRows]) => {
       setLocations(locationRows.rows);
       setStaff(staffRows.rows);
       setServiceCategories(serviceRows.rows);
       setProductCategories(productRows.rows);
       setTaxes(taxRows.rows);
       setRooms(roomRows.rows);
-      setSuppliers(supplierRows.rows);
       setTemplates(formRows.rows);
       setDepsReady(true);
     });
@@ -170,7 +165,7 @@ export default function CatalogPanel({ section }: { section: string }) {
         const body = {
           name: form.name, sku: form.sku || null, barcode: form.barcode || null, sizeLabel: form.sizeLabel || null,
           cost: Number(form.cost || 0), price: Number(form.price || 0), description: form.description || "",
-          supplierId: form.supplierId || null, categoryId: form.categoryId || null, taxId: form.taxId || null,
+          categoryId: form.categoryId || null, taxId: form.taxId || null,
         };
         if (editing) await api(`/api/admin/products/${editing}`, { method: "PATCH", body: JSON.stringify(body) });
         else await api("/api/admin/products", { method: "POST", body: JSON.stringify(body) });
@@ -354,20 +349,20 @@ export default function CatalogPanel({ section }: { section: string }) {
         <div className="admin-drawer" onClick={() => setOpenForm(false)}>
           <div className="admin-drawer__panel" onClick={(event) => event.stopPropagation()}>
             <div className="admin-drawer__head">
-              <h2 className="admin-header__title" style={{ margin: 0, fontSize: "1.25rem" }}>{editing ? `Editar ${title.toLowerCase()}` : `Nuevo: ${title.toLowerCase()}`}</h2>
+              <h2 className="admin-header__title" style={{ margin: 0, fontSize: "1.25rem" }}>{editing ? (english ? `Edit ${title.toLowerCase()}` : `Editar ${title.toLowerCase()}`) : (english ? `New: ${title.toLowerCase()}` : `Nuevo: ${title.toLowerCase()}`)}</h2>
               <CloseButton onClick={() => setOpenForm(false)} />
             </div>
             <form id="catalog-editor" className="admin-form-grid admin-drawer__body" data-tour="settings-form" onSubmit={submit}>
               {section === "servicios" ? (
                 <div className="span-2">
-                  <SegmentedControl tour="service-tabs" label="Secciones del servicio" value={serviceTab} onChange={setServiceTab} items={[{ id: "general", label: "General" }, { id: "precios", label: "Precios" }, { id: "reserva", label: "Reserva en línea" }, { id: "formularios", label: "Formularios" }]} />
+                  <SegmentedControl tour="service-tabs" label={english ? "Service sections" : "Secciones del servicio"} value={serviceTab} onChange={setServiceTab} items={english ? [{ id: "general", label: "General" }, { id: "precios", label: "Pricing" }, { id: "reserva", label: "Online booking" }, { id: "formularios", label: "Forms" }] : [{ id: "general", label: "General" }, { id: "precios", label: "Precios" }, { id: "reserva", label: "Reserva en línea" }, { id: "formularios", label: "Formularios" }]} />
                 </div>
               ) : null}
-              <Fields section={section} categoryKind={categoryKind} serviceTab={serviceTab} form={form} set={set} siteOptions={scopedLocations} staff={staff} serviceCategories={serviceCategories} productCategories={productCategories} taxes={taxes} rooms={rooms} suppliers={suppliers} templates={templates} depsReady={depsReady} />
+              <Fields section={section} categoryKind={categoryKind} serviceTab={serviceTab} form={form} set={set} siteOptions={scopedLocations} staff={staff} serviceCategories={serviceCategories} productCategories={productCategories} taxes={taxes} rooms={rooms} templates={templates} depsReady={depsReady} />
             </form>
             <div className="admin-drawer__foot">
-              <button className="admin-btn" type="button" onClick={() => setOpenForm(false)}>Cancelar</button>
-              <button className="admin-btn admin-btn--primary" type="submit" form="catalog-editor" data-tour="settings-save">Guardar</button>
+              <button className="admin-btn" type="button" onClick={() => setOpenForm(false)}>{english ? "Cancel" : "Cancelar"}</button>
+              <button className="admin-btn admin-btn--primary" type="submit" form="catalog-editor" data-tour="settings-save">{english ? "Save" : "Guardar"}</button>
             </div>
           </div>
         </div>
@@ -376,7 +371,7 @@ export default function CatalogPanel({ section }: { section: string }) {
   );
 }
 
-function Fields({ section, categoryKind, serviceTab, form, set, siteOptions, staff, serviceCategories, productCategories, taxes, rooms, suppliers, templates, depsReady }: {
+function Fields({ section, categoryKind, serviceTab, form, set, siteOptions, staff, serviceCategories, productCategories, taxes, rooms, templates, depsReady }: {
   section: string;
   categoryKind: string;
   serviceTab: string;
@@ -388,7 +383,6 @@ function Fields({ section, categoryKind, serviceTab, form, set, siteOptions, sta
   productCategories: Named[];
   taxes: Named[];
   rooms: Named[];
-  suppliers: Named[];
   templates: Named[];
   depsReady: boolean;
 }) {
@@ -438,7 +432,6 @@ function Fields({ section, categoryKind, serviceTab, form, set, siteOptions, sta
         <Text label="Costo" value={form.cost} onChange={(value) => set("cost", value)} />
         <Text label="Precio" value={form.price} onChange={(value) => set("price", value)} />
         <Select label="Categoría" value={form.categoryId} onChange={(value) => set("categoryId", value)} options={productCategories.map((row) => [row.id, row.name])} />
-        <Select label="Proveedor" value={form.supplierId} onChange={(value) => set("supplierId", value)} options={suppliers.map((row) => [row.id, row.name])} />
         <Select label="Impuesto" value={form.taxId} onChange={(value) => set("taxId", value)} options={taxes.map((row) => [row.id, row.name])} />
         <label className="admin-field span-2"><span className="admin-field__label">Descripción</span><textarea value={String(form.description || "")} onChange={(event) => set("description", event.target.value)} /></label>
       </>
@@ -460,16 +453,6 @@ function Fields({ section, categoryKind, serviceTab, form, set, siteOptions, sta
         <Text label="Precio" value={form.price} onChange={(value) => set("price", value)} />
         <Select label="Cobro" value={form.interval || "month"} onChange={(value) => set("interval", value)} options={[["month", "Mensual"], ["year", "Anual"]]} />
         <label className="admin-field span-2"><span className="admin-field__label">Descripción</span><textarea value={String(form.description || "")} onChange={(event) => set("description", event.target.value)} /></label>
-      </>
-    );
-  }
-  if (section === "proveedores") {
-    return (
-      <>
-        <Text label="Nombre" value={form.name} onChange={(value) => set("name", value)} required />
-        <Text label="Email" value={form.email} onChange={(value) => set("email", value)} />
-        <Text label="Teléfono" value={form.phone} onChange={(value) => set("phone", value)} />
-        <Text label="Notas" value={form.notes} onChange={(value) => set("notes", value)} />
       </>
     );
   }
@@ -522,13 +505,11 @@ function Checks({ label, value, options, onChange }: { label: string; value: unk
   );
 }
 
-function settingsPath(section: string, categoryKind: string) {
-  if (section === "proveedores") return "suppliers";
+function settingsPath(_section: string, categoryKind: string) {
   return categoryKind === "productos" ? "product-categories" : "service-categories";
 }
 
-function settingsBody(section: string, categoryKind: string, form: Row) {
-  if (section === "proveedores") return { name: form.name, email: form.email || null, phone: form.phone || null, notes: form.notes || null };
+function settingsBody(_section: string, categoryKind: string, form: Row) {
   if (categoryKind === "productos") return { name: form.name, sortOrder: Number(form.sortOrder || 0) };
   return { name: form.name, sortOrder: Number(form.sortOrder || 0), isActive: form.isActive !== false };
 }
@@ -545,19 +526,17 @@ function formFrom(section: string, row: Row): Row {
   if (section === "productos") {
     return {
       name: row.name, sku: row.sku, barcode: row.barcode, sizeLabel: row.size_label, cost: row.cost, price: row.price,
-      description: row.description, supplierId: row.supplier_id, categoryId: row.category_id, taxId: row.tax_id,
+      description: row.description, categoryId: row.category_id, taxId: row.tax_id,
     };
   }
   if (section === "membresias") return { name: row.name, price: row.price, interval: row.interval_unit || "month", description: row.description };
   if (section === "paquetes") return { name: row.name, price: row.price, description: row.description };
-  if (section === "proveedores") return { name: row.name, email: row.email, phone: row.phone, notes: row.notes };
   return { name: row.name, sortOrder: row.sort_order || 0, isActive: row.is_active !== false };
 }
 
 function columnsOf(section: string) {
   if (section === "servicios") return { labels: ["Nombre", "Duración", "Precio", "Categoría", "Acciones"], template: "minmax(0,1.4fr) minmax(0,0.8fr) minmax(0,0.7fr) minmax(0,1fr) 4.5rem" };
   if (section === "productos") return { labels: ["Producto", "SKU", "Precio", "Stock", "Acciones"], template: "minmax(0,1.4fr) minmax(0,0.8fr) minmax(0,0.7fr) minmax(0,1.2fr) 4.5rem" };
-  if (section === "proveedores") return { labels: ["Nombre", "Contacto", "Acciones"], template: "minmax(0,1.2fr) minmax(0,1fr) 4.5rem" };
   return { labels: ["Nombre", "Detalle", "Acciones"], template: "minmax(0,1.4fr) minmax(0,1fr) 4.5rem" };
 }
 
@@ -574,7 +553,6 @@ function cellsOf(section: string, row: Row, categories: Named[], locationIds: st
   }
   if (section === "membresias") return [String(row.name || ""), `${row.interval_unit === "year" ? "Anual" : "Mensual"} · $${Number(row.price || 0).toFixed(2)}`];
   if (section === "paquetes") return [String(row.name || ""), `$${Number(row.price || 0).toFixed(2)}`];
-  if (section === "proveedores") return [String(row.name || ""), [row.email, row.phone].filter(Boolean).join(" · ") || "—"];
   return [String(row.name || ""), "—"];
 }
 
@@ -586,7 +564,7 @@ function hintOf(section: string, english = false) {
   if (section === "paquetes") return english ? "A fixed price you sell at checkout." : "Un precio cerrado que vendes en Cobrar.";
   if (section === "membresias") return english ? "A plan billed every month or every year." : "Un plan que se cobra cada mes o cada año.";
   if (section === "categorias") return english ? "They organize services and products. Choose which one you are editing." : "Sirven para ordenar servicios y productos. Elige cuál estás editando.";
-  return english ? "Who you buy from. You can assign them when you create a product." : "A quién le compras. Luego lo asignas al crear un producto.";
+  return english ? "Catalog for this location." : "Catálogo de esta sede.";
 }
 
 function StockEditor({ row, locationId, locationName, english, onSaved }: {
