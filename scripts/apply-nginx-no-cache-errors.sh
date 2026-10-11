@@ -65,8 +65,8 @@ write_proxy_location() {
         proxy_set_header X-Forwarded-Proto \$scheme;
         proxy_cache_bypass \$http_upgrade;
         proxy_connect_timeout 10s;
-        proxy_send_timeout 60s;
-        proxy_read_timeout 60s;
+        proxy_send_timeout 180s;
+        proxy_read_timeout 180s;
     }
 EOF
 }
@@ -88,6 +88,7 @@ server {
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
     server_name $DOMAIN www.$DOMAIN;
+    client_max_body_size 32m;
 EOF
   if [ -n "$SSL_OPTS" ]; then
     echo "$SSL_OPTS"

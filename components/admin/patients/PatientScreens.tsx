@@ -661,14 +661,15 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
           {folder === "estudios" ? (
             <form className="chart-block" onSubmit={async (e) => {
               e.preventDefault();
-              const data = new FormData(e.currentTarget);
+              const form = e.currentTarget;
+              const data = new FormData(form);
               data.set("kind", study);
               try {
                 await api(`/api/admin/patients/${id}/documents`, { method: "POST", body: data });
                 setNotice("PDF guardado.");
                 const next = await api<{ rows: Record<string, unknown>[] }>(`/api/admin/patients/${id}/documents`);
                 setRows(next.rows);
-                e.currentTarget.reset();
+                form.reset();
               } catch (err) {
                 setError(err instanceof Error ? err.message : "No se pudo guardar el PDF.");
               }
@@ -701,9 +702,13 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
               e.preventDefault();
               const data = new FormData(e.currentTarget);
               if (folder === "fotos") data.set("isPhoto", "1");
-              await api(`/api/admin/patients/${id}/documents`, { method: "POST", body: data });
-              setNotice("Archivo guardado.");
-              location.reload();
+              try {
+                await api(`/api/admin/patients/${id}/documents`, { method: "POST", body: data });
+                setNotice("Archivo guardado.");
+                location.reload();
+              } catch (err) {
+                setError(err instanceof Error ? err.message : "No se pudo guardar el archivo.");
+              }
             }}>
               <div className="admin-toolbar"><input name="title" placeholder="Título" /><input name="file" type="file" required /><button className="admin-btn admin-btn--primary" type="submit">Subir</button></div>
               {rows.filter((row) => folder === "fotos" ? row.is_photo : !row.is_photo && !STUDIES.some(([key]) => key === row.kind)).map((row) => (

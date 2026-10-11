@@ -98,7 +98,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string; re
       const form = await req.formData();
       const file = form.get("file");
       if (!(file instanceof File)) throw new DomainError("Adjunta un archivo.");
-      if (file.size > 15 * 1024 * 1024) throw new DomainError("El archivo supera 15 MB.");
+      if (file.size > 32 * 1024 * 1024) throw new DomainError("El archivo supera 32 MB.");
       const kind = String(form.get("kind") || "document");
       const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
       if (STUDY_KINDS.has(kind) && !isPdf) throw new DomainError("Los estudios clínicos se guardan en PDF.");

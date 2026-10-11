@@ -16,6 +16,9 @@ const SUPABASE_HOST = (() => {
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
+  experimental: {
+    middlewareClientMaxBodySize: '32mb',
+  },
   serverExternalPackages: ["bcryptjs", "exceljs", "pg"],
   images: {
     remotePatterns: [

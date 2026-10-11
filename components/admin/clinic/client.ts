@@ -9,6 +9,9 @@ export async function api<T>(url: string, init?: RequestInit): Promise<T> {
     if (!res.ok) throw new Error(body.error || "No se pudo completar la operación.");
     return body;
   }
-  if (!res.ok) throw new Error("No se pudo completar la operación.");
+  if (!res.ok) {
+    if (res.status === 413) throw new Error("El archivo es demasiado grande. El máximo es 32 MB.");
+    throw new Error("No se pudo completar la operación.");
+  }
   return undefined as T;
 }
