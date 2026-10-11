@@ -1,4 +1,5 @@
 import type { ProductRow } from "@/lib/store/fields";
+import { productImageList } from "@/lib/store/images";
 import type { Locale, StoreCategory, StoreProduct } from "@/lib/store/types";
 
 export const STORE_REVALIDATE_SECONDS = 60;
@@ -8,9 +9,12 @@ export function attachCategoryToProduct(
   categories: StoreCategory[]
 ): StoreProduct {
   const byId = new Map(categories.map((c) => [c.id, c]));
+  const image_urls = productImageList(product);
   return {
     ...product,
     description: product.description ?? "",
+    image_url: image_urls[0] ?? product.image_url ?? null,
+    image_urls,
     category_id: product.category_id ?? null,
     category: product.category_id ? (byId.get(product.category_id) ?? null) : null,
     source: product.source ?? null,

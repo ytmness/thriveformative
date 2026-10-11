@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS store_products (
   ref text NOT NULL,
   referral_url text NOT NULL,
   image_url text,
+  image_urls text[] NOT NULL DEFAULT '{}',
   is_published boolean NOT NULL DEFAULT true,
   category_id uuid REFERENCES store_categories (id) ON DELETE SET NULL,
   price_min numeric(10, 2),

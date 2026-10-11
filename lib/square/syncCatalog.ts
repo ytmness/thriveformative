@@ -155,7 +155,13 @@ async function upsertProduct(
       `UPDATE store_products SET
          name = $1, description = $2, referral_url = $3, image_url = $4, category_id = $5,
          price_min = $6, price_max = $7, currency = $8, source = 'square', source_handle = $9,
-         source_payload = $10::jsonb, updated_at = now()
+         source_payload = $10::jsonb,
+         image_urls = CASE
+           WHEN cardinality(image_urls) > 1 THEN image_urls
+           WHEN $4 IS NULL OR btrim($4) = '' THEN '{}'::text[]
+           ELSE ARRAY[$4]::text[]
+         END,
+         updated_at = now()
        WHERE locale = $11 AND country = $12 AND source = 'square' AND source_handle = $13`,
       [
         input.item.name,

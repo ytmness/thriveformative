@@ -9,6 +9,7 @@ import type { Locale } from "@/lib/store/types";
 import { slugifyRef } from "@/lib/store/slug";
 import { normalizeCountry } from "@/lib/domain/scope";
 import { pushUsStoreProduct } from "@/lib/square/catalogPush";
+import { cleanProductImages } from "@/lib/store/images";
 
 async function requireAdmin() {
   if (!(await isAdminAuthenticated())) {
@@ -35,6 +36,7 @@ export async function POST(req: Request) {
       const p = body.payload!;
       const isNew = !body.id;
       const country = normalizeCountry(String(p.country || "")) || "MX";
+      const imageUrls = cleanProductImages(p.image_urls, p.image_url);
       const cols = [
         p.locale,
         country,
@@ -43,7 +45,8 @@ export async function POST(req: Request) {
         p.description,
         p.ref,
         p.referral_url,
-        p.image_url,
+        imageUrls[0] ?? null,
+        imageUrls,
         p.category_id,
         p.is_published,
         p.price_min,
@@ -57,10 +60,10 @@ export async function POST(req: Request) {
       if (isNew) {
         res = await query<ProductRow>(
           `INSERT INTO store_products
-           (locale, country, sort_order, name, description, ref, referral_url, image_url,
+           (locale, country, sort_order, name, description, ref, referral_url, image_url, image_urls,
             category_id, is_published, price_min, price_max, compare_at_price_min,
             currency, source, source_handle)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
            RETURNING ${PRODUCT_FIELDS_SQL}`,
           cols
         );
@@ -68,10 +71,10 @@ export async function POST(req: Request) {
         res = await query<ProductRow>(
           `UPDATE store_products SET
            locale=$1, country=$2, sort_order=$3, name=$4, description=$5, ref=$6, referral_url=$7,
-           image_url=$8, category_id=$9, is_published=$10, price_min=$11, price_max=$12,
-           compare_at_price_min=$13, currency=$14, source=$15, source_handle=$16,
+           image_url=$8, image_urls=$9, category_id=$10, is_published=$11, price_min=$12, price_max=$13,
+           compare_at_price_min=$14, currency=$15, source=$16, source_handle=$17,
            updated_at=now()
-           WHERE id=$17
+           WHERE id=$18
            RETURNING ${PRODUCT_FIELDS_SQL}`,
           [...cols, body.id]
         );

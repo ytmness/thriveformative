@@ -1,6 +1,7 @@
 import { query } from "@/lib/db";
 import { normalizeCountry } from "@/lib/domain/scope";
 import { PRODUCT_FIELDS_SQL, type ProductRow } from "@/lib/store/fields";
+import { productImageList } from "@/lib/store/images";
 import { sellableVariations } from "@/lib/store/variations";
 import type { Locale, StoreCategory, StoreProduct } from "@/lib/store/types";
 
@@ -15,9 +16,12 @@ function joinProductsWithCategories(
   const byId = new Map(categories.map((c) => [c.id, c]));
   return rows.map((row) => {
     const { source_payload: sourcePayload, ...rest } = row;
+    const image_urls = productImageList(rest);
     return {
       ...rest,
       description: rest.description ?? "",
+      image_url: image_urls[0] ?? rest.image_url ?? null,
+      image_urls,
       category_id: rest.category_id ?? null,
       category: rest.category_id ? (byId.get(rest.category_id) ?? null) : null,
       source: rest.source ?? null,

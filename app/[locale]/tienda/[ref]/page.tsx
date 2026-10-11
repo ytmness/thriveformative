@@ -8,6 +8,7 @@ import WaveDivider from "@/components/WaveDivider";
 import AddToCart from "@/components/store/AddToCart";
 import StoreProductPrice from "@/components/store/StoreProductPrice";
 import { fetchStoreProductByRef } from "@/lib/store/fetch";
+import { productImageList } from "@/lib/store/images";
 import type { Locale } from "@/lib/cms/types";
 import type { StoreProduct } from "@/lib/store/types";
 import { motion } from "framer-motion";
@@ -120,6 +121,10 @@ function ProductDetailView({
   locale: string;
   t: ReturnType<typeof useTranslations<"tienda">>;
 }) {
+  const images = productImageList(product);
+  const [active, setActive] = useState(0);
+  const current = images[active] || images[0] || "/pos/producto.svg";
+
   return (
     <motion.div
       className="tienda-detail"
@@ -127,8 +132,26 @@ function ProductDetailView({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="tienda-detail__media">
-        <img src={product.image_url || "/pos/producto.svg"} alt={product.image_url ? product.name : ""} />
+      <div className="tienda-detail__gallery">
+        <div className="tienda-detail__media">
+          <img src={current} alt={images.length ? product.name : ""} />
+        </div>
+        {images.length > 1 ? (
+          <div className="tienda-detail__thumbs" role="tablist" aria-label={product.name}>
+            {images.map((url, index) => (
+              <button
+                key={`${url}-${index}`}
+                type="button"
+                role="tab"
+                aria-selected={index === active}
+                className={`tienda-detail__thumb${index === active ? " is-active" : ""}`}
+                onClick={() => setActive(index)}
+              >
+                <img src={url} alt="" />
+              </button>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       <div className="tienda-detail__panel">

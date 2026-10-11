@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { fetchStoreCategories, fetchStoreProducts } from "@/lib/store/fetch";
+import { productImageList } from "@/lib/store/images";
 import { isValidRef, slugifyRef } from "@/lib/store/slug";
 import type { Locale, StoreCategory, StoreProduct } from "@/lib/store/types";
 
@@ -30,6 +31,7 @@ function createEmptyDraft(locale: Locale, sortOrder: number, country: string): S
     ref: "",
     referral_url: "",
     image_url: null,
+    image_urls: [],
     category_id: null,
     category: null,
     is_published: true,
@@ -158,7 +160,8 @@ export function useStoreAdmin(initialLocale: Locale, country: string) {
 
   function startEditProduct(product: StoreProduct) {
     setMessage(null);
-    setDraft({ ...product });
+    const image_urls = productImageList(product);
+    setDraft({ ...product, image_urls, image_url: image_urls[0] ?? null });
     setEditingId(product.id);
   }
 
@@ -183,7 +186,8 @@ export function useStoreAdmin(initialLocale: Locale, country: string) {
       description: draft.description.trim(),
       ref,
       referral_url: selling ? "" : referral,
-      image_url: draft.image_url?.trim() || null,
+      image_urls: productImageList(draft),
+      image_url: productImageList(draft)[0] ?? null,
       category_id: draft.category_id || null,
       is_published: draft.is_published,
       price_min: selling ? Number(draft.price_min) : null,

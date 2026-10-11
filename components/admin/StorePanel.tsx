@@ -4,7 +4,8 @@ import { CMS_LOCALES, type Locale } from "@/lib/cms/types";
 import { useEffect, useState } from "react";
 import { useClinicScope } from "@/components/admin/clinic/ClinicScope";
 import { useStoreAdmin } from "@/hooks/useStoreAdmin";
-import CmsImageField from "@/components/admin/cms/CmsImageField";
+import ProductPhotosField from "@/components/admin/store/ProductPhotosField";
+import { productImageList } from "@/lib/store/images";
 import "@/app/styles/admin-cms.css";
 
 const LOCALE_LABELS: Record<Locale, string> = {
@@ -204,7 +205,9 @@ export default function StorePanel({ siteLocale }: Props) {
           <p className="text-muted text-sm">No hay productos en este idioma. Usa el formulario de arriba.</p>
         ) : (
           <ul className="space-y-3">
-            {products.map((product) => (
+            {products.map((product) => {
+              const photos = productImageList(product);
+              return (
               <li
                 key={product.id}
                 className={`rounded-xl border p-4 ${
@@ -214,9 +217,9 @@ export default function StorePanel({ siteLocale }: Props) {
                 }`}
               >
                 <div className="flex gap-4 items-start">
-                  {product.image_url ? (
+                  {photos[0] ? (
                     <img
-                      src={product.image_url}
+                      src={photos[0]}
                       alt=""
                       className="w-16 h-16 rounded-lg object-contain border border-theme flex-shrink-0 bg-[rgb(var(--bg)/0.5)]"
                     />
@@ -227,6 +230,11 @@ export default function StorePanel({ siteLocale }: Props) {
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-medium">{product.name}</span>
+                      {photos.length > 1 ? (
+                        <span className="text-xs px-2 py-0.5 rounded-full border border-theme text-muted">
+                          {photos.length} fotos
+                        </span>
+                      ) : null}
                       {product.category ? (
                         <span className="text-xs px-2 py-0.5 rounded-full border border-[rgb(var(--primary)/0.35)] text-[rgb(var(--primary))] bg-[rgb(var(--primary)/0.08)]">
                           {product.category.name}
@@ -279,7 +287,8 @@ export default function StorePanel({ siteLocale }: Props) {
                   </div>
                 </div>
               </li>
-            ))}
+              );
+            })}
           </ul>
         )}
       </div>
@@ -308,7 +317,7 @@ function ProductForm({
   onSave: () => void;
   suggestRefFromName: (name: string) => string;
 }) {
-  const fresh = draft.id === "draft" && !draft.name && !(draft.referral_url || "").trim() && draft.price_min == null && !draft.image_url;
+  const fresh = draft.id === "draft" && !draft.name && !(draft.referral_url || "").trim() && draft.price_min == null && productImageList(draft).length === 0;
   const [offer, setOffer] = useState<"tienda" | "enlace">((draft.referral_url || "").trim() ? "enlace" : "tienda");
   useEffect(() => {
     setOffer((draft.referral_url || "").trim() ? "enlace" : "tienda");
@@ -399,13 +408,10 @@ function ProductForm({
           />
         </label>
 
-        <CmsImageField
-          layout="drop"
+        <ProductPhotosField
           locale={locale}
-          uploadFolder="products"
-          label="Imagen"
-          value={draft.image_url}
-          onChange={(image_url) => onChange({ image_url })}
+          urls={productImageList(draft)}
+          onChange={(image_urls) => onChange({ image_urls, image_url: image_urls[0] ?? null })}
         />
       </div>
 

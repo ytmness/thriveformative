@@ -11,11 +11,17 @@ const MAX_ATTEMPTS = 5;
 
 export type RegisterProfile = {
   fullName?: string | null;
+  firstName?: string | null;
+  middleName?: string | null;
+  paternalSurname?: string | null;
+  maternalSurname?: string | null;
   phone?: string | null;
   birthDate?: string | null;
   sex?: string | null;
   address?: string | null;
   street?: string | null;
+  streetNumber?: string | null;
+  neighborhood?: string | null;
   city?: string | null;
   state?: string | null;
   postalCode?: string | null;
@@ -46,6 +52,27 @@ function splitName(fullName: string | null | undefined) {
   if (parts.length === 0) return { first: "Paciente", last: "." };
   if (parts.length === 1) return { first: parts[0], last: "." };
   return { first: parts[0], last: parts.slice(1).join(" ") };
+}
+
+function patientNames(profile: RegisterProfile) {
+  const given = profile.firstName?.trim() || "";
+  const middle = profile.middleName?.trim() || "";
+  const paternal = profile.paternalSurname?.trim() || "";
+  const maternal = profile.maternalSurname?.trim() || "";
+  if (given || middle || paternal || maternal) {
+    const first = [given, middle].filter(Boolean).join(" ");
+    const last = [paternal, maternal].filter(Boolean).join(" ");
+    if (!first || !last) {
+      throw new DomainError(
+        profile.locale === "en"
+          ? "Enter your first name and at least one last name."
+          : "Escribe tu nombre y al menos un apellido."
+      );
+    }
+    return { first, last, middle: middle || null, paternal: paternal || null, maternal: maternal || null };
+  }
+  const split = splitName(profile.fullName);
+  return { first: split.first, last: split.last, middle: null, paternal: null, maternal: null };
 }
 
 function mapSex(value: string | null | undefined) {
@@ -107,12 +134,14 @@ async function saveProfile(email: string, profile: RegisterProfile) {
   if (profile.acceptedPolicies !== true) {
     throw new DomainError(profile.locale === "en" ? "Read and accept the policies before continuing." : "Lee y acepta las políticas antes de continuar.");
   }
-  const names = splitName(profile.fullName);
+  const names = patientNames(profile);
   const sex = mapSex(profile.sex);
   const phone = normalizePhone(profile.phone);
   const emergencyPhone = normalizePhone(profile.emergencyPhone);
   const birth = profile.birthDate && /^\d{4}-\d{2}-\d{2}$/.test(profile.birthDate) ? profile.birthDate : null;
   const street = profile.street?.trim() || profile.address?.trim() || null;
+  const streetNumber = profile.streetNumber?.trim() || null;
+  const neighborhood = profile.neighborhood?.trim() || null;
   const source = await sourceId(profile.referralSource);
   const referred = profile.referralSource === "other" ? profile.referralSourceOther || null : profile.referralSource || null;
   const preference = profile.contactPreference || "";
@@ -123,15 +152,18 @@ async function saveProfile(email: string, profile: RegisterProfile) {
     );
     const inserted = await query<{ id: string }>(
       `INSERT INTO patients (
-         client_code, first_name, last_name, sex, sex_detail, birth_date, preferred_language, marketing_source_id,
-         referred_by_name, email_enc, email_hash, mobile_enc, mobile_hash, street, city, state, postal_code, country,
+         client_code, first_name, middle_name, paternal_surname, maternal_surname, last_name, sex, sex_detail, birth_date, preferred_language, marketing_source_id,
+         referred_by_name, email_enc, email_hash, mobile_enc, mobile_hash, street, street_number, neighborhood, city, state, postal_code, country,
          emergency_name_enc, emergency_phone_enc, emergency_relation,
          consent_email, consent_phone, consent_sms, privacy_policy_status
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,true,$22,$23,'aceptado')
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,true,$27,$28,'aceptado')
        RETURNING id`,
       [
         code.rows[0].code,
         names.first,
+        names.middle,
+        names.paternal,
+        names.maternal,
         names.last,
         sex,
         sex === "otro" ? profile.sexDetail?.trim() || null : null,
@@ -144,6 +176,8 @@ async function saveProfile(email: string, profile: RegisterProfile) {
         encryptPhi(phone),
         contactHash("phone", phone),
         street,
+        streetNumber,
+        neighborhood,
         profile.city?.trim() || null,
         profile.state?.trim() || null,
         profile.postalCode?.trim() || null,
@@ -160,22 +194,27 @@ async function saveProfile(email: string, profile: RegisterProfile) {
     await query(
       `UPDATE patients SET
          first_name = $2,
-         last_name = $3,
-         sex = COALESCE($4, sex),
-         sex_detail = CASE WHEN $4 = 'otro' THEN $5 ELSE sex_detail END,
-         birth_date = COALESCE($6, birth_date),
-         marketing_source_id = COALESCE($7, marketing_source_id),
-         referred_by_name = COALESCE($8, referred_by_name),
-         mobile_enc = COALESCE($9, mobile_enc),
-         mobile_hash = COALESCE($10, mobile_hash),
-         street = COALESCE($11, street),
-         city = COALESCE($12, city),
-         state = COALESCE($13, state),
-         postal_code = COALESCE($14, postal_code),
-         country = COALESCE($15, country),
-         emergency_name_enc = COALESCE($16, emergency_name_enc),
-         emergency_phone_enc = COALESCE($17, emergency_phone_enc),
-         emergency_relation = COALESCE($18, emergency_relation),
+         middle_name = $3,
+         paternal_surname = $4,
+         maternal_surname = $5,
+         last_name = $6,
+         sex = COALESCE($7, sex),
+         sex_detail = CASE WHEN $7 = 'otro' THEN $8 ELSE sex_detail END,
+         birth_date = COALESCE($9, birth_date),
+         marketing_source_id = COALESCE($10, marketing_source_id),
+         referred_by_name = COALESCE($11, referred_by_name),
+         mobile_enc = COALESCE($12, mobile_enc),
+         mobile_hash = COALESCE($13, mobile_hash),
+         street = COALESCE($14, street),
+         street_number = COALESCE($15, street_number),
+         neighborhood = COALESCE($16, neighborhood),
+         city = COALESCE($17, city),
+         state = COALESCE($18, state),
+         postal_code = COALESCE($19, postal_code),
+         country = COALESCE($20, country),
+         emergency_name_enc = COALESCE($21, emergency_name_enc),
+         emergency_phone_enc = COALESCE($22, emergency_phone_enc),
+         emergency_relation = COALESCE($23, emergency_relation),
          consent_email = true,
          privacy_policy_status = 'aceptado',
          updated_at = now()
@@ -183,6 +222,9 @@ async function saveProfile(email: string, profile: RegisterProfile) {
       [
         patientId,
         names.first,
+        names.middle,
+        names.paternal,
+        names.maternal,
         names.last,
         sex,
         profile.sexDetail?.trim() || null,
@@ -192,6 +234,8 @@ async function saveProfile(email: string, profile: RegisterProfile) {
         encryptPhi(phone),
         contactHash("phone", phone),
         street,
+        streetNumber,
+        neighborhood,
         profile.city?.trim() || null,
         profile.state?.trim() || null,
         profile.postalCode?.trim() || null,

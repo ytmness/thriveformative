@@ -61,6 +61,8 @@ function mapPatient(row: Record<string, unknown>) {
     mobile: decryptPhi(row.mobile_enc as Buffer | null),
     phone: decryptPhi(row.phone_enc as Buffer | null),
     street: row.street,
+    streetNumber: row.street_number,
+    neighborhood: row.neighborhood,
     city: row.city,
     state: row.state,
     country: row.country,
