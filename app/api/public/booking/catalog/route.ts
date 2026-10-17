@@ -23,6 +23,22 @@ export async function GET(req: Request) {
     const services = await query(
       `SELECT s.id, s.name, s.description, s.duration_minutes, s.price, s.category_id,
               CASE
+                WHEN (
+                  s.requires_membership
+                  OR EXISTS (SELECT 1 FROM membership_items mi WHERE mi.service_id = s.id)
+                ) THEN (
+                  $2::uuid IS NULL OR NOT EXISTS (
+                    SELECT 1
+                    FROM patient_membership_credits c
+                    JOIN patient_memberships pm ON pm.id = c.patient_membership_id
+                    WHERE pm.patient_id = $2
+                      AND pm.status = 'active'
+                      AND c.service_id = s.id
+                      AND c.remaining > 0
+                      AND c.period_start <= current_date
+                      AND c.period_end >= current_date
+                  )
+                )
                 WHEN s.unlocks_after_service_id IS NULL THEN false
                 WHEN $2::uuid IS NULL THEN true
                 ELSE NOT EXISTS (

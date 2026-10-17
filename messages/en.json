@@ -317,7 +317,7 @@
     "registerToBookHint": "Create your patient account. Then you can choose a date and time.",
     "registerToBookCta": "Create account",
     "loginToBook": "I already have an account",
-    "planUnlockHint": "Follow-up, ShapeScale, and the epigenetic study open after your 90-day visit."
+    "planUnlockHint": "Some services open when your membership still has visit credits."
   },
   "auth": {
     "loginTitle": "Sign in",

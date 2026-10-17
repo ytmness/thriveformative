@@ -129,38 +129,84 @@ export async function exportInventory(format: string) {
   return { contentType: "text/csv; charset=utf-8", filename: "inventario.csv", body: Buffer.from(lines.join("\n"), "utf8") };
 }
 
+function normalizePlanItems(items: unknown) {
+  if (!Array.isArray(items)) return [] as { serviceId: string; productId: string | null; quantity: number }[];
+  return items
+    .map((item) => {
+      const row = item as { serviceId?: string; productId?: string; quantity?: number };
+      const serviceId = String(row.serviceId || "").trim();
+      const productId = row.productId ? String(row.productId) : null;
+      const quantity = Math.max(1, Math.round(Number(row.quantity || 1)));
+      return { serviceId, productId, quantity };
+    })
+    .filter((item) => item.serviceId || item.productId);
+}
+
+function membershipInterval(value: unknown) {
+  if (value === "year") return "year";
+  if (value === "day90") return "day90";
+  return "month";
+}
+
 export async function saveSimple(table: "packages" | "memberships", id: string | null, body: Record<string, unknown>) {
   const name = String(body.name || "").trim();
   if (!name) throw new DomainError("El nombre es obligatorio.");
+  const items = normalizePlanItems(body.items);
   if (table === "packages") {
-    if (!id) {
-      const inserted = await query<{ id: string }>(
-        `INSERT INTO packages (name, price, description, is_active) VALUES ($1,$2,$3,$4) RETURNING id`,
-        [name, body.price ?? 0, body.description || "", body.isActive !== false]
-      );
-      if (Array.isArray(body.items)) {
-        for (const item of body.items as { serviceId?: string; productId?: string; quantity?: number }[]) {
-          await query(`INSERT INTO package_items (package_id, service_id, product_id, quantity) VALUES ($1,$2,$3,$4)`, [
-            inserted.rows[0].id, item.serviceId || null, item.productId || null, item.quantity || 1,
-          ]);
-        }
+    const packageId = await withTx(async (q) => {
+      let nextId = id;
+      if (!nextId) {
+        const inserted = await q<{ id: string }>(
+          `INSERT INTO packages (name, price, description, is_active) VALUES ($1,$2,$3,$4) RETURNING id`,
+          [name, body.price ?? 0, body.description || "", body.isActive !== false]
+        );
+        nextId = inserted.rows[0].id;
+      } else {
+        await q(`UPDATE packages SET name=$2, price=$3, description=$4, is_active=$5 WHERE id=$1`, [
+          nextId, name, body.price ?? 0, body.description || "", body.isActive !== false,
+        ]);
+        await q(`DELETE FROM package_items WHERE package_id = $1`, [nextId]);
       }
-      return { id: inserted.rows[0].id };
+      for (const item of items) {
+        await q(`INSERT INTO package_items (package_id, service_id, product_id, quantity) VALUES ($1,$2,$3,$4)`, [
+          nextId, item.serviceId || null, item.productId, item.quantity,
+        ]);
+      }
+      return nextId as string;
+    });
+    return { id: packageId };
+  }
+
+  const interval = membershipInterval(body.intervalUnit);
+  const membershipId = await withTx(async (q) => {
+    let nextId = id;
+    if (!nextId) {
+      const inserted = await q<{ id: string }>(
+        `INSERT INTO memberships (name, price, interval_unit, description, is_active)
+         VALUES ($1,$2,$3,$4,$5) RETURNING id`,
+        [name, body.price ?? 0, interval, body.description || "", body.isActive !== false]
+      );
+      nextId = inserted.rows[0].id;
+    } else {
+      await q(
+        `UPDATE memberships SET name=$2, price=$3, interval_unit=$4, description=$5, is_active=$6 WHERE id=$1`,
+        [nextId, name, body.price ?? 0, interval, body.description || "", body.isActive !== false]
+      );
+      await q(`DELETE FROM membership_items WHERE membership_id = $1`, [nextId]);
     }
-    await query(`UPDATE packages SET name=$2, price=$3, description=$4, is_active=$5 WHERE id=$1`, [
-      id, name, body.price ?? 0, body.description || "", body.isActive !== false,
-    ]);
-    return { id };
-  }
-  if (!id) {
-    const inserted = await query<{ id: string }>(
-      `INSERT INTO memberships (name, price, interval_unit, description, is_active) VALUES ($1,$2,$3,$4,$5) RETURNING id`,
-      [name, body.price ?? 0, body.intervalUnit === "year" ? "year" : "month", body.description || "", body.isActive !== false]
-    );
-    return { id: inserted.rows[0].id };
-  }
-  await query(`UPDATE memberships SET name=$2, price=$3, interval_unit=$4, description=$5, is_active=$6 WHERE id=$1`, [
-    id, name, body.price ?? 0, body.intervalUnit === "year" ? "year" : "month", body.description || "", body.isActive !== false,
-  ]);
-  return { id };
+    for (const item of items) {
+      if (!item.serviceId) continue;
+      await q(
+        `INSERT INTO membership_items (membership_id, service_id, quantity) VALUES ($1,$2,$3)
+         ON CONFLICT (membership_id, service_id) DO UPDATE SET quantity = EXCLUDED.quantity`,
+        [nextId, item.serviceId, item.quantity]
+      );
+      await q(`UPDATE services SET requires_membership = true WHERE id = $1`, [item.serviceId]);
+    }
+    return nextId as string;
+  });
+
+  const { syncMembershipSquarePlan } = await import("@/lib/square/subscriptions");
+  await syncMembershipSquarePlan(membershipId).catch(() => undefined);
+  return { id: membershipId };
 }

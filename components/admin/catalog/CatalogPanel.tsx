@@ -43,6 +43,7 @@ export default function CatalogPanel({ section }: { section: string }) {
   const [taxes, setTaxes] = useState<Named[]>([]);
   const [rooms, setRooms] = useState<Named[]>([]);
   const [templates, setTemplates] = useState<Named[]>([]);
+  const [services, setServices] = useState<Named[]>([]);
   const [depsReady, setDepsReady] = useState(false);
   const [form, setForm] = useState<Row>({});
   const [editing, setEditing] = useState<string | null>(null);
@@ -124,7 +125,8 @@ export default function CatalogPanel({ section }: { section: string }) {
       api<{ rows: Named[] }>("/api/admin/settings/taxes").catch(() => ({ rows: [] })),
       api<{ rows: Named[] }>("/api/admin/settings/rooms").catch(() => ({ rows: [] })),
       api<{ rows: Named[] }>("/api/admin/forms").catch(() => ({ rows: [] })),
-    ]).then(([locationRows, staffRows, serviceRows, productRows, taxRows, roomRows, formRows]) => {
+      api<{ rows: Named[] }>("/api/admin/settings/services").catch(() => ({ rows: [] })),
+    ]).then(([locationRows, staffRows, serviceRows, productRows, taxRows, roomRows, formRows, serviceCatalog]) => {
       setLocations(locationRows.rows);
       setStaff(staffRows.rows);
       setServiceCategories(serviceRows.rows);
@@ -132,6 +134,7 @@ export default function CatalogPanel({ section }: { section: string }) {
       setTaxes(taxRows.rows);
       setRooms(roomRows.rows);
       setTemplates(formRows.rows);
+      setServices(serviceCatalog.rows.map((row) => ({ id: String(row.id), name: String(row.name || "") })));
       setDepsReady(true);
     });
   }, []);
@@ -143,7 +146,8 @@ export default function CatalogPanel({ section }: { section: string }) {
   function openNew() {
     setEditing(null);
     setServiceTab("general");
-    if (section === "membresias") setForm({ interval: "month" });
+    if (section === "membresias") setForm({ interval: "month", items: [] });
+    else if (section === "paquetes") setForm({ items: [] });
     else if (section === "servicios") setForm({ locationIds: scopedLocations.map((row) => row.id) });
     else setForm({});
     setOpenForm(true);
@@ -170,11 +174,24 @@ export default function CatalogPanel({ section }: { section: string }) {
         if (editing) await api(`/api/admin/products/${editing}`, { method: "PATCH", body: JSON.stringify(body) });
         else await api("/api/admin/products", { method: "POST", body: JSON.stringify(body) });
       } else if (section === "paquetes") {
-        const body = { kind: "package", name: form.name, price: Number(form.price || 0), description: form.description || "" };
+        const body = {
+          kind: "package",
+          name: form.name,
+          price: Number(form.price || 0),
+          description: form.description || "",
+          items: Array.isArray(form.items) ? form.items : [],
+        };
         if (editing) await api(`/api/admin/products/${editing}`, { method: "PATCH", body: JSON.stringify(body) });
         else await api("/api/admin/products", { method: "POST", body: JSON.stringify(body) });
       } else if (section === "membresias") {
-        const body = { kind: "membership", name: form.name, price: Number(form.price || 0), intervalUnit: form.interval || "month", description: form.description || "" };
+        const body = {
+          kind: "membership",
+          name: form.name,
+          price: Number(form.price || 0),
+          intervalUnit: form.interval || "month",
+          description: form.description || "",
+          items: Array.isArray(form.items) ? form.items : [],
+        };
         if (editing) await api(`/api/admin/products/${editing}`, { method: "PATCH", body: JSON.stringify(body) });
         else await api("/api/admin/products", { method: "POST", body: JSON.stringify(body) });
       } else if (section === "servicios") {
@@ -358,7 +375,7 @@ export default function CatalogPanel({ section }: { section: string }) {
                   <SegmentedControl tour="service-tabs" label={english ? "Service sections" : "Secciones del servicio"} value={serviceTab} onChange={setServiceTab} items={english ? [{ id: "general", label: "General" }, { id: "precios", label: "Pricing" }, { id: "reserva", label: "Online booking" }, { id: "formularios", label: "Forms" }] : [{ id: "general", label: "General" }, { id: "precios", label: "Precios" }, { id: "reserva", label: "Reserva en línea" }, { id: "formularios", label: "Formularios" }]} />
                 </div>
               ) : null}
-              <Fields section={section} categoryKind={categoryKind} serviceTab={serviceTab} form={form} set={set} siteOptions={scopedLocations} staff={staff} serviceCategories={serviceCategories} productCategories={productCategories} taxes={taxes} rooms={rooms} templates={templates} depsReady={depsReady} />
+              <Fields section={section} categoryKind={categoryKind} serviceTab={serviceTab} form={form} set={set} siteOptions={scopedLocations} staff={staff} serviceCategories={serviceCategories} productCategories={productCategories} taxes={taxes} rooms={rooms} templates={templates} services={services} depsReady={depsReady} english={english} />
             </form>
             <div className="admin-drawer__foot">
               <button className="admin-btn" type="button" onClick={() => setOpenForm(false)}>{english ? "Cancel" : "Cancelar"}</button>
@@ -371,7 +388,7 @@ export default function CatalogPanel({ section }: { section: string }) {
   );
 }
 
-function Fields({ section, categoryKind, serviceTab, form, set, siteOptions, staff, serviceCategories, productCategories, taxes, rooms, templates, depsReady }: {
+function Fields({ section, categoryKind, serviceTab, form, set, siteOptions, staff, serviceCategories, productCategories, taxes, rooms, templates, services, depsReady, english }: {
   section: string;
   categoryKind: string;
   serviceTab: string;
@@ -384,7 +401,9 @@ function Fields({ section, categoryKind, serviceTab, form, set, siteOptions, sta
   taxes: Named[];
   rooms: Named[];
   templates: Named[];
+  services: Named[];
   depsReady: boolean;
+  english: boolean;
 }) {
   if (section === "servicios") {
     return (
@@ -440,19 +459,28 @@ function Fields({ section, categoryKind, serviceTab, form, set, siteOptions, sta
   if (section === "paquetes") {
     return (
       <>
-        <Text label="Nombre" value={form.name} onChange={(value) => set("name", value)} required />
-        <Text label="Precio" value={form.price} onChange={(value) => set("price", value)} />
-        <label className="admin-field span-2"><span className="admin-field__label">Descripción</span><textarea value={String(form.description || "")} onChange={(event) => set("description", event.target.value)} /></label>
+        <Text label={english ? "Name" : "Nombre"} value={form.name} onChange={(value) => set("name", value)} required />
+        <Text label={english ? "Price" : "Precio"} value={form.price} onChange={(value) => set("price", value)} />
+        <label className="admin-field span-2"><span className="admin-field__label">{english ? "Description" : "Descripción"}</span><textarea value={String(form.description || "")} onChange={(event) => set("description", event.target.value)} /></label>
+        <PlanItemsField form={form} set={set} services={services} english={english} label={english ? "Included services" : "Servicios incluidos"} />
       </>
     );
   }
   if (section === "membresias") {
     return (
       <>
-        <Text label="Nombre" value={form.name} onChange={(value) => set("name", value)} required />
-        <Text label="Precio" value={form.price} onChange={(value) => set("price", value)} />
-        <Select label="Cobro" value={form.interval || "month"} onChange={(value) => set("interval", value)} options={[["month", "Mensual"], ["year", "Anual"]]} />
-        <label className="admin-field span-2"><span className="admin-field__label">Descripción</span><textarea value={String(form.description || "")} onChange={(event) => set("description", event.target.value)} /></label>
+        <Text label={english ? "Name" : "Nombre"} value={form.name} onChange={(value) => set("name", value)} required />
+        <Text label={english ? "Price" : "Precio"} value={form.price} onChange={(value) => set("price", value)} />
+        <Select
+          label={english ? "Billing" : "Cobro"}
+          value={form.interval || "month"}
+          onChange={(value) => set("interval", value)}
+          options={english
+            ? [["month", "Monthly"], ["year", "Yearly"], ["day90", "Every 90 days"]]
+            : [["month", "Mensual"], ["year", "Anual"], ["day90", "Cada 90 días"]]}
+        />
+        <label className="admin-field span-2"><span className="admin-field__label">{english ? "Description" : "Descripción"}</span><textarea value={String(form.description || "")} onChange={(event) => set("description", event.target.value)} /></label>
+        <PlanItemsField form={form} set={set} services={services} english={english} label={english ? "Included visits per period" : "Citas incluidas por periodo"} />
       </>
     );
   }
@@ -529,8 +557,24 @@ function formFrom(section: string, row: Row): Row {
       description: row.description, categoryId: row.category_id, taxId: row.tax_id,
     };
   }
-  if (section === "membresias") return { name: row.name, price: row.price, interval: row.interval_unit || "month", description: row.description };
-  if (section === "paquetes") return { name: row.name, price: row.price, description: row.description };
+  if (section === "membresias") {
+    const items = Array.isArray(row.items)
+      ? (row.items as { serviceId?: string; service_id?: string; quantity?: number }[]).map((item) => ({
+          serviceId: String(item.serviceId || item.service_id || ""),
+          quantity: Number(item.quantity || 1),
+        }))
+      : [];
+    return { name: row.name, price: row.price, interval: row.interval_unit || "month", description: row.description, items };
+  }
+  if (section === "paquetes") {
+    const items = Array.isArray(row.items)
+      ? (row.items as { service_id?: string; serviceId?: string; quantity?: number }[]).map((item) => ({
+          serviceId: String(item.serviceId || item.service_id || ""),
+          quantity: Number(item.quantity || 1),
+        }))
+      : [];
+    return { name: row.name, price: row.price, description: row.description, items };
+  }
   return { name: row.name, sortOrder: row.sort_order || 0, isActive: row.is_active !== false };
 }
 
@@ -551,8 +595,15 @@ function cellsOf(section: string, row: Row, categories: Named[], locationIds: st
     const summary = stockRows.length ? stockRows.map((item) => `${item.location_name}: ${item.quantity}`).join(" · ") : "—";
     return [String(row.name || ""), String(row.sku || "—"), `$${Number(row.price || 0).toFixed(2)}`, summary];
   }
-  if (section === "membresias") return [String(row.name || ""), `${row.interval_unit === "year" ? "Anual" : "Mensual"} · $${Number(row.price || 0).toFixed(2)}`];
-  if (section === "paquetes") return [String(row.name || ""), `$${Number(row.price || 0).toFixed(2)}`];
+  if (section === "membresias") {
+    const interval = row.interval_unit === "year" ? "Anual" : row.interval_unit === "day90" ? "90 días" : "Mensual";
+    const count = Array.isArray(row.items) ? row.items.length : 0;
+    return [String(row.name || ""), `${interval} · $${Number(row.price || 0).toFixed(2)}${count ? ` · ${count} servicios` : ""}`];
+  }
+  if (section === "paquetes") {
+    const count = Array.isArray(row.items) ? row.items.length : 0;
+    return [String(row.name || ""), `$${Number(row.price || 0).toFixed(2)}${count ? ` · ${count} servicios` : ""}`];
+  }
   return [String(row.name || ""), "—"];
 }
 
@@ -561,10 +612,71 @@ function hintOf(section: string, english = false) {
   if (section === "productos") return english
     ? "These are point-of-sale products. New ones are created in Web store. Set the stock for each product at this location."
     : "Estos productos son del punto de venta. Los nuevos se crean en Tienda web. El stock de cada uno se guarda en esta sede.";
-  if (section === "paquetes") return english ? "A fixed price you sell at checkout." : "Un precio cerrado que vendes en Cobrar.";
-  if (section === "membresias") return english ? "A plan billed every month or every year." : "Un plan que se cobra cada mes o cada año.";
+  if (section === "paquetes") return english ? "A one-time package with included visits you sell at checkout." : "Un paquete de pago único con citas incluidas que vendes en Cobrar.";
+  if (section === "membresias") return english ? "A recurring plan with visit credits. Renews through Square when possible." : "Un plan recurrente con cupos de citas. Se renueva con Square cuando se puede.";
   if (section === "categorias") return english ? "They organize services and products. Choose which one you are editing." : "Sirven para ordenar servicios y productos. Elige cuál estás editando.";
   return english ? "Catalog for this location." : "Catálogo de esta sede.";
+}
+
+type PlanItem = { serviceId: string; quantity: number };
+
+function PlanItemsField({
+  form,
+  set,
+  services,
+  english,
+  label,
+}: {
+  form: Row;
+  set: (key: string, value: unknown) => void;
+  services: Named[];
+  english: boolean;
+  label: string;
+}) {
+  const items = (Array.isArray(form.items) ? form.items : []) as PlanItem[];
+  function update(next: PlanItem[]) {
+    set("items", next);
+  }
+  return (
+    <fieldset className="admin-field span-2">
+      <legend>{label}</legend>
+      <div style={{ display: "grid", gap: "0.55rem" }}>
+        {items.map((item, index) => (
+          <div key={`${item.serviceId}-${index}`} style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) 5.5rem auto", gap: "0.45rem" }}>
+            <select
+              value={item.serviceId}
+              onChange={(event) => {
+                const next = [...items];
+                next[index] = { ...next[index], serviceId: event.target.value };
+                update(next);
+              }}
+            >
+              <option value="">{english ? "Service" : "Servicio"}</option>
+              {services.map((service) => (
+                <option key={service.id} value={service.id}>{service.name}</option>
+              ))}
+            </select>
+            <input
+              type="number"
+              min={1}
+              value={item.quantity || 1}
+              onChange={(event) => {
+                const next = [...items];
+                next[index] = { ...next[index], quantity: Math.max(1, Number(event.target.value || 1)) };
+                update(next);
+              }}
+            />
+            <button className="admin-btn" type="button" onClick={() => update(items.filter((_, i) => i !== index))}>
+              {english ? "Remove" : "Quitar"}
+            </button>
+          </div>
+        ))}
+        <button className="admin-btn" type="button" onClick={() => update([...items, { serviceId: services[0]?.id || "", quantity: 1 }])}>
+          {english ? "+ Add service" : "+ Agregar servicio"}
+        </button>
+      </div>
+    </fieldset>
+  );
 }
 
 function StockEditor({ row, locationId, locationName, english, onSaved }: {

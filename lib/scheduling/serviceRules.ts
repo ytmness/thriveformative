@@ -1,6 +1,7 @@
 import { query as poolQuery } from "@/lib/db";
 import type { TxQuery } from "@/lib/dbTx";
 import { DomainError } from "@/lib/http";
+import { assertMembershipCredit, creditForService, serviceRequiresMembership } from "@/lib/domain/memberships";
 import { formatDate } from "@/lib/scheduling/time";
 
 type Run = TxQuery;
@@ -50,7 +51,11 @@ export async function serviceDayBlock(
   const rules = await policy(run, input.serviceId);
   if (!rules) return null;
 
-  if (input.patientId && rules.unlocks_after_service_id) {
+  if (await serviceRequiresMembership(input.serviceId, q)) {
+    if (!input.patientId) return "Este servicio requiere una membresía activa.";
+    const credit = await creditForService({ patientId: input.patientId, serviceId: input.serviceId }, q);
+    if (!credit) return "No te quedan cupos de este servicio en tu membresía.";
+  } else if (input.patientId && rules.unlocks_after_service_id) {
     const done = await run<{ ok: boolean }>(
       `SELECT EXISTS (
          SELECT 1 FROM appointments
@@ -61,7 +66,7 @@ export async function serviceDayBlock(
       [input.patientId, rules.unlocks_after_service_id]
     );
     if (!done.rows[0]?.ok) {
-      return "El seguimiento, ShapeScale y el estudio epigenético se desbloquean después de tu cita de 90 días.";
+      return "Este servicio se desbloquea después de tu cita de 90 días.";
     }
   }
 
@@ -143,6 +148,7 @@ export async function assertBookable(
     q
   );
   if (reason) throw new DomainError(reason);
+  await assertMembershipCredit({ patientId: input.patientId, serviceId: input.serviceId }, q);
 
   const windowStart = new Date(input.startsAt.getTime() - rules.buffer_before_minutes * 60000);
   const windowEnd = new Date(input.endsAt.getTime() + rules.buffer_after_minutes * 60000);

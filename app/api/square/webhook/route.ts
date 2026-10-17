@@ -1,5 +1,9 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { query } from "@/lib/db";
+import {
+  renewMembershipBySquareSubscription,
+  setMembershipStatusBySquare,
+} from "@/lib/domain/memberships";
 import { getSiteUrl } from "@/lib/env/server";
 import { log } from "@/lib/log";
 import { squareFetch } from "@/lib/square/client";
@@ -17,17 +21,44 @@ function signatureOk(raw: string, header: string) {
   return left.length === right.length && timingSafeEqual(left, right);
 }
 
+type SquareEvent = {
+  type?: string;
+  data?: {
+    object?: {
+      payment?: { id?: string; status?: string; order_id?: string };
+      subscription?: { id?: string; status?: string };
+      invoice?: {
+        id?: string;
+        status?: string;
+        subscription_id?: string;
+      };
+    };
+  };
+};
+
 export async function POST(req: Request) {
   const raw = await req.text();
   if (!signatureOk(raw, req.headers.get("x-square-hmacsha256-signature") || "")) {
     return Response.json({ error: "Firma inválida." }, { status: 401 });
   }
-  let event: { type?: string; data?: { object?: { payment?: { id?: string; status?: string; order_id?: string } } } };
+  let event: SquareEvent;
   try {
-    event = JSON.parse(raw) as typeof event;
+    event = JSON.parse(raw) as SquareEvent;
   } catch {
     return Response.json({ ok: true });
   }
+
+  try {
+    if (event.type?.startsWith("subscription.") || event.type?.startsWith("invoice.")) {
+      await handleSubscriptionEvent(event);
+      return Response.json({ ok: true });
+    }
+  } catch (error) {
+    log.warn("memberships", "no se pudo procesar el webhook de suscripción", {
+      name: error instanceof Error ? error.name : "error",
+    });
+  }
+
   const payment = event.data?.object?.payment;
   if (event.type !== "payment.updated" || payment?.status !== "COMPLETED" || !payment.order_id) {
     return Response.json({ ok: true });
@@ -47,4 +78,35 @@ export async function POST(req: Request) {
     log.warn("inventory", "no se pudo descontar una venta llegada desde Square");
   }
   return Response.json({ ok: true });
+}
+
+async function handleSubscriptionEvent(event: SquareEvent) {
+  const subscriptionId =
+    event.data?.object?.subscription?.id ||
+    event.data?.object?.invoice?.subscription_id ||
+    null;
+  if (!subscriptionId) return;
+
+  const status = String(event.data?.object?.subscription?.status || "").toUpperCase();
+  if (event.type === "subscription.updated" || event.type === "subscription.created") {
+    if (status === "ACTIVE" || status === "PENDING") {
+      await renewMembershipBySquareSubscription(subscriptionId);
+      return;
+    }
+    if (status === "PAUSED") {
+      await setMembershipStatusBySquare(subscriptionId, "paused");
+      return;
+    }
+    if (status === "CANCELED" || status === "DEACTIVATED") {
+      await setMembershipStatusBySquare(subscriptionId, "cancelled");
+      return;
+    }
+  }
+
+  if (
+    event.type === "invoice.payment_made" ||
+    (event.type === "invoice.updated" && String(event.data?.object?.invoice?.status || "").toUpperCase() === "PAID")
+  ) {
+    await renewMembershipBySquareSubscription(subscriptionId);
+  }
 }

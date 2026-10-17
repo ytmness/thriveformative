@@ -9,6 +9,7 @@ import { log } from "@/lib/log";
 import { notifyAppointment } from "@/lib/domain/clinicNotify";
 import { countrySql, normalizeCountry } from "@/lib/domain/scope";
 import { dispatchDueMessages, enqueueForAppointment } from "@/lib/messaging/queue";
+import { consumeMembershipCredit, restoreMembershipCredit } from "@/lib/domain/memberships";
 import { assertBookable } from "@/lib/scheduling/serviceRules";
 import { addDaysToDateKey, addMonthsToDateKey, formatDate, formatHm, parseClinicDateTime, zonedTimeToUtc } from "@/lib/scheduling/time";
 import { emitWebhook } from "@/lib/webhooks/emit";
@@ -208,6 +209,12 @@ export async function createAppointment(input: AppointmentInput, actor: StaffSes
         recurrenceId,
         i === 0 ? manageToken : null
       );
+      if (input.patientId && input.serviceId) {
+        await consumeMembershipCredit(
+          { patientId: input.patientId, serviceId: input.serviceId, appointmentId: id },
+          q
+        );
+      }
       created.push(id);
     }
     return created;
@@ -328,6 +335,9 @@ export async function updateAppointment(
        WHERE appointment_id = $1 AND status = 'queued' AND scheduled_for > now()`,
       [id]
     );
+    if (next.patientId && next.serviceId) {
+      await restoreMembershipCredit({ patientId: next.patientId, serviceId: next.serviceId }).catch(() => undefined);
+    }
     try { await notifyAppointment(id, "cancelled"); } catch (error) {
       log.warn("appointments", "no se pudo avisar de la cancelación", { name: error instanceof Error ? error.name : "error" });
     }

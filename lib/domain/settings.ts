@@ -200,10 +200,41 @@ export async function listSection(section: string) {
   }
   if (section === "packages") {
     const rows = await query(`SELECT * FROM packages WHERE is_active ORDER BY name`);
-    const items = await query(`SELECT * FROM package_items`);
-    return rows.rows.map((row) => ({ ...row, items: items.rows.filter((item) => item.package_id === row.id) }));
+    const items = await query<{ package_id: string; service_id: string | null; product_id: string | null; quantity: number; service_name: string | null }>(
+      `SELECT pi.package_id, pi.service_id, pi.product_id, pi.quantity, s.name AS service_name
+       FROM package_items pi
+       LEFT JOIN services s ON s.id = pi.service_id`
+    );
+    return rows.rows.map((row) => ({
+      ...row,
+      items: items.rows
+        .filter((item) => item.package_id === row.id)
+        .map((item) => ({
+          serviceId: item.service_id,
+          productId: item.product_id,
+          quantity: item.quantity,
+          serviceName: item.service_name,
+        })),
+    }));
   }
-  if (section === "memberships") return (await query(`SELECT * FROM memberships WHERE is_active ORDER BY name`)).rows;
+  if (section === "memberships") {
+    const rows = await query(`SELECT * FROM memberships WHERE is_active ORDER BY name`);
+    const items = await query<{ membership_id: string; service_id: string; quantity: number; service_name: string }>(
+      `SELECT mi.membership_id, mi.service_id, mi.quantity, s.name AS service_name
+       FROM membership_items mi
+       JOIN services s ON s.id = mi.service_id`
+    );
+    return rows.rows.map((row) => ({
+      ...row,
+      items: items.rows
+        .filter((item) => item.membership_id === row.id)
+        .map((item) => ({
+          serviceId: item.service_id,
+          quantity: item.quantity,
+          serviceName: item.service_name,
+        })),
+    }));
+  }
   if (section === "gift-cards") return (await query(`SELECT * FROM gift_cards ORDER BY created_at DESC`)).rows;
   if (section === "lead-stages") return (await query(`SELECT * FROM lead_stages ORDER BY sort_order, name`)).rows;
   const spec = SIMPLE[section];

@@ -317,7 +317,7 @@
     "registerToBookHint": "Crea tu cuenta de paciente. Después podrás elegir fecha y horario.",
     "registerToBookCta": "Crear cuenta",
     "loginToBook": "Ya tengo cuenta",
-    "planUnlockHint": "El seguimiento, ShapeScale y el estudio epigenético se abren después de tu cita de 90 días."
+    "planUnlockHint": "Algunos servicios se abren cuando tu membresía tiene cupos disponibles."
   },
   "auth": {
     "loginTitle": "Iniciar sesión",

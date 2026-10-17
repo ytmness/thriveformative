@@ -4,6 +4,7 @@ import type { StaffSession } from "@/lib/auth/session";
 import { query } from "@/lib/db";
 import { withTx, type TxQuery } from "@/lib/dbTx";
 import { DomainError, money } from "@/lib/http";
+import { log } from "@/lib/log";
 import { getStripe } from "@/lib/payments/stripeClient";
 import { countrySql, normalizeCountry } from "@/lib/domain/scope";
 import { SquareApiError, getSquareLocation, squareFetch } from "@/lib/square/client";
@@ -101,13 +102,18 @@ async function applySideEffects(q: TxQuery, item: SaleItemInput, qty: number, sa
     );
   }
   if (item.itemType === "membership" && item.referenceId && patientId) {
-    const plan = await q<{ interval_unit: string }>(`SELECT interval_unit FROM memberships WHERE id = $1`, [item.referenceId]);
-    const unit = plan.rows[0]?.interval_unit === "year" ? "year" : "month";
-    await q(
-      `INSERT INTO patient_memberships (patient_id, membership_id, current_period_end)
-       VALUES ($1,$2, current_date + CASE WHEN $3 = 'year' THEN interval '1 year' ELSE interval '1 month' END)`,
-      [patientId, item.referenceId, unit]
-    );
+    const { activatePatientMembership } = await import("@/lib/domain/memberships");
+    for (let i = 0; i < qty; i += 1) {
+      await activatePatientMembership(
+        {
+          patientId,
+          membershipId: item.referenceId,
+          saleId,
+          renewalMode: "manual",
+        },
+        q
+      );
+    }
   }
   if (item.itemType === "gift_card") {
     const code = randomBytes(6).toString("hex").toUpperCase();
@@ -233,6 +239,7 @@ export async function createSale(
   }
   await emitWebhook("sale.created", { saleId });
   await mirrorClinicSaleToSquare(saleId).catch(() => undefined);
+  await linkMembershipsToSquare(saleId).catch(() => undefined);
   await writeAudit({
     actorType: "staff",
     actorId: actor.staff.id,
@@ -633,4 +640,56 @@ export async function createQuote(
   }
   await writeAudit({ actorType: "staff", actorId: actor.staff.id, action: "quote.create", entityType: "quote", entityId: quote.rows[0].id, patientId: input.patientId ?? null });
   return { id: quote.rows[0].id, number: number.rows[0].n };
+}
+
+async function linkMembershipsToSquare(saleId: string) {
+  const rows = await query<{
+    id: string;
+    membership_id: string;
+    patient_id: string;
+    first_name: string | null;
+    last_name: string | null;
+    email_enc: Buffer | null;
+  }>(
+    `SELECT pm.id, pm.membership_id, pm.patient_id, p.first_name, p.last_name, a.email_enc
+     FROM patient_memberships pm
+     JOIN patients p ON p.id = pm.patient_id
+     LEFT JOIN patient_portal_accounts a ON a.patient_id = p.id AND a.is_active
+     WHERE pm.sale_id = $1 AND pm.square_subscription_id IS NULL`,
+    [saleId]
+  );
+  if (!rows.rows.length) return;
+  const { decryptPhi } = await import("@/lib/crypto/phi");
+  const { ensureSquareCustomer, syncMembershipSquarePlan, tryCreateSquareSubscription } = await import(
+    "@/lib/square/subscriptions"
+  );
+  for (const row of rows.rows) {
+    await syncMembershipSquarePlan(row.membership_id).catch(() => undefined);
+    const email = decryptPhi(row.email_enc) || "";
+    if (!email) continue;
+    try {
+      const customerId = await ensureSquareCustomer({
+        email,
+        givenName: row.first_name,
+        familyName: row.last_name,
+        referenceId: row.patient_id,
+      });
+      const sub = await tryCreateSquareSubscription({
+        membershipId: row.membership_id,
+        customerId,
+        cardId: null,
+      });
+      await query(
+        `UPDATE patient_memberships
+         SET square_customer_id = $2,
+             square_subscription_id = COALESCE($3, square_subscription_id),
+             renewal_mode = $4
+         WHERE id = $1`,
+        [row.id, customerId, sub.subscriptionId, sub.renewalMode]
+      );
+    } catch (error) {
+      const name = error instanceof Error ? error.message : "Square";
+      log.warn("memberships", "no se pudo enlazar la membresía con Square", { name });
+    }
+  }
 }

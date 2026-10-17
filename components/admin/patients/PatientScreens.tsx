@@ -804,13 +804,38 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
       ) : null}
       {active === "membresias" ? (
         <div className="admin-table-wrap">
-          {rows.map((row) => (
-            <div key={String(row.id)} className="admin-table__row">
-              <div className="admin-table__cell-title">{String(row.name || "Membresía")}</div>
-              <div className="admin-table__cell-sub">{String(row.status || "")}{row.current_period_end ? ` · hasta ${String(row.current_period_end).slice(0, 10)}` : ""}</div>
-            </div>
-          ))}
-          {!rows.length ? <div className="admin-table__empty">Sin membresías.</div> : null}
+          {rows.map((row) => {
+            const credits = Array.isArray(row.credits) ? (row.credits as { service_name?: string; remaining?: number; allotted?: number }[]) : [];
+            const interval =
+              row.interval_unit === "year"
+                ? (english ? "Yearly" : "Anual")
+                : row.interval_unit === "day90"
+                  ? (english ? "Every 90 days" : "Cada 90 días")
+                  : (english ? "Monthly" : "Mensual");
+            return (
+              <div key={String(row.id)} className="admin-table__row" style={{ alignItems: "start" }}>
+                <div>
+                  <div className="admin-table__cell-title">{String(row.name || (english ? "Membership" : "Membresía"))}</div>
+                  <div className="admin-table__cell-sub">
+                    {String(row.status || "")}
+                    {row.current_period_end ? ` · ${english ? "until" : "hasta"} ${String(row.current_period_end).slice(0, 10)}` : ""}
+                    {` · ${interval}`}
+                    {row.renewal_mode === "square" ? " · Square" : ` · ${english ? "Manual renewal" : "Renovación manual"}`}
+                  </div>
+                  {credits.length ? (
+                    <ul style={{ margin: "0.55rem 0 0", paddingLeft: "1.1rem", color: "rgb(var(--muted))" }}>
+                      {credits.map((credit, index) => (
+                        <li key={`${String(row.id)}-${index}`}>
+                          {String(credit.service_name || "—")}: {Number(credit.remaining || 0)}/{Number(credit.allotted || 0)}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
+              </div>
+            );
+          })}
+          {!rows.length ? <div className="admin-table__empty">{english ? "No memberships." : "Sin membresías."}</div> : null}
         </div>
       ) : null}
       {active === "comunicaciones" ? (
