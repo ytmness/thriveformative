@@ -9,6 +9,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import ThemeProvider from "@/components/theme/ThemeProvider";
 import ThemeSwitcher from "@/components/theme/ThemeSwitcher";
 import Header from "@/components/Header";
+import { safeNextPath } from "@/lib/site/nextPath";
 
 export default function LoginPage() {
   const t = useTranslations("auth");
@@ -64,7 +65,7 @@ export default function LoginPage() {
       setError(body.error || t("invalidCode"));
       return;
     }
-    router.push(`/${locale}#citas`);
+    router.push(safeNextPath(searchParams.get("next"), locale));
     router.refresh();
   }
 
@@ -169,7 +170,7 @@ export default function LoginPage() {
             {formContent}
             <p className="mt-8 text-center md:text-left text-muted text-base">
               {t("noAccount")}{" "}
-              <Link href={`/${locale}/register`} className="text-[rgb(var(--primary))] hover:underline">
+              <Link href={searchParams.get("next") ? `/${locale}/register?next=${encodeURIComponent(searchParams.get("next") || "")}` : `/${locale}/register`} className="text-[rgb(var(--primary))] hover:underline">
                 {t("registerLink")}
               </Link>
             </p>

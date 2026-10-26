@@ -17,29 +17,33 @@ import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { readMarket } from "@/lib/site/market";
+import { useUser } from "@/lib/useUser";
+import { BRAND_CTA_BASE_CLASS } from "@/lib/brandCta";
 import "@/app/styles/tienda.css";
+import "@/app/styles/brand-cta.css";
 
 function CheckoutContent() {
   const t = useTranslations("tienda");
   const locale = useLocale();
   const cart = useStoreCart();
+  const { user, loading: accountLoading } = useUser();
   const [paidOrder, setPaidOrder] = useState<StoreReceiptData | null>(null);
   const [paid, setPaid] = useState(false);
-  const [method, setMethod] = useState<"pickup" | "shipping">("pickup");
   const [locationId, setLocationId] = useState("");
   const [sites, setSites] = useState<{ id: string; name: string; city: string | null }[]>([]);
-  const [pickupLines, setPickupLines] = useState<{ ref: string; locationIds: string[] }[]>([]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [line1, setLine1] = useState("");
-  const [city, setCity] = useState("");
-  const [state, setState] = useState("");
-  const [postalCode, setPostalCode] = useState("");
   const [country, setCountry] = useState<"MX" | "US">(locale === "en" ? "US" : "MX");
 
   useEffect(() => {
     setCountry(readMarket() === "US" || locale === "en" ? "US" : "MX");
   }, [locale]);
+
+  useEffect(() => {
+    if (!user) return;
+    setEmail((current) => current || user.email || "");
+    setName((current) => current || user.name || "");
+  }, [user]);
   const payable = cart.currency ? cart.lines.filter((line) => line.currency === cart.currency) : cart.lines;
   const blocked = cart.lines.filter((line) => cart.currency && line.currency !== cart.currency);
   const totalMinor = payable.reduce((sum, line) => sum + line.unitAmount * line.quantity, 0);
@@ -50,9 +54,8 @@ function CheckoutContent() {
   const refsKey = payable.map((line) => line.ref).join(",");
 
   useEffect(() => {
-    if (method !== "pickup" || !refsKey) {
+    if (!refsKey) {
       setSites([]);
-      setPickupLines([]);
       return;
     }
     let cancelled = false;
@@ -61,44 +64,23 @@ function CheckoutContent() {
         const body = (await response.json()) as {
           ok?: boolean;
           locations?: { id: string; name: string; city: string | null }[];
-          lines?: { ref: string; locationIds: string[] }[];
         };
         if (!response.ok || !body.ok || cancelled) return;
-        setSites(body.locations ?? []);
-        setPickupLines(body.lines ?? []);
+        const nextSites = body.locations ?? [];
+        setSites(nextSites);
+        setLocationId((current) => current || (nextSites.length === 1 ? nextSites[0].id : ""));
       })
       .catch(() => undefined);
     return () => {
       cancelled = true;
     };
-  }, [method, locale, refsKey, country]);
+  }, [locale, refsKey, country]);
 
-  const pickupCovered =
-    Boolean(locationId) &&
-    payable.every((line) => pickupLines.find((row) => row.ref === line.ref)?.locationIds.includes(locationId));
-  const shippingReady =
-    trimmedName.length >= 2 &&
-    line1.trim().length >= 3 &&
-    city.trim().length >= 2 &&
-    state.trim().length >= 2 &&
-    postalCode.trim().length >= 3;
+  const pickupCovered = Boolean(locationId) && sites.some((site) => site.id === locationId);
   const fulfillment: CheckoutFulfillment | null =
-    method === "pickup"
-      ? trimmedName.length >= 2 && emailOk && pickupCovered
-        ? { method: "pickup" as const, name: trimmedName, email: trimmedEmail, locationId }
-        : null
-      : shippingReady && emailOk
-        ? {
-            method: "shipping",
-            name: trimmedName,
-            email: trimmedEmail,
-            line1: line1.trim(),
-            city: city.trim(),
-            state: state.trim(),
-            postalCode: postalCode.trim(),
-            country,
-          }
-        : null;
+    trimmedName.length >= 2 && emailOk && pickupCovered
+      ? { method: "pickup" as const, name: trimmedName, email: trimmedEmail, locationId }
+      : null;
 
   return (
     <>
@@ -113,7 +95,25 @@ function CheckoutContent() {
         </Link>
         <h1 className="tienda-detail__title">{t("cartTitle")}</h1>
 
-        {paid && paidOrder ? (
+        {accountLoading ? (
+          <p className="tienda-empty type-body-muted">{t("checkingAccount")}</p>
+        ) : !user ? (
+          <div className="tienda-empty">
+            <p className="tienda-detail__title">{t("registerToBuy")}</p>
+            <p className="type-body-muted mt-4">{t("registerToBuyHint")}</p>
+            <div className="tienda-card__actions mt-8">
+              <Link
+                href={`/${locale}/register?next=${encodeURIComponent(`/${locale}/tienda/checkout`)}`}
+                className={`${BRAND_CTA_BASE_CLASS} brand-cta`}
+              >
+                {t("registerToBuyCta")}
+              </Link>
+              <Link href={`/${locale}/login?next=${encodeURIComponent(`/${locale}/tienda/checkout`)}`} className="tienda-card__detail">
+                {t("loginToBuy")}
+              </Link>
+            </div>
+          </div>
+        ) : paid && paidOrder ? (
           <div className="order-desk">
             <OrderTrack
               status="paid"
@@ -242,29 +242,7 @@ function CheckoutContent() {
                   {t("cartTotal")} · {formatStorePrice(minorToMajor(totalMinor, currency), currency, locale)}
                 </p>
                 <fieldset className="tienda-fulfill">
-                  <legend className="tienda-fulfill__legend">{t("deliveryTitle")}</legend>
-                  <div className="tienda-fulfill__choices">
-                    <label className="tienda-fulfill__choice">
-                      <input
-                        type="radio"
-                        name="delivery"
-                        value="pickup"
-                        checked={method === "pickup"}
-                        onChange={() => setMethod("pickup")}
-                      />
-                      {t("pickup")}
-                    </label>
-                    <label className="tienda-fulfill__choice">
-                      <input
-                        type="radio"
-                        name="delivery"
-                        value="shipping"
-                        checked={method === "shipping"}
-                        onChange={() => setMethod("shipping")}
-                      />
-                      {t("shipping")}
-                    </label>
-                  </div>
+                  <legend className="tienda-fulfill__legend">{t("pickup")}</legend>
                   <label className="tienda-fulfill__field">
                     <span>{t("recipientName")}</span>
                     <input value={name} autoComplete="name" onChange={(event) => setName(event.target.value)} />
@@ -273,98 +251,23 @@ function CheckoutContent() {
                     <span>{t("recipientEmail")}</span>
                     <input value={email} type="email" autoComplete="email" onChange={(event) => setEmail(event.target.value)} />
                   </label>
-                  {method === "pickup" ? (
-                    <div className="tienda-fulfill__sites">
-                      <p className="tienda-fulfill__warn">{t("pickupChoose")}</p>
-                      {sites.map((site) => (
-                        <label key={site.id} className="tienda-fulfill__choice tienda-fulfill__site">
-                          <input
-                            type="radio"
-                            name="pickup-site"
-                            value={site.id}
-                            checked={locationId === site.id}
-                            onChange={() => setLocationId(site.id)}
-                          />
-                          {site.name}
-                          {site.city ? ` · ${site.city}` : ""}
-                        </label>
-                      ))}
-                      {payable.map((line) => {
-                        const available = pickupLines.find((row) => row.ref === line.ref)?.locationIds ?? [];
-                        if (locationId && available.includes(locationId)) return null;
-                        if (!available.length) {
-                          return (
-                            <p key={line.ref} className="tienda-fulfill__warn">
-                              {line.name}: {t("pickupNone")}
-                            </p>
-                          );
-                        }
-                        if (!locationId) return null;
-                        const names = sites.filter((site) => available.includes(site.id)).map((site) => site.name).join(", ");
-                        return (
-                          <p key={line.ref} className="tienda-fulfill__warn">
-                            {line.name}: {t("pickupOnlyAt", { sites: names })}
-                          </p>
-                        );
-                      })}
-                      {sites.length > 0 &&
-                      !sites.some((site) =>
-                        payable.every((line) => pickupLines.find((row) => row.ref === line.ref)?.locationIds.includes(site.id))
-                      ) ? (
-                        <p className="tienda-fulfill__warn">{t("pickupUnavailable")}</p>
-                      ) : null}
-                    </div>
-                  ) : null}
-                  {method === "shipping" ? (
-                    <>
-                      <label className="tienda-fulfill__field">
-                        <span>{t("addressLine")}</span>
-                        <input value={line1} autoComplete="address-line1" onChange={(event) => setLine1(event.target.value)} />
+                  <div className="tienda-fulfill__sites">
+                    <p className="tienda-fulfill__warn">{t("pickupChoose")}</p>
+                    {sites.map((site) => (
+                      <label key={site.id} className="tienda-fulfill__choice tienda-fulfill__site">
+                        <input
+                          type="radio"
+                          name="pickup-site"
+                          value={site.id}
+                          checked={locationId === site.id}
+                          onChange={() => setLocationId(site.id)}
+                        />
+                        {site.name}
+                        {site.city ? ` · ${site.city}` : ""}
                       </label>
-                      {country === "US" ? (
-                        <>
-                          <div className="tienda-fulfill__pair">
-                            <label className="tienda-fulfill__field">
-                              <span>{t("city")}</span>
-                              <input value={city} autoComplete="address-level2" onChange={(event) => setCity(event.target.value)} />
-                            </label>
-                            <label className="tienda-fulfill__field">
-                              <span>{t("state")}</span>
-                              <input value={state} autoComplete="address-level1" onChange={(event) => setState(event.target.value)} />
-                            </label>
-                          </div>
-                          <label className="tienda-fulfill__field">
-                            <span>{t("zipCode")}</span>
-                            <input value={postalCode} autoComplete="postal-code" inputMode="text" onChange={(event) => setPostalCode(event.target.value)} />
-                          </label>
-                        </>
-                      ) : (
-                        <>
-                          <label className="tienda-fulfill__field">
-                            <span>{t("postalCode")}</span>
-                            <input value={postalCode} autoComplete="postal-code" inputMode="text" onChange={(event) => setPostalCode(event.target.value)} />
-                          </label>
-                          <div className="tienda-fulfill__pair">
-                            <label className="tienda-fulfill__field">
-                              <span>{t("city")}</span>
-                              <input value={city} autoComplete="address-level2" onChange={(event) => setCity(event.target.value)} />
-                            </label>
-                            <label className="tienda-fulfill__field">
-                              <span>{t("state")}</span>
-                              <input value={state} autoComplete="address-level1" onChange={(event) => setState(event.target.value)} />
-                            </label>
-                          </div>
-                        </>
-                      )}
-                      <label className="tienda-fulfill__field">
-                        <span>{t("country")}</span>
-                        <select value={country} autoComplete="country" onChange={(event) => setCountry(event.target.value === "US" ? "US" : "MX")}>
-                          <option value="MX">{t("countryMx")}</option>
-                          <option value="US">{t("countryUs")}</option>
-                        </select>
-                      </label>
-                    </>
-                  ) : null}
+                    ))}
+                    {sites.length === 0 ? <p className="tienda-fulfill__warn">{t("pickupNone")}</p> : null}
+                  </div>
                   {!fulfillment ? <p className="tienda-detail__disclaimer">{t("deliveryHint")}</p> : null}
                 </fieldset>
                 <SquareCheckout

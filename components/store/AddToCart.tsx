@@ -7,6 +7,9 @@ import { BRAND_CTA_BASE_CLASS } from "@/lib/brandCta";
 import { minorToMajor } from "@/lib/square/money";
 import { formatStorePrice } from "@/lib/store/formatPrice";
 import type { StoreProduct } from "@/lib/store/types";
+import { useUser } from "@/lib/useUser";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 
@@ -19,6 +22,8 @@ type Props = {
 export default function AddToCart({ product, locale, appearance }: Props) {
   const t = useTranslations("tienda");
   const cart = useStoreCart();
+  const { user, loading: accountLoading } = useUser();
+  const pathname = usePathname();
   const options = (product.variations ?? []).filter((row) => row.amount > 0 && row.currency);
   const payable = cart.currency ? options.filter((row) => row.currency === cart.currency) : [];
   const [variationId, setVariationId] = useState(payable[0]?.id ?? options[0]?.id ?? "");
@@ -37,9 +42,22 @@ export default function AddToCart({ product, locale, appearance }: Props) {
     );
   }
   const selected = payable.find((row) => row.id === variationId) ?? payable[0];
+  const next = encodeURIComponent(pathname || `/${locale}/tienda`);
+  if (!accountLoading && !user) {
+    return (
+      <div className={appearance === "detail" ? "square-checkout" : "tienda-card__cart"}>
+        <Link
+          className={appearance === "detail" ? `${BRAND_CTA_BASE_CLASS} brand-cta brand-cta--block` : "tienda-card__buy"}
+          href={`/${locale}/register?next=${next}`}
+        >
+          {t("registerToBuyCta")}
+        </Link>
+      </div>
+    );
+  }
 
   function add() {
-    if (!selected || cart.status !== "ready") return;
+    if (!selected || cart.status !== "ready" || !user) return;
     cart.add({
       ref: product.ref,
       variationId: selected.id,
@@ -73,11 +91,11 @@ export default function AddToCart({ product, locale, appearance }: Props) {
       ) : null}
 
       {appearance === "detail" ? (
-        <BrandCtaButton disabled={!selected || added} onClick={add}>
+        <BrandCtaButton disabled={!selected || added || accountLoading} onClick={add}>
           {label}
         </BrandCtaButton>
       ) : (
-        <button type="button" className="tienda-card__buy" disabled={!selected || added} onClick={add}>
+        <button type="button" className="tienda-card__buy" disabled={!selected || added || accountLoading} onClick={add}>
           {label}
         </button>
       )}

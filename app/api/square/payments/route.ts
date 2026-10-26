@@ -20,6 +20,7 @@ import { isValidRef } from "@/lib/store/slug";
 import { assertPickupStock, insertStoreOrder } from "@/lib/store/storeOrders";
 import { deductUsOnlineSale } from "@/lib/store/usInventory";
 import { requestMarket } from "@/lib/site/requestMarket";
+import { currentPatient } from "@/lib/auth/patientAccess";
 import { sellsOnSite } from "@/lib/store/sellsHere";
 import { sellableVariations } from "@/lib/store/variations";
 
@@ -33,24 +34,12 @@ const lineSchema = z.object({
 
 const emailField = z.string().trim().email().max(160);
 
-const fulfillmentSchema = z.discriminatedUnion("method", [
-  z.object({
-    method: z.literal("pickup"),
-    name: z.string().trim().min(2).max(80),
-    email: emailField,
-    locationId: z.string().uuid(),
-  }),
-  z.object({
-    method: z.literal("shipping"),
-    name: z.string().trim().min(2).max(80),
-    email: emailField,
-    line1: z.string().trim().min(3).max(120),
-    city: z.string().trim().min(2).max(80),
-    state: z.string().trim().min(2).max(40),
-    postalCode: z.string().trim().min(3).max(12),
-    country: z.enum(["MX", "US"]),
-  }),
-]);
+const fulfillmentSchema = z.object({
+  method: z.literal("pickup"),
+  name: z.string().trim().min(2).max(80),
+  email: emailField,
+  locationId: z.string().uuid(),
+});
 
 const bodySchema = z.object({
   locale: z.enum(["es", "en", "ko", "it"]),
@@ -76,6 +65,9 @@ type ProductPayRow = {
 
 export async function POST(request: NextRequest) {
   try {
+    const patient = await currentPatient().catch(() => null);
+    if (!patient) return jsonError(401, "Regístrate para comprar.");
+
     const ip = getClientIp(request);
     const rate = checkRateLimit(`square-pay:${ip}`, RATE_LIMIT);
     if (!rate.allowed) return rateLimitedResponse(rate.retryAfterSec);
@@ -147,26 +139,21 @@ export async function POST(request: NextRequest) {
     }
 
     const submitted = parsed.data.fulfillment;
-    let fulfillment: StoreFulfillment;
-    let locationId: string | null = null;
-    let locationName: string | null = null;
-    if (submitted.method === "pickup") {
-      try {
-        locationName = await assertPickupStock(
-          parsed.data.locale,
-          submitted.locationId,
-          orderLines.map((line) => line.ref),
-          await requestMarket()
-        );
-      } catch (error) {
-        return jsonError(409, error instanceof Error ? error.message : "Esa sede no tiene los productos.");
-      }
-      locationId = submitted.locationId;
-      fulfillment = { method: "pickup", name: submitted.name, locationName };
-    } else {
-      const { email: _buyerEmail, ...shipping } = submitted;
-      fulfillment = shipping;
+    let locationName: string;
+    try {
+      locationName = await assertPickupStock(
+        parsed.data.locale,
+        submitted.locationId,
+        orderLines.map((line) => line.ref),
+        await requestMarket()
+      );
+    } catch (error) {
+      return jsonError(409, error instanceof Error ? error.message : "Esa sede no está disponible.");
     }
+    const locationId = submitted.locationId;
+    const recipientName = (patient.name || submitted.name).trim().slice(0, 80) || submitted.name;
+    const recipientEmail = patient.email || submitted.email;
+    const fulfillment: StoreFulfillment = { method: "pickup", name: recipientName, locationName };
 
     const order = await createSquareOrder({
       idempotencyKey: parsed.data.idempotencyKey,
@@ -218,12 +205,12 @@ export async function POST(request: NextRequest) {
         locationId,
         locationName,
         recipientName: fulfillment.name,
-        recipientEmail: submitted.email,
-        addressLine1: fulfillment.method === "shipping" ? fulfillment.line1 : null,
-        city: fulfillment.method === "shipping" ? fulfillment.city : null,
-        state: fulfillment.method === "shipping" ? fulfillment.state : null,
-        postalCode: fulfillment.method === "shipping" ? fulfillment.postalCode : null,
-        country: fulfillment.method === "shipping" ? fulfillment.country : null,
+        recipientEmail,
+        addressLine1: null,
+        city: null,
+        state: null,
+        postalCode: null,
+        country: null,
         currency: order.currency,
         totalAmount: order.totalAmount,
         squareOrderId: order.id,

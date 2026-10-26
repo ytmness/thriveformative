@@ -5,7 +5,8 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useLocale } from "next-intl";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { safeNextPath } from "@/lib/site/nextPath";
 import { CALLING_CODES, withCallingCode } from "@/lib/phone/callingCodes";
 import { readMarket, type SiteMarket } from "@/lib/site/market";
 import ThemeProvider from "@/components/theme/ThemeProvider";
@@ -96,6 +97,7 @@ export default function RegisterPage() {
   const t = useTranslations("auth");
   const locale = useLocale();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [firstName, setFirstName] = useState("");
   const [middleName, setMiddleName] = useState("");
   const [paternalSurname, setPaternalSurname] = useState("");
@@ -285,7 +287,7 @@ export default function RegisterPage() {
       /* ignore */
     }
 
-    router.push(`/${locale}#citas`);
+    router.push(safeNextPath(searchParams.get("next"), locale));
     router.refresh();
   }
 
@@ -628,7 +630,7 @@ export default function RegisterPage() {
             {formContent}
             <p className="mt-8 text-center md:text-left text-muted text-base">
               {t("hasAccount")}{" "}
-              <Link href={`/${locale}/login`} className="text-[rgb(var(--primary))] hover:underline">
+              <Link href={searchParams.get("next") ? `/${locale}/login?next=${encodeURIComponent(searchParams.get("next") || "")}` : `/${locale}/login`} className="text-[rgb(var(--primary))] hover:underline">
                 {t("loginLink")}
               </Link>
             </p>

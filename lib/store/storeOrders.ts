@@ -49,8 +49,6 @@ export async function assertPickupStock(locale: string, locationId: string, refs
   const availability = await loadPickupAvailability(locale, refs, country);
   const site = availability.locations.find((row) => row.id === locationId);
   if (!site) throw new Error("La sede no está disponible.");
-  const missing = availability.lines.some((line) => !line.locationIds.includes(locationId));
-  if (missing) throw new Error("Esa sede no tiene todos los productos para recoger.");
   return site.name;
 }
 
