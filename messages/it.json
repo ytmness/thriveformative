@@ -241,6 +241,22 @@
     "service6": "Piani premium",
     "desc6": "Supporto VIP continuo con attenzione prioritaria. Accesso diretto WhatsApp per consulti rapidi. Monitoraggio metriche e progressi con report mensile. Sconti presso laboratori partner. Rinnovi prescrizioni senza consulto aggiuntivo."
   },
+  "servicesUs": {
+    "title": "Programmi e prezzi",
+    "subtitle": "Un percorso chiaro dal Metodo Thrive Formative di 90 giorni a un benessere personalizzato e duraturo a Laredo. Solo educazione al benessere: Thrive Formative non è uno studio medico e non diagnostica, tratta, cura né previene malattie. I prezzi possono cambiare senza preavviso.",
+    "service1": "Metodo Thrive Formative di 90 giorni",
+    "desc1": "Conosci più a fondo il tuo corpo, i tuoi bisogni e il microbioma. Include una valutazione epigenetica di benessere con interpretazione sullo stile di vita, tre analisi ShapeScale 3D di progresso, una valutazione iniziale completa, sei follow-up personalizzati (in sede o virtuali) e 90 giorni di supporto diretto. Quattro fasi: Scoprire (giorni 1–15), Costruire (16–45), Affinare (46–75), Integrare (76–90). Prezzo regolare $5,950. Prezzo Founders $1,850 — solo i primi 100.",
+    "service2": "Programma di benessere continuo",
+    "desc2": "Per chi completa il metodo di 90 giorni. Impegno di 12 mesi a $499 al mese. Include un'analisi ShapeScale ogni mese, un follow-up di benessere personalizzato ogni mese, supporto diretto continuo, 10–20% di risparmio sui prodotti raccomandati idonei e una valutazione epigenetica omaggio a fine anno. Ritmo mensile: settimana 1 ShapeScale, settimana 2 follow-up, settimana 3 implementazione, settimana 4 revisione.",
+    "service3": "Valutazione epigenetica trimestrale di benessere",
+    "desc3": "$355. Acquistata a parte dai clienti consolidati. Include interpretazione personalizzata, orientata allo stile di vita. Consigliata all'inizio del metodo di 90 giorni se non è già inclusa, e poi come personalizzazione trimestrale.",
+    "service4": "Analisi ShapeScale 3D di progresso aggiuntiva",
+    "desc4": "$75. Disponibile per i clienti consolidati quando serve un'analisi visiva extra oltre a quelle già incluse nel programma.",
+    "service5": "Orientamento personalizzato aggiuntivo — 1 ora",
+    "desc5": "$245. Disponibile quando il programma personalizzato richiede più accompagnamento. Le esigenze variano; quest'ora non è inclusa nel prezzo del programma.",
+    "service6": "Continuità per i clienti che tornano",
+    "desc6": "Dopo una pausa di tre mesi consecutivi o più, si riparte dal Metodo Thrive Formative di 90 giorni alla tariffa di rientro di $1,850 prima di riprendere i servizi continui. Il riavvio include tre analisi ShapeScale e follow-up personalizzato. Le valutazioni epigenetiche non sono incluse; se ne consiglia una all'inizio, acquistata a parte."
+  },
   "tshape": {
     "eyebrow": "Avanguardia",
     "heroTitle": "Tecnologia T-Shape 2",

@@ -14,8 +14,9 @@ import { PABAU_BOOKING_URL } from "@/lib/pabau";
 import { resolveCmsText } from "@/lib/cms/fetch";
 import { fallbackServicesFromTranslations } from "@/lib/cms/fallbackContent";
 import { resolveServicesForDisplay } from "@/lib/cms/resolveDisplay";
+import { readMarket, type SiteMarket } from "@/lib/site/market";
 import { useTranslations } from "next-intl";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 function OrganicPattern({ className = "" }: { className?: string }) {
   return (
@@ -62,7 +63,16 @@ export default function HomePageSections({
 }: Props) {
   const t = useTranslations();
   const tServices = useTranslations("services");
+  const tServicesUs = useTranslations("servicesUs");
   const { services: cmsServices, textOverrides } = useCmsContext();
+  const [market, setMarket] = useState<SiteMarket>(() =>
+    typeof window === "undefined" ? "MX" : readMarket()
+  );
+  useEffect(() => {
+    setMarket(readMarket());
+  }, []);
+  const usCopy = market === "US" && !editable;
+  const serviceCopy = usCopy ? tServicesUs : tServices;
 
   const line = (key: string) => resolveCmsText(textOverrides, key, t(key as never));
 
@@ -78,8 +88,8 @@ export default function HomePageSections({
         isFallback: s.isFallback,
       }))
     : resolveServicesForDisplay(
-        cmsServices,
-        fallbackServicesFromTranslations(tServices),
+        usCopy ? [] : cmsServices,
+        fallbackServicesFromTranslations(serviceCopy),
         { includeUnpublished: false }
       ).map((s) => ({
         id: s.id,
@@ -335,22 +345,31 @@ export default function HomePageSections({
         <GiantScrollCard variant="slideUp" id="servicios">
           <section className="services-editorial-section">
             {wrapText(
-              "Servicios — encabezado",
-              [
-                { key: "services.title", label: "Título" },
-                { key: "services.subtitle", label: "Subtítulo" },
-              ],
+              usCopy ? "USA programs — heading" : "Servicios — encabezado",
+              usCopy
+                ? [
+                    { key: "servicesUs.title", label: "Título" },
+                    { key: "servicesUs.subtitle", label: "Subtítulo" },
+                  ]
+                : [
+                    { key: "services.title", label: "Título" },
+                    { key: "services.subtitle", label: "Subtítulo" },
+                  ],
               <header className="services-editorial-section__head">
                 <p className="services-editorial-section__eyebrow">{t("nav.services")}</p>
                 <h2 className="services-editorial-section__title">
-                  {editable ? (
+                  {usCopy ? (
+                    tServicesUs("title")
+                  ) : editable ? (
                     txt("services.title", "services.title")
                   ) : (
                     <CmsText contentKey="services.title" as="span" />
                   )}
                 </h2>
                 <p className="services-editorial-section__subtitle">
-                  {editable ? (
+                  {usCopy ? (
+                    tServicesUs("subtitle")
+                  ) : editable ? (
                     txt("services.subtitle", "services.subtitle")
                   ) : (
                     <CmsText contentKey="services.subtitle" as="span" />
