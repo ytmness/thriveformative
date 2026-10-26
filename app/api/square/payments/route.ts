@@ -20,6 +20,7 @@ import { isValidRef } from "@/lib/store/slug";
 import { assertPickupStock, insertStoreOrder } from "@/lib/store/storeOrders";
 import { deductUsOnlineSale } from "@/lib/store/usInventory";
 import { requestMarket } from "@/lib/site/requestMarket";
+import { sellsOnSite } from "@/lib/store/sellsHere";
 import { sellableVariations } from "@/lib/store/variations";
 
 export const dynamic = "force-dynamic";
@@ -117,6 +118,7 @@ export async function POST(request: NextRequest) {
     for (const line of lines) {
       const product = byRef.get(line.ref);
       if (!product) return jsonError(404, "Un producto del carrito ya no está disponible.");
+      if (!sellsOnSite(product)) return jsonError(400, "Ese producto no se vende en la tienda.");
       const variation = sellableVariations({
         source: product.source,
         sourcePayload: product.source_payload,
@@ -137,10 +139,10 @@ export async function POST(request: NextRequest) {
         currency: variation.currency,
         imageUrl: product.image_url,
         catalogObjectId:
-          product.country === "US" && product.source === "square" && !(product.referral_url || "").trim() && variation.id !== "default"
+          product.country === "US" && product.source === "square" && sellsOnSite(product) && variation.id !== "default"
             ? variation.id
             : null,
-        trackUs: product.country === "US" && !(product.referral_url || "").trim(),
+        trackUs: product.country === "US" && sellsOnSite(product),
       });
     }
 

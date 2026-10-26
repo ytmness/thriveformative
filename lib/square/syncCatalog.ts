@@ -1,7 +1,6 @@
 import { CMS_LOCALES } from "@/lib/cms/types";
 import { query } from "@/lib/db";
 import { normalizeCountry } from "@/lib/domain/scope";
-import { getSiteUrl } from "@/lib/env/server";
 import { fetchSquareCatalog, squareProductRef, type SquareCatalogItem } from "@/lib/square/catalog";
 import { slugifyRef } from "@/lib/store/slug";
 
@@ -31,7 +30,6 @@ export type SquareSyncResult = {
 export async function syncSquareCatalog(environment: string, countryInput?: string | null): Promise<SquareSyncResult> {
   const country = normalizeCountry(countryInput) || "MX";
   const items = await fetchSquareCatalog();
-  const siteUrl = getSiteUrl().replace(/\/$/, "");
 
   const [productRes, categoryRes] = await Promise.all([
     query<ExistingProduct>(
@@ -68,7 +66,7 @@ export async function syncSquareCatalog(environment: string, countryInput?: stri
         ref: localeRef,
         item,
         categoryId,
-        referralUrl: `${siteUrl}/${locale}/tienda/${localeRef}`,
+        referralUrl: "",
       });
       rows += 1;
     }

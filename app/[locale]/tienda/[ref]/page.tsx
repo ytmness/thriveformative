@@ -16,6 +16,7 @@ import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { sellsOnSite } from "@/lib/store/sellsHere";
 import { readMarket, type SiteMarket } from "@/lib/site/market";
 import "@/app/styles/tienda.css";
 
@@ -173,11 +174,11 @@ function ProductDetailView({
 
         <div className="tienda-detail__cta-wrap">
           <AddToCart product={product} locale={locale} appearance="detail" />
-          {(product.referral_url || "").trim() ? null : (
+          {sellsOnSite(product) ? (
             <Link href={`/${locale}/tienda/checkout`} className="tienda-card__detail">
               {t("goToCart")} →
             </Link>
-          )}
+          ) : null}
         </div>
       </div>
     </motion.div>
