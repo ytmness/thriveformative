@@ -1,5 +1,6 @@
 import { query } from "@/lib/db";
 import { normalizeCountry } from "@/lib/domain/scope";
+import { CLINIC_SERVICE_CATEGORY_SLUGS } from "@/lib/store/clinicServices";
 import { PRODUCT_FIELDS_SQL, type ProductRow } from "@/lib/store/fields";
 import { productImageList } from "@/lib/store/images";
 import { sellableVariations } from "@/lib/store/variations";
@@ -36,13 +37,20 @@ function joinProductsWithCategories(
   });
 }
 
-export async function fetchStoreCategoriesFromDb(locale: Locale, country?: string | null): Promise<StoreCategory[]> {
-  const res = await query<StoreCategory>(
-    `SELECT id, locale, country, name, slug, sort_order
-     FROM store_categories WHERE locale = $1 AND country = $2
-     ORDER BY sort_order ASC`,
-    [locale, countryOf(country)]
-  );
+export async function fetchStoreCategoriesFromDb(
+  locale: Locale,
+  country?: string | null,
+  options?: { includeServiceCategories?: boolean }
+): Promise<StoreCategory[]> {
+  const params: unknown[] = [locale, countryOf(country)];
+  let sql = `SELECT id, locale, country, name, slug, sort_order
+     FROM store_categories WHERE locale = $1 AND country = $2`;
+  if (!options?.includeServiceCategories) {
+    params.push(CLINIC_SERVICE_CATEGORY_SLUGS);
+    sql += ` AND slug <> ALL($${params.length}::text[])`;
+  }
+  sql += ` ORDER BY sort_order ASC`;
+  const res = await query<StoreCategory>(sql, params);
   return res.rows;
 }
 
@@ -52,16 +60,21 @@ export async function fetchStoreProductsFromDb(
 ): Promise<StoreProduct[]> {
   const includeUnpublished = options?.includeUnpublished ?? false;
   const country = countryOf(options?.country);
-  const categories = await fetchStoreCategoriesFromDb(locale, country);
+  const categories = await fetchStoreCategoriesFromDb(locale, country, { includeServiceCategories: true });
 
   const params: unknown[] = [locale, country];
   let sql = `SELECT ${PRODUCT_FIELDS_SQL}, source_payload FROM store_products WHERE locale = $1 AND country = $2`;
   if (!includeUnpublished) {
     sql += ` AND is_published = true`;
+    params.push(CLINIC_SERVICE_CATEGORY_SLUGS);
+    sql += ` AND NOT EXISTS (
+      SELECT 1 FROM store_categories sc
+      WHERE sc.id = store_products.category_id AND sc.slug = ANY($${params.length}::text[])
+    )`;
   }
   if (options?.categorySlug) {
     const cat = categories.find((c) => c.slug === options.categorySlug);
-    if (!cat) return [];
+    if (!cat || (!includeUnpublished && CLINIC_SERVICE_CATEGORY_SLUGS.includes(cat.slug))) return [];
     params.push(cat.id);
     sql += ` AND category_id = $${params.length}`;
   }
@@ -85,10 +98,17 @@ export async function fetchStoreProductByRefFromDb(
   }
   if (!includeUnpublished) {
     sql += ` AND is_published = true`;
+    params.push(CLINIC_SERVICE_CATEGORY_SLUGS);
+    sql += ` AND NOT EXISTS (
+      SELECT 1 FROM store_categories sc
+      WHERE sc.id = store_products.category_id AND sc.slug = ANY($${params.length}::text[])
+    )`;
   }
   sql += ` LIMIT 1`;
   const res = await query<ProductRow>(sql, params);
   if (!res.rows[0]) return null;
-  const categories = await fetchStoreCategoriesFromDb(locale, res.rows[0].country);
+  const categories = await fetchStoreCategoriesFromDb(locale, res.rows[0].country, {
+    includeServiceCategories: true,
+  });
   return joinProductsWithCategories([res.rows[0]], categories)[0] ?? null;
 }

@@ -2,6 +2,7 @@ import { CMS_LOCALES } from "@/lib/cms/types";
 import { query } from "@/lib/db";
 import { normalizeCountry } from "@/lib/domain/scope";
 import { fetchSquareCatalog, squareProductRef, type SquareCatalogItem } from "@/lib/square/catalog";
+import { isClinicServiceCategory } from "@/lib/store/clinicServices";
 import { slugifyRef } from "@/lib/store/slug";
 
 type ExistingProduct = {
@@ -53,6 +54,14 @@ export async function syncSquareCatalog(environment: string, countryInput?: stri
 
   let rows = 0;
   for (const item of items) {
+    if (isClinicServiceCategory(item.categoryName)) {
+      await query(
+        `UPDATE store_products SET is_published = false, updated_at = now()
+         WHERE country = $1 AND source = 'square' AND source_handle = $2`,
+        [country, item.itemId]
+      );
+      continue;
+    }
     const preferred =
       products.find((row) => row.country === country && row.source === "square" && row.source_handle === item.itemId)
         ?.ref ?? slugifyRef(item.name);

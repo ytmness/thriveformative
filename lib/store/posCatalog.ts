@@ -2,6 +2,7 @@ import { withTx } from "@/lib/dbTx";
 import { query } from "@/lib/db";
 import { normalizeCountry } from "@/lib/domain/scope";
 import { minorToMajor } from "@/lib/square/money";
+import { isClinicServiceCategory } from "@/lib/store/clinicServices";
 import { posSku, sellableVariations } from "@/lib/store/variations";
 
 type StoreRow = {
@@ -36,6 +37,7 @@ export async function copyStoreProductsToPos(countryInput?: string | null): Prom
 
   const chosen = new Map<string, StoreRow>();
   for (const row of listed.rows) {
+    if (isClinicServiceCategory(row.category_name)) continue;
     const current = chosen.get(row.ref);
     if (!current || (LOCALE_RANK[row.locale] ?? 9) < (LOCALE_RANK[current.locale] ?? 9)) {
       chosen.set(row.ref, row);
