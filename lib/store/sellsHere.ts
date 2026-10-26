@@ -1,6 +1,6 @@
 export function sellsOnSite(product: {
   referral_url?: string | null;
-  price_min?: number | null;
+  price_min?: unknown;
   source?: string | null;
 }) {
   if (product.price_min == null || Number(product.price_min) <= 0) return false;
