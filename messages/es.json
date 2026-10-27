@@ -327,6 +327,7 @@
     "plan": "Tu plan",
     "planEmpty": "No tienes cupos activos en este periodo.",
     "planUntil": "Hasta {date}",
+    "planStartsOnFirstVisit": "Los 90 días empiezan con tu primera cita larga",
     "creditsLeft": "{service}: {remaining}/{allotted}"
   },
   "booking": {
@@ -364,6 +365,7 @@
     "planUnlockHint": "Algunos servicios se abren cuando tu membresía tiene cupos disponibles.",
     "planSummary": "Tu plan",
     "planUntil": "Hasta {date}",
+    "planStartsOnFirstVisit": "Los 90 días empiezan con tu primera cita larga",
     "creditsLeft": "{remaining, plural, =0 {No te quedan} one {Te queda #} other {Te quedan #}}",
     "creditsLeftOf": "{remaining, plural, =0 {No te quedan de {service}} one {Te queda # de {service}} other {Te quedan # de {service}}}"
   },
@@ -557,7 +559,8 @@
   },
   "info": {
     "pageTitle": "Conócenos",
-    "pageSubtitle": "Conoce al doctor, resuelve tus dudas y ponte en contacto con nosotros."
+    "pageSubtitle": "Conoce al doctor, resuelve tus dudas y ponte en contacto con nosotros.",
+    "pageSubtitleUs": "Resuelve tus dudas y ponte en contacto con nosotros."
   },
   "news": {
     "backHome": "Volver al inicio",

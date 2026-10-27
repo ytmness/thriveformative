@@ -327,6 +327,7 @@
     "plan": "내 플랜",
     "planEmpty": "이 기간에 남은 이용권이 없습니다.",
     "planUntil": "{date}까지",
+    "planStartsOnFirstVisit": "90일은 첫 긴 방문부터 시작됩니다",
     "creditsLeft": "{service}: {remaining}/{allotted}"
   },
   "booking": {
@@ -364,6 +365,7 @@
     "planUnlockHint": "멤버십에 남은 이용권이 있을 때 일부 서비스가 열립니다.",
     "planSummary": "내 플랜",
     "planUntil": "{date}까지",
+    "planStartsOnFirstVisit": "90일은 첫 긴 방문부터 시작됩니다",
     "creditsLeft": "{remaining, plural, =0 {남은 횟수 없음} other {#회 남음}}",
     "creditsLeftOf": "{remaining, plural, =0 {{service} 남은 횟수 없음} other {{service} #회 남음}}"
   },
@@ -557,7 +559,8 @@
   },
   "info": {
     "pageTitle": "소개",
-    "pageSubtitle": "의사를 만나고 궁금한 점을 해결하고 연락하세요."
+    "pageSubtitle": "의사를 만나고 궁금한 점을 해결하고 연락하세요.",
+    "pageSubtitleUs": "궁금한 점을 해결하고 연락하세요."
   },
   "news": {
     "backHome": "홈으로",

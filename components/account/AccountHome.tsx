@@ -25,6 +25,7 @@ type Credit = {
   membershipName: string;
   periodStart: string;
   periodEnd: string;
+  clockPending?: boolean;
 };
 type Home = {
   patient: { name: string; email: string };
@@ -100,7 +101,11 @@ export default function AccountHome() {
               <p>
                 {t("creditsLeft", { remaining: credit.remaining, allotted: credit.allotted, service: credit.serviceName })}
                 {credit.membershipName ? ` · ${credit.membershipName}` : ""}
-                {credit.periodEnd ? ` · ${t("planUntil", { date: new Date(`${credit.periodEnd.slice(0, 10)}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" }) })}` : ""}
+                {credit.clockPending
+                  ? ` · ${t("planStartsOnFirstVisit")}`
+                  : credit.periodEnd
+                    ? ` · ${t("planUntil", { date: new Date(`${credit.periodEnd.slice(0, 10)}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" }) })}`
+                    : ""}
               </p>
             </div>
             <span className="booking-plan__count">{credit.remaining}/{credit.allotted}</span>

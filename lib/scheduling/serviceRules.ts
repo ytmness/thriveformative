@@ -1,8 +1,13 @@
 import { query as poolQuery } from "@/lib/db";
 import type { TxQuery } from "@/lib/dbTx";
 import { DomainError } from "@/lib/http";
-import { assertMembershipCredit, creditForService, serviceRequiresMembership } from "@/lib/domain/memberships";
-import { formatDate } from "@/lib/scheduling/time";
+import {
+  assertMembershipCredit,
+  bundledServiceIds,
+  creditForService,
+  serviceRequiresMembership,
+} from "@/lib/domain/memberships";
+import { formatDate, formatHm } from "@/lib/scheduling/time";
 
 type Run = TxQuery;
 
@@ -17,6 +22,8 @@ type Policy = {
   max_per_patient: number | null;
   max_per_day: number | null;
   unlocks_after_service_id: string | null;
+  slot_window_start: string | null;
+  slot_window_end: string | null;
 };
 
 function dayDistance(a: string, b: string) {
@@ -28,7 +35,7 @@ function dayDistance(a: string, b: string) {
 async function policy(run: Run, serviceId: string) {
   const res = await run<Policy>(
     `SELECT buffer_before_minutes, buffer_after_minutes, min_days_between, max_per_patient, max_per_day,
-            unlocks_after_service_id
+            unlocks_after_service_id, slot_window_start::text, slot_window_end::text
      FROM services WHERE id = $1`,
     [serviceId]
   );
@@ -55,27 +62,34 @@ export async function serviceDayBlock(
     if (!input.patientId) return "Este servicio requiere una membresía activa.";
     const credit = await creditForService({ patientId: input.patientId, serviceId: input.serviceId }, q);
     if (!credit) return "No te quedan cupos de este servicio en tu membresía.";
-  } else if (input.patientId && rules.unlocks_after_service_id) {
+  }
+  if (input.patientId && rules.unlocks_after_service_id) {
     const done = await run<{ ok: boolean }>(
       `SELECT EXISTS (
          SELECT 1 FROM appointments
          WHERE patient_id = $1 AND service_id = $2
            AND status NOT IN ('cancelled', 'no_show')
-           AND (status IN ('arrived', 'completed') OR ends_at <= now())
        ) AS ok`,
       [input.patientId, rules.unlocks_after_service_id]
     );
     if (!done.rows[0]?.ok) {
-      return "Este servicio se desbloquea después de tu cita de 90 días.";
+      return "Este servicio se desbloquea después de tu primera cita larga.";
     }
   }
 
   if (input.patientId && rules.max_per_patient != null) {
     const count = await run<{ n: number }>(
-      `SELECT count(*)::int AS n FROM appointments
-       WHERE service_id = $1 AND patient_id = $2
-         AND status NOT IN ('cancelled', 'no_show')
-         AND ($3::uuid IS NULL OR id <> $3)`,
+      `SELECT count(*)::int AS n FROM appointments a
+       WHERE a.patient_id = $2
+         AND a.status NOT IN ('cancelled', 'no_show')
+         AND ($3::uuid IS NULL OR a.id <> $3)
+         AND (
+           a.service_id = $1
+           OR EXISTS (
+             SELECT 1 FROM appointment_services aps
+             WHERE aps.appointment_id = a.id AND aps.service_id = $1
+           )
+         )`,
       [input.serviceId, input.patientId, input.ignoreAppointmentId ?? null]
     );
     if (count.rows[0].n >= rules.max_per_patient) {
@@ -89,9 +103,16 @@ export async function serviceDayBlock(
     const prior = await run<{ day: string }>(
       `SELECT to_char((a.starts_at AT TIME ZONE $4)::date, 'YYYY-MM-DD') AS day
        FROM appointments a
-       WHERE a.service_id = $1 AND a.patient_id = $2
+       WHERE a.patient_id = $2
          AND a.status NOT IN ('cancelled', 'no_show')
-         AND ($3::uuid IS NULL OR a.id <> $3)`,
+         AND ($3::uuid IS NULL OR a.id <> $3)
+         AND (
+           a.service_id = $1
+           OR EXISTS (
+             SELECT 1 FROM appointment_services aps
+             WHERE aps.appointment_id = a.id AND aps.service_id = $1
+           )
+         )`,
       [input.serviceId, input.patientId, input.ignoreAppointmentId ?? null, input.timezone]
     );
     const tooClose = prior.rows.some((row) => Math.abs(dayDistance(input.date, row.day)) < rules.min_days_between);
@@ -149,6 +170,20 @@ export async function assertBookable(
   );
   if (reason) throw new DomainError(reason);
   await assertMembershipCredit({ patientId: input.patientId, serviceId: input.serviceId }, q);
+  if (input.serviceId && input.patientId) {
+    for (const extraId of await bundledServiceIds(input.serviceId, q)) {
+      await assertMembershipCredit({ patientId: input.patientId, serviceId: extraId }, q);
+    }
+  }
+
+  const windowStartHm = rules.slot_window_start?.slice(0, 5) || "";
+  const windowEndHm = rules.slot_window_end?.slice(0, 5) || "";
+  if (windowStartHm && formatHm(input.startsAt, input.timezone) < windowStartHm) {
+    throw new DomainError("Ese servicio solo se agenda en su horario (mañana o tarde).");
+  }
+  if (windowEndHm && formatHm(input.endsAt, input.timezone) > windowEndHm) {
+    throw new DomainError("Ese servicio no cabe en su horario (mañana 3 h o tarde 4 h).");
+  }
 
   const windowStart = new Date(input.startsAt.getTime() - rules.buffer_before_minutes * 60000);
   const windowEnd = new Date(input.endsAt.getTime() + rules.buffer_after_minutes * 60000);

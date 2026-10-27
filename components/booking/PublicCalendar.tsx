@@ -16,6 +16,7 @@ type Credit = {
   membershipName: string;
   periodStart: string;
   periodEnd: string;
+  clockPending?: boolean;
 };
 type Catalog = {
   hasMembership?: boolean;
@@ -230,7 +231,11 @@ export default function PublicCalendar() {
             <div key={`${plan.name}-${plan.periodEnd}`} className="booking-plan__block">
               <p className="booking-plan__title">{t("planSummary")}</p>
               <p className="booking-plan__name">{plan.name}</p>
-              {plan.periodEnd ? <p className="booking-plan__until">{t("planUntil", { date: formatPeriod(plan.periodEnd, locale) })}</p> : null}
+              {plan.credits.some((credit) => credit.clockPending) ? (
+                <p className="booking-plan__until">{t("planStartsOnFirstVisit")}</p>
+              ) : plan.periodEnd ? (
+                <p className="booking-plan__until">{t("planUntil", { date: formatPeriod(plan.periodEnd, locale) })}</p>
+              ) : null}
               <ul>
                 {plan.credits.map((credit) => (
                   <li key={`${credit.serviceId}-${credit.periodEnd}`}>

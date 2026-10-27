@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { useLocale } from "next-intl";
 import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
-import { safeNextPath } from "@/lib/site/nextPath";
+import { consumeNextPath, rememberNextPath } from "@/lib/site/nextPath";
 import { CALLING_CODES, withCallingCode } from "@/lib/phone/callingCodes";
 import { readMarket, type SiteMarket } from "@/lib/site/market";
 import ThemeProvider from "@/components/theme/ThemeProvider";
@@ -148,6 +148,10 @@ export default function RegisterPage() {
   const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
+    rememberNextPath(searchParams.get("next"));
+  }, [searchParams]);
+
+  useEffect(() => {
     const next = readMarket();
     setMarket(next);
     const iso = next === "US" || locale === "en" ? "US" : "MX";
@@ -287,7 +291,7 @@ export default function RegisterPage() {
       /* ignore */
     }
 
-    router.push(safeNextPath(searchParams.get("next"), locale));
+    router.push(consumeNextPath(searchParams.get("next"), locale));
     router.refresh();
   }
 

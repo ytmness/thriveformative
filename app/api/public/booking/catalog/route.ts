@@ -37,7 +37,8 @@ export async function GET(req: Request) {
                   s.requires_membership
                   OR EXISTS (SELECT 1 FROM membership_items mi WHERE mi.service_id = s.id)
                 ) THEN (
-                  $2::uuid IS NULL OR NOT EXISTS (
+                  $2::uuid IS NULL
+                  OR NOT EXISTS (
                     SELECT 1
                     FROM patient_membership_credits c
                     JOIN patient_memberships pm ON pm.id = c.patient_membership_id
@@ -45,8 +46,16 @@ export async function GET(req: Request) {
                       AND pm.status = 'active'
                       AND c.service_id = s.id
                       AND c.remaining > 0
-                      AND c.period_start <= current_date
                       AND c.period_end >= current_date
+                  )
+                  OR (
+                    s.unlocks_after_service_id IS NOT NULL
+                    AND NOT EXISTS (
+                      SELECT 1 FROM appointments a
+                      WHERE a.patient_id = $2
+                        AND a.service_id = s.unlocks_after_service_id
+                        AND a.status NOT IN ('cancelled', 'no_show')
+                    )
                   )
                 )
                 WHEN s.unlocks_after_service_id IS NULL THEN false
@@ -56,7 +65,6 @@ export async function GET(req: Request) {
                   WHERE a.patient_id = $2
                     AND a.service_id = s.unlocks_after_service_id
                     AND a.status NOT IN ('cancelled', 'no_show')
-                    AND (a.status IN ('arrived', 'completed') OR a.ends_at <= now())
                 )
               END AS locked
        FROM services s

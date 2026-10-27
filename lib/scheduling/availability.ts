@@ -27,8 +27,11 @@ export async function availabilityForDate(input: {
     buffer_after_minutes: number;
     is_online_bookable: boolean;
     is_active: boolean;
+    slot_window_start: string | null;
+    slot_window_end: string | null;
   }>(
-    `SELECT id, duration_minutes, buffer_before_minutes, buffer_after_minutes, is_online_bookable, is_active
+    `SELECT id, duration_minutes, buffer_before_minutes, buffer_after_minutes, is_online_bookable, is_active,
+            slot_window_start::text, slot_window_end::text
      FROM services WHERE id = $1`,
     [input.serviceId]
   );
@@ -179,11 +182,19 @@ export async function availabilityForDate(input: {
       for (const schedule of schedules.rows) {
         const open = zonedTimeToUtc(input.date, schedule.start_time.slice(0, 5), location.timezone).getTime();
         const close = zonedTimeToUtc(input.date, schedule.end_time.slice(0, 5), location.timezone).getTime();
+        const windowOpen = svc.slot_window_start
+          ? zonedTimeToUtc(input.date, svc.slot_window_start.slice(0, 5), location.timezone).getTime()
+          : open;
+        const windowClose = svc.slot_window_end
+          ? zonedTimeToUtc(input.date, svc.slot_window_end.slice(0, 5), location.timezone).getTime()
+          : close;
+        const rangeStart = Math.max(open, windowOpen);
+        const rangeEnd = Math.min(close, windowClose);
         const step = cfg.slot_interval_minutes * 60000;
         const duration = svc.duration_minutes * 60000;
         const before = svc.buffer_before_minutes * 60000;
         const after = svc.buffer_after_minutes * 60000;
-        for (let t = open; t + duration <= close; t += step) {
+        for (let t = rangeStart; t + duration <= rangeEnd; t += step) {
           if (t < minStart) continue;
           const windowStart = t - before;
           const windowEnd = t + duration + after;

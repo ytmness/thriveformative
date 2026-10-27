@@ -9,7 +9,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import ThemeProvider from "@/components/theme/ThemeProvider";
 import ThemeSwitcher from "@/components/theme/ThemeSwitcher";
 import Header from "@/components/Header";
-import { safeNextPath } from "@/lib/site/nextPath";
+import { consumeNextPath, rememberNextPath } from "@/lib/site/nextPath";
 
 export default function LoginPage() {
   const t = useTranslations("auth");
@@ -25,6 +25,7 @@ export default function LoginPage() {
   const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
+    rememberNextPath(searchParams.get("next"));
     const err = searchParams.get("error");
     if (err) setError(decodeURIComponent(err));
   }, [searchParams]);
@@ -65,7 +66,7 @@ export default function LoginPage() {
       setError(body.error || t("invalidCode"));
       return;
     }
-    router.push(safeNextPath(searchParams.get("next"), locale));
+    router.push(consumeNextPath(searchParams.get("next"), locale));
     router.refresh();
   }
 

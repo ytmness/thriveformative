@@ -327,6 +327,7 @@
     "plan": "Your plan",
     "planEmpty": "You have no visit credits in this period.",
     "planUntil": "Until {date}",
+    "planStartsOnFirstVisit": "The 90 days start with your first long visit",
     "creditsLeft": "{service}: {remaining}/{allotted}"
   },
   "booking": {
@@ -364,6 +365,7 @@
     "planUnlockHint": "Some services open when your membership still has visit credits.",
     "planSummary": "Your plan",
     "planUntil": "Until {date}",
+    "planStartsOnFirstVisit": "The 90 days start with your first long visit",
     "creditsLeft": "{remaining, plural, =0 {None left} one {# left} other {# left}}",
     "creditsLeftOf": "{remaining, plural, =0 {No {service} left} one {You have # {service} left} other {You have # {service} left}}"
   },
@@ -557,7 +559,8 @@
   },
   "info": {
     "pageTitle": "About Us",
-    "pageSubtitle": "Meet the doctor, get your questions answered, and get in touch with us."
+    "pageSubtitle": "Meet the doctor, get your questions answered, and get in touch with us.",
+    "pageSubtitleUs": "Get your questions answered and get in touch with us."
   },
   "news": {
     "backHome": "Back to home",

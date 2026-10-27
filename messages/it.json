@@ -320,6 +320,7 @@
     "plan": "Il tuo piano",
     "planEmpty": "Non hai crediti attivi in questo periodo.",
     "planUntil": "Fino al {date}",
+    "planStartsOnFirstVisit": "I 90 giorni partono dalla prima visita lunga",
     "creditsLeft": "{service}: {remaining}/{allotted}"
   },
   "booking": {
@@ -357,6 +358,7 @@
     "planUnlockHint": "Alcuni servizi si aprono quando l'abbonamento ha ancora crediti disponibili.",
     "planSummary": "Il tuo piano",
     "planUntil": "Fino al {date}",
+    "planStartsOnFirstVisit": "I 90 giorni partono dalla prima visita lunga",
     "creditsLeft": "{remaining, plural, =0 {Nessuno rimasto} one {Ti resta #} other {Ti restano #}}",
     "creditsLeftOf": "{remaining, plural, =0 {Non ti restano {service}} one {Ti resta # di {service}} other {Ti restano # di {service}}}"
   },
@@ -511,7 +513,8 @@
   },
   "info": {
     "pageTitle": "Chi siamo",
-    "pageSubtitle": "Conosci il dottore, chiarisci i tuoi dubbi e mettiti in contatto con noi."
+    "pageSubtitle": "Conosci il dottore, chiarisci i tuoi dubbi e mettiti in contatto con noi.",
+    "pageSubtitleUs": "Chiarisci i tuoi dubbi e mettiti in contatto con noi."
   },
   "cta": {
     "title": "Pronto a trasformare la tua salute?",

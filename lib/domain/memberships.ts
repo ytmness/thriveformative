@@ -4,8 +4,14 @@ import { DomainError } from "@/lib/http";
 
 type Run = TxQuery;
 
+export const PENDING_PERIOD_END = "2099-12-31";
+
 function db(q?: TxQuery): Run {
   return q ?? ((text, params) => poolQuery(text, params));
+}
+
+export function isPendingPeriodEnd(value: string | null | undefined) {
+  return String(value || "").slice(0, 10) >= PENDING_PERIOD_END;
 }
 
 export function intervalUnitOf(value: unknown): "month" | "year" | "day90" {
@@ -42,20 +48,23 @@ export async function grantMembershipPeriod(
   );
   if (!plan.rows[0]) throw new DomainError("Membresía no encontrada.");
   const unit = intervalUnitOf(plan.rows[0].interval_unit);
-  const start = input.periodStart ?? new Date();
-  const startDay = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate()));
-  const endDay = periodEndFrom(startDay, unit);
   const items = await run<{ service_id: string; quantity: number }>(
     `SELECT service_id, quantity FROM membership_items WHERE membership_id = $1`,
     [input.membershipId]
   );
+  const pendingClock = unit === "day90" && !input.periodStart;
+  const start = input.periodStart ?? new Date();
+  const startDay = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate()));
+  const endDay = pendingClock ? null : periodEndFrom(startDay, unit);
+  const startIso = pendingClock ? isoDate(new Date()) : isoDate(startDay);
+  const endIso = pendingClock ? PENDING_PERIOD_END : isoDate(endDay as Date);
   await run(
     `UPDATE patient_memberships
      SET status = 'active',
          current_period_start = $2::date,
          current_period_end = $3::date
      WHERE id = $1`,
-    [input.patientMembershipId, isoDate(startDay), isoDate(endDay)]
+    [input.patientMembershipId, pendingClock ? null : startIso, pendingClock ? null : endIso]
   );
   for (const item of items.rows) {
     await run(
@@ -64,10 +73,10 @@ export async function grantMembershipPeriod(
        VALUES ($1,$2,$3,$3,$4::date,$5::date)
        ON CONFLICT (patient_membership_id, service_id, period_start)
        DO UPDATE SET allotted = EXCLUDED.allotted, remaining = EXCLUDED.remaining, period_end = EXCLUDED.period_end`,
-      [input.patientMembershipId, item.service_id, item.quantity, isoDate(startDay), isoDate(endDay)]
+      [input.patientMembershipId, item.service_id, item.quantity, startIso, endIso]
     );
   }
-  return { periodStart: isoDate(startDay), periodEnd: isoDate(endDay) };
+  return { periodStart: pendingClock ? null : startIso, periodEnd: pendingClock ? null : endIso };
 }
 
 export async function activatePatientMembership(
@@ -109,7 +118,6 @@ export async function hasActiveMembership(patientId: string, q?: TxQuery) {
        FROM patient_memberships
        WHERE patient_id = $1
          AND status = 'active'
-         AND (current_period_start IS NULL OR current_period_start <= current_date)
          AND (current_period_end IS NULL OR current_period_end >= current_date)
      ) AS ok`,
     [patientId]
@@ -173,7 +181,6 @@ export async function hasActivePlan(patientId: string, membershipId: string, q?:
        WHERE patient_id = $1
          AND membership_id = $2
          AND status = 'active'
-         AND (current_period_start IS NULL OR current_period_start <= current_date)
          AND (current_period_end IS NULL OR current_period_end >= current_date)
      ) AS ok`,
     [patientId, membershipId]
@@ -199,7 +206,6 @@ export async function creditForService(
        AND pm.status = 'active'
        AND c.service_id = $2
        AND c.remaining > 0
-       AND c.period_start <= current_date
        AND c.period_end >= current_date
      ORDER BY c.period_end ASC
      LIMIT 1`,
@@ -266,10 +272,112 @@ export async function restoreMembershipCredit(
        AND pm.patient_id = $1
        AND pm.status = 'active'
        AND c.service_id = $2
-       AND c.period_start <= current_date
        AND c.period_end >= current_date
        AND c.remaining < c.allotted`,
     [input.patientId, input.serviceId]
+  );
+}
+
+export async function bundledServiceIds(serviceId: string, q?: TxQuery) {
+  const run = db(q);
+  const rows = await run<{ bundled_service_id: string }>(
+    `SELECT bundled_service_id FROM service_bundles WHERE parent_service_id = $1`,
+    [serviceId]
+  );
+  return rows.rows.map((row) => row.bundled_service_id);
+}
+
+export async function appointmentCoveredServiceIds(appointmentId: string, q?: TxQuery) {
+  const run = db(q);
+  const rows = await run<{ service_id: string }>(
+    `SELECT service_id FROM appointment_services WHERE appointment_id = $1`,
+    [appointmentId]
+  );
+  return rows.rows.map((row) => row.service_id);
+}
+
+export async function recordAppointmentServices(
+  input: { appointmentId: string; serviceIds: string[] },
+  q?: TxQuery
+) {
+  const run = db(q);
+  for (const serviceId of input.serviceIds) {
+    await run(
+      `INSERT INTO appointment_services (appointment_id, service_id) VALUES ($1,$2)
+       ON CONFLICT DO NOTHING`,
+      [input.appointmentId, serviceId]
+    );
+  }
+}
+
+export async function startDay90ClockFromVisit(
+  input: { patientId: string; visitDate: string },
+  q?: TxQuery
+) {
+  const run = db(q);
+  const pending = await run<{ id: string }>(
+    `SELECT pm.id
+     FROM patient_memberships pm
+     JOIN memberships m ON m.id = pm.membership_id
+     WHERE pm.patient_id = $1
+       AND pm.status = 'active'
+       AND m.interval_unit = 'day90'
+       AND pm.current_period_start IS NULL`,
+    [input.patientId]
+  );
+  if (!pending.rows[0]) return;
+  const [year, month, day] = input.visitDate.split("-").map(Number);
+  const startDay = new Date(Date.UTC(year, month - 1, day));
+  const endIso = isoDate(periodEndFrom(startDay, "day90"));
+  const startIso = isoDate(startDay);
+  await run(
+    `UPDATE patient_memberships
+     SET current_period_start = $2::date, current_period_end = $3::date
+     WHERE id = $1`,
+    [pending.rows[0].id, startIso, endIso]
+  );
+  await run(
+    `UPDATE patient_membership_credits
+     SET period_start = $2::date, period_end = $3::date
+     WHERE patient_membership_id = $1 AND period_end >= $4::date`,
+    [pending.rows[0].id, startIso, endIso, PENDING_PERIOD_END]
+  );
+}
+
+export async function revertDay90ClockIfNoOpeningVisit(
+  input: { patientId: string; openingServiceId: string },
+  q?: TxQuery
+) {
+  const run = db(q);
+  const stillOpen = await run<{ ok: boolean }>(
+    `SELECT EXISTS (
+       SELECT 1 FROM appointments
+       WHERE patient_id = $1 AND service_id = $2 AND status NOT IN ('cancelled', 'no_show')
+     ) AS ok`,
+    [input.patientId, input.openingServiceId]
+  );
+  if (stillOpen.rows[0]?.ok) return;
+  const pending = await run<{ id: string }>(
+    `SELECT pm.id
+     FROM patient_memberships pm
+     JOIN memberships m ON m.id = pm.membership_id
+     WHERE pm.patient_id = $1
+       AND pm.status = 'active'
+       AND m.interval_unit = 'day90'`,
+    [input.patientId]
+  );
+  if (!pending.rows[0]) return;
+  await run(
+    `UPDATE patient_memberships
+     SET current_period_start = NULL, current_period_end = NULL
+     WHERE id = $1`,
+    [pending.rows[0].id]
+  );
+  await run(
+    `UPDATE patient_membership_credits
+     SET period_end = $2::date
+     WHERE patient_membership_id = $1`,
+    [pending.rows[0].id, PENDING_PERIOD_END]
   );
 }
 
@@ -313,6 +421,7 @@ export type ActiveMembershipCredit = {
   membershipName: string;
   periodStart: string;
   periodEnd: string;
+  clockPending: boolean;
 };
 
 export async function listActiveCredits(patientId: string, q?: TxQuery): Promise<ActiveMembershipCredit[]> {
@@ -335,9 +444,7 @@ export async function listActiveCredits(patientId: string, q?: TxQuery): Promise
      JOIN services s ON s.id = c.service_id
      WHERE pm.patient_id = $1
        AND pm.status = 'active'
-       AND (pm.current_period_start IS NULL OR pm.current_period_start <= current_date)
        AND (pm.current_period_end IS NULL OR pm.current_period_end >= current_date)
-       AND c.period_start <= current_date
        AND c.period_end >= current_date
      ORDER BY m.name, s.name`,
     [patientId]
@@ -350,6 +457,7 @@ export async function listActiveCredits(patientId: string, q?: TxQuery): Promise
     membershipName: row.membership_name,
     periodStart: String(row.period_start || "").slice(0, 10),
     periodEnd: String(row.period_end || "").slice(0, 10),
+    clockPending: isPendingPeriodEnd(row.period_end),
   }));
 }
 
@@ -399,7 +507,6 @@ export async function listPatientMembershipDetails(patientId: string) {
      JOIN services s ON s.id = c.service_id
      JOIN patient_memberships pm ON pm.id = c.patient_membership_id
      WHERE pm.patient_id = $1
-       AND c.period_start <= current_date
        AND c.period_end >= current_date
      ORDER BY s.name`,
     [patientId]
