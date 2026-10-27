@@ -17,10 +17,20 @@ type Order = {
   receiptUrl: string | null;
 };
 type Invoice = { id: string; invoice_number: string; status: string; total: number };
+type Credit = {
+  serviceId: string;
+  serviceName: string;
+  remaining: number;
+  allotted: number;
+  membershipName: string;
+  periodStart: string;
+  periodEnd: string;
+};
 type Home = {
   patient: { name: string; email: string };
   orders: Order[];
   invoices: Invoice[];
+  credits?: Credit[];
 };
 
 const STATUS: Record<string, string> = {
@@ -68,10 +78,7 @@ export default function AccountHome() {
     setError(null);
     try {
       await api("/api/portal/appointments", { method: "POST", body: JSON.stringify({ appointmentId: row.id.slice("cita:".length), action: "cancel" }) });
-      setHome({
-        ...home!,
-        orders: home!.orders.map((item) => (item.id === row.id ? { ...item, status: "cancelled" } : item)),
-      });
+      setHome(await api<Home>("/api/account"));
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo cancelar.");
     }
@@ -83,6 +90,23 @@ export default function AccountHome() {
       <h1 className="type-page-title">{home.patient.name || "Hola"}</h1>
       <p className="visit-sheet__when">{home.patient.email}</p>
       {error ? <p className="booking-error" role="alert">{error}</p> : null}
+
+      <section id="plan">
+        <h2>{t("plan")}</h2>
+        {home.credits?.length ? home.credits.map((credit) => (
+          <div key={`${credit.serviceId}-${credit.periodEnd}`} className="account-row">
+            <div>
+              <strong>{credit.serviceName}</strong>
+              <p>
+                {t("creditsLeft", { remaining: credit.remaining, allotted: credit.allotted, service: credit.serviceName })}
+                {credit.membershipName ? ` · ${credit.membershipName}` : ""}
+                {credit.periodEnd ? ` · ${t("planUntil", { date: new Date(`${credit.periodEnd.slice(0, 10)}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" }) })}` : ""}
+              </p>
+            </div>
+            <span className="booking-plan__count">{credit.remaining}/{credit.allotted}</span>
+          </div>
+        )) : <p className="booking-slots__empty">{t("planEmpty")}</p>}
+      </section>
 
       <section id="gestionar">
         <h2>{t("manage")}</h2>

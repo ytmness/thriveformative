@@ -307,7 +307,11 @@
   "account": {
     "manage": "Gestionar mi cita",
     "manageEmpty": "No tienes una cita próxima para gestionar.",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "plan": "Tu plan",
+    "planEmpty": "No tienes cupos activos en este periodo.",
+    "planUntil": "Hasta {date}",
+    "creditsLeft": "{service}: {remaining}/{allotted}"
   },
   "booking": {
     "title": "Agenda tu cita",
@@ -341,7 +345,11 @@
     "membershipToBook": "Necesitas una membresía activa para agendar",
     "membershipToBookHint": "El calendario se abre cuando tu plan está activo. Cómpralo en la clínica y vuelve para elegir fecha y horario.",
     "membershipToBookCta": "Ver programas",
-    "planUnlockHint": "Algunos servicios se abren cuando tu membresía tiene cupos disponibles."
+    "planUnlockHint": "Algunos servicios se abren cuando tu membresía tiene cupos disponibles.",
+    "planSummary": "Tu plan",
+    "planUntil": "Hasta {date}",
+    "creditsLeft": "{remaining, plural, =0 {No te quedan} one {Te queda #} other {Te quedan #}}",
+    "creditsLeftOf": "{remaining, plural, =0 {No te quedan de {service}} one {Te queda # de {service}} other {Te quedan # de {service}}}"
   },
   "auth": {
     "loginTitle": "Iniciar sesión",

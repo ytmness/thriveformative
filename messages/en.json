@@ -307,7 +307,11 @@
   "account": {
     "manage": "Manage my appointment",
     "manageEmpty": "You don't have an upcoming appointment to manage.",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "plan": "Your plan",
+    "planEmpty": "You have no visit credits in this period.",
+    "planUntil": "Until {date}",
+    "creditsLeft": "{service}: {remaining}/{allotted}"
   },
   "booking": {
     "title": "Book your appointment",
@@ -341,7 +345,11 @@
     "membershipToBook": "You need an active membership to book",
     "membershipToBookHint": "The calendar opens after you have an active plan. Buy it at the clinic, then come back to choose a date and time.",
     "membershipToBookCta": "See programs",
-    "planUnlockHint": "Some services open when your membership still has visit credits."
+    "planUnlockHint": "Some services open when your membership still has visit credits.",
+    "planSummary": "Your plan",
+    "planUntil": "Until {date}",
+    "creditsLeft": "{remaining, plural, =0 {None left} one {# left} other {# left}}",
+    "creditsLeftOf": "{remaining, plural, =0 {No {service} left} one {You have # {service} left} other {You have # {service} left}}"
   },
   "auth": {
     "loginTitle": "Sign in",

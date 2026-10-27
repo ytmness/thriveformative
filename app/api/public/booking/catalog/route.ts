@@ -1,5 +1,5 @@
 import { currentPatient } from "@/lib/auth/patientAccess";
-import { hasActiveMembership } from "@/lib/domain/memberships";
+import { creditTotalsByService, hasActiveMembership, listActiveCredits } from "@/lib/domain/memberships";
 import { query } from "@/lib/db";
 import { locationCountrySql } from "@/lib/domain/scope";
 import { toErrorResponse } from "@/lib/http";
@@ -75,9 +75,17 @@ export async function GET(req: Request) {
     );
     const settings = await query(`SELECT min_advance_hours, max_advance_days, cancel_window_hours, allow_reschedule, allow_waitlist, require_terms FROM booking_settings WHERE id = 1`);
     const policy = await query(`SELECT value FROM clinic_settings WHERE key = 'cancellation_policy'`);
+    const credits = patient && hasMembership ? await listActiveCredits(patient.id) : [];
+    const totals = creditTotalsByService(credits);
     return Response.json({
       hasMembership,
-      services: hasMembership ? services.rows : [],
+      services: hasMembership
+        ? services.rows.map((row: { id: string }) => {
+            const credit = totals.get(row.id);
+            return credit ? { ...row, remaining: credit.remaining, allotted: credit.allotted } : row;
+          })
+        : [],
+      credits,
       locations: hasMembership ? locations.rows : [],
       staff: hasMembership ? staff.rows : [],
       settings: settings.rows[0] ?? null,

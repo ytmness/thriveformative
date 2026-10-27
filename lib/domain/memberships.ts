@@ -246,6 +246,66 @@ export async function setMembershipStatusBySquare(
   );
 }
 
+export type ActiveMembershipCredit = {
+  serviceId: string;
+  serviceName: string;
+  remaining: number;
+  allotted: number;
+  membershipName: string;
+  periodStart: string;
+  periodEnd: string;
+};
+
+export async function listActiveCredits(patientId: string, q?: TxQuery): Promise<ActiveMembershipCredit[]> {
+  const run = db(q);
+  const rows = await run<{
+    service_id: string;
+    service_name: string;
+    remaining: number;
+    allotted: number;
+    membership_name: string;
+    period_start: string;
+    period_end: string;
+  }>(
+    `SELECT c.service_id, s.name AS service_name,
+            c.remaining, c.allotted, m.name AS membership_name,
+            c.period_start::text, c.period_end::text
+     FROM patient_membership_credits c
+     JOIN patient_memberships pm ON pm.id = c.patient_membership_id
+     JOIN memberships m ON m.id = pm.membership_id
+     JOIN services s ON s.id = c.service_id
+     WHERE pm.patient_id = $1
+       AND pm.status = 'active'
+       AND (pm.current_period_start IS NULL OR pm.current_period_start <= current_date)
+       AND (pm.current_period_end IS NULL OR pm.current_period_end >= current_date)
+       AND c.period_start <= current_date
+       AND c.period_end >= current_date
+     ORDER BY m.name, s.name`,
+    [patientId]
+  );
+  return rows.rows.map((row) => ({
+    serviceId: row.service_id,
+    serviceName: row.service_name,
+    remaining: Number(row.remaining || 0),
+    allotted: Number(row.allotted || 0),
+    membershipName: row.membership_name,
+    periodStart: String(row.period_start || "").slice(0, 10),
+    periodEnd: String(row.period_end || "").slice(0, 10),
+  }));
+}
+
+export function creditTotalsByService(credits: ActiveMembershipCredit[]) {
+  const totals = new Map<string, { remaining: number; allotted: number }>();
+  for (const credit of credits) {
+    const prev = totals.get(credit.serviceId) ?? { remaining: 0, allotted: 0 };
+    totals.set(credit.serviceId, {
+      remaining: prev.remaining + credit.remaining,
+      allotted: prev.allotted + credit.allotted,
+    });
+  }
+  return totals;
+}
+
 export async function listPatientMembershipDetails(patientId: string) {
   const plans = await poolQuery<{
     id: string;

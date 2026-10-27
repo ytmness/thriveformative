@@ -1,5 +1,5 @@
 import { currentPatient } from "@/lib/auth/patientAccess";
-import { assertActiveMembership } from "@/lib/domain/memberships";
+import { assertActiveMembership, listActiveCredits } from "@/lib/domain/memberships";
 import { createPortalAccount } from "@/lib/auth/portal";
 import { query } from "@/lib/db";
 import { locationCountrySql } from "@/lib/domain/scope";
@@ -54,6 +54,7 @@ export async function bookPublic(body: Record<string, unknown>, meta?: { ip?: st
     appointment: created.appointment,
     manageToken: created.appointment.manageToken,
     requiredFormTemplateId: form.rows[0]?.required_form_template_id ?? null,
+    credits: await listActiveCredits(session.id),
   };
 }
 

@@ -300,7 +300,11 @@
   "account": {
     "manage": "Gestisci il mio appuntamento",
     "manageEmpty": "Non hai un appuntamento prossimo da gestire.",
-    "cancel": "Annulla"
+    "cancel": "Annulla",
+    "plan": "Il tuo piano",
+    "planEmpty": "Non hai crediti attivi in questo periodo.",
+    "planUntil": "Fino al {date}",
+    "creditsLeft": "{service}: {remaining}/{allotted}"
   },
   "booking": {
     "title": "Prenota la tua visita",
@@ -334,7 +338,11 @@
     "membershipToBook": "Serve un abbonamento attivo per prenotare",
     "membershipToBookHint": "Il calendario si apre quando il piano è attivo. Acquistalo in clinica e torna per scegliere data e orario.",
     "membershipToBookCta": "Vedi i programmi",
-    "planUnlockHint": "Alcuni servizi si aprono quando l'abbonamento ha ancora crediti disponibili."
+    "planUnlockHint": "Alcuni servizi si aprono quando l'abbonamento ha ancora crediti disponibili.",
+    "planSummary": "Il tuo piano",
+    "planUntil": "Fino al {date}",
+    "creditsLeft": "{remaining, plural, =0 {Nessuno rimasto} one {Ti resta #} other {Ti restano #}}",
+    "creditsLeftOf": "{remaining, plural, =0 {Non ti restano {service}} one {Ti resta # di {service}} other {Ti restano # di {service}}}"
   },
   "auth": {
     "loginTitle": "Accedi",

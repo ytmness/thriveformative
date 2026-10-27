@@ -8,13 +8,45 @@ import { useUser } from "@/lib/useUser";
 
 type Slot = { start: string; end: string; roomId: string | null };
 type Group = { staffUserId: string; staffName: string; locationId: string; locationName: string; timezone?: string; slots: Slot[] };
+type Credit = {
+  serviceId: string;
+  serviceName: string;
+  remaining: number;
+  allotted: number;
+  membershipName: string;
+  periodStart: string;
+  periodEnd: string;
+};
 type Catalog = {
   hasMembership?: boolean;
-  services: { id: string; name: string; duration_minutes: number; locked?: boolean }[];
+  services: { id: string; name: string; duration_minutes: number; locked?: boolean; remaining?: number; allotted?: number }[];
   locations: { id: string; name: string }[];
   settings: { max_advance_days?: number; require_terms?: boolean } | null;
   policy: { text?: string } | null;
+  credits?: Credit[];
 };
+
+function groupPlanCredits(credits: Credit[]) {
+  const groups: { name: string; periodEnd: string; credits: Credit[] }[] = [];
+  const index = new Map<string, number>();
+  for (const credit of credits) {
+    const key = `${credit.membershipName}|${credit.periodEnd}`;
+    const existing = index.get(key);
+    if (existing == null) {
+      index.set(key, groups.length);
+      groups.push({ name: credit.membershipName, periodEnd: credit.periodEnd, credits: [credit] });
+    } else {
+      groups[existing].credits.push(credit);
+    }
+  }
+  return groups;
+}
+
+function formatPeriod(value: string, locale: string) {
+  const day = String(value || "").slice(0, 10);
+  if (!day) return "";
+  return new Date(`${day}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" });
+}
 
 function pad(value: number) {
   return String(value).padStart(2, "0");
@@ -41,7 +73,7 @@ export default function PublicCalendar() {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [slot, setSlot] = useState<(Slot & { staffUserId: string; locationId: string }) | null>(null);
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phone: "", acceptTerms: false });
-  const [done, setDone] = useState<string | null>(null);
+  const [done, setDone] = useState<{ token: string | null; credits: Credit[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -119,7 +151,7 @@ export default function PublicCalendar() {
     if (!slot) return;
     setError(null);
     try {
-      const result = await api<{ manageToken: string | null }>("/api/public/booking", {
+      const result = await api<{ manageToken: string | null; credits?: Credit[] }>("/api/public/booking", {
         method: "POST",
         body: JSON.stringify({
           ...form,
@@ -131,7 +163,7 @@ export default function PublicCalendar() {
           endsAt: slot.end,
         }),
       });
-      setDone(result.manageToken);
+      setDone({ token: result.manageToken, credits: result.credits ?? [] });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error");
     }
@@ -170,11 +202,21 @@ export default function PublicCalendar() {
     );
   }
 
-  if (done !== null) {
+  if (done) {
     return (
       <div className="booking-done">
         <h3>{t("booked")}</h3>
-        {done ? <a href={`/reservar/${done}`}>{t("manage")}</a> : null}
+        {done.credits.length ? (
+          <ul className="booking-plan booking-plan--done">
+            {done.credits.map((credit) => (
+              <li key={`${credit.serviceId}-${credit.periodEnd}`}>
+                {t("creditsLeftOf", { remaining: credit.remaining, service: credit.serviceName })}
+                <span className="booking-plan__count">{credit.remaining}/{credit.allotted}</span>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        {done.token ? <a href={`/reservar/${done.token}`}>{t("manage")}</a> : null}
       </div>
     );
   }
@@ -182,12 +224,35 @@ export default function PublicCalendar() {
   return (
     <div className="booking-picker">
       {error ? <div className="booking-error" role="alert">{error}</div> : null}
+      {catalog?.credits?.length ? (
+        <div className="booking-plan">
+          {groupPlanCredits(catalog.credits).map((plan) => (
+            <div key={`${plan.name}-${plan.periodEnd}`} className="booking-plan__block">
+              <p className="booking-plan__title">{t("planSummary")}</p>
+              <p className="booking-plan__name">{plan.name}</p>
+              {plan.periodEnd ? <p className="booking-plan__until">{t("planUntil", { date: formatPeriod(plan.periodEnd, locale) })}</p> : null}
+              <ul>
+                {plan.credits.map((credit) => (
+                  <li key={`${credit.serviceId}-${credit.periodEnd}`}>
+                    <span>{t("creditsLeftOf", { remaining: credit.remaining, service: credit.serviceName })}</span>
+                    <span className="booking-plan__count">{credit.remaining}/{credit.allotted}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      ) : null}
       <div className="booking-picker__choices">
         <label>
           <span>{t("service")}</span>
           <select value={serviceId} onChange={(event) => setServiceId(event.target.value)}>
             {catalog?.services.filter((service) => !service.locked).map((service) => (
-              <option key={service.id} value={service.id}>{service.name} · {service.duration_minutes} min</option>
+              <option key={service.id} value={service.id}>
+                {typeof service.remaining === "number"
+                  ? `${service.name} · ${t("creditsLeft", { remaining: service.remaining })} · ${service.duration_minutes} min`
+                  : `${service.name} · ${service.duration_minutes} min`}
+              </option>
             ))}
           </select>
         </label>

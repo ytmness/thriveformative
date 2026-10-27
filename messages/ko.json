@@ -307,7 +307,11 @@
   "account": {
     "manage": "내 예약 관리",
     "manageEmpty": "관리할 예정된 예약이 없습니다.",
-    "cancel": "취소"
+    "cancel": "취소",
+    "plan": "내 플랜",
+    "planEmpty": "이 기간에 남은 이용권이 없습니다.",
+    "planUntil": "{date}까지",
+    "creditsLeft": "{service}: {remaining}/{allotted}"
   },
   "booking": {
     "title": "예약하기",
@@ -341,7 +345,11 @@
     "membershipToBook": "예약하려면 활성 멤버십이 필요합니다",
     "membershipToBookHint": "플랜이 활성화된 뒤에 캘린더가 열립니다. 클리닉에서 구매한 다음 다시 와서 날짜와 시간을 선택하세요.",
     "membershipToBookCta": "프로그램 보기",
-    "planUnlockHint": "멤버십에 남은 이용권이 있을 때 일부 서비스가 열립니다."
+    "planUnlockHint": "멤버십에 남은 이용권이 있을 때 일부 서비스가 열립니다.",
+    "planSummary": "내 플랜",
+    "planUntil": "{date}까지",
+    "creditsLeft": "{remaining, plural, =0 {남은 횟수 없음} other {#회 남음}}",
+    "creditsLeftOf": "{remaining, plural, =0 {{service} 남은 횟수 없음} other {{service} #회 남음}}"
   },
   "auth": {
     "loginTitle": "로그인",

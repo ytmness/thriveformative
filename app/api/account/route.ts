@@ -1,5 +1,6 @@
 import { currentPatient } from "@/lib/auth/patientAccess";
 import { portalInvoices } from "@/lib/auth/portal";
+import { listActiveCredits } from "@/lib/domain/memberships";
 import { query } from "@/lib/db";
 
 function currencyOf(country: string | null) {
@@ -23,7 +24,7 @@ type OrderRow = {
 export async function GET() {
   const patient = await currentPatient().catch(() => null);
   if (!patient) return Response.json({ error: "Inicia sesión para ver tu cuenta." }, { status: 401 });
-  const [visits, consultations, online, invoices] = await Promise.all([
+  const [visits, consultations, online, invoices, credits] = await Promise.all([
     query<{
       id: string;
       starts_at: string;
@@ -69,6 +70,7 @@ export async function GET() {
         )
       : Promise.resolve({ rows: [] as { id: string; status: string; fulfillment: string; currency: string; total_amount: number; created_at: string; receipt_url: string | null }[] }),
     portalInvoices(patient.id),
+    listActiveCredits(patient.id),
   ]);
 
   const orders: OrderRow[] = [
@@ -114,5 +116,6 @@ export async function GET() {
     patient: { name: patient.name, email: patient.email },
     orders,
     invoices,
+    credits,
   });
 }
