@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>Thrive sender avatar</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #1a1a1a;
+        overflow: hidden;
+      }
+      canvas {
+        display: block;
+      }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/node_modules/three/build/three.module.js",
+          "three/addons/": "/node_modules/three/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <canvas id="view" width="512" height="512"></canvas>
+    <script type="module">
+      import * as THREE from "three";
+      import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+      import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
+      import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
+
+      const SIZE = 512;
+      const BG = 0x1a1a1a;
+      const canvas = document.getElementById("view");
+      const renderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: true,
+        alpha: false,
+        preserveDrawingBuffer: true,
+        powerPreference: "high-performance",
+      });
+      renderer.setPixelRatio(1);
+      renderer.setSize(SIZE, SIZE, false);
+      renderer.setClearColor(BG, 1);
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.25;
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(BG);
+
+      const camera = new THREE.PerspectiveCamera(42, 1, 0.01, 100);
+      camera.position.set(0, 0, 5);
+
+      scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+      const hemi = new THREE.HemisphereLight(0xfff5e0, 0x2a2218, 0.65);
+      scene.add(hemi);
+      const key = new THREE.DirectionalLight(0xffffff, 1.8);
+      key.position.set(6, 8, 7);
+      scene.add(key);
+      const fill = new THREE.DirectionalLight(0xffffff, 0.75);
+      fill.position.set(-5, 3, -4);
+      scene.add(fill);
+      const spot = new THREE.SpotLight(0xffffff, 0.85, 0, 0.55, 0.6);
+      spot.position.set(0, 6, 2);
+      scene.add(spot);
+
+      const pivot = new THREE.Group();
+      scene.add(pivot);
+
+      window.__error = "";
+      window.__ready = false;
+      window.__setFrame = function () {};
+
+      function fit(object) {
+        const box = new THREE.Box3().setFromObject(object);
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+        object.position.sub(center);
+        const maxDim = Math.max(size.x, size.y, size.z) || 1;
+        const fov = THREE.MathUtils.degToRad(camera.fov);
+        const dist = (maxDim / 2 / Math.tan(fov / 2)) * 1.28;
+        camera.position.set(0, maxDim * 0.04, dist);
+        camera.near = dist / 100;
+        camera.far = dist * 20;
+        camera.lookAt(0, 0, 0);
+        camera.updateProjectionMatrix();
+      }
+
+      async function boot() {
+        if (MeshoptDecoder.ready) await MeshoptDecoder.ready;
+        const loader = new GLTFLoader();
+        const draco = new DRACOLoader();
+        draco.setDecoderPath("/node_modules/three/examples/jsm/libs/draco/gltf/");
+        loader.setDRACOLoader(draco);
+        loader.setMeshoptDecoder(MeshoptDecoder);
+
+        const gltf = await loader.loadAsync("/logos/logo3ddorado.glb");
+        const model = gltf.scene;
+        model.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = false;
+            if (child.material) child.material.needsUpdate = true;
+          }
+        });
+        pivot.add(model);
+        fit(model);
+
+        window.__setFrame = function (index, total) {
+          pivot.rotation.y = (index / total) * Math.PI * 2;
+          renderer.render(scene, camera);
+        };
+        window.__setFrame(0, 48);
+        window.__ready = true;
+      }
+
+      boot().catch((err) => {
+        window.__error = err && err.message ? err.message : String(err);
+      });
+    </script>
+  </body>
+</html>
