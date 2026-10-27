@@ -49,6 +49,8 @@ function OrganicPattern({ className = "" }: { className?: string }) {
   );
 }
 
+const PROGRAM_PHOTOS = ["/home/program-method.jpg", "/home/program-monthly.jpg"] as const;
+
 type Props = {
   editable?: HomePageEditableConfig;
   /** Solo vista previa CMS: bloque doctor tras servicios */
@@ -297,48 +299,60 @@ export default function HomePageSections({
               </header>
             )}
             <div className="approach-editorial__rule" aria-hidden />
-            <div className="approach-editorial__columns">
-              {wrapText(
-                "Pilar 1 — Medicina funcional",
-                [
-                  { key: "approach.title1a", label: "Título parte A" },
-                  { key: "approach.title1b", label: "Título parte B" },
-                  { key: "approach.desc1", label: "Descripción" },
-                ],
-                <ApproachPillar
-                  id="approach-funcional"
-                  index="01"
-                  title={`${txt("approach.title1a", "approach.title1a")} ${txt("approach.title1b", "approach.title1b")}`}
-                  description={txt("approach.desc1", "approach.desc1")}
+            <div className="approach-editorial__body">
+              <figure className="approach-editorial__photo">
+                <img
+                  src="/home/purpose.jpg"
+                  alt={t("approach.photoAlt")}
+                  width={900}
+                  height={1200}
+                  loading="lazy"
+                  decoding="async"
                 />
-              )}
-              {wrapText(
-                "Pilar 2 — Medicina familiar",
-                [
-                  { key: "approach.title2a", label: "Título parte A" },
-                  { key: "approach.title2b", label: "Título parte B" },
-                  { key: "approach.desc2", label: "Descripción" },
-                ],
-                <ApproachPillar
-                  id="approach-familiar"
-                  index="02"
-                  title={`${txt("approach.title2a", "approach.title2a")} ${txt("approach.title2b", "approach.title2b")}`}
-                  description={txt("approach.desc2", "approach.desc2")}
-                />
-              )}
-              {wrapText(
-                "Pilar 3 — Acompañamiento",
-                [
-                  { key: "approach.title3", label: "Título" },
-                  { key: "approach.desc3", label: "Descripción" },
-                ],
-                <ApproachPillar
-                  id="approach-acompanamiento"
-                  index="03"
-                  title={txt("approach.title3", "approach.title3")}
-                  description={txt("approach.desc3", "approach.desc3")}
-                />
-              )}
+              </figure>
+              <div className="approach-editorial__columns">
+                {wrapText(
+                  "Pilar 1 — Medicina funcional",
+                  [
+                    { key: "approach.title1a", label: "Título parte A" },
+                    { key: "approach.title1b", label: "Título parte B" },
+                    { key: "approach.desc1", label: "Descripción" },
+                  ],
+                  <ApproachPillar
+                    id="approach-funcional"
+                    index="01"
+                    title={`${txt("approach.title1a", "approach.title1a")} ${txt("approach.title1b", "approach.title1b")}`}
+                    description={txt("approach.desc1", "approach.desc1")}
+                  />
+                )}
+                {wrapText(
+                  "Pilar 2 — Medicina familiar",
+                  [
+                    { key: "approach.title2a", label: "Título parte A" },
+                    { key: "approach.title2b", label: "Título parte B" },
+                    { key: "approach.desc2", label: "Descripción" },
+                  ],
+                  <ApproachPillar
+                    id="approach-familiar"
+                    index="02"
+                    title={`${txt("approach.title2a", "approach.title2a")} ${txt("approach.title2b", "approach.title2b")}`}
+                    description={txt("approach.desc2", "approach.desc2")}
+                  />
+                )}
+                {wrapText(
+                  "Pilar 3 — Acompañamiento",
+                  [
+                    { key: "approach.title3", label: "Título" },
+                    { key: "approach.desc3", label: "Descripción" },
+                  ],
+                  <ApproachPillar
+                    id="approach-acompanamiento"
+                    index="03"
+                    title={txt("approach.title3", "approach.title3")}
+                    description={txt("approach.desc3", "approach.desc3")}
+                  />
+                )}
+              </div>
             </div>
           </div>
         </GiantScrollCard>
@@ -379,7 +393,7 @@ export default function HomePageSections({
               </header>
             )}
             <div className="services-editorial-section__grid">
-              {displayServices.map((s) =>
+              {displayServices.map((s, i) =>
                 wrapEntity(
                   `Servicio: ${s.name}`,
                   s.unpublished,
@@ -388,7 +402,7 @@ export default function HomePageSections({
                       name: s.name,
                       description: s.desc,
                     }),
-                  <Service name={s.name} desc={s.desc} />,
+                  <Service name={s.name} desc={s.desc} image={PROGRAM_PHOTOS[i]} />,
                   !s.isFallback ? () => editable?.onToggleServiceVisibility(s.id) : undefined,
                   !s.isFallback ? () => editable?.onDeleteService(s.id) : undefined
                 )
@@ -536,11 +550,26 @@ function HeroStats({
   );
 }
 
-function Service({ name, desc }: { name: string; desc: string }) {
+function Service({
+  name,
+  desc,
+  image,
+}: {
+  name: string;
+  desc: string;
+  image?: string;
+}) {
   return (
-    <article className="service-editorial-card">
-      <h3 className="service-editorial-card__title">{name}</h3>
-      <p className="service-editorial-card__desc">{desc}</p>
+    <article className={image ? "service-editorial-card service-editorial-card--photo" : "service-editorial-card"}>
+      {image ? (
+        <div className="service-editorial-card__media">
+          <img src={image} alt="" width={1200} height={900} loading="lazy" decoding="async" />
+        </div>
+      ) : null}
+      <div className="service-editorial-card__copy">
+        <h3 className="service-editorial-card__title">{name}</h3>
+        <p className="service-editorial-card__desc">{desc}</p>
+      </div>
     </article>
   );
 }
