@@ -22,7 +22,15 @@ export async function GET(req: Request) {
     const market = await requestMarket();
     const patient = await currentPatient();
     const hasMembership = patient ? await hasActiveMembership(patient.id) : false;
-    const services = await query(
+    const services = await query<{
+      id: string;
+      name: string;
+      description: string | null;
+      duration_minutes: number;
+      price: string;
+      category_id: string | null;
+      locked: boolean;
+    }>(
       `SELECT s.id, s.name, s.description, s.duration_minutes, s.price, s.category_id,
               CASE
                 WHEN (
@@ -80,7 +88,7 @@ export async function GET(req: Request) {
     return Response.json({
       hasMembership,
       services: hasMembership
-        ? services.rows.map((row: { id: string }) => {
+        ? services.rows.map((row) => {
             const credit = totals.get(row.id);
             return credit ? { ...row, remaining: credit.remaining, allotted: credit.allotted } : row;
           })
