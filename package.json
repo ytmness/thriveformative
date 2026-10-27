@@ -11,7 +11,8 @@
     "dev:clean": "node scripts/dev-clean.js",
     "import:healthvape:dry": "node scripts/import-healthvape-store.mjs --dry-run",
     "import:healthvape": "node scripts/import-healthvape-store.mjs",
-    "db:migrate": "node scripts/migrate.mjs"
+    "db:migrate": "node scripts/migrate.mjs",
+    "avatar:gif": "node scripts/make-sender-avatar.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
