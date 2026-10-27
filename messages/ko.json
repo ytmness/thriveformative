@@ -338,6 +338,9 @@
     "registerToBookHint": "환자 계정을 만든 뒤 날짜와 시간을 선택할 수 있습니다.",
     "registerToBookCta": "계정 만들기",
     "loginToBook": "이미 계정이 있습니다",
+    "membershipToBook": "예약하려면 활성 멤버십이 필요합니다",
+    "membershipToBookHint": "플랜이 활성화된 뒤에 캘린더가 열립니다. 클리닉에서 구매한 다음 다시 와서 날짜와 시간을 선택하세요.",
+    "membershipToBookCta": "프로그램 보기",
     "planUnlockHint": "멤버십에 남은 이용권이 있을 때 일부 서비스가 열립니다."
   },
   "auth": {

@@ -338,6 +338,9 @@
     "registerToBookHint": "Crea tu cuenta de paciente. Después podrás elegir fecha y horario.",
     "registerToBookCta": "Crear cuenta",
     "loginToBook": "Ya tengo cuenta",
+    "membershipToBook": "Necesitas una membresía activa para agendar",
+    "membershipToBookHint": "El calendario se abre cuando tu plan está activo. Cómpralo en la clínica y vuelve para elegir fecha y horario.",
+    "membershipToBookCta": "Ver programas",
     "planUnlockHint": "Algunos servicios se abren cuando tu membresía tiene cupos disponibles."
   },
   "auth": {

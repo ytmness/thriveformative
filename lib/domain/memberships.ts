@@ -101,6 +101,27 @@ export async function activatePatientMembership(
   return id;
 }
 
+export async function hasActiveMembership(patientId: string, q?: TxQuery) {
+  const run = db(q);
+  const row = await run<{ ok: boolean }>(
+    `SELECT EXISTS (
+       SELECT 1
+       FROM patient_memberships
+       WHERE patient_id = $1
+         AND status = 'active'
+         AND (current_period_start IS NULL OR current_period_start <= current_date)
+         AND (current_period_end IS NULL OR current_period_end >= current_date)
+     ) AS ok`,
+    [patientId]
+  );
+  return Boolean(row.rows[0]?.ok);
+}
+
+export async function assertActiveMembership(patientId: string, q?: TxQuery) {
+  if (await hasActiveMembership(patientId, q)) return;
+  throw new DomainError("Necesitas una membresía activa para agendar.", 403);
+}
+
 export async function creditForService(
   input: { patientId: string; serviceId: string },
   q?: TxQuery

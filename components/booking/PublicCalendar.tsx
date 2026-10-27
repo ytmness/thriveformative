@@ -9,6 +9,7 @@ import { useUser } from "@/lib/useUser";
 type Slot = { start: string; end: string; roomId: string | null };
 type Group = { staffUserId: string; staffName: string; locationId: string; locationName: string; timezone?: string; slots: Slot[] };
 type Catalog = {
+  hasMembership?: boolean;
   services: { id: string; name: string; duration_minutes: number; locked?: boolean }[];
   locations: { id: string; name: string }[];
   settings: { max_advance_days?: number; require_terms?: boolean } | null;
@@ -148,6 +149,22 @@ export default function PublicCalendar() {
         <div className="booking-gate__actions">
           <Link href={`/${locale}/register`} className="btn-primary">{t("registerToBookCta")}</Link>
           <Link href={`/${locale}/login`} className="booking-gate__login">{t("loginToBook")}</Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!catalog && !error) {
+    return <p className="booking-gate">{t("checkingAccount")}</p>;
+  }
+
+  if (catalog && catalog.hasMembership === false) {
+    return (
+      <div className="booking-gate">
+        <p className="booking-gate__title">{t("membershipToBook")}</p>
+        <p className="booking-gate__hint">{t("membershipToBookHint")}</p>
+        <div className="booking-gate__actions">
+          <Link href={`/${locale}#servicios`} className="btn-primary">{t("membershipToBookCta")}</Link>
         </div>
       </div>
     );

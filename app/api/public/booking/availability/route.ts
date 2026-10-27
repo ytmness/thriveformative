@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { currentPatient } from "@/lib/auth/patientAccess";
+import { hasActiveMembership } from "@/lib/domain/memberships";
 import { availabilityForDate, openDates } from "@/lib/scheduling/availability";
 import { requestMeta, toErrorResponse } from "@/lib/http";
 import { checkRateLimit } from "@/lib/rate-limit/memory";
@@ -12,6 +13,11 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   try {
     const patient = await currentPatient();
+    if (!patient || !(await hasActiveMembership(patient.id))) {
+      const month = url.searchParams.get("month") || "";
+      if (/^\d{4}-\d{2}$/.test(month)) return Response.json({ dates: [] });
+      return Response.json({ slots: [] });
+    }
     const month = url.searchParams.get("month") || "";
     if (/^\d{4}-\d{2}$/.test(month)) {
       const [year, monthIndex] = month.split("-").map(Number);

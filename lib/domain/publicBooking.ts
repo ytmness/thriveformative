@@ -1,4 +1,5 @@
 import { currentPatient } from "@/lib/auth/patientAccess";
+import { assertActiveMembership } from "@/lib/domain/memberships";
 import { createPortalAccount } from "@/lib/auth/portal";
 import { query } from "@/lib/db";
 import { locationCountrySql } from "@/lib/domain/scope";
@@ -15,6 +16,7 @@ export async function bookPublic(body: Record<string, unknown>, meta?: { ip?: st
   }
   const session = await currentPatient().catch(() => null);
   if (!session) throw new DomainError("Regístrate para agendar una cita.", 401);
+  await assertActiveMembership(session.id);
   const firstName = String(body.firstName || "").trim();
   const lastName = String(body.lastName || "").trim();
   const email = (session.email || String(body.email || "")).trim();

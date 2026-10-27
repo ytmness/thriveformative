@@ -1,4 +1,5 @@
 import { currentPatient } from "@/lib/auth/patientAccess";
+import { hasActiveMembership } from "@/lib/domain/memberships";
 import { query } from "@/lib/db";
 import { locationCountrySql } from "@/lib/domain/scope";
 import { toErrorResponse } from "@/lib/http";
@@ -20,6 +21,7 @@ export async function GET(req: Request) {
   try {
     const market = await requestMarket();
     const patient = await currentPatient();
+    const hasMembership = patient ? await hasActiveMembership(patient.id) : false;
     const services = await query(
       `SELECT s.id, s.name, s.description, s.duration_minutes, s.price, s.category_id,
               CASE
@@ -74,9 +76,10 @@ export async function GET(req: Request) {
     const settings = await query(`SELECT min_advance_hours, max_advance_days, cancel_window_hours, allow_reschedule, allow_waitlist, require_terms FROM booking_settings WHERE id = 1`);
     const policy = await query(`SELECT value FROM clinic_settings WHERE key = 'cancellation_policy'`);
     return Response.json({
-      services: services.rows,
-      locations: locations.rows,
-      staff: staff.rows,
+      hasMembership,
+      services: hasMembership ? services.rows : [],
+      locations: hasMembership ? locations.rows : [],
+      staff: hasMembership ? staff.rows : [],
       settings: settings.rows[0] ?? null,
       policy: policy.rows[0]?.value ?? null,
     });

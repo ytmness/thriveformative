@@ -338,6 +338,9 @@
     "registerToBookHint": "Create your patient account. Then you can choose a date and time.",
     "registerToBookCta": "Create account",
     "loginToBook": "I already have an account",
+    "membershipToBook": "You need an active membership to book",
+    "membershipToBookHint": "The calendar opens after you have an active plan. Buy it at the clinic, then come back to choose a date and time.",
+    "membershipToBookCta": "See programs",
     "planUnlockHint": "Some services open when your membership still has visit credits."
   },
   "auth": {
