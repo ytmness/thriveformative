@@ -58,7 +58,15 @@ export async function deductUsOnlineSale(input: {
       continue;
     }
     const ok = await deductAt(productId, locationId, line.quantity, `${input.reason}:${line.ref}`);
-    if (!ok) log.warn("inventory", "no alcanzó el stock de la sede para la venta en línea");
+    if (!ok) {
+      log.warn("inventory", "no alcanzó el stock de la sede para la venta en línea");
+      continue;
+    }
+    if (line.variationId && line.variationId !== "default") {
+      await sellSquareVariation(line.variationId, line.quantity, `${input.reason}:${line.ref}:sq`).catch(() => {
+        log.warn("inventory", "Square no descontó el stock de la venta en línea");
+      });
+    }
   }
 }
 
