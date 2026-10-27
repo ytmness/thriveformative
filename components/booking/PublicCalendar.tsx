@@ -196,7 +196,7 @@ export default function PublicCalendar() {
         <p className="booking-gate__title">{t("membershipToBook")}</p>
         <p className="booking-gate__hint">{t("membershipToBookHint")}</p>
         <div className="booking-gate__actions">
-          <Link href={`/${locale}#servicios`} className="btn-primary">{t("membershipToBookCta")}</Link>
+          <Link href={`/${locale}#suscripcion`} className="btn-primary">{t("membershipToBookCta")}</Link>
         </div>
       </div>
     );

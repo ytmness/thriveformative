@@ -2,6 +2,7 @@
 
 import AnimatedSection from "@/components/AnimatedSection";
 import BookingSection from "@/components/BookingSection";
+import MembershipPlans from "@/components/memberships/MembershipPlans";
 import GiantScrollCard from "@/components/GiantScrollCard";
 import WaveDivider from "@/components/WaveDivider";
 import CmsEditableZone from "@/components/admin/cms/CmsEditableZone";
@@ -402,6 +403,12 @@ export default function HomePageSections({
             ) : null}
           </section>
         </GiantScrollCard>
+
+        {!editable ? (
+          <GiantScrollCard variant="slideUp" id="suscripcion">
+            <MembershipPlans />
+          </GiantScrollCard>
+        ) : null}
 
         {previewAfterServices}
 

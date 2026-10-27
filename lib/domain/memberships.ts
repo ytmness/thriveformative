@@ -122,6 +122,65 @@ export async function assertActiveMembership(patientId: string, q?: TxQuery) {
   throw new DomainError("Necesitas una membresía activa para agendar.", 403);
 }
 
+export type PublicMembershipPlan = {
+  id: string;
+  name: string;
+  price: number;
+  intervalUnit: "month" | "year" | "day90";
+  description: string;
+  items: { serviceName: string; quantity: number }[];
+};
+
+export async function listPublicMemberships(market: "MX" | "US" = "MX"): Promise<PublicMembershipPlan[]> {
+  const rows = await poolQuery<{
+    id: string;
+    name: string;
+    price: string;
+    interval_unit: string;
+    description: string;
+  }>(
+    `SELECT id, name, price::text, interval_unit, description
+     FROM memberships
+     WHERE is_active
+     ORDER BY CASE interval_unit WHEN 'month' THEN 0 WHEN 'day90' THEN 1 ELSE 2 END, price`
+  );
+  const items = await poolQuery<{ membership_id: string; service_name: string; quantity: number }>(
+    `SELECT mi.membership_id, s.name AS service_name, mi.quantity
+     FROM membership_items mi
+     JOIN services s ON s.id = mi.service_id
+     ORDER BY s.name`
+  );
+  const plans = rows.rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    price: Number(row.price || 0),
+    intervalUnit: intervalUnitOf(row.interval_unit),
+    description: row.description || "",
+    items: items.rows
+      .filter((item) => item.membership_id === row.id)
+      .map((item) => ({ serviceName: item.service_name, quantity: Number(item.quantity || 0) })),
+  }));
+  if (market === "MX") return plans.filter((plan) => plan.intervalUnit !== "month");
+  return plans;
+}
+
+export async function hasActivePlan(patientId: string, membershipId: string, q?: TxQuery) {
+  const run = db(q);
+  const row = await run<{ ok: boolean }>(
+    `SELECT EXISTS (
+       SELECT 1
+       FROM patient_memberships
+       WHERE patient_id = $1
+         AND membership_id = $2
+         AND status = 'active'
+         AND (current_period_start IS NULL OR current_period_start <= current_date)
+         AND (current_period_end IS NULL OR current_period_end >= current_date)
+     ) AS ok`,
+    [patientId, membershipId]
+  );
+  return Boolean(row.rows[0]?.ok);
+}
+
 export async function creditForService(
   input: { patientId: string; serviceId: string },
   q?: TxQuery

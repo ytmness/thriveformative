@@ -169,6 +169,24 @@ export async function ensureSquareCustomer(input: {
   return created.customer.id;
 }
 
+export async function tryCreateSquareCard(input: { customerId: string; sourceId: string }) {
+  try {
+    const created = await squareFetch<{ card?: { id?: string } }>("/v2/cards", {
+      method: "POST",
+      body: {
+        idempotency_key: randomUUID(),
+        source_id: input.sourceId,
+        card: { customer_id: input.customerId },
+      },
+    });
+    return created.card?.id || null;
+  } catch (error) {
+    const message = error instanceof SquareApiError ? error.message : error instanceof Error ? error.message : "Square";
+    log.warn("memberships", "no se pudo guardar la tarjeta en Square", { name: message });
+    return null;
+  }
+}
+
 /** Crea la suscripción solo si hay tarjeta en archivo; si no, deja renovación manual. */
 export async function tryCreateSquareSubscription(input: {
   membershipId: string;

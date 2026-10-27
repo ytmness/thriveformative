@@ -77,6 +77,7 @@ export default function Header({ preview }: HeaderProps = {}) {
     ? [
         { key: "home", href: `#inicio`, hashOnly: true },
         { key: "services", href: `#servicios`, hashOnly: true },
+        { key: "plans", href: `#suscripcion`, hashOnly: true },
         { key: "doctor", href: `#doctor`, hashOnly: true },
         { key: "news", href: `#noticias`, hashOnly: true, label: t("nav.news") },
         { key: "faq", href: `#faq`, hashOnly: true },
@@ -84,6 +85,7 @@ export default function Header({ preview }: HeaderProps = {}) {
     : [
         { key: "home", href: `/${locale}#inicio` },
         { key: "services", href: `/${locale}#servicios` },
+        { key: "plans", href: `/${locale}#suscripcion` },
         { key: "doctor", href: `/${locale}/info#doctor` },
         { key: "news", href: `/${locale}/noticias` },
         { key: "shapescale", href: `/${locale}/shapescale` },

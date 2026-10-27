@@ -864,6 +864,38 @@
     padding-top: 0.5rem;
     padding-bottom: 0.5rem;
   }
+  .plans-section__grid--two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 46rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+.plan-card-plan__price {
+  margin: 0.85rem 0 0;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(1.85rem, 2vw, 2.35rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: rgb(var(--text));
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .plan-card-plan__price {
+    text-align: left;
+  }
+}
+
+.plan-card-plan__cadence {
+  margin-left: 0.35rem;
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: rgb(var(--muted));
 }
 
 /* Tarjeta */
