@@ -55,9 +55,20 @@ function PhoneField({
 }) {
   const options = useMemo(() => {
     const names = new Intl.DisplayNames([locale], { type: "region" });
-    return Object.keys(CALLING_CODES)
+    const allOptions = Object.keys(CALLING_CODES)
       .map((iso) => ({ iso, dial: CALLING_CODES[iso], name: names.of(iso) || iso }))
       .sort((a, b) => a.name.localeCompare(b.name, locale));
+    
+    // Pin MX and US at the top
+    const pinned = allOptions.filter((opt) => opt.iso === "MX" || opt.iso === "US");
+    const rest = allOptions.filter((opt) => opt.iso !== "MX" && opt.iso !== "US");
+    
+    // Sort pinned: MX first if Spanish, US first if English
+    const sortedPinned = locale.startsWith("es") 
+      ? pinned.sort((a, b) => a.iso === "MX" ? -1 : 1)
+      : pinned.sort((a, b) => a.iso === "US" ? -1 : 1);
+    
+    return [...sortedPinned, ...rest];
   }, [locale]);
 
   return (
