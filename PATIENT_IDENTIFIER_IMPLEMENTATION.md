@@ -163,6 +163,16 @@ El identificador está incluido en:
 
 Para verificar la generación del identificador:
 
+### 1. Ejecutar el script de verificación
+
+```bash
+node scripts/verify-patient-identifiers.mjs
+```
+
+Este script ejecuta 7 casos de prueba incluyendo casos extremos con acentos, Ñ, y nombres compuestos.
+
+### 2. Prueba manual en la UI
+
 1. Crear un paciente de prueba:
    - Primer nombre: `Hugo`
    - Segundo nombre: `Gerardo`
@@ -175,3 +185,17 @@ Para verificar la generación del identificador:
 3. Buscar por ese identificador en el directorio de pacientes
 
 4. Verificar que aparece en el resumen del paciente
+
+### Casos de Prueba Incluidos
+
+El script de verificación incluye los siguientes casos:
+
+| Caso | Entrada | ID Esperado |
+|------|---------|-------------|
+| Caso del staff | Hugo Gerardo Flores Castano (1965-05-26) | `HGFC052665` |
+| Sin segundo nombre | María López García (1990-12-31) | `MXLG123190` |
+| Sin apellido materno | José Antonio Rodríguez (1985-01-01) | `JARX010185` |
+| Sin 2° nombre ni ap. materno | Ana Martínez (2000-07-15) | `AXMX071500` |
+| Con acentos | Andrés José Pérez Gómez (1975-03-20) | `AJPG032075` |
+| Con Ñ | Iñaki Muñoz Peña (1988-11-05) | `IXMP110588` |
+| Nombres compuestos | José María De la Garza Santos (1970-09-10) | `JXDS091070` |
