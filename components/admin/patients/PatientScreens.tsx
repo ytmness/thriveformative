@@ -1001,7 +1001,7 @@ function SessionCard({ patientId, row, onChange, onDelete, onError }: { patientI
 function PatientSummary({ patient }: { patient: Patient }) {
   const address = [patient.street, patient.streetNumber, patient.neighborhood, patient.city, patient.state, patient.postalCode, patient.country].filter(Boolean).join(", ");
   const facts: [string, unknown][] = [
-    ...(patient.patientIdentifier ? [["Identificador", patient.patientIdentifier]] : []),
+    ...(patient.patientIdentifier ? [["Identificador", patient.patientIdentifier] as [string, unknown]] : []),
     ["Código", patient.clientCode],
     ["Email", patient.email],
     ["Móvil", patient.mobile],
