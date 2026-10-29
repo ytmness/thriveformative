@@ -2,6 +2,7 @@ import { writeAudit } from "@/lib/audit";
 import type { StaffSession } from "@/lib/auth/session";
 import { contactHash, decryptPhi, encryptPhi, normalizeEmail } from "@/lib/crypto/phi";
 import { countrySql, locationCountrySql, normalizeCountry } from "@/lib/domain/scope";
+import { generatePatientIdentifier } from "@/lib/domain/patientIdentifier";
 import { query } from "@/lib/db";
 import { DomainError, pageParams } from "@/lib/http";
 import { emitWebhook } from "@/lib/webhooks/emit";
@@ -11,7 +12,10 @@ export type PatientInput = {
   ownerStaffId?: string | null;
   salutation?: string | null;
   firstName: string;
+  middleName?: string | null;
   lastName: string;
+  paternalSurname?: string | null;
+  maternalSurname?: string | null;
   sex?: string | null;
   sexDetail?: string | null;
   birthDate?: string | null;
@@ -45,11 +49,15 @@ function mapPatient(row: Record<string, unknown>) {
   return {
     id: String(row.id),
     clientCode: row.client_code,
+    patientIdentifier: row.patient_identifier,
     locationId: row.location_id,
     ownerStaffId: row.owner_staff_id,
     salutation: row.salutation,
     firstName: row.first_name,
+    middleName: row.middle_name,
     lastName: row.last_name,
+    paternalSurname: row.paternal_surname,
+    maternalSurname: row.maternal_surname,
     sex: row.sex,
     sexDetail: row.sex_detail,
     birthDate: row.birth_date,
@@ -146,7 +154,7 @@ export async function listPatients(url: URL) {
   const whereBase = `
     WHERE p.deleted_at IS NULL
       AND ($1 = '' OR (p.first_name || ' ' || p.last_name) ILIKE $2 OR p.client_code ILIKE $2
-           OR p.email_hash = $3 OR p.mobile_hash = $4 OR p.phone_hash = $4)
+           OR p.patient_identifier ILIKE $2 OR p.email_hash = $3 OR p.mobile_hash = $4 OR p.phone_hash = $4)
       AND (
         $5::uuid IS NULL
         OR p.location_id = $5
@@ -244,22 +252,63 @@ export async function createPatient(input: PatientInput, actor: StaffSession | n
   const code = await query<{ code: string }>(
     `SELECT 'TF-' || lpad(nextval('patient_code_seq')::text, 5, '0') AS code`
   );
+  
+  // Generar identificador si tenemos los datos necesarios
+  let patientIdentifier: string | null = null;
+  if (input.birthDate && input.firstName && (input.paternalSurname || input.lastName)) {
+    try {
+      const firstName = input.firstName;
+      const middleName = input.middleName || null;
+      const paternalSurname = input.paternalSurname || input.lastName;
+      const maternalSurname = input.maternalSurname || null;
+      
+      patientIdentifier = generatePatientIdentifier(
+        firstName,
+        middleName,
+        paternalSurname,
+        maternalSurname,
+        input.birthDate
+      );
+      
+      // Verificar si ya existe este identificador
+      const existing = await query<{ id: string }>(
+        `SELECT id FROM patients WHERE patient_identifier = $1 AND deleted_at IS NULL`,
+        [patientIdentifier]
+      );
+      
+      // Si existe, agregar sufijo basado en el código secuencial
+      if (existing.rows.length > 0) {
+        const suffix = code.rows[0].code.replace("TF-", "").slice(-2);
+        patientIdentifier = `${patientIdentifier.slice(0, 8)}-${suffix}`;
+      }
+    } catch (err) {
+      // Si falla la generación del identificador, continuamos sin él
+      // (permitimos crear el paciente y generar el ID más adelante cuando tengamos todos los datos)
+      console.warn("No se pudo generar identificador automático:", err);
+    }
+  }
+  
   const inserted = await query<{ id: string }>(
     `INSERT INTO patients (
-       client_code, location_id, owner_staff_id, salutation, first_name, last_name, sex, birth_date,
+       client_code, patient_identifier, location_id, owner_staff_id, salutation, first_name, middle_name, 
+       last_name, paternal_surname, maternal_surname, sex, birth_date,
        preferred_language, marketing_source_id, referred_by_name, email_enc, email_hash, mobile_enc,
        mobile_hash, phone_enc, phone_hash, street, city, state, country, postal_code,
        consent_sms, consent_email, consent_phone, consent_postal, privacy_policy_status, created_by
      ) VALUES (
-       $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28
+       $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32
      ) RETURNING id`,
     [
       code.rows[0].code,
+      patientIdentifier,
       input.locationId ?? null,
       input.ownerStaffId ?? null,
       input.salutation ?? null,
       input.firstName.trim(),
+      input.middleName?.trim() ?? null,
       input.lastName.trim(),
+      input.paternalSurname?.trim() ?? null,
+      input.maternalSurname?.trim() ?? null,
       input.sex ?? null,
       input.birthDate || null,
       input.preferredLanguage || "es",
@@ -308,11 +357,12 @@ export async function updatePatient(id: string, input: PatientInput, actor: Staf
   if (!existing.rows[0]) throw new DomainError("Paciente no encontrado.", 404);
   await query(
     `UPDATE patients SET
-       location_id=$2, owner_staff_id=$3, salutation=$4, first_name=$5, last_name=$6, sex=$7, birth_date=$8,
-       preferred_language=$9, marketing_source_id=$10, referred_by_name=$11, email_enc=$12, email_hash=$13,
-       mobile_enc=$14, mobile_hash=$15, phone_enc=$16, phone_hash=$17, street=$18, city=$19, state=$20,
-       country=$21, postal_code=$22, consent_sms=$23, consent_email=$24, consent_phone=$25, consent_postal=$26,
-       privacy_policy_status=$27
+       location_id=$2, owner_staff_id=$3, salutation=$4, first_name=$5, middle_name=$6, last_name=$7, 
+       paternal_surname=$8, maternal_surname=$9, sex=$10, birth_date=$11,
+       preferred_language=$12, marketing_source_id=$13, referred_by_name=$14, email_enc=$15, email_hash=$16,
+       mobile_enc=$17, mobile_hash=$18, phone_enc=$19, phone_hash=$20, street=$21, city=$22, state=$23,
+       country=$24, postal_code=$25, consent_sms=$26, consent_email=$27, consent_phone=$28, consent_postal=$29,
+       privacy_policy_status=$30
      WHERE id = $1`,
     [
       id,
@@ -320,7 +370,10 @@ export async function updatePatient(id: string, input: PatientInput, actor: Staf
       input.ownerStaffId ?? null,
       input.salutation ?? null,
       input.firstName.trim(),
+      input.middleName?.trim() ?? null,
       input.lastName.trim(),
+      input.paternalSurname?.trim() ?? null,
+      input.maternalSurname?.trim() ?? null,
       input.sex ?? null,
       input.birthDate || null,
       input.preferredLanguage || "es",

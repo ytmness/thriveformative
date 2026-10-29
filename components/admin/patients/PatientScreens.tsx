@@ -12,7 +12,7 @@ import type { StoreReceiptData } from "@/lib/store/orderTypes";
 import "@/app/styles/tienda.css";
 
 type Patient = Record<string, unknown> & {
-  id: string; firstName: string; lastName: string; clientCode: string;
+  id: string; firstName: string; lastName: string; clientCode: string; patientIdentifier?: string | null;
   email?: string; mobile?: string; phone?: string; city?: string; state?: string;
   sex?: string | null; createdAt?: string; marketingSource?: string | null; privacyPolicyStatus?: string;
   tags?: { id?: string; name?: string }[];
@@ -44,7 +44,7 @@ function privacyLabel(status?: string, english = false) {
 }
 
 const EMPTY = {
-  firstName: "", lastName: "", salutation: "", sex: "", birthDate: "", preferredLanguage: "es",
+  firstName: "", middleName: "", lastName: "", paternalSurname: "", maternalSurname: "", salutation: "", sex: "", birthDate: "", preferredLanguage: "es",
   email: "", mobile: "", phone: "", street: "", city: "", state: "", country: "", postalCode: "",
   referredByName: "", privacyPolicyStatus: "sin_respuesta", locationId: "", ownerStaffId: "", marketingSourceId: "",
   consentSms: false, consentEmail: false, consentPhone: false, consentPostal: false,
@@ -139,6 +139,12 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
       setError("Nombre y apellido son obligatorios.");
       return;
     }
+    // Si hay fecha de nacimiento, requerir apellido paterno para generar el identificador
+    if (form.birthDate && !String(form.paternalSurname || form.lastName || "").trim()) {
+      setSection("identidad");
+      setError("El apellido paterno es necesario para generar el identificador del paciente.");
+      return;
+    }
     try {
       const customFields = options.fields.map((field) => ({ fieldId: field.id, value: form[`cf_${field.id}`] ?? "" }));
       const created = await api<{ patient: { id: string } }>("/api/admin/patients", { method: "POST", body: JSON.stringify({ ...form, customFields }) });
@@ -189,12 +195,12 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
       <div className="patient-directory">
       <div className="admin-toolbar" data-tour="patients-tools">
         <div className="admin-patient-search">
-          <input ref={searchRef} value={q} placeholder={english ? "Search name, code, email, or phone" : "Buscar nombre, código, email o teléfono"} onChange={(e) => { setQ(e.target.value); setPalette(true); }} onFocus={() => setPalette(true)} onKeyDown={(e) => { if (e.key === "Enter") { setPalette(false); setPage(1); load(1, q); } if (e.key === "Escape") setPalette(false); }} />
+          <input ref={searchRef} value={q} placeholder={english ? "Search name, ID, code, email, or phone" : "Buscar nombre, ID, código, email o teléfono"} onChange={(e) => { setQ(e.target.value); setPalette(true); }} onFocus={() => setPalette(true)} onKeyDown={(e) => { if (e.key === "Enter") { setPalette(false); setPage(1); load(1, q); } if (e.key === "Escape") setPalette(false); }} />
           {palette && q.trim().length >= 2 ? (
             <div className="admin-palette" role="listbox">
               {hits.map((hit) => (
                 <button key={hit.id} type="button" onClick={() => { setPalette(false); router.push(`/admin/pacientes/${hit.id}`); }}>
-                  {hit.firstName} {hit.lastName}<span>{hit.clientCode}</span>
+                  {hit.firstName} {hit.lastName}<span>{hit.patientIdentifier || hit.clientCode}</span>
                 </button>
               ))}
               {!hits.length ? <p>{english ? "No matches" : "Sin coincidencias"}</p> : null}
@@ -247,7 +253,7 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
                   </button>
                   <span>
                     <span className="admin-table__cell-title">{row.firstName} {row.lastName}</span>
-                    <span className="admin-table__cell-sub">{sexLabel(row.sex, english)} · {row.clientCode}</span>
+                    <span className="admin-table__cell-sub">{sexLabel(row.sex, english)} · {row.patientIdentifier || row.clientCode}</span>
                   </span>
                 </div>
                 <div>
@@ -340,12 +346,17 @@ export function PatientFields({ form, setForm, options, section = "identidad" }:
         <div className="span-2">
           <div className="admin-patient-row admin-patient-row--3">
             <label className="admin-field"><span className="admin-field__label">{english ? "Title" : "Saludo"}</span><select value={String(form.salutation || "")} onChange={(e) => set("salutation", e.target.value)}><option value="">{english ? "none" : "ninguno"}</option><option>Sr.</option><option>Sra.</option><option>Srta.</option><option>Dr.</option><option>Dra.</option></select></label>
-            <label className="admin-field"><span className="admin-field__label">{english ? "First name" : "Nombre"}<span className="admin-req"> *</span></span><input required value={String(form.firstName || "")} onChange={(e) => set("firstName", e.target.value)} /></label>
-            <label className="admin-field"><span className="admin-field__label">{english ? "Last name" : "Apellido"}<span className="admin-req"> *</span></span><input required value={String(form.lastName || "")} onChange={(e) => set("lastName", e.target.value)} /></label>
+            <label className="admin-field"><span className="admin-field__label">{english ? "First name" : "Primer nombre"}<span className="admin-req"> *</span></span><input required value={String(form.firstName || "")} onChange={(e) => set("firstName", e.target.value)} /></label>
+            <label className="admin-field"><span className="admin-field__label">{english ? "Middle name" : "Segundo nombre"}</span><input value={String(form.middleName || "")} onChange={(e) => set("middleName", e.target.value)} /></label>
+          </div>
+          <div className="admin-patient-row admin-patient-row--3">
+            <label className="admin-field"><span className="admin-field__label">{english ? "Last name (legacy)" : "Apellido (legado)"}<span className="admin-req"> *</span></span><input required value={String(form.lastName || "")} onChange={(e) => set("lastName", e.target.value)} /></label>
+            <label className="admin-field"><span className="admin-field__label">{english ? "Paternal surname" : "Apellido paterno"}</span><input value={String(form.paternalSurname || "")} onChange={(e) => set("paternalSurname", e.target.value)} placeholder={english ? "Used for ID" : "Usado para ID"} /></label>
+            <label className="admin-field"><span className="admin-field__label">{english ? "Maternal surname" : "Apellido materno"}</span><input value={String(form.maternalSurname || "")} onChange={(e) => set("maternalSurname", e.target.value)} placeholder={english ? "Used for ID" : "Usado para ID"} /></label>
           </div>
           <div className="admin-patient-row admin-patient-row--2">
             <label className="admin-field"><span className="admin-field__label">{english ? "Sex" : "Sexo"}</span><select value={String(form.sex || "")} onChange={(e) => set("sex", e.target.value)}><option value="">—</option><option value="masculino">{english ? "Male" : "Masculino"}</option><option value="femenino">{english ? "Female" : "Femenino"}</option><option value="otro">{english ? "Other designation" : "Otro / otra designación"}</option><option value="prefiere_no">{english ? "Prefer not to say" : "Prefiere no responder"}</option></select></label>
-            <label className="admin-field"><span className="admin-field__label">{english ? "Date of birth" : "Nacimiento"}</span><input type="date" value={String(form.birthDate || "").slice(0, 10)} onChange={(e) => set("birthDate", e.target.value)} /></label>
+            <label className="admin-field"><span className="admin-field__label">{english ? "Date of birth" : "Nacimiento"}</span><input type="date" value={String(form.birthDate || "").slice(0, 10)} onChange={(e) => set("birthDate", e.target.value)} placeholder={english ? "Required for ID" : "Requerido para ID"} /></label>
           </div>
           <div className="admin-patient-row admin-patient-row--2">
             <label className="admin-field"><span className="admin-field__label">{english ? "Language" : "Idioma"}</span><select value={String(form.preferredLanguage || "es")} onChange={(e) => set("preferredLanguage", e.target.value)}><option value="es">{english ? "Spanish" : "Español"}</option><option value="en">{english ? "English" : "Inglés"}</option></select></label>
@@ -528,7 +539,16 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
     <>
       <header className="admin-header admin-header--chart">
         <div className="admin-header__copy">
-          <p className="admin-header__eyebrow">{String(patient.clientCode || "")}</p>
+          <p className="admin-header__eyebrow">
+            {patient.patientIdentifier ? (
+              <>
+                <strong>{patient.patientIdentifier}</strong>
+                {patient.clientCode ? <span style={{ opacity: 0.6, marginLeft: "0.5rem" }}>({patient.clientCode})</span> : null}
+              </>
+            ) : (
+              String(patient.clientCode || "")
+            )}
+          </p>
           <h1 className="admin-header__title">{patient.firstName} {patient.lastName}</h1>
           <p className="admin-header__desc">{english ? "Created" : "Creado"} {patient.createdAt ? new Date(String(patient.createdAt)).toLocaleString(english ? "en-US" : "es-MX") : ""}</p>
         </div>
@@ -981,6 +1001,7 @@ function SessionCard({ patientId, row, onChange, onDelete, onError }: { patientI
 function PatientSummary({ patient }: { patient: Patient }) {
   const address = [patient.street, patient.streetNumber, patient.neighborhood, patient.city, patient.state, patient.postalCode, patient.country].filter(Boolean).join(", ");
   const facts: [string, unknown][] = [
+    ...(patient.patientIdentifier ? [["Identificador", patient.patientIdentifier]] : []),
     ["Código", patient.clientCode],
     ["Email", patient.email],
     ["Móvil", patient.mobile],
