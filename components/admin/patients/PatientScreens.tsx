@@ -539,7 +539,16 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
     <>
       <header className="admin-header admin-header--chart">
         <div className="admin-header__copy">
-          <p className="admin-header__eyebrow">{String(patient.patientIdentifier || patient.clientCode || "")}</p>
+          <p className="admin-header__eyebrow">
+            {patient.patientIdentifier ? (
+              <>
+                <strong>{patient.patientIdentifier}</strong>
+                {patient.clientCode ? <span style={{ opacity: 0.6, marginLeft: "0.5rem" }}>({patient.clientCode})</span> : null}
+              </>
+            ) : (
+              String(patient.clientCode || "")
+            )}
+          </p>
           <h1 className="admin-header__title">{patient.firstName} {patient.lastName}</h1>
           <p className="admin-header__desc">{english ? "Created" : "Creado"} {patient.createdAt ? new Date(String(patient.createdAt)).toLocaleString(english ? "en-US" : "es-MX") : ""}</p>
         </div>
@@ -992,8 +1001,8 @@ function SessionCard({ patientId, row, onChange, onDelete, onError }: { patientI
 function PatientSummary({ patient }: { patient: Patient }) {
   const address = [patient.street, patient.streetNumber, patient.neighborhood, patient.city, patient.state, patient.postalCode, patient.country].filter(Boolean).join(", ");
   const facts: [string, unknown][] = [
+    ...(patient.patientIdentifier ? [["Identificador", patient.patientIdentifier]] : []),
     ["Código", patient.clientCode],
-    ["Identificador", patient.patientIdentifier || "—"],
     ["Email", patient.email],
     ["Móvil", patient.mobile],
     ["Teléfono", patient.phone],

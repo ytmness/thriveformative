@@ -135,7 +135,27 @@ Luego ejecutar el backfill:
 node scripts/backfill-patient-identifiers.mjs
 ```
 
-### 3. Verificar
+**Nota:** El script ahora parsea automáticamente nombres compuestos en un solo campo. Por ejemplo:
+- `first_name = "Jose Roel"` se separa en `Jose` (primer nombre) + `Roel` (segundo nombre)
+- `last_name = "Maldonado Perez"` se separa en `Maldonado` (paterno) + `Perez` (materno)
+
+### 3. Alternativa: SQL directo en producción
+
+Si prefieres ejecutar SQL directamente en la base de datos (útil para producción):
+
+```bash
+psql $DATABASE_URL -f scripts/regenerate-patient-identifiers.sql
+```
+
+O ejecuta el script SQL manualmente:
+
+1. **Vista previa (dry-run):** Ejecuta el `SELECT` en el script para ver qué se generaría
+2. **Regenerar todos:** Descomenta y ejecuta el `UPDATE` principal
+3. **Regenerar uno específico:** Usa el `UPDATE` con `WHERE client_code = 'TF-XXXXX'`
+
+El script SQL incluye funciones PL/pgSQL que manejan el parsing automático de nombres compuestos.
+
+### 4. Verificar
 
 - Los nuevos pacientes creados después del despliegue tendrán identificador automático
 - Los pacientes existentes con datos completos tendrán identificador después del backfill
@@ -158,6 +178,117 @@ El identificador está incluido en:
 - **Colisiones:** Muy raras (4 letras + 6 dígitos = alta entropía), pero manejadas automáticamente
 - **Retrocompatibilidad:** El código `TF-#####` se mantiene para sistemas legacy
 - **Campos legacy:** `first_name` y `last_name` se mantienen por compatibilidad; los nuevos campos `paternal_surname` y `maternal_surname` se usan para el ID
+- **Parsing automático:** El backfill y el script SQL parsean automáticamente nombres compuestos en un solo campo
+- **Estabilidad:** Una vez generado, el identificador no cambia aunque se edite nombre o fecha de nacimiento
+
+## Troubleshooting
+
+### Problema: El identificador no aparece en el resumen del paciente
+
+**Síntomas:** En la ficha del paciente solo aparece `Código: TF-00013`, no el identificador (ej: `JRMX030671`)
+
+**Causas posibles:**
+
+1. **El identificador no se generó durante el backfill** porque el paciente tiene nombres compuestos en un solo campo
+2. **El backend no está retornando el campo** `patient_identifier` en la respuesta API
+3. **La migración no se aplicó** correctamente
+
+**Solución:**
+
+#### Opción A: Re-ejecutar el backfill mejorado
+
+El script actualizado ahora parsea nombres compuestos:
+
+```bash
+node scripts/backfill-patient-identifiers.mjs --dry-run  # Ver qué se generará
+node scripts/backfill-patient-identifiers.mjs            # Ejecutar
+```
+
+#### Opción B: SQL directo para un paciente específico
+
+Para regenerar el identificador de un paciente específico (ej: TF-00013):
+
+```sql
+-- 1. Crear las funciones auxiliares (ejecutar una vez)
+-- Ver scripts/regenerate-patient-identifiers.sql para el código completo
+
+-- 2. Vista previa para TF-00013
+SELECT 
+  client_code,
+  first_name,
+  last_name,
+  birth_date,
+  generate_patient_identifier(
+    first_name, middle_name, last_name,
+    paternal_surname, maternal_surname, birth_date
+  ) AS new_identifier
+FROM patients
+WHERE client_code = 'TF-00013';
+
+-- 3. Actualizar
+UPDATE patients
+SET patient_identifier = generate_patient_identifier(
+  first_name, middle_name, last_name,
+  paternal_surname, maternal_surname, birth_date
+)
+WHERE client_code = 'TF-00013';
+```
+
+#### Opción C: Actualizar manualmente en la UI
+
+1. Ir a la ficha del paciente
+2. Editar → completar campos separados:
+   - Si `first_name` es "Jose Roel", separar en:
+     - Primer nombre: `Jose`
+     - Segundo nombre: `Roel`
+   - Si `last_name` es "Maldonado", poner:
+     - Apellido paterno: `Maldonado`
+3. Guardar → el identificador se generará automáticamente
+
+### Problema: El identificador se generó pero no aparece en la UI
+
+**Verificar en la base de datos:**
+
+```sql
+SELECT 
+  client_code,
+  patient_identifier,
+  first_name,
+  last_name,
+  birth_date
+FROM patients
+WHERE client_code = 'TF-00013';
+```
+
+Si `patient_identifier` tiene un valor pero no aparece en la UI:
+
+1. Verificar que el frontend esté actualizado (desplegar última versión)
+2. Limpiar caché del navegador (Ctrl+F5)
+3. Verificar que el API retorna el campo en `/api/admin/patients/{id}`
+
+### Ejemplo de Caso Real: Jose Roel Maldonado (TF-00013)
+
+**Datos en BD:**
+- `first_name`: "Jose Roel" (nombres compuestos en un campo)
+- `last_name`: "Maldonado"
+- `birth_date`: 1971-03-06
+
+**ID esperado:** `JRMX030671`
+- J = Jose (primer nombre)
+- R = Roel (segundo nombre, parseado del primer campo)
+- M = Maldonado (apellido paterno)
+- X = sin apellido materno
+- 030671 = marzo 06, 1971
+
+**Cómo regenerar:**
+
+```bash
+# Opción 1: Script Node.js
+node scripts/backfill-patient-identifiers.mjs
+
+# Opción 2: SQL directo
+psql $DATABASE_URL -f scripts/regenerate-patient-identifiers.sql
+```
 
 ## Testing
 

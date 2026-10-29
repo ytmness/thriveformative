@@ -140,20 +140,42 @@ async function main() {
     } = patient;
     
     try {
-      // Usar paternalSurname si existe, sino lastName
-      const apellidoPaterno = paternal_surname || last_name;
+      // Parsear nombres si están en un solo campo
+      let firstName = first_name;
+      let middleName = middle_name;
+      
+      // Si first_name contiene espacios, separar primer y segundo nombre
+      if (first_name && first_name.includes(' ') && !middle_name) {
+        const parts = first_name.trim().split(/\s+/);
+        firstName = parts[0];
+        middleName = parts.slice(1).join(' ');
+      }
+      
+      // Parsear apellidos si están en un solo campo
+      let apellidoPaterno = paternal_surname || last_name;
+      let apellidoMaterno = maternal_surname;
+      
+      // Si last_name contiene espacios y no hay paternal_surname separado, tomar primer apellido
+      if (last_name && last_name.includes(' ') && !paternal_surname) {
+        const parts = last_name.trim().split(/\s+/);
+        apellidoPaterno = parts[0];
+        if (!maternal_surname && parts.length > 1) {
+          apellidoMaterno = parts[1];
+        }
+      }
       
       let identifier = generatePatientIdentifier(
-        first_name,
-        middle_name,
+        firstName,
+        middleName,
         apellidoPaterno,
-        maternal_surname,
+        apellidoMaterno,
         birth_date
       );
       
       if (!identifier) {
         results.skipped++;
         console.log(`⚠️  Saltado ${client_code}: No se pudo generar identificador`);
+        console.log(`   Datos: ${first_name} / ${last_name} / ${birth_date}`);
         continue;
       }
       
@@ -183,7 +205,8 @@ async function main() {
       }
       
       results.generated++;
-      console.log(`✅ ${client_code} → ${identifier} (${first_name} ${apellidoPaterno})`);
+      const displayName = `${firstName}${middleName ? ' ' + middleName : ''} ${apellidoPaterno}${apellidoMaterno ? ' ' + apellidoMaterno : ''}`;
+      console.log(`✅ ${client_code} → ${identifier} (${displayName})`);
       
     } catch (error) {
       results.errors.push({ client_code, error: error.message });
