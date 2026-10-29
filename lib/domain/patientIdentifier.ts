@@ -25,9 +25,10 @@ function normalize(text: string): string {
   if (!text) return "";
   
   return text
+    .replace(/Ñ/g, "N") // Ñ → N (antes de normalizar)
+    .replace(/ñ/g, "N") // ñ → N (antes de normalizar)
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "") // Eliminar diacríticos
-    .replace(/Ñ/gi, "N") // Ñ → N
     .toUpperCase()
     .replace(/[^A-Z]/g, ""); // Solo letras A-Z
 }
