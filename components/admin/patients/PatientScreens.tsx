@@ -371,7 +371,7 @@ export function PatientFields({ form, setForm, options, section = "identidad" }:
             <label className="admin-field"><span className="admin-field__label">{english ? "Maternal surname" : "Apellido materno"}</span><input value={String(form.maternalSurname || "")} onChange={(e) => set("maternalSurname", e.target.value)} placeholder={english ? "Used for ID" : "Usado para ID"} /></label>
           </div>
           <div className="admin-patient-row admin-patient-row--2">
-            <label className="admin-field"><span className="admin-field__label">{english ? "Sex" : "Sexo"}</span><select value={String(form.sex || "")} onChange={(e) => set("sex", e.target.value)}><option value="">—</option><option value="masculino">{english ? "Male" : "Masculino"}</option><option value="femenino">{english ? "Female" : "Femenino"}</option><option value="otro">{english ? "Other designation" : "Otro / otra designación"}</option><option value="prefiere_no">{english ? "Prefer not to say" : "Prefiere no responder"}</option></select></label>
+            <label className="admin-field"><span className="admin-field__label">{english ? "Sex" : "Sexo"}</span><select value={String(form.sex || "")} onChange={(e) => set("sex", e.target.value)}><option value="">—</option><option value="masculino">{english ? "Male" : "Masculino"}</option><option value="femenino">{english ? "Female" : "Femenino"}</option><option value="otro">{english ? "Other designation" : "Otro / otra designación"}</option></select></label>
             <label className="admin-field"><span className="admin-field__label">{english ? "Date of birth" : "Nacimiento"}</span><input type="date" value={String(form.birthDate || "").slice(0, 10)} onChange={(e) => set("birthDate", e.target.value)} placeholder={english ? "Required for ID" : "Requerido para ID"} /></label>
           </div>
           <div className="admin-patient-row admin-patient-row--2">
@@ -613,6 +613,7 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
           {folder === "notas" ? (
             editingNoteId === "new" || editingNoteId ? (
               <NoteEditor
+                key={String(editingNoteId)}
                 patientId={id}
                 noteId={editingNoteId === "new" ? undefined : editingNoteId}
                 initialTitle={
@@ -720,7 +721,7 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
               </div>
             </form>
             {rows.map((row) => (
-              <SessionCard key={String(row.id)} patientId={id} row={row} onChange={(next) => setRows(rows.map((item) => item.id === row.id ? next : item))} onDelete={() => setRows(rows.filter((item) => item.id !== row.id))} onError={setError} />
+              <SessionCard key={String(row.id)} patientId={id} row={row} english={english} onChange={(next) => setRows(rows.map((item) => item.id === row.id ? next : item))} onDelete={() => setRows(rows.filter((item) => item.id !== row.id))} onError={setError} />
             ))}
             {!rows.length ? <p className="admin-table__empty">Sin sesiones.</p> : null}
             </>
@@ -951,7 +952,7 @@ function formatClock(total: number) {
   return hours > 0 ? `${pad(hours)}:${pad(minutes)}:${pad(seconds)}` : `${pad(minutes)}:${pad(seconds)}`;
 }
 
-function SessionCard({ patientId, row, onChange, onDelete, onError }: { patientId: string; row: Record<string, unknown>; onChange: (row: Record<string, unknown>) => void; onDelete: () => void; onError: (message: string) => void }) {
+function SessionCard({ patientId, row, english = false, onChange, onDelete, onError }: { patientId: string; row: Record<string, unknown>; english?: boolean; onChange: (row: Record<string, unknown>) => void; onDelete: () => void; onError: (message: string) => void }) {
   const [title, setTitle] = useState(String(row.title || ""));
   const [notes, setNotes] = useState(String(row.notes || ""));
   const [seconds, setSeconds] = useState(Number(row.durationSeconds || 0));
@@ -1069,7 +1070,12 @@ function SessionCard({ patientId, row, onChange, onDelete, onError }: { patientI
         {running ? "En curso. Guardar termina la sesión y deja el tiempo guardado." : started ? "Tiempo guardado. Empezar vuelve a cronometrar." : "Empezar cronometra la sesión. Guardar la termina."}
         {status ? ` · ${status}` : ""}
       </p>
-      <label className="admin-field">Notas de la sesión<textarea value={notes} onChange={(e) => setNotes(e.target.value)} /></label>
+      <NoteEditor
+        variant="session"
+        initialBody={notes}
+        onBodyChange={setNotes}
+        english={english}
+      />
     </form>
   );
 }

@@ -132,7 +132,7 @@ export default function RegisterPage() {
   const [city, setCity] = useState("");
   const [region, setRegion] = useState("");
   const [postalCode, setPostalCode] = useState("");
-  const [sex, setSex] = useState<"female" | "male" | "other" | "prefer_not" | "">("");
+  const [sex, setSex] = useState<"female" | "male" | "other" | "">("");
   const [sexDetail, setSexDetail] = useState("");
   const [emergencyName, setEmergencyName] = useState("");
   const [emergencyPhone, setEmergencyPhone] = useState("");
@@ -609,7 +609,6 @@ export default function RegisterPage() {
               <option value="female">{t("sexFemale")}</option>
               <option value="male">{t("sexMale")}</option>
               <option value="other">{t("sexAnother")}</option>
-              <option value="prefer_not">{t("sexPreferNot")}</option>
             </select>
           </div>
           <div className="min-w-0">
