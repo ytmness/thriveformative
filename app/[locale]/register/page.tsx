@@ -157,6 +157,9 @@ export default function RegisterPage() {
   const [pendingEmail, setPendingEmail] = useState("");
   const [otpCode, setOtpCode] = useState("");
   const [verifying, setVerifying] = useState(false);
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     rememberNextPath(searchParams.get("next"));
@@ -192,6 +195,36 @@ export default function RegisterPage() {
     if (computed) setAge(computed);
   }, [birthIso]);
 
+  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setUploadingPhoto(true);
+    setError(null);
+    
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      const uploadRes = await fetch("/api/upload-profile-photo", {
+        method: "POST",
+        body: formData,
+      });
+      
+      if (!uploadRes.ok) {
+        const errorData = await uploadRes.json();
+        throw new Error(errorData.error || "Error subiendo foto");
+      }
+      
+      const { url } = await uploadRes.json();
+      setProfilePhotoUrl(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error subiendo foto");
+    } finally {
+      setUploadingPhoto(false);
+    }
+  }
+
   function profilePayload() {
     const us = usAddress;
     return {
@@ -219,6 +252,7 @@ export default function RegisterPage() {
       acceptedPolicies,
       referralSource: referralSource || null,
       referralSourceOther: referralSource === "other" ? referralOther.trim() || null : null,
+      profilePhotoUrl: profilePhotoUrl || null,
       locale,
     };
   }
@@ -339,6 +373,48 @@ export default function RegisterPage() {
             <input id="maternalSurname" type="text" value={maternalSurname} onChange={(e) => setMaternalSurname(e.target.value)} className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]" placeholder={t("maternalSurnamePlaceholder")} />
           </div>
           )}
+        </div>
+        <div>
+          <label className="block text-base font-medium text-muted mb-2">
+            {locale === "en" ? "Profile Photo (Optional)" : "Foto de perfil (Opcional)"}
+          </label>
+          <div className="flex items-center gap-4">
+            {profilePhotoUrl ? (
+              <img 
+                src={profilePhotoUrl} 
+                alt="Profile" 
+                className="w-20 h-20 rounded-full object-cover border-2 border-theme"
+              />
+            ) : (
+              <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-2xl text-gray-500">
+                👤
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => photoInputRef.current?.click()}
+              disabled={uploadingPhoto}
+              className="btn-primary px-4 py-2 rounded-xl text-sm font-medium disabled:opacity-60"
+            >
+              {uploadingPhoto ? (locale === "en" ? "Uploading..." : "Subiendo...") : (locale === "en" ? "Choose Photo" : "Elegir foto")}
+            </button>
+            {profilePhotoUrl && (
+              <button
+                type="button"
+                onClick={() => setProfilePhotoUrl(null)}
+                className="text-sm text-muted hover:underline"
+              >
+                {locale === "en" ? "Remove" : "Quitar"}
+              </button>
+            )}
+          </div>
+          <input
+            ref={photoInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={handlePhotoUpload}
+            className="hidden"
+          />
         </div>
         <div>
           <label htmlFor="email" className="block text-base font-medium text-muted mb-2">
