@@ -358,16 +358,7 @@
 }
 .patient-directory__who { display: flex; align-items: center; gap: 0.65rem; padding: 0; border: 0; background: transparent; color: inherit; text-align: left; font: inherit; min-width: 0; }
 .patient-directory__avatar { 
-  width: 2.25rem; 
-  height: 2.25rem; 
-  border-radius: 50%; 
-  background: rgb(var(--primary) / 0.12); 
   flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  color: rgb(var(--primary));
-  font-weight: 600;
-  font-size: 0.9rem;
 }
 .patient-directory__name-wrap {
   min-width: 0;
