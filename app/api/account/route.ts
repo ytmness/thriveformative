@@ -113,7 +113,7 @@ export async function GET() {
   ].sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
 
   return Response.json({
-    patient: { name: patient.name, email: patient.email },
+    patient: { name: patient.name, email: patient.email, profilePhotoUrl: patient.profilePhotoUrl },
     orders,
     invoices,
     credits,

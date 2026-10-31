@@ -7,6 +7,7 @@ import { api } from "@/components/admin/clinic/client";
 import { countryCode, useAdminEnglish, useClinicScope } from "@/components/admin/clinic/ClinicScope";
 import { Button, CloseButton, EmptyState, Tabs, Toast } from "@/components/admin/ui";
 import StoreReceipt from "@/components/store/StoreReceipt";
+import { PatientAvatar } from "@/components/PatientAvatar";
 import { majorToMinor } from "@/lib/square/money";
 import type { StoreReceiptData } from "@/lib/store/orderTypes";
 import "@/app/styles/tienda.css";
@@ -15,6 +16,7 @@ type Patient = Record<string, unknown> & {
   id: string; firstName: string; lastName: string; clientCode: string; patientIdentifier?: string | null;
   email?: string; mobile?: string; phone?: string; city?: string; state?: string;
   sex?: string | null; createdAt?: string; marketingSource?: string | null; privacyPolicyStatus?: string;
+  profilePhotoUrl?: string | null;
   tags?: { id?: string; name?: string }[];
 };
 
@@ -538,19 +540,27 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
   return (
     <>
       <header className="admin-header admin-header--chart">
-        <div className="admin-header__copy">
-          <p className="admin-header__eyebrow">
-            {patient.patientIdentifier ? (
-              <>
-                <strong>{patient.patientIdentifier}</strong>
-                {patient.clientCode ? <span style={{ opacity: 0.6, marginLeft: "0.5rem" }}>({patient.clientCode})</span> : null}
-              </>
-            ) : (
-              String(patient.clientCode || "")
-            )}
-          </p>
-          <h1 className="admin-header__title">{patient.firstName} {patient.lastName}</h1>
-          <p className="admin-header__desc">{english ? "Created" : "Creado"} {patient.createdAt ? new Date(String(patient.createdAt)).toLocaleString(english ? "en-US" : "es-MX") : ""}</p>
+        <div className="admin-header__copy" style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <PatientAvatar 
+            firstName={patient.firstName} 
+            lastName={patient.lastName} 
+            photoUrl={patient.profilePhotoUrl}
+            size="large"
+          />
+          <div>
+            <p className="admin-header__eyebrow">
+              {patient.patientIdentifier ? (
+                <>
+                  <strong>{patient.patientIdentifier}</strong>
+                  {patient.clientCode ? <span style={{ opacity: 0.6, marginLeft: "0.5rem" }}>({patient.clientCode})</span> : null}
+                </>
+              ) : (
+                String(patient.clientCode || "")
+              )}
+            </p>
+            <h1 className="admin-header__title">{patient.firstName} {patient.lastName}</h1>
+            <p className="admin-header__desc">{english ? "Created" : "Creado"} {patient.createdAt ? new Date(String(patient.createdAt)).toLocaleString(english ? "en-US" : "es-MX") : ""}</p>
+          </div>
         </div>
         <button className="admin-btn admin-btn--ghost admin-chart-archive" type="button" data-tour="chart-archive" onClick={async () => {
           if (!window.confirm(english ? `Archive ${patient.firstName} ${patient.lastName}? The chart stays, but they leave the list.` : `¿Archivar a ${patient.firstName} ${patient.lastName}? El expediente se conserva, pero dejará de aparecer en la lista.`)) return;
@@ -1017,13 +1027,27 @@ function PatientSummary({ patient }: { patient: Patient }) {
     ["Email comercial", patient.consentEmail ? "Autorizado" : "Sin autorización"],
   ];
   return (
-    <dl className="admin-facts">
-      {facts.map(([label, value]) => (
-        <div key={label}>
-          <dt>{label}</dt>
-          <dd>{value ? String(value) : "—"}</dd>
+    <div>
+      <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", marginBottom: "2rem" }}>
+        <PatientAvatar 
+          firstName={patient.firstName} 
+          lastName={patient.lastName} 
+          photoUrl={patient.profilePhotoUrl}
+          size="large"
+        />
+        <div>
+          <h2 style={{ fontSize: "1.5rem", margin: 0 }}>{patient.firstName} {patient.lastName}</h2>
+          <p style={{ margin: "0.25rem 0 0", color: "rgb(var(--muted))" }}>{patient.patientIdentifier || patient.clientCode}</p>
         </div>
-      ))}
-    </dl>
+      </div>
+      <dl className="admin-facts">
+        {facts.map(([label, value]) => (
+          <div key={label}>
+            <dt>{label}</dt>
+            <dd>{value ? String(value) : "—"}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
   );
 }

@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { api } from "@/components/admin/clinic/client";
+import { PatientAvatar } from "@/components/PatientAvatar";
 
 type Order = {
   id: string;
@@ -28,7 +29,7 @@ type Credit = {
   clockPending?: boolean;
 };
 type Home = {
-  patient: { name: string; email: string };
+  patient: { name: string; email: string; profilePhotoUrl?: string | null };
   orders: Order[];
   invoices: Invoice[];
   credits?: Credit[];
@@ -57,6 +58,8 @@ export default function AccountHome() {
   const t = useTranslations("account");
   const [home, setHome] = useState<Home | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     api<Home>("/api/account")
@@ -65,6 +68,43 @@ export default function AccountHome() {
         window.location.href = `/${locale}/login`;
       });
   }, [locale]);
+
+  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setUploading(true);
+    setError(null);
+    
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      const uploadRes = await fetch("/api/upload-profile-photo", {
+        method: "POST",
+        body: formData,
+      });
+      
+      if (!uploadRes.ok) {
+        const errorData = await uploadRes.json();
+        throw new Error(errorData.error || "Error subiendo foto");
+      }
+      
+      const { url } = await uploadRes.json();
+      
+      await api("/api/account/update-photo", {
+        method: "POST",
+        body: JSON.stringify({ photoUrl: url }),
+      });
+      
+      const updated = await api<Home>("/api/account");
+      setHome(updated);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error subiendo foto");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   if (!home) return <p className="booking-slots__empty">{error || "Cargando tu cuenta…"}</p>;
 
@@ -85,11 +125,58 @@ export default function AccountHome() {
     }
   }
 
+  const nameParts = home.patient.name.split(" ");
+  const firstName = nameParts[0] || "Paciente";
+  const lastName = nameParts.slice(1).join(" ") || "";
+
   return (
     <div className="account-home">
-      <p className="visit-sheet__eyebrow">Tu cuenta</p>
-      <h1 className="type-page-title">{home.patient.name || "Hola"}</h1>
-      <p className="visit-sheet__when">{home.patient.email}</p>
+      <div style={{ display: "flex", alignItems: "start", gap: "1.5rem", marginBottom: "1.5rem" }}>
+        <div style={{ position: "relative" }}>
+          <PatientAvatar 
+            firstName={firstName}
+            lastName={lastName}
+            photoUrl={home.patient.profilePhotoUrl}
+            size="large"
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            style={{
+              position: "absolute",
+              bottom: 0,
+              right: 0,
+              width: "32px",
+              height: "32px",
+              borderRadius: "50%",
+              backgroundColor: "rgb(var(--primary))",
+              color: "white",
+              border: "2px solid white",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "14px",
+            }}
+            aria-label="Cambiar foto de perfil"
+          >
+            {uploading ? "..." : "📷"}
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={handlePhotoUpload}
+            style={{ display: "none" }}
+          />
+        </div>
+        <div>
+          <p className="visit-sheet__eyebrow">Tu cuenta</p>
+          <h1 className="type-page-title">{home.patient.name || "Hola"}</h1>
+          <p className="visit-sheet__when">{home.patient.email}</p>
+        </div>
+      </div>
       {error ? <p className="booking-error" role="alert">{error}</p> : null}
 
       <section id="plan">

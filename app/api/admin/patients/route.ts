@@ -30,6 +30,7 @@ function inputOf(body: Record<string, unknown>): PatientInput {
     consentPhone: Boolean(body.consentPhone),
     consentPostal: Boolean(body.consentPostal),
     privacyPolicyStatus: (body.privacyPolicyStatus as string) || "sin_respuesta",
+    profilePhotoUrl: (body.profilePhotoUrl as string) || null,
     tagIds: Array.isArray(body.tagIds) ? body.tagIds.map(String) : [],
     customFields: Array.isArray(body.customFields) ? (body.customFields as { fieldId: string; value: unknown }[]) : [],
   };
