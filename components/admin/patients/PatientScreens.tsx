@@ -18,9 +18,13 @@ import "@/app/styles/note-editor.css";
 type Patient = Record<string, unknown> & {
   id: string; firstName: string; lastName: string; clientCode: string; patientIdentifier?: string | null;
   email?: string; mobile?: string; phone?: string; city?: string; state?: string;
-  sex?: string | null; createdAt?: string; marketingSource?: string | null; privacyPolicyStatus?: string;
+  sex?: string | null; sexDetail?: string; createdAt?: string; marketingSource?: string | null; privacyPolicyStatus?: string;
   profilePhotoUrl?: string | null;
   tags?: { id?: string; name?: string }[];
+  preferredLanguage?: string; birthDate?: string;
+  street?: string; streetNumber?: string; neighborhood?: string; postalCode?: string; country?: string;
+  emergencyName?: string; emergencyPhone?: string; emergencyRelation?: string;
+  consentSms?: boolean; consentEmail?: boolean;
 };
 
 type Facets = {
@@ -1064,22 +1068,28 @@ function SessionCard({ patientId, row, onChange, onDelete, onError }: { patientI
 }
 
 function PatientSummary({ patient }: { patient: Patient }) {
+  const scope = useClinicScope();
+  const patientLang = String(patient.preferredLanguage || "").toLowerCase();
+  const english = scope.country === "US" || patientLang === "en";
+  
   const address = [patient.street, patient.streetNumber, patient.neighborhood, patient.city, patient.state, patient.postalCode, patient.country].filter(Boolean).join(", ");
+  const emergencyContact = [patient.emergencyName, patient.emergencyPhone, patient.emergencyRelation].filter(Boolean).join(" · ");
+  
   const facts: [string, unknown][] = [
-    ...(patient.patientIdentifier ? [["Identificador", patient.patientIdentifier] as [string, unknown]] : []),
-    ["Código", patient.clientCode],
-    ["Email", patient.email],
-    ["Celular", patient.mobile],
-    ["Teléfono", patient.phone],
-    ["Nacimiento", patient.birthDate],
-    ["Sexo", [sexLabel(patient.sex), patient.sex === "otro" ? patient.sexDetail : ""].filter(Boolean).join(" · ")],
-    ["Contacto de emergencia", [patient.emergencyName, patient.emergencyPhone, patient.emergencyRelation].filter(Boolean).join(" · ")],
-    ["Cómo nos descubrieron", patient.marketingSource || "Sin fuente"],
-    ["Idioma", patient.preferredLanguage],
-    ["Dirección", address],
-    ["Aviso de privacidad", patient.privacyPolicyStatus],
-    ["SMS", patient.consentSms ? "Autorizado" : "Sin autorización"],
-    ["Email comercial", patient.consentEmail ? "Autorizado" : "Sin autorización"],
+    ...(patient.patientIdentifier ? [[english ? "Identifier" : "Identificador", patient.patientIdentifier] as [string, unknown]] : []),
+    [english ? "Code" : "Código", patient.clientCode],
+    ...(patient.email ? [[english ? "Email" : "Email", patient.email] as [string, unknown]] : []),
+    ...(patient.mobile ? [[english ? "Mobile" : "Celular", patient.mobile] as [string, unknown]] : []),
+    ...(patient.phone ? [[english ? "Phone" : "Teléfono", patient.phone] as [string, unknown]] : []),
+    ...(patient.birthDate ? [[english ? "Date of birth" : "Nacimiento", patient.birthDate] as [string, unknown]] : []),
+    [english ? "Sex" : "Sexo", [sexLabel(patient.sex, english), patient.sex === "otro" ? patient.sexDetail : ""].filter(Boolean).join(" · ")],
+    ...(emergencyContact ? [[english ? "Emergency contact" : "Contacto de emergencia", emergencyContact] as [string, unknown]] : []),
+    [english ? "How they found us" : "Cómo nos descubrieron", patient.marketingSource || (english ? "No source" : "Sin fuente")],
+    [english ? "Language" : "Idioma", patient.preferredLanguage],
+    ...(address ? [[english ? "Address" : "Dirección", address] as [string, unknown]] : []),
+    [english ? "Privacy notice" : "Aviso de privacidad", privacyLabel(patient.privacyPolicyStatus, english)],
+    ["SMS", patient.consentSms ? (english ? "Authorized" : "Autorizado") : (english ? "Not authorized" : "Sin autorización")],
+    [english ? "Email marketing" : "Email comercial", patient.consentEmail ? (english ? "Authorized" : "Autorizado") : (english ? "Not authorized" : "Sin autorización")],
   ];
   return (
     <div>
