@@ -4,10 +4,10 @@ import path from "path";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { filename: string } }
+  context: { params: Promise<{ filename: string }> }
 ) {
   try {
-    const filename = params.filename;
+    const { filename } = await context.params;
     
     if (!filename || filename.includes("..") || filename.includes("/")) {
       return new NextResponse("Invalid filename", { status: 400 });
