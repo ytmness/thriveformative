@@ -260,18 +260,21 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
                   <button type="button" className="patient-directory__toggle" aria-expanded={openRow} aria-label="Ver detalle rápido" onClick={(e) => { e.stopPropagation(); setExpanded(openRow ? null : row.id); }}>
                     <span className={openRow ? "is-open" : ""} aria-hidden="true">›</span>
                   </button>
-                  <span>
+                  <div className="patient-directory__avatar" aria-hidden="true">
+                    {String(row.firstName || "").charAt(0).toUpperCase()}{String(row.lastName || "").charAt(0).toUpperCase()}
+                  </div>
+                  <div className="patient-directory__name-wrap">
                     <span className="admin-table__cell-title">{row.firstName} {row.lastName}</span>
                     <span className="admin-table__cell-sub">{sexLabel(row.sex, english)} · {row.patientIdentifier || row.clientCode}</span>
-                  </span>
+                  </div>
                 </div>
                 <div>
-                  <div>{row.email || (english ? "No email" : "Sin email")}</div>
+                  <div className="admin-table__cell-title">{row.email || (english ? "No email" : "Sin email")}</div>
                   <div className="admin-table__cell-sub">{row.mobile || row.phone || (english ? "No phone" : "Sin teléfono")}</div>
                 </div>
-                <div>{[row.city, row.state].filter(Boolean).join(", ") || "—"}</div>
-                <div>{row.marketingSource || (english ? "No source" : "Sin fuente")}</div>
-                <div>{row.createdAt ? new Date(String(row.createdAt)).toLocaleDateString(english ? "en-US" : "es-MX") : "—"}</div>
+                <div className="admin-table__cell-title">{[row.city, row.state].filter(Boolean).join(", ") || "—"}</div>
+                <div className="admin-table__cell-title">{row.marketingSource || (english ? "No source" : "Sin fuente")}</div>
+                <div className="admin-table__cell-title">{row.createdAt ? new Date(String(row.createdAt)).toLocaleDateString(english ? "en-US" : "es-MX") : "—"}</div>
                 <details className="admin-menu" onClick={(e) => e.stopPropagation()}>
                   <summary aria-label={english ? "Actions" : "Acciones"}>⋯</summary>
                   <div className="admin-menu__list">

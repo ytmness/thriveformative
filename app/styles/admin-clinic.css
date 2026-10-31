@@ -356,10 +356,38 @@
   .patient-directory__body { grid-template-columns: 1fr; }
   .patient-filters { position: static; max-height: none; }
 }
-.patient-directory__who { display: flex; align-items: flex-start; gap: 0.45rem; padding: 0; border: 0; background: transparent; color: inherit; text-align: left; font: inherit; }
-.patient-directory__toggle { display: inline-flex; padding: 0; border: 0; background: transparent; color: rgb(var(--muted)); cursor: pointer; font: inherit; line-height: 1; }
+.patient-directory__who { display: flex; align-items: center; gap: 0.65rem; padding: 0; border: 0; background: transparent; color: inherit; text-align: left; font: inherit; min-width: 0; }
+.patient-directory__avatar { 
+  width: 2.25rem; 
+  height: 2.25rem; 
+  border-radius: 50%; 
+  background: rgb(var(--primary) / 0.12); 
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  color: rgb(var(--primary));
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.patient-directory__name-wrap {
+  min-width: 0;
+  flex: 1;
+}
+.patient-directory__toggle { display: inline-flex; flex-shrink: 0; padding: 0; border: 0; background: transparent; color: rgb(var(--muted)); cursor: pointer; font: inherit; line-height: 1; }
 .patient-directory__toggle span { display: inline-block; transition: transform 0.15s ease; }
 .patient-directory__toggle span.is-open { transform: rotate(90deg); }
+.admin-table__cell-title { 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+  white-space: nowrap;
+  display: block;
+}
+.admin-table__cell-sub { 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+  white-space: nowrap;
+  display: block;
+}
 .admin-table__row--patients,
 .admin-table__row--sale { cursor: pointer; }
 .patient-directory__code { display: inline-flex; margin-top: 0.3rem; border-radius: 999px; background: rgb(var(--primary) / 0.16); padding: 0.1rem 0.45rem; font-size: 0.72rem; color: rgb(var(--text)); }
