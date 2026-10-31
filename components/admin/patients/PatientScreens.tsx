@@ -9,7 +9,10 @@ import { Button, CloseButton, EmptyState, Tabs, Toast } from "@/components/admin
 import StoreReceipt from "@/components/store/StoreReceipt";
 import { majorToMinor } from "@/lib/square/money";
 import type { StoreReceiptData } from "@/lib/store/orderTypes";
+import { NoteEditor } from "@/components/admin/patients/NoteEditor";
+import { NotesList } from "@/components/admin/patients/NotesList";
 import "@/app/styles/tienda.css";
+import "@/app/styles/note-editor.css";
 
 type Patient = Record<string, unknown> & {
   id: string; firstName: string; lastName: string; clientCode: string; patientIdentifier?: string | null;
@@ -499,6 +502,7 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [note, setNote] = useState("");
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [sessionDraft, setSessionDraft] = useState({ title: "" });
   const [study, setStudy] = useState<(typeof STUDIES)[number][0]>("imaging");
   const [value, setValue] = useState("");
@@ -586,41 +590,92 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
       {active === "expediente" ? (
         <div className="chart-sheet">
           {folder === "notas" ? (
-            <div className="chart-plan">
-              <form className="chart-note" onSubmit={async (e) => {
-                e.preventDefault();
-                try {
-                  await api(`/api/admin/patients/${id}/notes`, { method: "POST", body: JSON.stringify({ body: note, noteType: "free", lock: true }) });
-                  setNote("");
-                  setNotice("Plan guardado.");
-                  const next = await api<{ rows: Record<string, unknown>[] }>(`/api/admin/patients/${id}/notes`);
-                  setRows(next.rows);
-                } catch (err) {
-                  setError(err instanceof Error ? err.message : "No se pudo guardar el plan.");
+            editingNoteId === "new" || editingNoteId ? (
+              <NoteEditor
+                patientId={id}
+                noteId={editingNoteId === "new" ? undefined : editingNoteId}
+                initialTitle={
+                  editingNoteId !== "new"
+                    ? String(rows.find((r) => r.id === editingNoteId)?.title || "")
+                    : ""
                 }
-              }}>
-                <label className="admin-field">Notas<textarea required value={note} onChange={(e) => setNote(e.target.value)} /></label>
-                <div className="chart-note__actions">
-                  <button className="admin-btn admin-btn--primary" type="submit">Guardar</button>
-                </div>
-              </form>
-              {rows.length ? (
-                <section className="chart-note__saved">
-                  <h2>Guardados</h2>
-                  {rows.map((row) => (
-                    <article key={String(row.id)} className="chart-note__past">
-                      {row.title ? <strong>{String(row.title)}</strong> : null}
-                      <p>{String(row.body || row.subjective || "")}</p>
-                      <button className="admin-btn" type="button" onClick={async () => {
-                        if (!window.confirm("¿Eliminar esta nota?")) return;
-                        await api(`/api/admin/patients/${id}/notes`, { method: "DELETE", body: JSON.stringify({ id: row.id }) });
-                        setRows(rows.filter((item) => item.id !== row.id));
-                      }}>Eliminar</button>
-                    </article>
-                  ))}
-                </section>
-              ) : null}
-            </div>
+                initialBody={
+                  editingNoteId !== "new"
+                    ? String(
+                        rows.find((r) => r.id === editingNoteId)?.body ||
+                          rows.find((r) => r.id === editingNoteId)?.subjective ||
+                          ""
+                      )
+                    : ""
+                }
+                onSave={async (data) => {
+                  try {
+                    if (editingNoteId === "new") {
+                      await api(`/api/admin/patients/${id}/notes`, {
+                        method: "POST",
+                        body: JSON.stringify({
+                          title: data.title,
+                          body: data.body,
+                          noteType: "free",
+                          lock: false,
+                        }),
+                      });
+                      setNotice(english ? "Note created." : "Nota creada.");
+                    } else {
+                      await api(`/api/admin/patients/${id}/notes`, {
+                        method: "POST",
+                        body: JSON.stringify({
+                          id: editingNoteId,
+                          title: data.title,
+                          body: data.body,
+                          noteType: "free",
+                          lock: false,
+                        }),
+                      });
+                      setNotice(english ? "Note updated." : "Nota actualizada.");
+                    }
+                    const next = await api<{ rows: Record<string, unknown>[] }>(
+                      `/api/admin/patients/${id}/notes`
+                    );
+                    setRows(next.rows);
+                    setEditingNoteId(null);
+                  } catch (err) {
+                    throw new Error(
+                      err instanceof Error
+                        ? err.message
+                        : english
+                          ? "Could not save the note."
+                          : "No se pudo guardar la nota."
+                    );
+                  }
+                }}
+                onCancel={() => setEditingNoteId(null)}
+                english={english}
+              />
+            ) : (
+              <NotesList
+                notes={rows as Array<{
+                  id: string;
+                  title?: string | null;
+                  body?: string | null;
+                  subjective?: string | null;
+                  created_at?: string;
+                  locked_at?: string | null;
+                }>}
+                patientId={id}
+                onNoteClick={(noteId) => setEditingNoteId(noteId)}
+                onNewNote={() => setEditingNoteId("new")}
+                onDeleteNote={async (noteId) => {
+                  await api(`/api/admin/patients/${id}/notes`, {
+                    method: "DELETE",
+                    body: JSON.stringify({ id: noteId }),
+                  });
+                  setRows(rows.filter((item) => item.id !== noteId));
+                  setNotice(english ? "Note deleted." : "Nota eliminada.");
+                }}
+                english={english}
+              />
+            )
           ) : null}
           {folder === "sesiones" ? (
             <>

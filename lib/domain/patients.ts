@@ -540,6 +540,7 @@ export async function listNotes(patientId: string, actor: StaffSession, meta?: {
 export async function createNote(
   patientId: string,
   input: {
+    id?: string | null;
     appointmentId?: string | null;
     noteType?: string;
     parentNoteId?: string | null;
@@ -553,6 +554,9 @@ export async function createNote(
   },
   actor: StaffSession
 ) {
+  if (input.id) {
+    return await updateNote(patientId, input.id, input, actor);
+  }
   if (input.parentNoteId) {
     const parent = await query<{ locked_at: string | null }>(`SELECT locked_at FROM clinical_notes WHERE id = $1`, [
       input.parentNoteId,
@@ -589,6 +593,62 @@ export async function createNote(
     patientId,
   });
   return { id: inserted.rows[0].id };
+}
+
+export async function updateNote(
+  patientId: string,
+  noteId: string,
+  input: {
+    subjective?: string | null;
+    objective?: string | null;
+    assessment?: string | null;
+    plan?: string | null;
+    body?: string | null;
+    title?: string | null;
+    lock?: boolean;
+  },
+  actor: StaffSession
+) {
+  const existing = await query<{ patient_id: string; locked_at: string | null }>(
+    `SELECT patient_id, locked_at FROM clinical_notes WHERE id = $1`,
+    [noteId]
+  );
+  if (!existing.rows[0]) throw new DomainError("Nota no encontrada.", 404);
+  if (existing.rows[0].patient_id !== patientId) throw new DomainError("Nota no pertenece a este paciente.", 403);
+  if (existing.rows[0].locked_at) throw new DomainError("No se puede editar una nota firmada.", 403);
+
+  await query(
+    `UPDATE clinical_notes SET
+       subjective_enc = $2,
+       objective_enc = $3,
+       assessment_enc = $4,
+       plan_enc = $5,
+       body_enc = $6,
+       title = $7,
+       locked_at = CASE WHEN $8 THEN now() ELSE locked_at END,
+       signed_by = CASE WHEN $8 THEN $9 ELSE signed_by END
+     WHERE id = $1`,
+    [
+      noteId,
+      encryptPhi(input.subjective),
+      encryptPhi(input.objective),
+      encryptPhi(input.assessment),
+      encryptPhi(input.plan),
+      encryptPhi(input.body),
+      input.title?.trim() || null,
+      Boolean(input.lock),
+      actor.staff.id,
+    ]
+  );
+  await writeAudit({
+    actorType: "staff",
+    actorId: actor.staff.id,
+    action: "clinical_notes.update",
+    entityType: "clinical_note",
+    entityId: noteId,
+    patientId,
+  });
+  return { id: noteId };
 }
 
 export async function lockNote(id: string, actor: StaffSession) {
