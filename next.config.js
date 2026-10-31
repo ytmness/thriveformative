@@ -31,6 +31,7 @@ const nextConfig = {
       { protocol: 'https', hostname: '**.squarecdn.com' },
       { protocol: 'https', hostname: '**.squareup.com' },
     ],
+    unoptimized: process.env.NODE_ENV === 'production',
   },
   async headers() {
     const csp = [

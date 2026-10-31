@@ -12,6 +12,7 @@ import { readMarket, type SiteMarket } from "@/lib/site/market";
 import ThemeProvider from "@/components/theme/ThemeProvider";
 import ThemeSwitcher from "@/components/theme/ThemeSwitcher";
 import Header from "@/components/Header";
+import { ImageCropDialog } from "@/components/ImageCropDialog";
 
 const fieldClass = "w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]";
 
@@ -159,6 +160,7 @@ export default function RegisterPage() {
   const [verifying, setVerifying] = useState(false);
   const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [cropImage, setCropImage] = useState<string | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -199,12 +201,23 @@ export default function RegisterPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCropImage(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+    
+    e.target.value = "";
+  }
+
+  async function handleCropComplete(croppedBlob: Blob) {
     setUploadingPhoto(true);
     setError(null);
+    setCropImage(null);
     
     try {
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", croppedBlob, "profile.jpg");
       
       const uploadRes = await fetch("/api/upload-profile-photo", {
         method: "POST",
@@ -342,6 +355,13 @@ export default function RegisterPage() {
 
   const formContent = !codeSent ? (
     <>
+      {cropImage && (
+        <ImageCropDialog
+          imageSrc={cropImage}
+          onComplete={handleCropComplete}
+          onCancel={() => setCropImage(null)}
+        />
+      )}
       <h1 className="font-display text-3xl md:text-4xl lg:text-5xl tracking-wide mb-3">
         {t("registerTitle")}
       </h1>
@@ -379,25 +399,46 @@ export default function RegisterPage() {
             {locale === "en" ? "Profile Photo (Optional)" : "Foto de perfil (Opcional)"}
           </label>
           <div className="flex items-center gap-4">
-            {profilePhotoUrl ? (
-              <img 
-                src={profilePhotoUrl} 
-                alt="Profile" 
-                className="w-20 h-20 rounded-full object-cover border-2 border-theme"
-              />
-            ) : (
-              <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-2xl text-gray-500">
-                👤
-              </div>
-            )}
-            <button
-              type="button"
-              onClick={() => photoInputRef.current?.click()}
-              disabled={uploadingPhoto}
-              className="btn-primary px-4 py-2 rounded-xl text-sm font-medium disabled:opacity-60"
-            >
-              {uploadingPhoto ? (locale === "en" ? "Uploading..." : "Subiendo...") : (locale === "en" ? "Choose Photo" : "Elegir foto")}
-            </button>
+            <div className="relative">
+              {profilePhotoUrl ? (
+                <img 
+                  src={profilePhotoUrl} 
+                  alt="Profile" 
+                  className="w-32 h-32 rounded-full object-cover border-2 border-theme"
+                />
+              ) : (
+                <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center text-4xl text-gray-400">
+                  👤
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => photoInputRef.current?.click()}
+                disabled={uploadingPhoto}
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  right: 0,
+                  width: "40px",
+                  height: "40px",
+                  borderRadius: "50%",
+                  backgroundColor: "rgb(var(--primary))",
+                  color: "white",
+                  border: "3px solid white",
+                  cursor: uploadingPhoto ? "not-allowed" : "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "24px",
+                  fontWeight: "300",
+                  lineHeight: "1",
+                  opacity: uploadingPhoto ? 0.6 : 1,
+                }}
+                aria-label={locale === "en" ? "Add or change photo" : "Agregar o cambiar foto"}
+              >
+                {uploadingPhoto ? "..." : "+"}
+              </button>
+            </div>
             {profilePhotoUrl && (
               <button
                 type="button"
