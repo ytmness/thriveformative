@@ -374,36 +374,16 @@ export default function RegisterPage() {
             {error}
           </div>
         )}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="firstName" className="block text-base font-medium text-muted mb-2">{t("firstName")}</label>
-            <input id="firstName" type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} required autoComplete="given-name" className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]" placeholder={t("firstNamePlaceholder")} />
-          </div>
-          <div>
-            <label htmlFor="middleName" className="block text-base font-medium text-muted mb-2">{t("middleName")}</label>
-            <input id="middleName" type="text" value={middleName} onChange={(e) => setMiddleName(e.target.value)} autoComplete="additional-name" className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]" placeholder={t("middleNamePlaceholder")} />
-          </div>
-          <div className={usAddress ? "sm:col-span-2" : undefined}>
-            <label htmlFor="paternalSurname" className="block text-base font-medium text-muted mb-2">{usAddress ? t("lastName") : t("paternalSurname")}</label>
-            <input id="paternalSurname" type="text" value={paternalSurname} onChange={(e) => setPaternalSurname(e.target.value)} required autoComplete="family-name" className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]" placeholder={usAddress ? t("lastNamePlaceholder") : t("paternalSurnamePlaceholder")} />
-          </div>
-          {usAddress ? null : (
-          <div>
-            <label htmlFor="maternalSurname" className="block text-base font-medium text-muted mb-2">{t("maternalSurname")}</label>
-            <input id="maternalSurname" type="text" value={maternalSurname} onChange={(e) => setMaternalSurname(e.target.value)} className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]" placeholder={t("maternalSurnamePlaceholder")} />
-          </div>
-          )}
-        </div>
         <div>
           <label className="block text-base font-medium text-muted mb-2">
-            {locale === "en" ? "Profile Photo (Optional)" : "Foto de perfil (Opcional)"}
+            {t("profilePhoto")}
           </label>
           <div className="flex items-center gap-4">
             <div className="relative">
               {profilePhotoUrl ? (
                 <img 
                   src={profilePhotoUrl} 
-                  alt="Profile" 
+                  alt={t("profilePhoto")} 
                   className="w-32 h-32 rounded-full object-cover border-2 border-theme"
                 />
               ) : (
@@ -434,7 +414,7 @@ export default function RegisterPage() {
                   lineHeight: "1",
                   opacity: uploadingPhoto ? 0.6 : 1,
                 }}
-                aria-label={locale === "en" ? "Add or change photo" : "Agregar o cambiar foto"}
+                aria-label={t("profilePhotoAdd")}
               >
                 {uploadingPhoto ? "..." : "+"}
               </button>
@@ -445,7 +425,7 @@ export default function RegisterPage() {
                 onClick={() => setProfilePhotoUrl(null)}
                 className="text-sm text-muted hover:underline"
               >
-                {locale === "en" ? "Remove" : "Quitar"}
+                {t("profilePhotoRemove")}
               </button>
             )}
           </div>
@@ -456,6 +436,26 @@ export default function RegisterPage() {
             onChange={handlePhotoUpload}
             className="hidden"
           />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="firstName" className="block text-base font-medium text-muted mb-2">{t("firstName")}</label>
+            <input id="firstName" type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} required autoComplete="given-name" className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]" placeholder={t("firstNamePlaceholder")} />
+          </div>
+          <div>
+            <label htmlFor="middleName" className="block text-base font-medium text-muted mb-2">{t("middleName")}</label>
+            <input id="middleName" type="text" value={middleName} onChange={(e) => setMiddleName(e.target.value)} autoComplete="additional-name" className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]" placeholder={t("middleNamePlaceholder")} />
+          </div>
+          <div className={usAddress ? "sm:col-span-2" : undefined}>
+            <label htmlFor="paternalSurname" className="block text-base font-medium text-muted mb-2">{usAddress ? t("lastName") : t("paternalSurname")}</label>
+            <input id="paternalSurname" type="text" value={paternalSurname} onChange={(e) => setPaternalSurname(e.target.value)} required autoComplete="family-name" className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]" placeholder={usAddress ? t("lastNamePlaceholder") : t("paternalSurnamePlaceholder")} />
+          </div>
+          {usAddress ? null : (
+          <div>
+            <label htmlFor="maternalSurname" className="block text-base font-medium text-muted mb-2">{t("maternalSurname")}</label>
+            <input id="maternalSurname" type="text" value={maternalSurname} onChange={(e) => setMaternalSurname(e.target.value)} className="w-full rounded-xl border border-theme bg-surface px-5 py-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]" placeholder={t("maternalSurnamePlaceholder")} />
+          </div>
+          )}
         </div>
         <div>
           <label htmlFor="email" className="block text-base font-medium text-muted mb-2">
@@ -556,7 +556,9 @@ export default function RegisterPage() {
             <option value="whatsapp">{t("contactWhatsapp")}</option>
           </select>
         </div>
-        <div className="space-y-4">
+        <fieldset className="space-y-4">
+          <legend className="text-base font-medium text-muted mb-2">{t("addressHomeTitle")}</legend>
+          <p className="text-sm text-muted">{t("addressHomeHint")}</p>
           {usAddress ? (
             <div>
               <label htmlFor="streetNumber" className="block text-base font-medium text-muted mb-2">{t("addressNumber")}</label>
@@ -591,7 +593,7 @@ export default function RegisterPage() {
             <label htmlFor="postalCode" className="block text-base font-medium text-muted mb-2">{usAddress ? t("addressZip") : t("addressPostal")}</label>
             <input id="postalCode" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} autoComplete="postal-code" className={fieldClass} />
           </div>
-        </div>
+        </fieldset>
         <div className="grid grid-cols-1 md:grid-cols-[8.75rem_minmax(0,1fr)] gap-4 items-end">
           <div className="min-w-0">
             <label htmlFor="sex" className="block whitespace-nowrap text-base font-medium text-muted mb-2">
