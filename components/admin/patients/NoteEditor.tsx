@@ -2,7 +2,7 @@
 
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 type NoteEditorProps = {
   patientId: string;
@@ -37,6 +37,19 @@ export function NoteEditor({
     },
   });
 
+  const handleSave = useCallback(async () => {
+    if (!editor) return;
+    setSaving(true);
+    setError(null);
+    try {
+      await onSave({ title, body: editor.getHTML() });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al guardar");
+    } finally {
+      setSaving(false);
+    }
+  }, [editor, title, onSave]);
+
   useEffect(() => {
     const autosave = setInterval(() => {
       if (editor && !saving) {
@@ -48,20 +61,7 @@ export function NoteEditor({
     }, 30000);
 
     return () => clearInterval(autosave);
-  }, [editor, title, saving]);
-
-  async function handleSave() {
-    if (!editor) return;
-    setSaving(true);
-    setError(null);
-    try {
-      await onSave({ title, body: editor.getHTML() });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al guardar");
-    } finally {
-      setSaving(false);
-    }
-  }
+  }, [editor, title, saving, initialBody, initialTitle, handleSave]);
 
   return (
     <div className="note-editor">
