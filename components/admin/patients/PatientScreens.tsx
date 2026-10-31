@@ -372,7 +372,7 @@ export function PatientFields({ form, setForm, options, section = "identidad" }:
           <label className="admin-field"><span className="admin-field__label">{english ? "How they found us" : "Cómo nos descubrieron"}</span><select value={String(form.marketingSourceId || "")} onChange={(e) => set("marketingSourceId", e.target.value)}><option value="">—</option>{options.sources.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
           <label className="admin-field">{english ? "Referred by" : "Referido por"}<input value={String(form.referredByName || "")} onChange={(e) => set("referredByName", e.target.value)} /></label>
           <label className="admin-field">Email<input type="email" value={String(form.email || "")} onChange={(e) => set("email", e.target.value)} /></label>
-          <label className="admin-field">{english ? "Mobile" : "Móvil"}<input value={String(form.mobile || "")} onChange={(e) => set("mobile", e.target.value)} /></label>
+          <label className="admin-field">{english ? "Mobile" : "Celular"}<input value={String(form.mobile || "")} onChange={(e) => set("mobile", e.target.value)} /></label>
           <label className="admin-field">{english ? "Phone" : "Teléfono"}<input value={String(form.phone || "")} onChange={(e) => set("phone", e.target.value)} /></label>
         </>
       ) : null}
@@ -1004,7 +1004,7 @@ function PatientSummary({ patient }: { patient: Patient }) {
     ...(patient.patientIdentifier ? [["Identificador", patient.patientIdentifier] as [string, unknown]] : []),
     ["Código", patient.clientCode],
     ["Email", patient.email],
-    ["Móvil", patient.mobile],
+    ["Celular", patient.mobile],
     ["Teléfono", patient.phone],
     ["Nacimiento", patient.birthDate],
     ["Sexo", [sexLabel(patient.sex), patient.sex === "otro" ? patient.sexDetail : ""].filter(Boolean).join(" · ")],
