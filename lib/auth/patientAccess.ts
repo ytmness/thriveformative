@@ -34,6 +34,7 @@ export type RegisterProfile = {
   contactPreference?: string | null;
   referralSource?: string | null;
   referralSourceOther?: string | null;
+  profilePhotoUrl?: string | null;
   locale?: string | null;
 };
 
@@ -172,8 +173,8 @@ async function saveProfile(email: string, profile: RegisterProfile, market?: "MX
          client_code, first_name, middle_name, paternal_surname, maternal_surname, last_name, sex, sex_detail, birth_date, preferred_language, marketing_source_id,
          referred_by_name, email_enc, email_hash, mobile_enc, mobile_hash, street, street_number, neighborhood, city, state, postal_code, country,
          emergency_name_enc, emergency_phone_enc, emergency_relation,
-         consent_email, consent_phone, consent_sms, privacy_policy_status, location_id
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,true,$27,$28,'aceptado',$29)
+         consent_email, consent_phone, consent_sms, privacy_policy_status, profile_photo_url, location_id
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,true,$27,$28,'aceptado',$29,$30)
        RETURNING id`,
       [
         code.rows[0].code,
@@ -204,6 +205,7 @@ async function saveProfile(email: string, profile: RegisterProfile, market?: "MX
         profile.emergencyRelation?.trim() || null,
         preference === "call",
         preference === "whatsapp",
+        profile.profilePhotoUrl?.trim() || null,
         locationId,
       ]
     );
@@ -234,6 +236,7 @@ async function saveProfile(email: string, profile: RegisterProfile, market?: "MX
          emergency_name_enc = COALESCE($21, emergency_name_enc),
          emergency_phone_enc = COALESCE($22, emergency_phone_enc),
          emergency_relation = COALESCE($23, emergency_relation),
+         profile_photo_url = COALESCE($25, profile_photo_url),
          consent_email = true,
          privacy_policy_status = 'aceptado',
          updated_at = now()
@@ -263,6 +266,7 @@ async function saveProfile(email: string, profile: RegisterProfile, market?: "MX
         encryptPhi(emergencyPhone),
         profile.emergencyRelation?.trim() || null,
         locationId,
+        profile.profilePhotoUrl?.trim() || null,
       ]
     );
   }
@@ -342,13 +346,17 @@ export async function verifyPatientCode(input: {
 export async function currentPatient() {
   const session = await getPortalSession();
   if (!session) return null;
-  const account = await query<{ email_enc: Buffer | null }>(
-    `SELECT email_enc FROM patient_portal_accounts WHERE patient_id = $1 AND is_active`,
+  const account = await query<{ email_enc: Buffer | null; profile_photo_url: string | null }>(
+    `SELECT a.email_enc, p.profile_photo_url
+     FROM patient_portal_accounts a
+     JOIN patients p ON p.id = a.patient_id
+     WHERE a.patient_id = $1 AND a.is_active`,
     [session.patientId]
   );
   return {
     id: session.patientId,
     email: decryptPhi(account.rows[0]?.email_enc) || "",
     name: `${session.firstName || ""} ${session.lastName || ""}`.trim(),
+    profilePhotoUrl: account.rows[0]?.profile_photo_url ?? null,
   };
 }

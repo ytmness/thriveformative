@@ -38,6 +38,7 @@ export type PatientInput = {
   emergencyName?: string | null;
   emergencyPhone?: string | null;
   emergencyRelation?: string | null;
+  profilePhotoUrl?: string | null;
   tagIds?: string[];
   customFields?: { fieldId: string; value: unknown }[];
 };
@@ -83,6 +84,7 @@ function mapPatient(row: Record<string, unknown>) {
     emergencyName: decryptPhi(row.emergency_name_enc as Buffer | null),
     emergencyPhone: decryptPhi(row.emergency_phone_enc as Buffer | null),
     emergencyRelation: row.emergency_relation,
+    profilePhotoUrl: row.profile_photo_url ?? null,
     createdBy: row.created_by,
     createdAt: row.created_at,
     tags: row.tags ?? [],
@@ -294,9 +296,9 @@ export async function createPatient(input: PatientInput, actor: StaffSession | n
        last_name, paternal_surname, maternal_surname, sex, birth_date,
        preferred_language, marketing_source_id, referred_by_name, email_enc, email_hash, mobile_enc,
        mobile_hash, phone_enc, phone_hash, street, city, state, country, postal_code,
-       consent_sms, consent_email, consent_phone, consent_postal, privacy_policy_status, created_by
+       consent_sms, consent_email, consent_phone, consent_postal, privacy_policy_status, profile_photo_url, created_by
      ) VALUES (
-       $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32
+       $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33
      ) RETURNING id`,
     [
       code.rows[0].code,
@@ -330,6 +332,7 @@ export async function createPatient(input: PatientInput, actor: StaffSession | n
       Boolean(input.consentPhone),
       Boolean(input.consentPostal),
       input.privacyPolicyStatus || "sin_respuesta",
+      input.profilePhotoUrl ?? null,
       actor?.staff.id ?? null,
     ]
   );
@@ -362,7 +365,7 @@ export async function updatePatient(id: string, input: PatientInput, actor: Staf
        preferred_language=$12, marketing_source_id=$13, referred_by_name=$14, email_enc=$15, email_hash=$16,
        mobile_enc=$17, mobile_hash=$18, phone_enc=$19, phone_hash=$20, street=$21, city=$22, state=$23,
        country=$24, postal_code=$25, consent_sms=$26, consent_email=$27, consent_phone=$28, consent_postal=$29,
-       privacy_policy_status=$30
+       privacy_policy_status=$30, profile_photo_url=$31
      WHERE id = $1`,
     [
       id,
@@ -395,6 +398,7 @@ export async function updatePatient(id: string, input: PatientInput, actor: Staf
       Boolean(input.consentPhone),
       Boolean(input.consentPostal),
       input.privacyPolicyStatus || "sin_respuesta",
+      input.profilePhotoUrl ?? null,
     ]
   );
   await saveTags(id, input.tagIds);
