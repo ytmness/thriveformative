@@ -260,9 +260,13 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
                   <button type="button" className="patient-directory__toggle" aria-expanded={openRow} aria-label="Ver detalle rápido" onClick={(e) => { e.stopPropagation(); setExpanded(openRow ? null : row.id); }}>
                     <span className={openRow ? "is-open" : ""} aria-hidden="true">›</span>
                   </button>
-                  <div className="patient-directory__avatar" aria-hidden="true">
-                    {String(row.firstName || "").charAt(0).toUpperCase()}{String(row.lastName || "").charAt(0).toUpperCase()}
-                  </div>
+                  <PatientAvatar 
+                    firstName={row.firstName}
+                    lastName={row.lastName}
+                    photoUrl={row.profilePhotoUrl}
+                    size="medium"
+                    className="patient-directory__avatar"
+                  />
                   <div className="patient-directory__name-wrap">
                     <span className="admin-table__cell-title">{row.firstName} {row.lastName}</span>
                     <span className="admin-table__cell-sub">{sexLabel(row.sex, english)} · {row.patientIdentifier || row.clientCode}</span>
@@ -556,7 +560,7 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
             firstName={patient.firstName} 
             lastName={patient.lastName} 
             photoUrl={patient.profilePhotoUrl}
-            size="large"
+            size="xlarge"
           />
           <div>
             <p className="admin-header__eyebrow">

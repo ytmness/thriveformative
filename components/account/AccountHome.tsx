@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { api } from "@/components/admin/clinic/client";
 import { PatientAvatar } from "@/components/PatientAvatar";
+import { ImageCropDialog } from "@/components/ImageCropDialog";
 
 type Order = {
   id: string;
@@ -59,6 +60,7 @@ export default function AccountHome() {
   const [home, setHome] = useState<Home | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [cropImage, setCropImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -73,12 +75,23 @@ export default function AccountHome() {
     const file = e.target.files?.[0];
     if (!file) return;
     
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCropImage(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+    
+    e.target.value = "";
+  }
+
+  async function handleCropComplete(croppedBlob: Blob) {
     setUploading(true);
     setError(null);
+    setCropImage(null);
     
     try {
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", croppedBlob, "profile.jpg");
       
       const uploadRes = await fetch("/api/upload-profile-photo", {
         method: "POST",
@@ -131,13 +144,20 @@ export default function AccountHome() {
 
   return (
     <div className="account-home">
+      {cropImage && (
+        <ImageCropDialog
+          imageSrc={cropImage}
+          onComplete={handleCropComplete}
+          onCancel={() => setCropImage(null)}
+        />
+      )}
       <div style={{ display: "flex", alignItems: "start", gap: "1.5rem", marginBottom: "1.5rem" }}>
         <div style={{ position: "relative" }}>
           <PatientAvatar 
             firstName={firstName}
             lastName={lastName}
             photoUrl={home.patient.profilePhotoUrl}
-            size="large"
+            size="xlarge"
           />
           <button
             type="button"
@@ -147,21 +167,23 @@ export default function AccountHome() {
               position: "absolute",
               bottom: 0,
               right: 0,
-              width: "32px",
-              height: "32px",
+              width: "40px",
+              height: "40px",
               borderRadius: "50%",
               backgroundColor: "rgb(var(--primary))",
               color: "white",
-              border: "2px solid white",
+              border: "3px solid white",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: "14px",
+              fontSize: "24px",
+              fontWeight: "300",
+              lineHeight: "1",
             }}
             aria-label="Cambiar foto de perfil"
           >
-            {uploading ? "..." : "📷"}
+            {uploading ? "..." : "+"}
           </button>
           <input
             ref={fileInputRef}
