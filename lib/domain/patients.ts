@@ -46,6 +46,13 @@ export type PatientInput = {
 const SEX = new Set(["masculino", "femenino", "otro", "prefiere_no"]);
 const PRIVACY = new Set(["sin_respuesta", "aceptado", "rechazado"]);
 
+function dateOnly(value: unknown): string | null {
+  if (value == null || value === "") return null;
+  if (value instanceof Date && !Number.isNaN(value.getTime())) return value.toISOString().slice(0, 10);
+  const match = String(value).match(/^(\d{4}-\d{2}-\d{2})/);
+  return match ? match[1] : String(value);
+}
+
 function mapPatient(row: Record<string, unknown>) {
   return {
     id: String(row.id),
@@ -61,7 +68,7 @@ function mapPatient(row: Record<string, unknown>) {
     maternalSurname: row.maternal_surname,
     sex: row.sex,
     sexDetail: row.sex_detail,
-    birthDate: row.birth_date,
+    birthDate: dateOnly(row.birth_date),
     preferredLanguage: row.preferred_language,
     marketingSourceId: row.marketing_source_id,
     marketingSource: row.marketing_source ?? null,
@@ -571,7 +578,12 @@ export async function createNote(
     `INSERT INTO clinical_notes (
        patient_id, appointment_id, author_id, note_type, parent_note_id,
        subjective_enc, objective_enc, assessment_enc, plan_enc, body_enc, title, locked_at, signed_by
-     ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11, CASE WHEN $12 THEN now() ELSE NULL END, CASE WHEN $12 THEN $3 ELSE NULL END)
+     ) VALUES (
+       $1::uuid, $2::uuid, $3::uuid, $4::text, $5::uuid,
+       $6::bytea, $7::bytea, $8::bytea, $9::bytea, $10::bytea, $11::text,
+       CASE WHEN $12::boolean THEN now() ELSE NULL END,
+       CASE WHEN $12::boolean THEN $3::uuid ELSE NULL END
+     )
      RETURNING id`,
     [
       patientId,
@@ -623,15 +635,15 @@ export async function updateNote(
 
   await query(
     `UPDATE clinical_notes SET
-       subjective_enc = $2,
-       objective_enc = $3,
-       assessment_enc = $4,
-       plan_enc = $5,
-       body_enc = $6,
-       title = $7,
-       locked_at = CASE WHEN $8 THEN now() ELSE locked_at END,
-       signed_by = CASE WHEN $8 THEN $9 ELSE signed_by END
-     WHERE id = $1`,
+       subjective_enc = $2::bytea,
+       objective_enc = $3::bytea,
+       assessment_enc = $4::bytea,
+       plan_enc = $5::bytea,
+       body_enc = $6::bytea,
+       title = $7::text,
+       locked_at = CASE WHEN $8::boolean THEN now() ELSE locked_at END,
+       signed_by = CASE WHEN $8::boolean THEN $9::uuid ELSE signed_by END
+     WHERE id = $1::uuid`,
     [
       noteId,
       encryptPhi(input.subjective),

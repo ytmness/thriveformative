@@ -1080,6 +1080,14 @@ function SessionCard({ patientId, row, english = false, onChange, onDelete, onEr
   );
 }
 
+function formatBirthDisplay(value: unknown, english: boolean) {
+  const match = String(value ?? "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!match) return String(value ?? "");
+  const date = new Date(`${match[1]}-${match[2]}-${match[3]}T12:00:00`);
+  if (Number.isNaN(date.getTime())) return match[0];
+  return date.toLocaleDateString(english ? "en-US" : "es-MX", { day: "numeric", month: "long", year: "numeric" });
+}
+
 function PatientSummary({ patient }: { patient: Patient }) {
   const scope = useClinicScope();
   const patientLang = String(patient.preferredLanguage || "").toLowerCase();
@@ -1094,7 +1102,7 @@ function PatientSummary({ patient }: { patient: Patient }) {
     ...(patient.email ? [[english ? "Email" : "Email", patient.email] as [string, unknown]] : []),
     ...(patient.mobile ? [[english ? "Mobile" : "Celular", patient.mobile] as [string, unknown]] : []),
     ...(patient.phone ? [[english ? "Phone" : "Teléfono", patient.phone] as [string, unknown]] : []),
-    ...(patient.birthDate ? [[english ? "Date of birth" : "Nacimiento", patient.birthDate] as [string, unknown]] : []),
+    ...(patient.birthDate ? [[english ? "Date of birth" : "Nacimiento", formatBirthDisplay(patient.birthDate, english)] as [string, unknown]] : []),
     [english ? "Sex" : "Sexo", [sexLabel(patient.sex, english), patient.sex === "otro" ? patient.sexDetail : ""].filter(Boolean).join(" · ")],
     ...(emergencyContact ? [[english ? "Emergency contact" : "Contacto de emergencia", emergencyContact] as [string, unknown]] : []),
     [english ? "How they found us" : "Cómo nos descubrieron", patient.marketingSource || (english ? "No source" : "Sin fuente")],

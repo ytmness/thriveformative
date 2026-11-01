@@ -25,7 +25,10 @@ export function toErrorResponse(error: unknown) {
   if (isPgError(error, "22P02")) return apiError(400, "Hay un dato con formato incorrecto. Revisa números, fechas y listas.");
   const code =
     typeof error === "object" && error && "code" in error ? String((error as { code: unknown }).code) : "";
-  log.error("api", "operación fallida", { code: code || (error instanceof Error ? error.name : "error") });
+  log.error("api", "operación fallida", {
+    code: code || (error instanceof Error ? error.name : "error"),
+    detail: error instanceof Error ? error.message : undefined,
+  });
   return apiError(500, "No se pudo completar la operación.");
 }
 
