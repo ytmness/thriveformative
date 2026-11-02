@@ -458,7 +458,7 @@ const LISTS = {
 export type SensitiveKind = keyof typeof LISTS;
 
 export type SensitiveInput = {
-  value: string;
+  value?: string;
   severity?: string | null;
   dose?: string | null;
   frequency?: string | null;
