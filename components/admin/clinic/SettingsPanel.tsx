@@ -14,14 +14,14 @@ function settingGroups(english: boolean): [string, [string, string][]][] {
         ["Team", [["equipo", "Team and roles"]]],
         ["Finance", [["impuestos", "Taxes"], ["pagos", "Payment methods"], ["facturacion", "Billing"]]],
         ["Marketing and sales", [["fuentes", "Sources"], ["etapas", "Lead stages"]]],
-        ["Advanced", [["campos", "Custom fields"], ["politicas", "Policies"]]],
+        ["Advanced", [["campos", "Custom fields"], ["politicas", "Policies"], ["granola", "Granola"]]],
       ]
     : [
         ["Clínica", [["sedes", "Sedes"], ["salas", "Salas"], ["horarios", "Horarios"]]],
         ["Equipo", [["equipo", "Equipo y roles"]]],
         ["Finanzas", [["impuestos", "Impuestos"], ["pagos", "Métodos de pago"], ["facturacion", "Facturación"]]],
         ["Marketing y ventas", [["fuentes", "Fuentes"], ["etapas", "Etapas de leads"]]],
-        ["Avanzado", [["campos", "Campos personalizados"], ["politicas", "Políticas"]]],
+        ["Avanzado", [["campos", "Campos personalizados"], ["politicas", "Políticas"], ["granola", "Granola"]]],
       ];
 }
 
@@ -37,6 +37,7 @@ const MAP: Record<string, string> = {
   campos: "custom-fields",
   politicas: "booking",
   facturacion: "clinic",
+  granola: "granola",
 };
 
 const DAYS_ES = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
@@ -66,6 +67,11 @@ export default function SettingsPanel({ section }: { section: string }) {
   const [depsReady, setDepsReady] = useState(false);
 
   async function load() {
+    if (section === "granola") {
+      const status = await api<{ configured: boolean }>("/api/admin/granola");
+      setRows([{ configured: status.configured }]);
+      return;
+    }
     const data = await api<{ rows: Row[] }>(`/api/admin/settings/${apiSection}`);
     setRows(data.rows || []);
     if (apiSection === "booking" && data.rows[0]) setForm(bookingFrom(data.rows[0]));
@@ -209,7 +215,21 @@ export default function SettingsPanel({ section }: { section: string }) {
         </header>
         {error ? <div className="admin-alert" role="alert">{error}</div> : null}
         {saved ? <p className="admin-notice" role="status">{english ? "Changes saved." : "Cambios guardados."}</p> : null}
-        {singleton ? (
+        {section === "granola" ? (
+          <section className="admin-card">
+            <p>
+              {rows[0]?.configured
+                ? (english ? "Granola API key is connected." : "La API key de Granola está conectada.")
+                : (english ? "Connect Granola in Settings: add GRANOLA_API_KEY to the server environment." : "Conecta Granola en Configuración: añade GRANOLA_API_KEY al entorno del servidor.")}
+            </p>
+            <p className="admin-table__cell-sub">
+              {english
+                ? "Optional GRANOLA_WEBHOOK_SECRET verifies note.generated webhooks at /api/webhooks/granola."
+                : "GRANOLA_WEBHOOK_SECRET opcional verifica los webhooks note.generated en /api/webhooks/granola."}
+            </p>
+            <p><Link href="/admin/granola">{english ? "Open unassigned notes" : "Abrir notas sin asignar"}</Link></p>
+          </section>
+        ) : singleton ? (
           <section className="admin-card">
             {editor}
             <div className="admin-drawer__foot" style={{ marginTop: "1rem", padding: 0, border: 0 }}>

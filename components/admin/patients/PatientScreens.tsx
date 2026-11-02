@@ -15,6 +15,7 @@ import { CommunicationsList } from "@/components/admin/patients/CommunicationsLi
 import { ChartNoteFolder } from "@/components/admin/patients/ChartNoteFolder";
 import { SensitiveLists } from "@/components/admin/patients/SensitiveLists";
 import { DocumentLibrary } from "@/components/admin/patients/DocumentLibrary";
+import { GranolaActions } from "@/components/admin/patients/GranolaActions";
 import { CHART_FOLDERS, folderLabel } from "@/lib/domain/chartFolderMeta";
 import "@/app/styles/tienda.css";
 import "@/app/styles/note-editor.css";
@@ -610,10 +611,21 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
               folderKey={folder}
               heading={currentFolderLabel}
               english={english}
+              enableGranola={folder === "plan90"}
             />
           ) : null}
           {folder === "sesiones" ? (
             <>
+            <GranolaActions
+              patientId={id}
+              folderKey="sesiones"
+              english={english}
+              onImported={async () => {
+                const next = await api<{ rows: Record<string, unknown>[] }>(`/api/admin/patients/${id}/sessions`);
+                setRows(next.rows);
+                setNotice(english ? "Granola note imported." : "Nota de Granola importada.");
+              }}
+            />
             <form className="chart-block" onSubmit={async (e) => {
               e.preventDefault();
               try {
