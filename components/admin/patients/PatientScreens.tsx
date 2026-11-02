@@ -12,6 +12,7 @@ import { majorToMinor } from "@/lib/square/money";
 import type { StoreReceiptData } from "@/lib/store/orderTypes";
 import { NoteEditor } from "@/components/admin/patients/NoteEditor";
 import { NotesList } from "@/components/admin/patients/NotesList";
+import { CommunicationsList } from "@/components/admin/patients/CommunicationsList";
 import "@/app/styles/tienda.css";
 import "@/app/styles/note-editor.css";
 
@@ -682,7 +683,9 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
                   body?: string | null;
                   subjective?: string | null;
                   created_at?: string;
+                  createdAt?: string;
                   locked_at?: string | null;
+                  lockedAt?: string | null;
                 }>}
                 patientId={id}
                 onNoteClick={(noteId) => setEditingNoteId(noteId)}
@@ -936,7 +939,7 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
         </div>
       ) : null}
       {active === "comunicaciones" ? (
-        <div className="admin-table-wrap">{rows.map((row) => <div key={String(row.id)} className="admin-table__row"><div className="admin-table__cell-title">{String(row.subject || row.status || "Mensaje")}</div><div className="admin-table__cell-sub">{String(row.sent_at || row.scheduled_for || row.status || "")}</div></div>)}{!rows.length ? <div className="admin-table__empty">Sin comunicaciones.</div> : null}</div>
+        <CommunicationsList rows={rows as Array<{ id: string; channel?: string | null; subject?: string | null; body?: string | null; status?: string | null; scheduled_for?: string | null; sent_at?: string | null; error?: string | null; provider?: string | null; template_key?: string | null; timezone?: string | null }>} english={english} />
       ) : null}
       </div>
     </>

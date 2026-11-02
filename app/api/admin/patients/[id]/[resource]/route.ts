@@ -39,11 +39,42 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string; res
       return Response.json({ rows: listed });
     }
     if (resource === "messages") {
-      const rows = await query(
-        `SELECT id, channel, subject, body, status, scheduled_for, sent_at, error FROM messages WHERE patient_id = $1 ORDER BY created_at DESC LIMIT 100`,
+      const { locationTimezone } = await import("@/lib/scheduling/time");
+      const rows = await query<{
+        id: string;
+        channel: string;
+        subject: string | null;
+        body: string;
+        status: string;
+        scheduled_for: string;
+        sent_at: string | null;
+        error: string | null;
+        provider: string | null;
+        template_key: string | null;
+        timezone: string | null;
+        country: string | null;
+      }>(
+        `SELECT m.id, m.channel, m.subject, m.body, m.status, m.scheduled_for, m.sent_at, m.error, m.provider,
+                t.template_key,
+                coalesce(al.timezone, pl.timezone) AS timezone,
+                coalesce(al.country, pl.country, p.country) AS country
+         FROM messages m
+         LEFT JOIN message_templates t ON t.id = m.template_id
+         LEFT JOIN patients p ON p.id = m.patient_id
+         LEFT JOIN locations pl ON pl.id = p.location_id
+         LEFT JOIN appointments a ON a.id = m.appointment_id
+         LEFT JOIN locations al ON al.id = a.location_id
+         WHERE m.patient_id = $1
+         ORDER BY m.created_at DESC
+         LIMIT 100`,
         [id]
       );
-      return Response.json({ rows: rows.rows });
+      return Response.json({
+        rows: rows.rows.map((row) => ({
+          ...row,
+          timezone: locationTimezone(row.timezone, row.country),
+        })),
+      });
     }
     if (resource === "sales") {
       const rows = await query(`SELECT id, sale_number, status, total, paid_total, balance, created_at FROM sales WHERE patient_id = $1 ORDER BY created_at DESC`, [id]);
