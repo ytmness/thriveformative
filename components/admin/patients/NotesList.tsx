@@ -16,6 +16,7 @@ type Note = {
 type NotesListProps = {
   notes: Note[];
   patientId: string;
+  heading?: string;
   onNoteClick: (noteId: string) => void;
   onNewNote: () => void;
   onDeleteNote: (noteId: string) => Promise<void>;
@@ -34,7 +35,7 @@ function getPreview(note: Note): string {
 
 export function NotesList({
   notes,
-  patientId,
+  heading,
   onNoteClick,
   onNewNote,
   onDeleteNote,
@@ -57,7 +58,7 @@ export function NotesList({
     <div className="notes-list">
       <div className="notes-list__header">
         <h2 className="notes-list__title">
-          {english ? "90-day plan notes" : "Plan de 90 días"}
+          {heading || (english ? "90-day plan notes" : "Plan de 90 días")}
         </h2>
         <button className="admin-btn admin-btn--primary" type="button" onClick={onNewNote}>
           {english ? "+ New note" : "+ Nueva nota"}

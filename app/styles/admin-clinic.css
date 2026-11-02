@@ -72,6 +72,23 @@
 .chart-sheet {
   padding-top: 1.15rem;
 }
+.chart-sensitive__form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.55rem;
+  margin-bottom: 1.25rem;
+}
+.chart-sensitive__form input,
+.chart-sensitive__form select {
+  height: 40px;
+  border-radius: 0.65rem;
+  border: 1px solid rgb(var(--border) / 0.28);
+  background: #fff;
+  padding: 0 0.75rem;
+}
+.chart-folder-pills {
+  flex-wrap: wrap;
+}
 .chart-plan {
   width: min(72rem, 100%);
   margin-inline: auto;
