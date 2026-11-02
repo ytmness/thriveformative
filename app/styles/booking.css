@@ -421,6 +421,32 @@
 .visit-sheet__move > p { margin: 0 0 1rem; }
 .account-home section { margin-top: 2rem; }
 .account-home h2 { margin: 0 0 0.8rem; font-size: 1.25rem; }
+.plan90-card {
+  margin-top: 1.5rem;
+  padding: 1rem 1.1rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgb(212 164 115 / 0.35);
+  background: rgb(212 164 115 / 0.08);
+}
+.plan90-card--pending {
+  color: rgb(87 83 78);
+  border-color: rgb(120 113 108 / 0.25);
+  background: rgb(120 113 108 / 0.08);
+}
+.plan90-card p { margin: 0.35rem 0 0; }
+.plan90-card__meta { color: rgb(var(--muted)); font-size: 0.92rem; }
+.plan90-banner__track {
+  height: 0.55rem;
+  margin-top: 0.85rem;
+  border-radius: 999px;
+  background: rgb(212 164 115 / 0.2);
+  overflow: hidden;
+}
+.plan90-banner__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: #D4A473;
+}
 .account-row {
   display: flex;
   justify-content: space-between;

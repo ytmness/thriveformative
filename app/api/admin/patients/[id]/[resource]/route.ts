@@ -3,6 +3,7 @@ import { listPatientForms } from "@/lib/domain/forms";
 import { addSensitive, createNote, deleteNote, deleteSession, listNotes, listSensitive, listSessions, lockNote, removeSensitive, saveSession, type SensitiveKind } from "@/lib/domain/patients";
 import { createDocumentFolder, listDocumentFolders } from "@/lib/domain/chartFolders";
 import { listAppointments } from "@/lib/domain/appointments";
+import { getPlan90Progress, restartPlan90 } from "@/lib/domain/plan90Progress";
 import { query } from "@/lib/db";
 import { deletePrivateFile, privateFileExists, savePrivateFile } from "@/lib/files/privateStore";
 import { readJson, requestMeta, toErrorResponse, DomainError } from "@/lib/http";
@@ -29,6 +30,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string; res
       return Response.json({ rows: await listDocumentFolders(id, parent) });
     }
     if (resource === "sessions") return Response.json({ rows: await listSessions(id, session, meta) });
+    if (resource === "plan90") return Response.json({ progress: await getPlan90Progress(id) });
     if (resource === "forms") return Response.json({ rows: await listPatientForms(id, session) });
     if (resource === "appointments") {
       const from = new Date(Date.now() - 365 * 86400000).toISOString();
@@ -176,6 +178,22 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string; re
       if (body.action === "override") {
         await query(`UPDATE patients SET membership_override = $2 WHERE id = $1`, [id, body.enabled === true]);
         return Response.json({ ok: true, membershipOverride: body.enabled === true });
+      }
+      throw new DomainError("Acción no válida.");
+    }
+    if (resource === "plan90") {
+      const body = await readJson(req);
+      if (body.action === "restart") {
+        const progress = await restartPlan90(id);
+        await writeAudit({
+          actorType: "staff",
+          actorId: session.staff.id,
+          action: "patient.plan90.restart",
+          entityType: "patient",
+          entityId: id,
+          patientId: id,
+        });
+        return Response.json({ progress });
       }
       throw new DomainError("Acción no válida.");
     }

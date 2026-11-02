@@ -2,6 +2,7 @@ import { currentPatient } from "@/lib/auth/patientAccess";
 import { portalInvoices } from "@/lib/auth/portal";
 import { listActiveCredits } from "@/lib/domain/memberships";
 import { hasBookingAccess, patientAccessState } from "@/lib/domain/membershipPolicy";
+import { getPlan90Progress } from "@/lib/domain/plan90Progress";
 import { query } from "@/lib/db";
 
 function currencyOf(country: string | null) {
@@ -26,6 +27,7 @@ export async function GET() {
   const patient = await currentPatient().catch(() => null);
   if (!patient) return Response.json({ error: "Inicia sesión para ver tu cuenta." }, { status: 401 });
   const membershipAccess = await patientAccessState(patient.id);
+  const plan90 = await getPlan90Progress(patient.id);
   const [visits, consultations, online, invoices, credits] = await Promise.all([
     query<{
       id: string;
@@ -121,5 +123,6 @@ export async function GET() {
     credits,
     membershipAccess,
     canBook: hasBookingAccess(membershipAccess),
+    plan90,
   });
 }

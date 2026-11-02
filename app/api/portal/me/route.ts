@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { getPortalSession, portalAppointments, portalInvoices } from "@/lib/auth/portal";
 import { hasBookingAccess, patientAccessState } from "@/lib/domain/membershipPolicy";
+import { getPlan90Progress } from "@/lib/domain/plan90Progress";
 import { query } from "@/lib/db";
 
 export async function GET() {
   const session = await getPortalSession();
   if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   const membershipAccess = await patientAccessState(session.patientId);
+  const plan90 = await getPlan90Progress(session.patientId);
   const [appointments, invoices, forms] = await Promise.all([
     portalAppointments(session.patientId),
     portalInvoices(session.patientId),
@@ -24,5 +26,6 @@ export async function GET() {
     forms: forms.rows,
     membershipAccess,
     canBook: hasBookingAccess(membershipAccess),
+    plan90,
   });
 }

@@ -7,7 +7,9 @@ import { api } from "@/components/admin/clinic/client";
 import { PatientAvatar } from "@/components/PatientAvatar";
 import { ImageCropDialog } from "@/components/ImageCropDialog";
 import { ProfilePhotoGate } from "@/components/account/ProfilePhotoGate";
+import { Plan90ProgressCard } from "@/components/account/Plan90ProgressCard";
 import { WHATSAPP_LINK } from "@/lib/branding";
+import type { Plan90Progress } from "@/lib/domain/plan90Progress";
 
 type Order = {
   id: string;
@@ -39,6 +41,7 @@ type Home = {
   credits?: Credit[];
   membershipAccess?: "active" | "expiring" | "grace" | "expired" | "none" | "override";
   canBook?: boolean;
+  plan90?: Plan90Progress | null;
 };
 
 const STATUS: Record<string, string> = {
@@ -243,6 +246,8 @@ export default function AccountHome() {
           </>
         )}
       </section>
+
+      <Plan90ProgressCard progress={home.plan90} />
 
       <section id="plan">
         <h2>{t("plan")}</h2>

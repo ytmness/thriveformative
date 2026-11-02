@@ -17,7 +17,9 @@ import { SensitiveLists } from "@/components/admin/patients/SensitiveLists";
 import { DocumentLibrary } from "@/components/admin/patients/DocumentLibrary";
 import { GranolaActions } from "@/components/admin/patients/GranolaActions";
 import { MembershipBadge } from "@/components/admin/patients/MembershipBadge";
+import { Plan90Chip, Plan90ProgressBanner } from "@/components/admin/patients/Plan90ProgressBanner";
 import { CHART_FOLDERS, folderLabel } from "@/lib/domain/chartFolderMeta";
+import type { Plan90Progress } from "@/lib/domain/plan90Progress";
 import "@/app/styles/tienda.css";
 import "@/app/styles/note-editor.css";
 
@@ -28,6 +30,7 @@ type Patient = Record<string, unknown> & {
   profilePhotoUrl?: string | null;
   membershipOverride?: boolean;
   hasActiveMembership?: boolean;
+  plan90?: Plan90Progress;
   tags?: { id?: string; name?: string }[];
   preferredLanguage?: string; birthDate?: string;
   street?: string; streetNumber?: string; neighborhood?: string; postalCode?: string; country?: string;
@@ -532,6 +535,7 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
   const [notice, setNotice] = useState<string | null>(null);
   const [sessionDraft, setSessionDraft] = useState({ title: "" });
   const [receipt, setReceipt] = useState<StoreReceiptData | null>(null);
+  const [restartingPlan90, setRestartingPlan90] = useState(false);
   const active = TAB_ALIAS[tab] || tab || "resumen";
   const folder = resolveFolder(tab);
   const tabNames: Record<string, string> = english
@@ -577,6 +581,7 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
             <h1 className="admin-header__title">
               {patient.firstName} {patient.lastName}{" "}
               <MembershipBadge missing={patient.hasActiveMembership === false && !patient.membershipOverride} english={english} />
+              <Plan90Chip progress={patient.plan90} english={english} />
             </h1>
             <p className="admin-header__desc">{english ? "Created" : "Creado"} {patient.createdAt ? new Date(String(patient.createdAt)).toLocaleString(english ? "en-US" : "es-MX") : ""}</p>
           </div>
@@ -614,6 +619,28 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
       {active === "resumen" ? <PatientSummary patient={patient} /> : null}
       {active === "expediente" ? (
         <div className="chart-sheet">
+          {folder === "plan90" ? (
+            <Plan90ProgressBanner
+              progress={patient.plan90}
+              english={english}
+              restarting={restartingPlan90}
+              onRestart={async () => {
+                setRestartingPlan90(true);
+                try {
+                  const result = await api<{ progress: Plan90Progress }>(`/api/admin/patients/${id}/plan90`, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "restart" }),
+                  });
+                  setPatient({ ...patient, plan90: result.progress });
+                  setNotice(english ? "New 90-day plan ready. It starts with the next completed visit." : "Nuevo plan de 90 días listo. Inicia con la próxima cita completada.");
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : (english ? "Could not restart the plan." : "No se pudo reiniciar el plan."));
+                } finally {
+                  setRestartingPlan90(false);
+                }
+              }}
+            />
+          ) : null}
           {folder === "plan90" || folder === "prioridades" || folder === "desequilibrios" ? (
             <ChartNoteFolder
               patientId={id}

@@ -264,7 +264,9 @@ export async function getPatient(id: string, actor: StaffSession, meta?: { ip?: 
     ip: meta?.ip,
     userAgent: meta?.userAgent,
   });
-  return { ...mapPatient(res.rows[0]), customFields: custom.rows };
+  const { getPlan90Progress } = await import("@/lib/domain/plan90Progress");
+  const plan90 = await getPlan90Progress(id);
+  return { ...mapPatient(res.rows[0]), customFields: custom.rows, plan90 };
 }
 
 export async function createPatient(input: PatientInput, actor: StaffSession | null, meta?: { ip?: string | null; userAgent?: string | null }) {

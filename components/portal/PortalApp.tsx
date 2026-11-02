@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { api } from "@/components/admin/clinic/client";
 import { ProfilePhotoGate } from "@/components/account/ProfilePhotoGate";
+import { Plan90ProgressCard } from "@/components/account/Plan90ProgressCard";
+import type { Plan90Progress } from "@/lib/domain/plan90Progress";
 
 type Field = { id: string; label: string; type: string; required?: boolean; options?: string[]; help?: string };
 
@@ -73,10 +75,12 @@ export default function PortalApp({ mode, token }: { mode: "login" | "home" | "f
   const forms = (home?.forms as Record<string, string>[]) || [];
   const canBook = home?.canBook !== false;
   const membershipAccess = String(home?.membershipAccess || "");
+  const plan90 = (home?.plan90 as Plan90Progress | null | undefined) || null;
   return (
     <main className="portal-shell">
       <header className="admin-header"><h1 className="admin-header__title">Hola{patient?.firstName ? `, ${patient.firstName}` : ""}</h1></header>
       {membershipAccess === "grace" ? <p className="booking-error">Tu plan está en periodo de gracia. Actívalo para no perder el acceso.</p> : null}
+      <Plan90ProgressCard progress={plan90} />
       {canBook ? (
         <div className="booking-gate__actions" style={{ marginBottom: "1rem" }}>
           <Link className="admin-btn admin-btn--primary" href="/reservar">Agendar cita</Link>

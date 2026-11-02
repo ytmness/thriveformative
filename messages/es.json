@@ -331,7 +331,12 @@
     "creditsLeft": "{service}: {remaining}/{allotted}",
     "bookCta": "Agendar cita",
     "messagesCta": "Mensajes",
-    "activatePlan": "Activar plan ahora"
+    "activatePlan": "Activar plan ahora",
+    "plan90Title": "Tu plan de 90 días",
+    "plan90Pending": "El plan de 90 días inicia con tu primera cita completada.",
+    "plan90Active": "Vas en el día {day} de tu plan de 90 días",
+    "plan90Completed": "Completaste tu plan de 90 días el {date}.",
+    "plan90Range": "Inicio {start} · Termina {end}"
   },
   "booking": {
     "title": "Agenda tu cita",
