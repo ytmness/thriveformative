@@ -328,7 +328,10 @@
     "planEmpty": "You have no visit credits in this period.",
     "planUntil": "Until {date}",
     "planStartsOnFirstVisit": "The 90 days start with your first long visit",
-    "creditsLeft": "{service}: {remaining}/{allotted}"
+    "creditsLeft": "{service}: {remaining}/{allotted}",
+    "bookCta": "Book appointment",
+    "messagesCta": "Messages",
+    "activatePlan": "Activate plan now"
   },
   "booking": {
     "title": "Book your appointment",
@@ -359,9 +362,10 @@
     "registerToBookHint": "Create your patient account. Then you can choose a date and time.",
     "registerToBookCta": "Create account",
     "loginToBook": "I already have an account",
-    "membershipToBook": "You need an active membership to book",
-    "membershipToBookHint": "The calendar opens after you have an active plan. You can subscribe monthly or buy the 90-day method here.",
-    "membershipToBookCta": "Choose a plan",
+    "membershipToBook": "Activate your plan to book and message your team",
+    "membershipToBookHint": "You can still view your history. To book or send messages, activate your plan. Payment applies immediately.",
+    "membershipToBookCta": "Activate plan now",
+    "membershipGrace": "Your plan is in a grace period. Activate it so you don't lose access.",
     "planUnlockHint": "Some services open when your membership still has visit credits.",
     "planSummary": "Your plan",
     "planUntil": "Until {date}",

@@ -171,6 +171,14 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string; re
       await writeAudit({ actorType: "staff", actorId: session.staff.id, action: "documents.upload", entityType: "document", entityId: inserted.rows[0].id, patientId: id });
       return Response.json({ id: inserted.rows[0].id });
     }
+    if (resource === "memberships") {
+      const body = await readJson(req);
+      if (body.action === "override") {
+        await query(`UPDATE patients SET membership_override = $2 WHERE id = $1`, [id, body.enabled === true]);
+        return Response.json({ ok: true, membershipOverride: body.enabled === true });
+      }
+      throw new DomainError("Acción no válida.");
+    }
     throw new DomainError("Recurso no encontrado.", 404);
   } catch (error) {
     return toErrorResponse(error);

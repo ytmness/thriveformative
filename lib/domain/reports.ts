@@ -178,5 +178,7 @@ export async function dashboardStats(
      ORDER BY l.name`,
     [timeZone, country, locationId]
   );
-  return { ...rows.rows[0], upcoming: upcoming.rows, sites: sites.rows };
+  const { listExpiringMemberships } = await import("@/lib/domain/membershipPolicy");
+  const expiringMemberships = await listExpiringMemberships();
+  return { ...rows.rows[0], upcoming: upcoming.rows, sites: sites.rows, expiringMemberships };
 }

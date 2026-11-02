@@ -24,6 +24,8 @@ type Upcoming = {
   location_name: string | null;
 };
 
+type Expiring = { id: string; patientId: string; patientName: string; name: string; currentPeriodEnd: string | null; daysRemaining: number | null };
+
 type Stats = {
   appointments: number;
   revenue: string;
@@ -33,6 +35,7 @@ type Stats = {
   services: number;
   upcoming: Upcoming[];
   sites: Site[];
+  expiringMemberships?: Expiring[];
 };
 
 function money(value: number | string) {
@@ -100,6 +103,21 @@ export default function DashboardHome() {
             </button>
           ))}
         </div>
+      </div>
+      <div className="admin-table-wrap" style={{ marginTop: "1.25rem" }}>
+        <div className="admin-table__head"><div>{english ? "Memberships ending soon" : "Membresías por vencer"}</div></div>
+        {(data?.expiringMemberships || []).map((row) => (
+          <a key={row.id} className="admin-table__row" href={`/admin/pacientes/${row.patientId}/membresias`}>
+            <div>
+              <div className="admin-table__cell-title">{row.patientName || (english ? "Patient" : "Paciente")}</div>
+              <div className="admin-table__cell-sub">
+                {row.name} · {row.currentPeriodEnd?.slice(0, 10)}
+                {row.daysRemaining != null ? ` · ${english ? `${row.daysRemaining} days left` : `${row.daysRemaining} días restantes`}` : ""}
+              </div>
+            </div>
+          </a>
+        ))}
+        {!data?.expiringMemberships?.length ? <div className="admin-table__empty">{english ? "No memberships ending this week." : "No hay membresías por vencer esta semana."}</div> : null}
       </div>
     </>
   );

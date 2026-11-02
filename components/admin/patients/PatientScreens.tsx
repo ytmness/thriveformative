@@ -16,6 +16,7 @@ import { ChartNoteFolder } from "@/components/admin/patients/ChartNoteFolder";
 import { SensitiveLists } from "@/components/admin/patients/SensitiveLists";
 import { DocumentLibrary } from "@/components/admin/patients/DocumentLibrary";
 import { GranolaActions } from "@/components/admin/patients/GranolaActions";
+import { MembershipBadge } from "@/components/admin/patients/MembershipBadge";
 import { CHART_FOLDERS, folderLabel } from "@/lib/domain/chartFolderMeta";
 import "@/app/styles/tienda.css";
 import "@/app/styles/note-editor.css";
@@ -25,6 +26,8 @@ type Patient = Record<string, unknown> & {
   email?: string; mobile?: string; phone?: string; city?: string; state?: string;
   sex?: string | null; sexDetail?: string; createdAt?: string; marketingSource?: string | null; privacyPolicyStatus?: string;
   profilePhotoUrl?: string | null;
+  membershipOverride?: boolean;
+  hasActiveMembership?: boolean;
   tags?: { id?: string; name?: string }[];
   preferredLanguage?: string; birthDate?: string;
   street?: string; streetNumber?: string; neighborhood?: string; postalCode?: string; country?: string;
@@ -273,7 +276,10 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
                     className="patient-directory__avatar"
                   />
                   <div className="patient-directory__name-wrap">
-                    <span className="admin-table__cell-title">{row.firstName} {row.lastName}</span>
+                    <span className="admin-table__cell-title">
+                      {row.firstName} {row.lastName}{" "}
+                      <MembershipBadge missing={row.hasActiveMembership === false && !row.membershipOverride} english={english} compact />
+                    </span>
                     <span className="admin-table__cell-sub">{sexLabel(row.sex, english)} · {row.patientIdentifier || row.clientCode}</span>
                   </div>
                 </div>
@@ -568,7 +574,10 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
                 String(patient.clientCode || "")
               )}
             </p>
-            <h1 className="admin-header__title">{patient.firstName} {patient.lastName}</h1>
+            <h1 className="admin-header__title">
+              {patient.firstName} {patient.lastName}{" "}
+              <MembershipBadge missing={patient.hasActiveMembership === false && !patient.membershipOverride} english={english} />
+            </h1>
             <p className="admin-header__desc">{english ? "Created" : "Creado"} {patient.createdAt ? new Date(String(patient.createdAt)).toLocaleString(english ? "en-US" : "es-MX") : ""}</p>
           </div>
         </div>
@@ -722,6 +731,22 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
       ) : null}
       {active === "membresias" ? (
         <div className="admin-table-wrap">
+          <label className="admin-check" style={{ display: "flex", gap: "0.5rem", margin: "0 0 1rem" }}>
+            <input
+              type="checkbox"
+              checked={Boolean(patient.membershipOverride)}
+              onChange={async (event) => {
+                const enabled = event.target.checked;
+                try {
+                  await api(`/api/admin/patients/${id}/memberships`, { method: "POST", body: JSON.stringify({ action: "override", enabled }) });
+                  setPatient({ ...patient, membershipOverride: enabled, hasActiveMembership: enabled || patient.hasActiveMembership });
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "No se pudo guardar la excepción.");
+                }
+              }}
+            />
+            {english ? "Allow access without membership" : "Permitir acceso sin membresía"}
+          </label>
           {rows.map((row) => {
             const credits = Array.isArray(row.credits) ? (row.credits as { service_name?: string; remaining?: number; allotted?: number }[]) : [];
             const interval =
@@ -730,13 +755,20 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
                 : row.interval_unit === "day90"
                   ? (english ? "Every 90 days" : "Cada 90 días")
                   : (english ? "Monthly" : "Mensual");
+            const state = String(row.state || "");
+            const stateLabel =
+              state === "expiring" ? (english ? "Ending soon" : "Por vencer")
+              : state === "grace" ? (english ? "Grace period" : "Periodo de gracia")
+              : state === "expired" ? (english ? "Expired" : "Vencida")
+              : (english ? "Active" : "Activa");
             return (
               <div key={String(row.id)} className="admin-table__row" style={{ alignItems: "start" }}>
                 <div>
-                  <div className="admin-table__cell-title">{String(row.name || (english ? "Membership" : "Membresía"))}</div>
+                  <div className="admin-table__cell-title">{String(row.name || (english ? "Membership" : "Membresía"))} · {stateLabel}</div>
                   <div className="admin-table__cell-sub">
-                    {String(row.status || "")}
-                    {row.current_period_end ? ` · ${english ? "until" : "hasta"} ${String(row.current_period_end).slice(0, 10)}` : ""}
+                    {row.current_period_start ? `${english ? "Start" : "Inicio"} ${String(row.current_period_start).slice(0, 10)}` : (english ? "Start pending first long visit" : "Inicio pendiente de la primera cita larga")}
+                    {row.current_period_end && String(row.current_period_end).slice(0, 4) !== "2099" ? ` · ${english ? "End" : "Fin"} ${String(row.current_period_end).slice(0, 10)}` : ""}
+                    {row.daysRemaining != null ? ` · ${english ? `${row.daysRemaining} days left` : `${row.daysRemaining} días restantes`}` : ""}
                     {` · ${interval}`}
                     {row.renewal_mode === "square" ? " · Square" : ` · ${english ? "Manual renewal" : "Renovación manual"}`}
                   </div>

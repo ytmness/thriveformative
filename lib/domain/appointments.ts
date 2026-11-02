@@ -74,6 +74,15 @@ async function resolveWindow(input: AppointmentInput) {
 const SELECT = `
   SELECT a.*,
          p.first_name AS patient_first_name, p.last_name AS patient_last_name,
+         p.membership_override,
+         (
+           p.membership_override OR EXISTS (
+             SELECT 1 FROM patient_memberships pm
+             WHERE pm.patient_id = p.id
+               AND pm.status = 'active'
+               AND (pm.current_period_end IS NULL OR pm.current_period_end >= current_date)
+           )
+         ) AS has_active_membership,
          s.name AS service_name, s.color AS service_color,
          u.first_name AS staff_first_name, u.last_name AS staff_last_name, u.calendar_color,
          r.name AS room_name, l.name AS location_name, l.timezone
@@ -90,6 +99,7 @@ export function mapAppointment(row: Record<string, unknown>, manageToken?: strin
     id: row.id,
     patientId: row.patient_id,
     patientName: row.patient_first_name ? `${row.patient_first_name} ${row.patient_last_name}` : null,
+    missingMembership: Boolean(row.patient_id) && !row.has_active_membership,
     serviceId: row.service_id,
     serviceName: row.service_name,
     serviceColor: row.service_color,

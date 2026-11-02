@@ -1,5 +1,6 @@
 import { currentPatient } from "@/lib/auth/patientAccess";
 import { creditTotalsByService, hasActiveMembership, listActiveCredits } from "@/lib/domain/memberships";
+import { patientAccessState } from "@/lib/domain/membershipPolicy";
 import { query } from "@/lib/db";
 import { locationCountrySql } from "@/lib/domain/scope";
 import { toErrorResponse } from "@/lib/http";
@@ -21,6 +22,7 @@ export async function GET(req: Request) {
   try {
     const market = await requestMarket();
     const patient = await currentPatient();
+    const membershipAccess = patient ? await patientAccessState(patient.id) : "none";
     const hasMembership = patient ? await hasActiveMembership(patient.id) : false;
     const services = await query<{
       id: string;
@@ -95,6 +97,7 @@ export async function GET(req: Request) {
     const totals = creditTotalsByService(credits);
     return Response.json({
       hasMembership,
+      membershipAccess,
       services: hasMembership
         ? services.rows.map((row) => {
             const credit = totals.get(row.id);

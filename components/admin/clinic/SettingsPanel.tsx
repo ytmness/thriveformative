@@ -74,7 +74,15 @@ export default function SettingsPanel({ section }: { section: string }) {
     }
     const data = await api<{ rows: Row[] }>(`/api/admin/settings/${apiSection}`);
     setRows(data.rows || []);
-    if (apiSection === "booking" && data.rows[0]) setForm(bookingFrom(data.rows[0]));
+    if (apiSection === "booking" && data.rows[0]) {
+      const policy = await api<{ rows: { key: string; value: { graceDays?: number; noticeDays?: number } }[] }>("/api/admin/settings/clinic");
+      const membership = policy.rows.find((row) => row.key === "membership_policy")?.value || {};
+      setForm({
+        ...bookingFrom(data.rows[0]),
+        graceDays: membership.graceDays ?? 3,
+        noticeDays: membership.noticeDays ?? 7,
+      });
+    }
     if (apiSection === "clinic") {
       const next: Row = {};
       for (const row of data.rows) {
@@ -123,6 +131,13 @@ export default function SettingsPanel({ section }: { section: string }) {
         await api("/api/admin/settings/clinic", { method: "POST", body: JSON.stringify({ key: "cancellation_policy", value: { text: String(form.cancellation_policy || "") } }) });
       } else if (apiSection === "booking") {
         await api("/api/admin/settings/booking", { method: "POST", body: JSON.stringify(form) });
+        await api("/api/admin/settings/clinic", {
+          method: "POST",
+          body: JSON.stringify({
+            key: "membership_policy",
+            value: { graceDays: Number(form.graceDays ?? 3), noticeDays: Number(form.noticeDays ?? 7) },
+          }),
+        });
       } else if (editing) {
         await api(`/api/admin/settings/${apiSection}/${editing}`, { method: "PATCH", body: JSON.stringify(payload(apiSection, form)) });
       } else {
@@ -440,6 +455,8 @@ function Fields({ section, form, set, locations, staff, categories, taxes, rooms
       <Check label="Permitir reprogramar" checked={form.allowReschedule !== false} onChange={(v) => set("allowReschedule", v)} />
       <Check label="Lista de espera" checked={form.allowWaitlist !== false} onChange={(v) => set("allowWaitlist", v)} />
       <Check label="Exigir términos" checked={form.requireTerms !== false} onChange={(v) => set("requireTerms", v)} />
+      <Text label="Días de aviso de vencimiento" value={form.noticeDays ?? 7} onChange={(v) => set("noticeDays", Number(v))} />
+      <Text label="Días de gracia" value={form.graceDays ?? 3} onChange={(v) => set("graceDays", Number(v))} />
     </>
   );
   return (

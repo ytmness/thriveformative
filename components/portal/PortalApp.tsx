@@ -58,9 +58,24 @@ export default function PortalApp({ mode, token }: { mode: "login" | "home" | "f
   const appointments = (home?.appointments as Record<string, string>[]) || [];
   const invoices = (home?.invoices as Record<string, unknown>[]) || [];
   const forms = (home?.forms as Record<string, string>[]) || [];
+  const canBook = home?.canBook !== false;
+  const membershipAccess = String(home?.membershipAccess || "");
   return (
     <main className="portal-shell">
       <header className="admin-header"><h1 className="admin-header__title">Hola{patient?.firstName ? `, ${patient.firstName}` : ""}</h1></header>
+      {membershipAccess === "grace" ? <p className="booking-error">Tu plan está en periodo de gracia. Actívalo para no perder el acceso.</p> : null}
+      {canBook ? (
+        <div className="booking-gate__actions" style={{ marginBottom: "1rem" }}>
+          <a className="admin-btn admin-btn--primary" href="/reservar">Agendar cita</a>
+          <a className="admin-btn" href="https://wa.me/528120036699" target="_blank" rel="noreferrer">Mensajes</a>
+        </div>
+      ) : (
+        <div className="booking-gate" style={{ marginBottom: "1rem" }}>
+          <p className="booking-gate__title">Activa tu plan para agendar y hablar con tu equipo</p>
+          <p className="booking-gate__hint">Puedes ver tu historial. Para agendar o enviar mensajes, activa tu plan.</p>
+          <a className="admin-btn admin-btn--primary" href="/suscribir">Activar plan ahora</a>
+        </div>
+      )}
       <h2>Citas</h2>
       {appointments.map((row) => <div key={row.id} className="admin-table__row"><span>{new Date(row.starts_at).toLocaleString("es-MX")} · {row.service_name} · {row.status}</span><button className="admin-btn admin-btn--danger" type="button" onClick={() => api("/api/portal/appointments", { method: "POST", body: JSON.stringify({ appointmentId: row.id, action: "cancel" }) }).then(() => location.reload())}>Cancelar</button></div>)}
       <h2>Formularios</h2>

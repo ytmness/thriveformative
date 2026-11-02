@@ -1,6 +1,7 @@
 import { currentPatient } from "@/lib/auth/patientAccess";
 import { portalInvoices } from "@/lib/auth/portal";
 import { listActiveCredits } from "@/lib/domain/memberships";
+import { hasBookingAccess, patientAccessState } from "@/lib/domain/membershipPolicy";
 import { query } from "@/lib/db";
 
 function currencyOf(country: string | null) {
@@ -24,6 +25,7 @@ type OrderRow = {
 export async function GET() {
   const patient = await currentPatient().catch(() => null);
   if (!patient) return Response.json({ error: "Inicia sesión para ver tu cuenta." }, { status: 401 });
+  const membershipAccess = await patientAccessState(patient.id);
   const [visits, consultations, online, invoices, credits] = await Promise.all([
     query<{
       id: string;
@@ -117,5 +119,7 @@ export async function GET() {
     orders,
     invoices,
     credits,
+    membershipAccess,
+    canBook: hasBookingAccess(membershipAccess),
   });
 }

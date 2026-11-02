@@ -20,6 +20,7 @@ type Credit = {
 };
 type Catalog = {
   hasMembership?: boolean;
+  membershipAccess?: "active" | "expiring" | "grace" | "expired" | "none" | "override";
   services: { id: string; name: string; duration_minutes: number; locked?: boolean; remaining?: number; allotted?: number }[];
   locations: { id: string; name: string }[];
   settings: { max_advance_days?: number; require_terms?: boolean } | null;
@@ -197,7 +198,7 @@ export default function PublicCalendar() {
         <p className="booking-gate__title">{t("membershipToBook")}</p>
         <p className="booking-gate__hint">{t("membershipToBookHint")}</p>
         <div className="booking-gate__actions">
-          <Link href={`/${locale}#suscripcion`} className="btn-primary">{t("membershipToBookCta")}</Link>
+          <Link href={`/${locale}/suscribir`} className="btn-primary">{t("membershipToBookCta")}</Link>
         </div>
       </div>
     );
@@ -225,6 +226,12 @@ export default function PublicCalendar() {
   return (
     <div className="booking-picker">
       {error ? <div className="booking-error" role="alert">{error}</div> : null}
+      {catalog?.membershipAccess === "grace" ? (
+        <p className="booking-error" role="status">
+          {t("membershipGrace")}{" "}
+          <Link href={`/${locale}/suscribir`}>{t("membershipToBookCta")}</Link>
+        </p>
+      ) : null}
       {catalog?.credits?.length ? (
         <div className="booking-plan">
           {groupPlanCredits(catalog.credits).map((plan) => (

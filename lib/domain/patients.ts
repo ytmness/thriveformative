@@ -93,6 +93,8 @@ function mapPatient(row: Record<string, unknown>) {
     emergencyPhone: decryptPhi(row.emergency_phone_enc as Buffer | null),
     emergencyRelation: row.emergency_relation,
     profilePhotoUrl: row.profile_photo_url ?? null,
+    membershipOverride: Boolean(row.membership_override),
+    hasActiveMembership: Boolean(row.has_active_membership ?? row.membership_override),
     createdBy: row.created_by,
     createdAt: row.created_at,
     tags: row.tags ?? [],
@@ -138,7 +140,15 @@ const BASE = `
          coalesce((
            SELECT json_agg(json_build_object('id', t.id, 'name', t.name, 'color', t.color))
            FROM patient_tags pt JOIN tags t ON t.id = pt.tag_id WHERE pt.patient_id = p.id
-         ), '[]'::json) AS tags
+         ), '[]'::json) AS tags,
+         (
+           p.membership_override OR EXISTS (
+             SELECT 1 FROM patient_memberships pm
+             WHERE pm.patient_id = p.id
+               AND pm.status = 'active'
+               AND (pm.current_period_end IS NULL OR pm.current_period_end >= current_date)
+           )
+         ) AS has_active_membership
   FROM patients p
   LEFT JOIN marketing_sources ms ON ms.id = p.marketing_source_id
 `;
