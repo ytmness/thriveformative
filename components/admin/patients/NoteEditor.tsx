@@ -42,6 +42,7 @@ type NoteEditorProps = {
   patientId?: string;
   noteId?: string;
   initialTitle?: string;
+  defaultTitle?: string;
   initialBody?: string;
   onSave?: (data: { title: string; body: string }) => Promise<void>;
   onCancel?: () => void;
@@ -190,6 +191,7 @@ function Flyout({
 
 export function NoteEditor({
   initialTitle = "",
+  defaultTitle = "",
   initialBody = "",
   onSave,
   onCancel,
@@ -197,7 +199,7 @@ export function NoteEditor({
   english = false,
   variant = "note",
 }: NoteEditorProps) {
-  const [title, setTitle] = useState(initialTitle);
+  const [title, setTitle] = useState(initialTitle || defaultTitle);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [zoom, setZoom] = useState(100);
@@ -329,13 +331,13 @@ export function NoteEditor({
     setSaving(true);
     setError(null);
     try {
-      await onSave({ title, body: editor.getHTML() });
+      await onSave({ title: title.trim() || defaultTitle, body: editor.getHTML() });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al guardar");
     } finally {
       setSaving(false);
     }
-  }, [editor, title, onSave]);
+  }, [editor, title, defaultTitle, onSave]);
 
   useEffect(() => {
     if (session || !onSave) return;
@@ -736,7 +738,7 @@ export function NoteEditor({
                 <input
                   type="text"
                   className="note-editor__title"
-                  placeholder={copy.untitled}
+                  placeholder={defaultTitle || copy.untitled}
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                 />

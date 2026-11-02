@@ -11,7 +11,13 @@ import { PatientAvatar } from "@/components/PatientAvatar";
 import { majorToMinor } from "@/lib/square/money";
 import type { StoreReceiptData } from "@/lib/store/orderTypes";
 import { NoteEditor } from "@/components/admin/patients/NoteEditor";
-import { NotesList } from "@/components/admin/patients/NotesList";
+import { CommunicationsList } from "@/components/admin/patients/CommunicationsList";
+import { ChartNoteFolder } from "@/components/admin/patients/ChartNoteFolder";
+import { SensitiveLists } from "@/components/admin/patients/SensitiveLists";
+import { DocumentLibrary } from "@/components/admin/patients/DocumentLibrary";
+import { GranolaActions } from "@/components/admin/patients/GranolaActions";
+import { MembershipBadge } from "@/components/admin/patients/MembershipBadge";
+import { CHART_FOLDERS, folderLabel } from "@/lib/domain/chartFolderMeta";
 import "@/app/styles/tienda.css";
 import "@/app/styles/note-editor.css";
 
@@ -20,6 +26,8 @@ type Patient = Record<string, unknown> & {
   email?: string; mobile?: string; phone?: string; city?: string; state?: string;
   sex?: string | null; sexDetail?: string; createdAt?: string; marketingSource?: string | null; privacyPolicyStatus?: string;
   profilePhotoUrl?: string | null;
+  membershipOverride?: boolean;
+  hasActiveMembership?: boolean;
   tags?: { id?: string; name?: string }[];
   preferredLanguage?: string; birthDate?: string;
   street?: string; streetNumber?: string; neighborhood?: string; postalCode?: string; country?: string;
@@ -268,7 +276,10 @@ export function PatientList({ startNew, initialQuery = "", initialNotice = null 
                     className="patient-directory__avatar"
                   />
                   <div className="patient-directory__name-wrap">
-                    <span className="admin-table__cell-title">{row.firstName} {row.lastName}</span>
+                    <span className="admin-table__cell-title">
+                      {row.firstName} {row.lastName}{" "}
+                      <MembershipBadge missing={row.hasActiveMembership === false && !row.membershipOverride} english={english} compact />
+                    </span>
                     <span className="admin-table__cell-sub">{sexLabel(row.sex, english)} · {row.patientIdentifier || row.clientCode}</span>
                   </div>
                 </div>
@@ -438,21 +449,7 @@ const TABS = [
   ["membresias", "Membresías"],
 ] as const;
 
-const FOLDERS = [
-  ["notas", "Plan de 90 días", "expediente"],
-  ["sesiones", "Sesiones", "sesiones"],
-  ["estudios", "Estudios clínicos", "estudios"],
-  ["alergias", "Alergias", "alergias"],
-  ["fotos", "Fotos", "fotos"],
-  ["documentos", "Documentos", "documentos"],
-] as const;
-
-const STUDIES = [
-  ["imaging", "Imagenología"],
-  ["labs", "Sangre / orina / saliva"],
-  ["microbiota", "Microbiota"],
-  ["procedures", "Procedimientos"],
-] as const;
+const FOLDERS = CHART_FOLDERS.map((key) => [key, key, key === "plan90" ? "expediente" : key] as const);
 
 const SALE_RECEIPT_LABELS = {
   receiptTitle: "Recibo",
@@ -499,12 +496,31 @@ function saleToReceipt(sale: ClinicSale, patientName: string): StoreReceiptData 
 const TAB_ALIAS: Record<string, string> = {
   ventas: "finanzas",
   formularios: "expediente",
-  estudios: "expediente",
+  expediente: "expediente",
+  notas: "expediente",
+  plan90: "expediente",
   sesiones: "expediente",
+  prioridades: "expediente",
+  desequilibrios: "expediente",
+  medicamentos: "expediente",
   alergias: "expediente",
+  estudios: "expediente",
   fotos: "expediente",
   documentos: "expediente",
+  composicion: "expediente",
+  nutricionales: "expediente",
 };
+
+function resolveFolder(tab: string) {
+  if (tab === "sesiones") return "sesiones";
+  if (tab === "prioridades") return "prioridades";
+  if (tab === "desequilibrios") return "desequilibrios";
+  if (tab === "medicamentos" || tab === "alergias") return "medicamentos";
+  if (tab === "estudios" || tab === "fotos" || tab === "documentos" || tab === "formularios") return "estudios";
+  if (tab === "composicion") return "composicion";
+  if (tab === "nutricionales") return "nutricionales";
+  return "plan90";
+}
 
 export function PatientChart({ id, tab }: { id: string; tab: string }) {
   const english = useAdminEnglish();
@@ -514,23 +530,14 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [note, setNote] = useState("");
-  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [sessionDraft, setSessionDraft] = useState({ title: "" });
-  const [study, setStudy] = useState<(typeof STUDIES)[number][0]>("imaging");
-  const [value, setValue] = useState("");
-  const [kind, setKind] = useState<"allergies" | "conditions" | "medications">("allergies");
-  const [clinical, setClinical] = useState<Record<string, Record<string, unknown>[]>>({});
   const [receipt, setReceipt] = useState<StoreReceiptData | null>(null);
   const active = TAB_ALIAS[tab] || tab || "resumen";
-  const folder = tab === "formularios" ? "estudios" : tab === "alergias" || tab === "fotos" || tab === "documentos" || tab === "sesiones" || tab === "estudios" ? tab : "notas";
-  const folderNames: Record<string, string> = english
-    ? { notas: "90-day plan", sesiones: "Sessions", estudios: "Clinical studies", alergias: "Allergies", fotos: "Photos", documentos: "Documents" }
-    : { notas: "Plan de 90 días", sesiones: "Sesiones", estudios: "Estudios clínicos", alergias: "Alergias", fotos: "Fotos", documentos: "Documentos" };
+  const folder = resolveFolder(tab);
   const tabNames: Record<string, string> = english
     ? { resumen: "Summary", citas: "Appointments", expediente: "Chart", finanzas: "Purchases", comunicaciones: "Messages", membresias: "Memberships" }
     : { resumen: "Resumen", citas: "Citas", expediente: "Expediente", finanzas: "Compras", comunicaciones: "Comunicaciones", membresias: "Membresías" };
-  const folderLabel = folderNames[folder] || (english ? "90-day plan" : "Plan de 90 días");
+  const currentFolderLabel = folderLabel(folder, english);
 
   useEffect(() => {
     if (params.get("creado") === "1") setNotice(english ? "Patient saved." : "Paciente guardado.");
@@ -540,13 +547,7 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
     api<{ patient: Patient }>(`/api/admin/patients/${id}`).then((r) => setPatient(r.patient)).catch((e) => setError(e.message));
   }, [id]);
   useEffect(() => {
-    if (active === "expediente" && folder === "alergias") {
-      Promise.all(["allergies", "conditions", "medications"].map((name) => api<{ rows: Record<string, unknown>[] }>(`/api/admin/patients/${id}/${name}`).then((r) => [name, r.rows] as const))).then((pairs) => {
-        setClinical(Object.fromEntries(pairs));
-      }).catch((e) => setError(e.message));
-      return;
-    }
-    const resource = active === "citas" ? "appointments" : active === "finanzas" ? "sales" : active === "comunicaciones" ? "messages" : active === "membresias" ? "memberships" : active === "expediente" && folder === "notas" ? "notes" : active === "expediente" && folder === "sesiones" ? "sessions" : active === "expediente" && (folder === "fotos" || folder === "documentos" || folder === "estudios") ? "documents" : "";
+    const resource = active === "citas" ? "appointments" : active === "finanzas" ? "sales" : active === "comunicaciones" ? "messages" : active === "membresias" ? "memberships" : active === "expediente" && folder === "sesiones" ? "sessions" : "";
     if (!resource) return;
     api<{ rows: Record<string, unknown>[] }>(`/api/admin/patients/${id}/${resource}`).then((r) => setRows(r.rows)).catch((e) => setError(e.message));
   }, [id, active, folder]);
@@ -573,7 +574,10 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
                 String(patient.clientCode || "")
               )}
             </p>
-            <h1 className="admin-header__title">{patient.firstName} {patient.lastName}</h1>
+            <h1 className="admin-header__title">
+              {patient.firstName} {patient.lastName}{" "}
+              <MembershipBadge missing={patient.hasActiveMembership === false && !patient.membershipOverride} english={english} />
+            </h1>
             <p className="admin-header__desc">{english ? "Created" : "Creado"} {patient.createdAt ? new Date(String(patient.createdAt)).toLocaleString(english ? "en-US" : "es-MX") : ""}</p>
           </div>
         </div>
@@ -593,12 +597,12 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
         {TABS.map(([item]) => item === "expediente" ? (
           <details key={item} className={`chart-drop${active === "expediente" ? " is-current" : ""}`}>
             <summary className={`admin-nav__item${active === "expediente" ? " admin-nav__item--active" : ""}`}>
-              <span>{tabNames.expediente}{active === "expediente" ? ` · ${folderLabel}` : ""}</span>
+              <span>{tabNames.expediente}{active === "expediente" ? ` · ${currentFolderLabel}` : ""}</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
             </summary>
             <div className="chart-drop__menu" role="menu">
               {FOLDERS.map(([key, , slug]) => (
-                <Link key={key} role="menuitem" href={`/admin/pacientes/${id}/${slug}`} aria-current={active === "expediente" && folder === key ? "page" : undefined} onClick={(event) => { const menu = event.currentTarget.closest("details"); if (menu) menu.open = false; }}>{folderNames[key]}</Link>
+                <Link key={key} role="menuitem" href={`/admin/pacientes/${id}/${slug}`} aria-current={active === "expediente" && folder === key ? "page" : undefined} onClick={(event) => { const menu = event.currentTarget.closest("details"); if (menu) menu.open = false; }}>{folderLabel(key, english)}</Link>
               ))}
             </div>
           </details>
@@ -610,105 +614,36 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
       {active === "resumen" ? <PatientSummary patient={patient} /> : null}
       {active === "expediente" ? (
         <div className="chart-sheet">
-          {folder === "notas" ? (
-            editingNoteId === "new" || editingNoteId ? (
-              <NoteEditor
-                key={String(editingNoteId)}
-                patientId={id}
-                noteId={editingNoteId === "new" ? undefined : editingNoteId}
-                initialTitle={
-                  editingNoteId !== "new"
-                    ? String(rows.find((r) => r.id === editingNoteId)?.title || "")
-                    : ""
-                }
-                initialBody={
-                  editingNoteId !== "new"
-                    ? String(
-                        rows.find((r) => r.id === editingNoteId)?.body ||
-                          rows.find((r) => r.id === editingNoteId)?.subjective ||
-                          ""
-                      )
-                    : ""
-                }
-                onSave={async (data) => {
-                  try {
-                    if (editingNoteId === "new") {
-                      await api(`/api/admin/patients/${id}/notes`, {
-                        method: "POST",
-                        body: JSON.stringify({
-                          title: data.title,
-                          body: data.body,
-                          noteType: "free",
-                          lock: false,
-                        }),
-                      });
-                      setNotice(english ? "Note created." : "Nota creada.");
-                    } else {
-                      await api(`/api/admin/patients/${id}/notes`, {
-                        method: "POST",
-                        body: JSON.stringify({
-                          id: editingNoteId,
-                          title: data.title,
-                          body: data.body,
-                          noteType: "free",
-                          lock: false,
-                        }),
-                      });
-                      setNotice(english ? "Note updated." : "Nota actualizada.");
-                    }
-                    const next = await api<{ rows: Record<string, unknown>[] }>(
-                      `/api/admin/patients/${id}/notes`
-                    );
-                    setRows(next.rows);
-                    setEditingNoteId(null);
-                  } catch (err) {
-                    throw new Error(
-                      err instanceof Error
-                        ? err.message
-                        : english
-                          ? "Could not save the note."
-                          : "No se pudo guardar la nota."
-                    );
-                  }
-                }}
-                onCancel={() => setEditingNoteId(null)}
-                english={english}
-              />
-            ) : (
-              <NotesList
-                notes={rows as Array<{
-                  id: string;
-                  title?: string | null;
-                  body?: string | null;
-                  subjective?: string | null;
-                  created_at?: string;
-                  locked_at?: string | null;
-                }>}
-                patientId={id}
-                onNoteClick={(noteId) => setEditingNoteId(noteId)}
-                onNewNote={() => setEditingNoteId("new")}
-                onDeleteNote={async (noteId) => {
-                  await api(`/api/admin/patients/${id}/notes`, {
-                    method: "DELETE",
-                    body: JSON.stringify({ id: noteId }),
-                  });
-                  setRows(rows.filter((item) => item.id !== noteId));
-                  setNotice(english ? "Note deleted." : "Nota eliminada.");
-                }}
-                english={english}
-              />
-            )
+          {folder === "plan90" || folder === "prioridades" || folder === "desequilibrios" ? (
+            <ChartNoteFolder
+              patientId={id}
+              folderKey={folder}
+              heading={currentFolderLabel}
+              english={english}
+              enableGranola={folder === "plan90"}
+            />
           ) : null}
           {folder === "sesiones" ? (
             <>
+            <GranolaActions
+              patientId={id}
+              folderKey="sesiones"
+              english={english}
+              onImported={async () => {
+                const next = await api<{ rows: Record<string, unknown>[] }>(`/api/admin/patients/${id}/sessions`);
+                setRows(next.rows);
+                setNotice(english ? "Granola note imported." : "Nota de Granola importada.");
+              }}
+            />
             <form className="chart-block" onSubmit={async (e) => {
               e.preventDefault();
               try {
                 const today = new Date();
                 const sessionDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-                await api(`/api/admin/patients/${id}/sessions`, { method: "POST", body: JSON.stringify({ title: sessionDraft.title, sessionDate }) });
+                const title = sessionDraft.title.trim() || `${currentFolderLabel} — ${today.toLocaleDateString(english ? "en-US" : "es-MX", { day: "numeric", month: "short", year: "numeric" })}`;
+                await api(`/api/admin/patients/${id}/sessions`, { method: "POST", body: JSON.stringify({ title, sessionDate }) });
                 setSessionDraft({ title: "" });
-                setNotice("Sesión guardada.");
+                setNotice(english ? "Session saved." : "Sesión guardada.");
                 const next = await api<{ rows: Record<string, unknown>[] }>(`/api/admin/patients/${id}/sessions`);
                 setRows(next.rows);
               } catch (err) {
@@ -716,124 +651,19 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
               }
             }}>
               <div className="admin-toolbar">
-                <input required value={sessionDraft.title} placeholder="Nombre de la sesión" onChange={(e) => setSessionDraft({ ...sessionDraft, title: e.target.value })} />
-                <button className="admin-btn admin-btn--primary" type="submit">Agregar sesión</button>
+                <input value={sessionDraft.title} placeholder={currentFolderLabel} onChange={(e) => setSessionDraft({ ...sessionDraft, title: e.target.value })} />
+                <button className="admin-btn admin-btn--primary" type="submit">{english ? "Add session" : "Agregar sesión"}</button>
               </div>
             </form>
             {rows.map((row) => (
               <SessionCard key={String(row.id)} patientId={id} row={row} english={english} onChange={(next) => setRows(rows.map((item) => item.id === row.id ? next : item))} onDelete={() => setRows(rows.filter((item) => item.id !== row.id))} onError={setError} />
             ))}
-            {!rows.length ? <p className="admin-table__empty">Sin sesiones.</p> : null}
+            {!rows.length ? <p className="admin-table__empty">{english ? "No sessions." : "Sin sesiones."}</p> : null}
             </>
           ) : null}
-          {folder === "alergias" ? (
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              try {
-                await api(`/api/admin/patients/${id}/${kind}`, { method: "POST", body: JSON.stringify({ value }) });
-                setValue("");
-                setNotice("Registro guardado.");
-                const pairs = await Promise.all(["allergies", "conditions", "medications"].map((name) => api<{ rows: Record<string, unknown>[] }>(`/api/admin/patients/${id}/${name}`).then((r) => [name, r.rows] as const)));
-                setClinical(Object.fromEntries(pairs));
-              } catch (err) {
-                setError(err instanceof Error ? err.message : "No se pudo guardar.");
-              }
-            }}>
-              <div className="admin-toolbar">
-                <select value={kind} onChange={(e) => setKind(e.target.value as typeof kind)}><option value="allergies">Alergia</option><option value="conditions">Condición</option><option value="medications">Medicamento</option></select>
-                <input value={value} onChange={(e) => setValue(e.target.value)} placeholder="Descripción" required />
-                <button className="admin-btn admin-btn--primary" type="submit">Agregar</button>
-              </div>
-              {(["allergies", "conditions", "medications"] as const).map((name) => (
-                <section key={name} className="chart-block">
-                  <h2>{name === "allergies" ? "Alergias" : name === "conditions" ? "Condiciones" : "Medicamentos"}</h2>
-                  {(clinical[name] || []).map((row) => (
-                    <div key={String(row.id)} className="admin-table__row">
-                      <span>{String(row.value)}{row.severity ? ` · ${String(row.severity)}` : ""}</span>
-                      <button className="admin-btn" type="button" onClick={async () => {
-                        if (!window.confirm("¿Eliminar este registro?")) return;
-                        try {
-                          await api(`/api/admin/patients/${id}/${name}`, { method: "DELETE", body: JSON.stringify({ id: row.id }) });
-                          setClinical((current) => ({ ...current, [name]: (current[name] || []).filter((item) => item.id !== row.id) }));
-                        } catch (err) {
-                          setError(err instanceof Error ? err.message : "No se pudo eliminar.");
-                        }
-                      }}>Eliminar</button>
-                    </div>
-                  ))}
-                  {!(clinical[name] || []).length ? <p className="admin-table__empty">Sin registros.</p> : null}
-                </section>
-              ))}
-            </form>
-          ) : null}
-          {folder === "estudios" ? (
-            <form className="chart-block" onSubmit={async (e) => {
-              e.preventDefault();
-              const form = e.currentTarget;
-              const data = new FormData(form);
-              data.set("kind", study);
-              try {
-                await api(`/api/admin/patients/${id}/documents`, { method: "POST", body: data });
-                setNotice("Archivo guardado.");
-                const next = await api<{ rows: Record<string, unknown>[] }>(`/api/admin/patients/${id}/documents`);
-                setRows(next.rows);
-                form.reset();
-              } catch (err) {
-                setError(err instanceof Error ? err.message : "No se pudo guardar el archivo.");
-              }
-            }}>
-              <div className="admin-toolbar">
-                {STUDIES.map(([key, label]) => (
-                  <button key={key} className={`admin-btn${study === key ? " admin-btn--primary" : ""}`} type="button" onClick={() => setStudy(key)}>{label}</button>
-                ))}
-              </div>
-              <div className="admin-toolbar">
-                <input name="title" placeholder="Título del estudio" />
-                <input name="file" type="file" accept="application/pdf,.pdf,image/jpeg,image/png,.jpg,.jpeg,.png" required />
-                <button className="admin-btn admin-btn--primary" type="submit">Subir archivo</button>
-              </div>
-              {rows.filter((row) => row.kind === study).map((row) => (
-                <div key={String(row.id)} className="admin-table__row">
-                  {row.missing ? <span>{String(row.title)} · archivo no disponible, vuelve a subirlo</span> : <a href={`/api/admin/documents/${row.id}`}>{String(row.title)}</a>}
-                  <button className="admin-btn" type="button" onClick={async () => {
-                    if (!window.confirm("¿Eliminar este estudio?")) return;
-                    await api(`/api/admin/patients/${id}/documents`, { method: "DELETE", body: JSON.stringify({ id: row.id }) });
-                    setRows(rows.filter((item) => item.id !== row.id));
-                  }}>Eliminar</button>
-                </div>
-              ))}
-              {!rows.some((row) => row.kind === study) ? <p className="admin-table__empty">Sin archivos en esta carpeta.</p> : null}
-            </form>
-          ) : null}
-          {(folder === "fotos" || folder === "documentos") ? (
-            <form className="chart-block" onSubmit={async (e) => {
-              e.preventDefault();
-              const data = new FormData(e.currentTarget);
-              if (folder === "fotos") data.set("isPhoto", "1");
-              try {
-                await api(`/api/admin/patients/${id}/documents`, { method: "POST", body: data });
-                setNotice("Archivo guardado.");
-                location.reload();
-              } catch (err) {
-                setError(err instanceof Error ? err.message : "No se pudo guardar el archivo.");
-              }
-            }}>
-              <div className="admin-toolbar"><input name="title" placeholder="Título" /><input name="file" type="file" required /><button className="admin-btn admin-btn--primary" type="submit">Subir</button></div>
-              {rows.filter((row) => folder === "fotos" ? row.is_photo : !row.is_photo && !STUDIES.some(([key]) => key === row.kind)).map((row) => (
-                <div key={String(row.id)} className="admin-table__row">
-                  {row.missing ? <span>{String(row.title)} · archivo no disponible, vuelve a subirlo</span> : <a href={`/api/admin/documents/${row.id}`}>{String(row.title)}</a>}
-                  <button className="admin-btn" type="button" onClick={async () => {
-                    if (!window.confirm("¿Eliminar este archivo del expediente?")) return;
-                    try {
-                      await api(`/api/admin/patients/${id}/documents`, { method: "DELETE", body: JSON.stringify({ id: row.id }) });
-                      setRows(rows.filter((item) => item.id !== row.id));
-                    } catch (err) {
-                      setError(err instanceof Error ? err.message : "No se pudo eliminar el archivo.");
-                    }
-                  }}>Eliminar</button>
-                </div>
-              ))}
-            </form>
+          {folder === "medicamentos" ? <SensitiveLists patientId={id} english={english} /> : null}
+          {folder === "estudios" || folder === "composicion" || folder === "nutricionales" ? (
+            <DocumentLibrary patientId={id} parentKey={folder} english={english} />
           ) : null}
         </div>
       ) : null}
@@ -901,6 +731,22 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
       ) : null}
       {active === "membresias" ? (
         <div className="admin-table-wrap">
+          <label className="admin-check" style={{ display: "flex", gap: "0.5rem", margin: "0 0 1rem" }}>
+            <input
+              type="checkbox"
+              checked={Boolean(patient.membershipOverride)}
+              onChange={async (event) => {
+                const enabled = event.target.checked;
+                try {
+                  await api(`/api/admin/patients/${id}/memberships`, { method: "POST", body: JSON.stringify({ action: "override", enabled }) });
+                  setPatient({ ...patient, membershipOverride: enabled, hasActiveMembership: enabled || patient.hasActiveMembership });
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "No se pudo guardar la excepción.");
+                }
+              }}
+            />
+            {english ? "Allow access without membership" : "Permitir acceso sin membresía"}
+          </label>
           {rows.map((row) => {
             const credits = Array.isArray(row.credits) ? (row.credits as { service_name?: string; remaining?: number; allotted?: number }[]) : [];
             const interval =
@@ -909,13 +755,20 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
                 : row.interval_unit === "day90"
                   ? (english ? "Every 90 days" : "Cada 90 días")
                   : (english ? "Monthly" : "Mensual");
+            const state = String(row.state || "");
+            const stateLabel =
+              state === "expiring" ? (english ? "Ending soon" : "Por vencer")
+              : state === "grace" ? (english ? "Grace period" : "Periodo de gracia")
+              : state === "expired" ? (english ? "Expired" : "Vencida")
+              : (english ? "Active" : "Activa");
             return (
               <div key={String(row.id)} className="admin-table__row" style={{ alignItems: "start" }}>
                 <div>
-                  <div className="admin-table__cell-title">{String(row.name || (english ? "Membership" : "Membresía"))}</div>
+                  <div className="admin-table__cell-title">{String(row.name || (english ? "Membership" : "Membresía"))} · {stateLabel}</div>
                   <div className="admin-table__cell-sub">
-                    {String(row.status || "")}
-                    {row.current_period_end ? ` · ${english ? "until" : "hasta"} ${String(row.current_period_end).slice(0, 10)}` : ""}
+                    {row.current_period_start ? `${english ? "Start" : "Inicio"} ${String(row.current_period_start).slice(0, 10)}` : (english ? "Start pending first long visit" : "Inicio pendiente de la primera cita larga")}
+                    {row.current_period_end && String(row.current_period_end).slice(0, 4) !== "2099" ? ` · ${english ? "End" : "Fin"} ${String(row.current_period_end).slice(0, 10)}` : ""}
+                    {row.daysRemaining != null ? ` · ${english ? `${row.daysRemaining} days left` : `${row.daysRemaining} días restantes`}` : ""}
                     {` · ${interval}`}
                     {row.renewal_mode === "square" ? " · Square" : ` · ${english ? "Manual renewal" : "Renovación manual"}`}
                   </div>
@@ -936,7 +789,7 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
         </div>
       ) : null}
       {active === "comunicaciones" ? (
-        <div className="admin-table-wrap">{rows.map((row) => <div key={String(row.id)} className="admin-table__row"><div className="admin-table__cell-title">{String(row.subject || row.status || "Mensaje")}</div><div className="admin-table__cell-sub">{String(row.sent_at || row.scheduled_for || row.status || "")}</div></div>)}{!rows.length ? <div className="admin-table__empty">Sin comunicaciones.</div> : null}</div>
+        <CommunicationsList rows={rows as Array<{ id: string; channel?: string | null; subject?: string | null; body?: string | null; status?: string | null; scheduled_for?: string | null; sent_at?: string | null; error?: string | null; provider?: string | null; template_key?: string | null; timezone?: string | null }>} english={english} />
       ) : null}
       </div>
     </>

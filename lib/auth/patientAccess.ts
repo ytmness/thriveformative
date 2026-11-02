@@ -151,6 +151,9 @@ async function saveProfile(email: string, profile: RegisterProfile, market?: "MX
   if (profile.acceptedPolicies !== true) {
     throw new DomainError(profile.locale === "en" ? "Read and accept the policies before continuing." : "Lee y acepta las políticas antes de continuar.");
   }
+  if (!profile.profilePhotoUrl?.trim()) {
+    throw new DomainError(profile.locale === "en" ? "Add a profile photo to continue." : "Agrega una foto de perfil para continuar.");
+  }
   const names = patientNames(profile);
   const sex = mapSex(profile.sex);
   const phone = normalizePhone(profile.phone);

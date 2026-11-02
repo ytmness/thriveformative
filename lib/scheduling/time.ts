@@ -78,3 +78,44 @@ export function addMonthsToDateKey(date: string, months: number): string {
 export function todayKey(timeZone: string, now = new Date()): string {
   return formatDate(now, timeZone);
 }
+
+export function locationTimezone(timezone?: string | null, country?: string | null): string {
+  if (timezone && timezone.trim()) return timezone.trim();
+  const code = String(country || "").trim().toUpperCase();
+  if (code === "US" || code === "USA" || code === "UNITED STATES" || code === "ESTADOS UNIDOS") {
+    return "America/Chicago";
+  }
+  return "America/Monterrey";
+}
+
+export function isQuietHour(date: Date, timeZone: string) {
+  const hour = parts(date, timeZone).hour;
+  return hour >= 21 || hour < 8;
+}
+
+export function nextSendableAt(date: Date, timeZone: string) {
+  if (!isQuietHour(date, timeZone)) return date;
+  const day = formatDate(date, timeZone);
+  const hour = parts(date, timeZone).hour;
+  const nextDay = hour >= 21 ? addDaysToDateKey(day, 1) : day;
+  return zonedTimeToUtc(nextDay, "08:00", timeZone);
+}
+
+export function formatLocalDateTime(
+  value: string | Date | null | undefined,
+  timeZone: string,
+  locale: "en-US" | "es-MX"
+): string {
+  if (value == null || value === "") return "";
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleString(locale, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    timeZone,
+  });
+}

@@ -293,6 +293,10 @@ export default function RegisterPage() {
       setError(t("policyRequired"));
       return;
     }
+    if (!profilePhotoUrl) {
+      setError(t("profilePhotoRequired"));
+      return;
+    }
     if ((birthDay || birthMonth || birthYear) && !birthIso) {
       setError(t("birthDateInvalid"));
       return;
@@ -324,6 +328,10 @@ export default function RegisterPage() {
   async function handleVerifyCode(e: React.FormEvent) {
     e.preventDefault();
     if (!pendingEmail || !otpCode.trim()) return;
+    if (!profilePhotoUrl) {
+      setError(t("profilePhotoRequired"));
+      return;
+    }
     setError(null);
     setVerifying(true);
     const response = await fetch("/api/auth/verify-code", {
@@ -349,7 +357,12 @@ export default function RegisterPage() {
       /* ignore */
     }
 
-    router.push(consumeNextPath(searchParams.get("next"), locale));
+    const next = consumeNextPath(searchParams.get("next"), locale);
+    if (!profilePhotoUrl) {
+      router.push(`/${locale}/cuenta/foto?next=${encodeURIComponent(next)}`);
+    } else {
+      router.push(next);
+    }
     router.refresh();
   }
 
@@ -387,7 +400,7 @@ export default function RegisterPage() {
                   className="w-32 h-32 rounded-full object-cover border-2 border-theme"
                 />
               ) : (
-                <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center text-4xl text-gray-400">
+                <div className="w-32 h-32 rounded-full flex items-center justify-center text-4xl" style={{ background: "rgb(var(--primary) / 0.22)", color: "rgb(var(--primary))" }}>
                   👤
                 </div>
               )}

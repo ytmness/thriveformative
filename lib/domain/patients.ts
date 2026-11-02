@@ -6,6 +6,7 @@ import { generatePatientIdentifier } from "@/lib/domain/patientIdentifier";
 import { query } from "@/lib/db";
 import { DomainError, pageParams } from "@/lib/http";
 import { emitWebhook } from "@/lib/webhooks/emit";
+import { defaultDocumentTitle } from "@/lib/domain/chartFolderMeta";
 
 export type PatientInput = {
   locationId?: string | null;
@@ -92,6 +93,8 @@ function mapPatient(row: Record<string, unknown>) {
     emergencyPhone: decryptPhi(row.emergency_phone_enc as Buffer | null),
     emergencyRelation: row.emergency_relation,
     profilePhotoUrl: row.profile_photo_url ?? null,
+    membershipOverride: Boolean(row.membership_override),
+    hasActiveMembership: Boolean(row.has_active_membership ?? row.membership_override),
     createdBy: row.created_by,
     createdAt: row.created_at,
     tags: row.tags ?? [],
@@ -137,7 +140,15 @@ const BASE = `
          coalesce((
            SELECT json_agg(json_build_object('id', t.id, 'name', t.name, 'color', t.color))
            FROM patient_tags pt JOIN tags t ON t.id = pt.tag_id WHERE pt.patient_id = p.id
-         ), '[]'::json) AS tags
+         ), '[]'::json) AS tags,
+         (
+           p.membership_override OR EXISTS (
+             SELECT 1 FROM patient_memberships pm
+             WHERE pm.patient_id = p.id
+               AND pm.status = 'active'
+               AND (pm.current_period_end IS NULL OR pm.current_period_end >= current_date)
+           )
+         ) AS has_active_membership
   FROM patients p
   LEFT JOIN marketing_sources ms ON ms.id = p.marketing_source_id
 `;
@@ -441,14 +452,26 @@ const LISTS = {
   allergies: "patient_allergies",
   conditions: "patient_conditions",
   medications: "patient_medications",
+  supplements: "patient_supplements",
 } as const;
 
-export async function listSensitive(patientId: string, kind: keyof typeof LISTS, actor: StaffSession, meta?: { ip?: string | null; userAgent?: string | null }) {
+export type SensitiveKind = keyof typeof LISTS;
+
+export type SensitiveInput = {
+  value: string;
+  severity?: string | null;
+  dose?: string | null;
+  frequency?: string | null;
+  sinceDate?: string | null;
+  notes?: string | null;
+};
+
+export async function listSensitive(patientId: string, kind: SensitiveKind, actor: StaffSession, meta?: { ip?: string | null; userAgent?: string | null }) {
   const table = LISTS[kind];
   const rows = await query(
     kind === "allergies"
-      ? `SELECT id, value_enc, severity, recorded_by, created_at FROM ${table} WHERE patient_id = $1 ORDER BY created_at DESC`
-      : `SELECT id, value_enc, NULL::text AS severity, recorded_by, created_at FROM ${table} WHERE patient_id = $1 ORDER BY created_at DESC`,
+      ? `SELECT id, value_enc, severity, dose, frequency, since_date::text AS since_date, notes, recorded_by, created_at FROM ${table} WHERE patient_id = $1 ORDER BY created_at DESC`
+      : `SELECT id, value_enc, NULL::text AS severity, dose, frequency, since_date::text AS since_date, notes, recorded_by, created_at FROM ${table} WHERE patient_id = $1 ORDER BY created_at DESC`,
     [patientId]
   );
   await writeAudit({
@@ -465,6 +488,10 @@ export async function listSensitive(patientId: string, kind: keyof typeof LISTS,
     id: row.id,
     value: decryptPhi(row.value_enc as Buffer),
     severity: row.severity ?? null,
+    dose: row.dose ?? null,
+    frequency: row.frequency ?? null,
+    sinceDate: row.since_date ?? null,
+    notes: row.notes ?? null,
     recordedBy: row.recorded_by,
     createdAt: row.created_at,
   }));
@@ -472,19 +499,30 @@ export async function listSensitive(patientId: string, kind: keyof typeof LISTS,
 
 export async function addSensitive(
   patientId: string,
-  kind: keyof typeof LISTS,
+  kind: SensitiveKind,
   value: string,
-  severity: string | null,
+  extra: string | SensitiveInput | null,
   actor: StaffSession
 ) {
   if (!value.trim()) throw new DomainError("El valor es obligatorio.");
   const table = LISTS[kind];
-  const hasSeverity = kind === "allergies";
+  const fields: SensitiveInput = typeof extra === "string" || extra == null
+    ? { value, severity: extra }
+    : extra;
+  const dose = fields.dose?.trim() || null;
+  const frequency = fields.frequency?.trim() || null;
+  const sinceDate = fields.sinceDate?.trim() || null;
+  const notes = fields.notes?.trim() || null;
+  const severity = kind === "allergies" ? (fields.severity?.trim() || null) : null;
   const inserted = await query<{ id: string }>(
-    hasSeverity
-      ? `INSERT INTO ${table} (patient_id, value_enc, severity, recorded_by) VALUES ($1,$2,$3,$4) RETURNING id`
-      : `INSERT INTO ${table} (patient_id, value_enc, recorded_by) VALUES ($1,$2,$3) RETURNING id`,
-    hasSeverity ? [patientId, encryptPhi(value.trim()), severity, actor.staff.id] : [patientId, encryptPhi(value.trim()), actor.staff.id]
+    kind === "allergies"
+      ? `INSERT INTO ${table} (patient_id, value_enc, severity, dose, frequency, since_date, notes, recorded_by)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`
+      : `INSERT INTO ${table} (patient_id, value_enc, dose, frequency, since_date, notes, recorded_by)
+         VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
+    kind === "allergies"
+      ? [patientId, encryptPhi(value.trim()), severity, dose, frequency, sinceDate, notes, actor.staff.id]
+      : [patientId, encryptPhi(value.trim()), dose, frequency, sinceDate, notes, actor.staff.id]
   );
   await writeAudit({
     actorType: "staff",
@@ -514,12 +552,12 @@ export async function removeSensitive(patientId: string, kind: keyof typeof LIST
   });
 }
 
-export async function listNotes(patientId: string, actor: StaffSession, meta?: { ip?: string | null; userAgent?: string | null }) {
+export async function listNotes(patientId: string, actor: StaffSession, meta?: { ip?: string | null; userAgent?: string | null }, folderKey = "plan90") {
   const rows = await query(
     `SELECT n.*, u.first_name, u.last_name
      FROM clinical_notes n LEFT JOIN staff_users u ON u.id = n.author_id
-     WHERE n.patient_id = $1 ORDER BY n.created_at DESC`,
-    [patientId]
+     WHERE n.patient_id = $1 AND n.folder_key = $2 ORDER BY n.created_at DESC`,
+    [patientId, folderKey]
   );
   await writeAudit({
     actorType: "staff",
@@ -543,6 +581,7 @@ export async function listNotes(patientId: string, actor: StaffSession, meta?: {
     assessment: decryptPhi(row.assessment_enc as Buffer | null),
     plan: decryptPhi(row.plan_enc as Buffer | null),
     body: decryptPhi(row.body_enc as Buffer | null),
+    folderKey: row.folder_key || "plan90",
     lockedAt: row.locked_at,
     createdAt: row.created_at,
   }));
@@ -561,6 +600,7 @@ export async function createNote(
     plan?: string | null;
     body?: string | null;
     title?: string | null;
+    folderKey?: string | null;
     lock?: boolean;
   },
   actor: StaffSession
@@ -574,15 +614,16 @@ export async function createNote(
     ]);
     if (!parent.rows[0]?.locked_at) throw new DomainError("Solo se puede añadir un addendum a una nota firmada.");
   }
+  const folderKey = input.folderKey === "prioridades" || input.folderKey === "desequilibrios" ? input.folderKey : "plan90";
   const inserted = await query<{ id: string }>(
     `INSERT INTO clinical_notes (
        patient_id, appointment_id, author_id, note_type, parent_note_id,
-       subjective_enc, objective_enc, assessment_enc, plan_enc, body_enc, title, locked_at, signed_by
+       subjective_enc, objective_enc, assessment_enc, plan_enc, body_enc, title, folder_key, locked_at, signed_by
      ) VALUES (
        $1::uuid, $2::uuid, $3::uuid, $4::text, $5::uuid,
-       $6::bytea, $7::bytea, $8::bytea, $9::bytea, $10::bytea, $11::text,
-       CASE WHEN $12::boolean THEN now() ELSE NULL END,
-       CASE WHEN $12::boolean THEN $3::uuid ELSE NULL END
+       $6::bytea, $7::bytea, $8::bytea, $9::bytea, $10::bytea, $11::text, $12::text,
+       CASE WHEN $13::boolean THEN now() ELSE NULL END,
+       CASE WHEN $13::boolean THEN $3::uuid ELSE NULL END
      )
      RETURNING id`,
     [
@@ -596,7 +637,8 @@ export async function createNote(
       encryptPhi(input.assessment),
       encryptPhi(input.plan),
       encryptPhi(input.body),
-      input.title?.trim() || null,
+      input.title?.trim() || defaultDocumentTitle(folderKey, false),
+      folderKey,
       Boolean(input.lock),
     ]
   );

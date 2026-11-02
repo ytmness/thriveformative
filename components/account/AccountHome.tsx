@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { api } from "@/components/admin/clinic/client";
 import { PatientAvatar } from "@/components/PatientAvatar";
 import { ImageCropDialog } from "@/components/ImageCropDialog";
+import { ProfilePhotoGate } from "@/components/account/ProfilePhotoGate";
+import { WHATSAPP_LINK } from "@/lib/branding";
 
 type Order = {
   id: string;
@@ -34,6 +37,8 @@ type Home = {
   orders: Order[];
   invoices: Invoice[];
   credits?: Credit[];
+  membershipAccess?: "active" | "expiring" | "grace" | "expired" | "none" | "override";
+  canBook?: boolean;
 };
 
 const STATUS: Record<string, string> = {
@@ -57,6 +62,7 @@ const KIND: Record<Order["kind"], string> = {
 export default function AccountHome() {
   const locale = useLocale();
   const t = useTranslations("account");
+  const tBook = useTranslations("booking");
   const [home, setHome] = useState<Home | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -120,6 +126,16 @@ export default function AccountHome() {
   }
 
   if (!home) return <p className="booking-slots__empty">{error || "Cargando tu cuenta…"}</p>;
+  if (!home.patient.profilePhotoUrl) {
+    const parts = home.patient.name.split(" ");
+    return (
+      <ProfilePhotoGate
+        firstName={parts[0] || "Paciente"}
+        lastName={parts.slice(1).join(" ")}
+        onDone={() => api<Home>("/api/account").then(setHome)}
+      />
+    );
+  }
 
   function money(row: Order) {
     if (row.amount == null) return "";
@@ -200,6 +216,33 @@ export default function AccountHome() {
         </div>
       </div>
       {error ? <p className="booking-error" role="alert">{error}</p> : null}
+      {home.membershipAccess === "grace" ? (
+        <p className="booking-error" role="status">
+          {tBook("membershipGrace")}{" "}
+          <Link href={`/${locale}/suscribir`}>{t("activatePlan")}</Link>
+        </p>
+      ) : null}
+      <section className="account-actions" style={{ display: "grid", gap: "0.85rem", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", marginBottom: "1.5rem" }}>
+        {home.canBook === false ? (
+          <>
+            <div className="booking-gate">
+              <p className="booking-gate__title">{t("bookCta")}</p>
+              <p className="booking-gate__hint">{tBook("membershipToBookHint")}</p>
+              <Link href={`/${locale}/suscribir`} className="btn-primary">{t("activatePlan")}</Link>
+            </div>
+            <div className="booking-gate">
+              <p className="booking-gate__title">{t("messagesCta")}</p>
+              <p className="booking-gate__hint">{tBook("membershipToBookHint")}</p>
+              <Link href={`/${locale}/suscribir`} className="btn-primary">{t("activatePlan")}</Link>
+            </div>
+          </>
+        ) : (
+          <>
+            <Link href={`/${locale}/reservar`} className="btn-primary">{t("bookCta")}</Link>
+            <a href={WHATSAPP_LINK} target="_blank" rel="noreferrer" className="btn-primary">{t("messagesCta")}</a>
+          </>
+        )}
+      </section>
 
       <section id="plan">
         <h2>{t("plan")}</h2>

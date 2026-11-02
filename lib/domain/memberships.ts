@@ -111,18 +111,24 @@ export async function activatePatientMembership(
 }
 
 export async function hasActiveMembership(patientId: string, q?: TxQuery) {
-  const run = db(q);
-  const row = await run<{ ok: boolean }>(
-    `SELECT EXISTS (
-       SELECT 1
-       FROM patient_memberships
-       WHERE patient_id = $1
-         AND status = 'active'
-         AND (current_period_end IS NULL OR current_period_end >= current_date)
-     ) AS ok`,
-    [patientId]
-  );
-  return Boolean(row.rows[0]?.ok);
+  const { hasBookingAccess, patientAccessState } = await import("@/lib/domain/membershipPolicy");
+  if (q) {
+    const run = db(q);
+    const row = await run<{ ok: boolean }>(
+      `SELECT EXISTS (
+         SELECT 1 FROM patients WHERE id = $1 AND membership_override
+       ) OR EXISTS (
+         SELECT 1
+         FROM patient_memberships
+         WHERE patient_id = $1
+           AND status = 'active'
+           AND (current_period_end IS NULL OR current_period_end >= current_date)
+       ) AS ok`,
+      [patientId]
+    );
+    return Boolean(row.rows[0]?.ok);
+  }
+  return hasBookingAccess(await patientAccessState(patientId));
 }
 
 export async function assertActiveMembership(patientId: string, q?: TxQuery) {
@@ -511,9 +517,21 @@ export async function listPatientMembershipDetails(patientId: string) {
      ORDER BY s.name`,
     [patientId]
   );
-  return plans.rows.map((plan) => ({
-    ...plan,
-    price: Number(plan.price),
-    credits: credits.rows.filter((row) => row.patient_membership_id === plan.id),
-  }));
+  const { getMembershipPolicy, stateFromPeriod } = await import("@/lib/domain/membershipPolicy");
+  const policy = await getMembershipPolicy();
+  return plans.rows.map((plan) => {
+    const access = stateFromPeriod({
+      status: plan.status,
+      periodEnd: plan.current_period_end,
+      noticeDays: policy.noticeDays,
+      graceDays: policy.graceDays,
+    });
+    return {
+      ...plan,
+      price: Number(plan.price),
+      daysRemaining: access.daysRemaining,
+      state: access.state,
+      credits: credits.rows.filter((row) => row.patient_membership_id === plan.id),
+    };
+  });
 }

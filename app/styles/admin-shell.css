@@ -135,6 +135,8 @@
   font-weight: 500;
   text-align: left;
   cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
   transition:
     background 0.2s ease,
     border-color 0.2s ease,
@@ -575,6 +577,8 @@
   text-align: left;
   color: rgb(var(--muted));
   font-size: 0.9375rem;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .admin-table__actions {
@@ -727,4 +731,58 @@
 .admin-content__panel .admin-cms,
 .admin-content__panel .admin-booking {
   margin-top: 0;
+}
+
+.comm-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.comm-row__main {
+  min-width: 0;
+  flex: 1;
+}
+
+.comm-channel {
+  font-weight: 600;
+  color: rgb(var(--text) / 0.72);
+}
+
+.comm-reason {
+  margin: 0.4rem 0 0;
+  font-size: 0.8125rem;
+  color: rgb(var(--muted));
+}
+
+.comm-chip {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.comm-chip--sent {
+  background: rgb(46 125 50 / 0.12);
+  color: rgb(27 94 32);
+}
+
+.comm-chip--skipped {
+  background: rgb(245 158 11 / 0.16);
+  color: rgb(146 64 14);
+}
+
+.comm-chip--failed {
+  background: rgb(185 28 28 / 0.12);
+  color: rgb(153 27 27);
+}
+
+.comm-chip--queued {
+  background: rgb(var(--border) / 0.35);
+  color: rgb(var(--muted));
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { api } from "@/components/admin/clinic/client";
+import { ProfilePhotoGate } from "@/components/account/ProfilePhotoGate";
 
 type Field = { id: string; label: string; type: string; required?: boolean; options?: string[]; help?: string };
 
@@ -23,7 +24,7 @@ export default function PortalApp({ mode, token }: { mode: "login" | "home" | "f
     return (
       <main className="portal-shell">
         <h1 className="admin-header__title">Portal del paciente</h1>
-        <form onSubmit={async (e) => { e.preventDefault(); try { await api("/api/portal/login", { method: "POST", body: JSON.stringify({ email, password }) }); location.href = "/portal"; } catch (err) { setError(err instanceof Error ? err.message : "Error"); } }}>
+        <form onSubmit={async (e) => { e.preventDefault(); try { await api("/api/portal/login", { method: "POST", body: JSON.stringify({ email, password }) }); const me = await fetch("/api/auth/me", { credentials: "same-origin" }).then((res) => res.json()).catch(() => ({ user: null })); location.href = me?.user?.profilePhotoUrl ? "/portal" : "/cuenta/foto?next=/portal"; } catch (err) { setError(err instanceof Error ? err.message : "Error"); } }}>
           <label className="admin-field">Email<input value={email} onChange={(e) => setEmail(e.target.value)} /></label>
           <label className="admin-field">Contraseña<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} /></label>
           {error ? <p>{error}</p> : null}
@@ -54,13 +55,39 @@ export default function PortalApp({ mode, token }: { mode: "login" | "home" | "f
     );
   }
 
-  const patient = home?.patient as { firstName?: string } | undefined;
+  const patient = home?.patient as { firstName?: string; lastName?: string; profilePhotoUrl?: string | null } | undefined;
+  if (mode === "home" && home && !patient?.profilePhotoUrl) {
+    return (
+      <main className="portal-shell">
+        <ProfilePhotoGate
+          firstName={patient?.firstName || "Paciente"}
+          lastName={patient?.lastName || ""}
+          onDone={() => api<Record<string, unknown>>("/api/portal/me").then(setHome)}
+        />
+      </main>
+    );
+  }
   const appointments = (home?.appointments as Record<string, string>[]) || [];
   const invoices = (home?.invoices as Record<string, unknown>[]) || [];
   const forms = (home?.forms as Record<string, string>[]) || [];
+  const canBook = home?.canBook !== false;
+  const membershipAccess = String(home?.membershipAccess || "");
   return (
     <main className="portal-shell">
       <header className="admin-header"><h1 className="admin-header__title">Hola{patient?.firstName ? `, ${patient.firstName}` : ""}</h1></header>
+      {membershipAccess === "grace" ? <p className="booking-error">Tu plan está en periodo de gracia. Actívalo para no perder el acceso.</p> : null}
+      {canBook ? (
+        <div className="booking-gate__actions" style={{ marginBottom: "1rem" }}>
+          <a className="admin-btn admin-btn--primary" href="/reservar">Agendar cita</a>
+          <a className="admin-btn" href="https://wa.me/528120036699" target="_blank" rel="noreferrer">Mensajes</a>
+        </div>
+      ) : (
+        <div className="booking-gate" style={{ marginBottom: "1rem" }}>
+          <p className="booking-gate__title">Activa tu plan para agendar y hablar con tu equipo</p>
+          <p className="booking-gate__hint">Puedes ver tu historial. Para agendar o enviar mensajes, activa tu plan.</p>
+          <a className="admin-btn admin-btn--primary" href="/suscribir">Activar plan ahora</a>
+        </div>
+      )}
       <h2>Citas</h2>
       {appointments.map((row) => <div key={row.id} className="admin-table__row"><span>{new Date(row.starts_at).toLocaleString("es-MX")} · {row.service_name} · {row.status}</span><button className="admin-btn admin-btn--danger" type="button" onClick={() => api("/api/portal/appointments", { method: "POST", body: JSON.stringify({ appointmentId: row.id, action: "cancel" }) }).then(() => location.reload())}>Cancelar</button></div>)}
       <h2>Formularios</h2>

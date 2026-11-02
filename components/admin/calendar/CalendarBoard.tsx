@@ -10,6 +10,7 @@ type Appt = {
   id: string;
   patientId: string | null;
   patientName: string | null;
+  missingMembership?: boolean;
   serviceId: string | null;
   serviceName: string | null;
   staffUserId: string;
@@ -421,7 +422,7 @@ function DraggableAppt({ row, onOpen }: { row: Appt; onOpen: (row: Appt) => void
   const { attributes, listeners, setNodeRef } = useDraggable({ id: row.id });
   return (
     <button ref={setNodeRef} type="button" className="admin-cal__event" {...listeners} {...attributes} onClick={(e) => { e.stopPropagation(); onOpen(row); }}>
-      {(row.patientName || "Cita")} · {row.serviceName || row.status}
+      {(row.patientName || "Cita")}{row.missingMembership ? " · Sin membresía" : ""} · {row.serviceName || row.status}
     </button>
   );
 }
