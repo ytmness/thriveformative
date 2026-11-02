@@ -88,6 +88,19 @@ export function locationTimezone(timezone?: string | null, country?: string | nu
   return "America/Monterrey";
 }
 
+export function isQuietHour(date: Date, timeZone: string) {
+  const hour = parts(date, timeZone).hour;
+  return hour >= 21 || hour < 8;
+}
+
+export function nextSendableAt(date: Date, timeZone: string) {
+  if (!isQuietHour(date, timeZone)) return date;
+  const day = formatDate(date, timeZone);
+  const hour = parts(date, timeZone).hour;
+  const nextDay = hour >= 21 ? addDaysToDateKey(day, 1) : day;
+  return zonedTimeToUtc(nextDay, "08:00", timeZone);
+}
+
 export function formatLocalDateTime(
   value: string | Date | null | undefined,
   timeZone: string,
