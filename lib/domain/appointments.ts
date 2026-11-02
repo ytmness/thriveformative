@@ -8,7 +8,7 @@ import { DomainError } from "@/lib/http";
 import { log } from "@/lib/log";
 import { notifyAppointment } from "@/lib/domain/clinicNotify";
 import { countrySql, normalizeCountry } from "@/lib/domain/scope";
-import { dispatchDueMessages, enqueueForAppointment } from "@/lib/messaging/queue";
+import { clearQueuedForAppointment, dispatchDueMessages, enqueueForAppointment } from "@/lib/messaging/queue";
 import {
   appointmentCoveredServiceIds,
   bundledServiceIds,
@@ -355,11 +355,7 @@ export async function updateAppointment(
   );
   const previous = String(row.status || "");
   if (window.status === "cancelled" && previous !== "cancelled") {
-    await query(
-      `UPDATE messages SET status = 'skipped'
-       WHERE appointment_id = $1 AND status = 'queued' AND scheduled_for > now()`,
-      [id]
-    );
+    await clearQueuedForAppointment(id);
     if (next.patientId && next.serviceId) {
       const covered = await appointmentCoveredServiceIds(id);
       const services = covered.length ? covered : [next.serviceId];
@@ -381,11 +377,7 @@ export async function updateAppointment(
   } else {
     const timeChanged = new Date(window.starts).getTime() !== new Date(String(row.starts_at)).getTime();
     if (timeChanged) {
-      await query(
-        `DELETE FROM messages
-         WHERE appointment_id = $1 AND status IN ('queued', 'skipped') AND rule_id IS NOT NULL`,
-        [id]
-      );
+      await clearQueuedForAppointment(id);
       await enqueueForAppointment(id, "recordatorio", null);
     }
     if (window.status === "confirmed" && previous !== "confirmed") {
