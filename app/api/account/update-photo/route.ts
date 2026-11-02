@@ -9,7 +9,10 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const photoUrl = String(body.photoUrl || "").trim() || null;
+    const photoUrl = String(body.photoUrl || "").trim();
+    if (!photoUrl) {
+      return Response.json({ error: "Agrega una foto de perfil para continuar." }, { status: 400 });
+    }
 
     await query(
       `UPDATE patients SET profile_photo_url = $1, updated_at = now() WHERE id = $2`,

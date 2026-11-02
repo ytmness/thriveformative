@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { api } from "@/components/admin/clinic/client";
+import { ProfilePhotoGate } from "@/components/account/ProfilePhotoGate";
 
 type Field = { id: string; label: string; type: string; required?: boolean; options?: string[]; help?: string };
 
@@ -23,7 +24,7 @@ export default function PortalApp({ mode, token }: { mode: "login" | "home" | "f
     return (
       <main className="portal-shell">
         <h1 className="admin-header__title">Portal del paciente</h1>
-        <form onSubmit={async (e) => { e.preventDefault(); try { await api("/api/portal/login", { method: "POST", body: JSON.stringify({ email, password }) }); location.href = "/portal"; } catch (err) { setError(err instanceof Error ? err.message : "Error"); } }}>
+        <form onSubmit={async (e) => { e.preventDefault(); try { await api("/api/portal/login", { method: "POST", body: JSON.stringify({ email, password }) }); const me = await fetch("/api/auth/me", { credentials: "same-origin" }).then((res) => res.json()).catch(() => ({ user: null })); location.href = me?.user?.profilePhotoUrl ? "/portal" : "/cuenta/foto?next=/portal"; } catch (err) { setError(err instanceof Error ? err.message : "Error"); } }}>
           <label className="admin-field">Email<input value={email} onChange={(e) => setEmail(e.target.value)} /></label>
           <label className="admin-field">Contraseña<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} /></label>
           {error ? <p>{error}</p> : null}
@@ -54,7 +55,18 @@ export default function PortalApp({ mode, token }: { mode: "login" | "home" | "f
     );
   }
 
-  const patient = home?.patient as { firstName?: string } | undefined;
+  const patient = home?.patient as { firstName?: string; lastName?: string; profilePhotoUrl?: string | null } | undefined;
+  if (mode === "home" && home && !patient?.profilePhotoUrl) {
+    return (
+      <main className="portal-shell">
+        <ProfilePhotoGate
+          firstName={patient?.firstName || "Paciente"}
+          lastName={patient?.lastName || ""}
+          onDone={() => api<Record<string, unknown>>("/api/portal/me").then(setHome)}
+        />
+      </main>
+    );
+  }
   const appointments = (home?.appointments as Record<string, string>[]) || [];
   const invoices = (home?.invoices as Record<string, unknown>[]) || [];
   const forms = (home?.forms as Record<string, string>[]) || [];

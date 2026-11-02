@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { api } from "@/components/admin/clinic/client";
 import { PatientAvatar } from "@/components/PatientAvatar";
 import { ImageCropDialog } from "@/components/ImageCropDialog";
+import { ProfilePhotoGate } from "@/components/account/ProfilePhotoGate";
 import { WHATSAPP_LINK } from "@/lib/branding";
 
 type Order = {
@@ -125,6 +126,16 @@ export default function AccountHome() {
   }
 
   if (!home) return <p className="booking-slots__empty">{error || "Cargando tu cuenta…"}</p>;
+  if (!home.patient.profilePhotoUrl) {
+    const parts = home.patient.name.split(" ");
+    return (
+      <ProfilePhotoGate
+        firstName={parts[0] || "Paciente"}
+        lastName={parts.slice(1).join(" ")}
+        onDone={() => api<Home>("/api/account").then(setHome)}
+      />
+    );
+  }
 
   function money(row: Order) {
     if (row.amount == null) return "";

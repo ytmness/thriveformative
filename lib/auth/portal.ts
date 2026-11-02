@@ -63,11 +63,12 @@ export async function getPortalSession() {
       patient_id: string;
       first_name: string;
       last_name: string;
+      profile_photo_url: string | null;
       expires_at: string;
       revoked_at: string | null;
       session_id: string;
     }>(
-      `SELECT s.id AS session_id, s.expires_at, s.revoked_at, a.patient_id, p.first_name, p.last_name
+      `SELECT s.id AS session_id, s.expires_at, s.revoked_at, a.patient_id, p.first_name, p.last_name, p.profile_photo_url
        FROM patient_portal_sessions s
        JOIN patient_portal_accounts a ON a.id = s.account_id
        JOIN patients p ON p.id = a.patient_id
@@ -77,7 +78,12 @@ export async function getPortalSession() {
     const session = row.rows[0];
     if (!session || session.revoked_at || new Date(session.expires_at).getTime() < Date.now()) return null;
     await query(`UPDATE patient_portal_sessions SET last_seen_at = now() WHERE id = $1`, [session.session_id]);
-    return { patientId: session.patient_id, firstName: session.first_name, lastName: session.last_name };
+    return {
+      patientId: session.patient_id,
+      firstName: session.first_name,
+      lastName: session.last_name,
+      profilePhotoUrl: session.profile_photo_url,
+    };
   } catch {
     return null;
   }

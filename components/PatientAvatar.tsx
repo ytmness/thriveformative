@@ -25,7 +25,7 @@ export function PatientAvatar({ firstName, lastName, photoUrl, size = "medium", 
 
   if (photoUrl && !imageError) {
     return (
-      <div className={`${baseClasses} overflow-hidden bg-gray-200`}>
+      <div className={`${baseClasses} overflow-hidden bg-[rgb(var(--primary)/0.22)]`}>
         <img 
           src={photoUrl} 
           alt={`${firstName} ${lastName}`} 

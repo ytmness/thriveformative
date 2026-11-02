@@ -66,7 +66,13 @@ export default function LoginPage() {
       setError(body.error || t("invalidCode"));
       return;
     }
-    router.push(consumeNextPath(searchParams.get("next"), locale));
+    const next = consumeNextPath(searchParams.get("next"), locale);
+    const me = await fetch("/api/auth/me", { credentials: "same-origin" }).then((res) => res.json()).catch(() => ({ user: null }));
+    if (!me?.user?.profilePhotoUrl) {
+      router.push(`/${locale}/cuenta/foto?next=${encodeURIComponent(next)}`);
+    } else {
+      router.push(next);
+    }
     router.refresh();
   }
 
