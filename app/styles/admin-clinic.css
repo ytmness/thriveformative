@@ -23,7 +23,15 @@
   padding-bottom: 0.65rem;
   border-bottom: 1px solid rgb(var(--border) / 0.18);
 }
+.chart-tabs .admin-nav__item:hover:not(.admin-nav__item--active) {
+  background: transparent;
+  border-color: transparent;
+}
 .chart-drop { position: relative; }
+.chart-drop > summary {
+  user-select: none;
+  -webkit-user-select: none;
+}
 .chart-drop > summary.admin-nav__item {
   width: auto;
   list-style: none;
@@ -53,10 +61,13 @@
   color: inherit;
   text-decoration: none;
 }
-.chart-drop__menu a:hover { background: rgb(var(--primary) / 0.08); }
+.chart-drop__menu a:hover { background: rgb(var(--border) / 0.18); }
 .chart-drop__menu a[aria-current="page"] {
   background: rgb(var(--primary) / 0.12);
   color: rgb(var(--primary));
+}
+.chart-drop__menu a[aria-current="page"]:hover {
+  background: rgb(var(--primary) / 0.12);
 }
 .chart-sheet {
   padding-top: 1.15rem;
