@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { api } from "@/components/admin/clinic/client";
 import { ProfilePhotoGate } from "@/components/account/ProfilePhotoGate";
 
@@ -78,14 +79,14 @@ export default function PortalApp({ mode, token }: { mode: "login" | "home" | "f
       {membershipAccess === "grace" ? <p className="booking-error">Tu plan está en periodo de gracia. Actívalo para no perder el acceso.</p> : null}
       {canBook ? (
         <div className="booking-gate__actions" style={{ marginBottom: "1rem" }}>
-          <a className="admin-btn admin-btn--primary" href="/reservar">Agendar cita</a>
+          <Link className="admin-btn admin-btn--primary" href="/reservar">Agendar cita</Link>
           <a className="admin-btn" href="https://wa.me/528120036699" target="_blank" rel="noreferrer">Mensajes</a>
         </div>
       ) : (
         <div className="booking-gate" style={{ marginBottom: "1rem" }}>
           <p className="booking-gate__title">Activa tu plan para agendar y hablar con tu equipo</p>
           <p className="booking-gate__hint">Puedes ver tu historial. Para agendar o enviar mensajes, activa tu plan.</p>
-          <a className="admin-btn admin-btn--primary" href="/suscribir">Activar plan ahora</a>
+          <Link className="admin-btn admin-btn--primary" href="/suscribir">Activar plan ahora</Link>
         </div>
       )}
       <h2>Citas</h2>
