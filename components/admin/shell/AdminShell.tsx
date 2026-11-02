@@ -58,6 +58,7 @@ function navItems(english: boolean): NavItem[] {
     { group: site, href: "/admin/contenido", label: english ? "Content" : "Contenido", perms: ["settings.write"], icon: FileText },
     { group: clinic, href: "/admin/formularios", label: english ? "Forms" : "Formularios", perms: ["forms.read"], icon: ClipboardList },
     { group: clinic, href: "/admin/comunicaciones", label: english ? "Messages" : "Comunicaciones", perms: ["communications.read"], icon: MessageSquare },
+    { group: clinic, href: "/admin/granola", label: english ? "Granola inbox" : "Notas Granola", perms: ["clinical.read"], icon: FileText },
     { group: clinic, href: "/admin/reportes", label: english ? "Reports" : "Reportes", perms: ["reports.read"], icon: BarChart3, match: "/admin/reportes" },
     { group: clinic, href: "/admin/configuracion/horarios", label: english ? "Hours" : "Horarios", perms: ["settings.read"], icon: Clock, match: "/admin/configuracion/horarios" },
     { group: clinic, href: "/admin/configuracion/equipo", label: english ? "Team and roles" : "Equipo y roles", perms: ["settings.read"], icon: UserCog, match: "/admin/configuracion/equipo" },

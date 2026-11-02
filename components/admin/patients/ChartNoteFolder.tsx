@@ -5,6 +5,7 @@ import { api } from "@/components/admin/clinic/client";
 import { NoteEditor } from "@/components/admin/patients/NoteEditor";
 import { NotesList } from "@/components/admin/patients/NotesList";
 import { defaultDocumentTitle } from "@/lib/domain/chartFolderMeta";
+import { GranolaActions } from "@/components/admin/patients/GranolaActions";
 
 type NoteRow = {
   id: string;
@@ -23,12 +24,14 @@ export function ChartNoteFolder({
   heading,
   english = false,
   extraActions,
+  enableGranola = false,
 }: {
   patientId: string;
   folderKey: string;
   heading: string;
   english?: boolean;
   extraActions?: ReactNode;
+  enableGranola?: boolean;
 }) {
   const [rows, setRows] = useState<NoteRow[]>([]);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
@@ -48,7 +51,18 @@ export function ChartNoteFolder({
     <>
       {error ? <div className="admin-alert" role="alert">{error}</div> : null}
       {notice ? <p className="admin-banner" role="status">{notice}</p> : null}
-      {extraActions}
+      {enableGranola ? (
+        <GranolaActions
+          patientId={patientId}
+          folderKey={folderKey}
+          english={english}
+          onImported={async () => {
+            const next = await api<{ rows: NoteRow[] }>(`/api/admin/patients/${patientId}/notes?folder=${encodeURIComponent(folderKey)}`);
+            setRows(next.rows);
+            setNotice(english ? "Granola note imported." : "Nota de Granola importada.");
+          }}
+        />
+      ) : extraActions}
       {editingNoteId === "new" || editingNoteId ? (
         <NoteEditor
           key={String(editingNoteId)}
