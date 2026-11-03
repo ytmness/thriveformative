@@ -6,6 +6,7 @@ import { formatDate, formatHm, nextSendableAt } from "@/lib/scheduling/time";
 import { getSiteUrl } from "@/lib/env/server";
 import { sendText, type TextChannel } from "@/lib/messaging/providers";
 import { normalizeCountry } from "@/lib/domain/scope";
+import { getMessagingSettings } from "@/lib/domain/reminderSettings";
 
 function render(template: string, vars: Record<string, string>) {
   return template.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, key: string) => vars[key] ?? "");
@@ -102,6 +103,8 @@ export async function enqueueForAppointment(appointmentId: string, trigger: stri
   const optedOut = Boolean(row.sms_opt_out);
   const canText = Boolean(mobile) && row.consent_sms !== false && !optedOut;
   const country = row.country || row.location_country;
+  const messaging = await getMessagingSettings();
+  const quiet = { start: messaging.quietStart, end: messaging.quietEnd };
   for (const rule of rules.rows) {
     let channel = rule.channel;
     if (channel === "email" && rules.rows.some((item) => isTextChannel(item.channel) && item.offset_minutes === rule.offset_minutes)) {
@@ -143,7 +146,7 @@ export async function enqueueForAppointment(appointmentId: string, trigger: stri
     }
     const rawScheduled =
       trigger === "recordatorio" ? new Date(starts.getTime() + rule.offset_minutes * 60000) : new Date();
-    const scheduled = nextSendableAt(rawScheduled, tz);
+    const scheduled = nextSendableAt(rawScheduled, tz, quiet);
     if (trigger === "recordatorio" && scheduled.getTime() < Date.now()) continue;
     await query(
       `INSERT INTO messages
@@ -204,7 +207,8 @@ export async function dispatchDueMessages(limit = 40) {
     const message = row.rows[0];
     if (!message) continue;
     const tz = message.timezone || "America/Chicago";
-    const hold = nextSendableAt(new Date(), tz);
+    const messaging = await getMessagingSettings();
+    const hold = nextSendableAt(new Date(), tz, { start: messaging.quietStart, end: messaging.quietEnd });
     if (hold.getTime() > Date.now() + 30_000 && message.channel !== "email") {
       await query(`UPDATE messages SET scheduled_for = $2 WHERE id = $1 AND status = 'queued'`, [message.id, hold.toISOString()]);
       continue;

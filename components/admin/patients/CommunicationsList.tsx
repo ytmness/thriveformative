@@ -60,7 +60,7 @@ function messageTitle(row: CommunicationRow, english: boolean) {
 
 function skipReason(error: string | null | undefined, english: boolean) {
   const raw = String(error || "").trim();
-  if (!raw) return english ? "No reason recorded" : "Sin motivo registrado";
+  if (!raw) return english ? "Reason not recorded (earlier send)" : "Motivo no registrado (envío anterior)";
   if (raw === "sin destinatario") return english ? "No recipient" : "Sin destinatario";
   if (raw === "Twilio no configurado") return english ? "Provider not configured" : "Proveedor no configurado";
   if (raw.toLowerCase().includes("proveedor no configurado")) {

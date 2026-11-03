@@ -87,14 +87,16 @@ export async function activatePatientMembership(
     renewalMode?: "square" | "manual";
     squareSubscriptionId?: string | null;
     squareCustomerId?: string | null;
+    squareCardId?: string | null;
+    autoRenew?: boolean;
   },
   q?: TxQuery
 ) {
   const run = db(q);
   const inserted = await run<{ id: string }>(
     `INSERT INTO patient_memberships
-       (patient_id, membership_id, status, renewal_mode, square_subscription_id, square_customer_id, sale_id)
-     VALUES ($1,$2,'active',$3,$4,$5,$6)
+       (patient_id, membership_id, status, renewal_mode, square_subscription_id, square_customer_id, square_card_id, sale_id, auto_renew)
+     VALUES ($1,$2,'active',$3,$4,$5,$6,$7,$8)
      RETURNING id`,
     [
       input.patientId,
@@ -102,7 +104,9 @@ export async function activatePatientMembership(
       input.renewalMode || "manual",
       input.squareSubscriptionId || null,
       input.squareCustomerId || null,
+      input.squareCardId || null,
       input.saleId || null,
+      Boolean(input.autoRenew || input.squareCardId),
     ]
   );
   const id = inserted.rows[0].id;
@@ -486,11 +490,12 @@ export async function listPatientMembershipDetails(patientId: string) {
     current_period_start: string | null;
     current_period_end: string | null;
     renewal_mode: string;
+    auto_renew: boolean;
     name: string;
     price: string;
     interval_unit: string;
   }>(
-    `SELECT pm.id, pm.status, pm.current_period_start, pm.current_period_end, pm.renewal_mode,
+    `SELECT pm.id, pm.status, pm.current_period_start, pm.current_period_end, pm.renewal_mode, pm.auto_renew,
             m.name, m.price, m.interval_unit
      FROM patient_memberships pm
      JOIN memberships m ON m.id = pm.membership_id

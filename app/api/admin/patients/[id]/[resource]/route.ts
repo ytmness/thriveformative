@@ -179,6 +179,12 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string; re
         await query(`UPDATE patients SET membership_override = $2 WHERE id = $1`, [id, body.enabled === true]);
         return Response.json({ ok: true, membershipOverride: body.enabled === true });
       }
+      if (body.action === "auto_renew") {
+        const { setMembershipAutoRenew } = await import("@/lib/domain/membershipRenewal");
+        const result = await setMembershipAutoRenew(String(body.id || ""), id, body.enabled === true);
+        if (!result.ok) throw new DomainError("Membresía no encontrada.", 404);
+        return Response.json(result);
+      }
       throw new DomainError("Acción no válida.");
     }
     if (resource === "plan90") {

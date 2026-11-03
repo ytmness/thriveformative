@@ -1,8 +1,21 @@
 import { isSession, requirePermission } from "@/lib/auth/guard";
-import { assignGranolaNote, listGranolaInbox } from "@/lib/domain/granolaInbox";
-import { granolaConfigured, getGranolaNote, listGranolaNotes } from "@/lib/granola/client";
-import { createNote, saveSession } from "@/lib/domain/patients";
+import {
+  assignGranolaNote,
+  importGranolaNoteToPatient,
+  listGranolaInbox,
+  type GranolaInclude,
+} from "@/lib/domain/granolaInbox";
+import { granolaConfigured, listGranolaNotes } from "@/lib/granola/client";
 import { readJson, toErrorResponse, DomainError } from "@/lib/http";
+
+function parseInclude(body: Record<string, unknown>): GranolaInclude {
+  const include = body.include && typeof body.include === "object" ? (body.include as Record<string, unknown>) : body;
+  return {
+    summary: include.summary !== false && include.summary !== "false",
+    notes: include.notes !== false && include.notes !== "false",
+    transcript: include.transcript !== false && include.transcript !== "false",
+  };
+}
 
 export async function GET(req: Request) {
   const session = await requirePermission("clinical.read");
@@ -27,31 +40,30 @@ export async function POST(req: Request) {
   try {
     const body = await readJson(req);
     const action = String(body.action || "import");
+    const include = parseInclude(body);
     if (action === "assign") {
-      return Response.json(await assignGranolaNote(String(body.inboxId || ""), String(body.patientId || ""), String(body.folderKey || "plan90"), session));
+      return Response.json(
+        await assignGranolaNote(
+          String(body.inboxId || ""),
+          String(body.patientId || ""),
+          String(body.folderKey || "plan90"),
+          session,
+          include
+        )
+      );
     }
     const granolaNoteId = String(body.granolaNoteId || "");
     const patientId = String(body.patientId || "");
     if (!granolaNoteId || !patientId) throw new DomainError("Faltan la nota o el paciente.");
-    const fetched = await getGranolaNote(granolaNoteId);
-    if (!fetched.configured) throw new DomainError("Conecta Granola en Configuración.", 503);
-    if (!fetched.note) throw new DomainError("No se encontró la nota de Granola.", 404);
-    const folderKey = String(body.folderKey || "plan90");
-    if (folderKey === "sesiones") {
-      await saveSession(patientId, {
-        title: fetched.note.title,
-        sessionDate: fetched.note.createdAt ? fetched.note.createdAt.slice(0, 10) : null,
-        notes: fetched.note.body,
-      }, session);
-    } else {
-      await createNote(patientId, {
-        title: fetched.note.title,
-        body: fetched.note.body,
-        noteType: "free",
-        folderKey,
-      }, session);
-    }
-    return Response.json({ ok: true });
+    return Response.json(
+      await importGranolaNoteToPatient(
+        granolaNoteId,
+        patientId,
+        String(body.folderKey || "plan90"),
+        session,
+        include
+      )
+    );
   } catch (error) {
     return toErrorResponse(error);
   }

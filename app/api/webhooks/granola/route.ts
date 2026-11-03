@@ -6,9 +6,9 @@ import { log } from "@/lib/log";
 export async function POST(req: Request) {
   const secret = process.env.GRANOLA_WEBHOOK_SECRET?.trim();
   const raw = await req.text();
-  if (secret && !verifyGranolaSignature(raw, req.headers, secret)) {
-    log.warn("granola", "webhook rechazado", { reason: "firma" });
-    return NextResponse.json({ error: "Firma inválida" }, { status: 400 });
+  if (!secret || !verifyGranolaSignature(raw, req.headers, secret)) {
+    log.warn("granola", "webhook rechazado", { reason: secret ? "firma" : "sin_secreto" });
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
   let payload: unknown = {};
   try {

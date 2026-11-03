@@ -604,6 +604,7 @@ export async function createNote(
     title?: string | null;
     folderKey?: string | null;
     lock?: boolean;
+    granolaNoteId?: string | null;
   },
   actor: StaffSession
 ) {
@@ -617,15 +618,24 @@ export async function createNote(
     if (!parent.rows[0]?.locked_at) throw new DomainError("Solo se puede añadir un addendum a una nota firmada.");
   }
   const folderKey = input.folderKey === "prioridades" || input.folderKey === "desequilibrios" ? input.folderKey : "plan90";
+  const granolaNoteId = input.granolaNoteId?.trim() || null;
+  if (granolaNoteId) {
+    const existing = await query<{ id: string }>(
+      `SELECT id FROM clinical_notes WHERE patient_id = $1 AND granola_note_id = $2 LIMIT 1`,
+      [patientId, granolaNoteId]
+    );
+    if (existing.rows[0]) throw new DomainError("Esta nota de Granola ya está en el expediente.", 409);
+  }
   const inserted = await query<{ id: string }>(
     `INSERT INTO clinical_notes (
        patient_id, appointment_id, author_id, note_type, parent_note_id,
-       subjective_enc, objective_enc, assessment_enc, plan_enc, body_enc, title, folder_key, locked_at, signed_by
+       subjective_enc, objective_enc, assessment_enc, plan_enc, body_enc, title, folder_key, locked_at, signed_by, granola_note_id
      ) VALUES (
        $1::uuid, $2::uuid, $3::uuid, $4::text, $5::uuid,
        $6::bytea, $7::bytea, $8::bytea, $9::bytea, $10::bytea, $11::text, $12::text,
        CASE WHEN $13::boolean THEN now() ELSE NULL END,
-       CASE WHEN $13::boolean THEN $3::uuid ELSE NULL END
+       CASE WHEN $13::boolean THEN $3::uuid ELSE NULL END,
+       $14::text
      )
      RETURNING id`,
     [
@@ -642,6 +652,7 @@ export async function createNote(
       input.title?.trim() || defaultDocumentTitle(folderKey, false),
       folderKey,
       Boolean(input.lock),
+      granolaNoteId,
     ]
   );
   await writeAudit({
@@ -782,6 +793,7 @@ export async function saveSession(
     notes?: string | null;
     durationSeconds?: number | null;
     startTimer?: boolean;
+    granolaNoteId?: string | null;
   },
   actor: StaffSession
 ) {
@@ -790,6 +802,7 @@ export async function saveSession(
   const date = input.sessionDate && /^\d{4}-\d{2}-\d{2}$/.test(input.sessionDate) ? input.sessionDate : null;
   const duration = Math.max(0, Math.min(18 * 3600, Math.round(Number(input.durationSeconds || 0))));
   const startTimer = Boolean(input.startTimer);
+  const granolaNoteId = input.granolaNoteId?.trim() || null;
   if (input.id) {
     const updated = await query<{ id: string; duration_seconds: number; timer_started: boolean; session_date: string }>(
       `UPDATE patient_sessions SET
@@ -797,10 +810,11 @@ export async function saveSession(
          notes_enc = $4,
          session_date = COALESCE(session_date, $5::date, CURRENT_DATE),
          duration_seconds = GREATEST(duration_seconds, $6),
-         timer_started = timer_started OR $7
+         timer_started = timer_started OR $7,
+         granola_note_id = COALESCE(granola_note_id, $8)
        WHERE id = $1 AND patient_id = $2
        RETURNING id, duration_seconds, timer_started, session_date::text AS session_date`,
-      [input.id, patientId, title, encryptPhi(input.notes), date, duration, startTimer]
+      [input.id, patientId, title, encryptPhi(input.notes), date, duration, startTimer, granolaNoteId]
     );
     if (!updated.rows[0]) throw new DomainError("Sesión no encontrada.", 404);
     return {
@@ -810,10 +824,17 @@ export async function saveSession(
       sessionDate: updated.rows[0].session_date,
     };
   }
+  if (granolaNoteId) {
+    const existing = await query<{ id: string }>(
+      `SELECT id FROM patient_sessions WHERE patient_id = $1 AND granola_note_id = $2 LIMIT 1`,
+      [patientId, granolaNoteId]
+    );
+    if (existing.rows[0]) throw new DomainError("Esta nota de Granola ya está en el expediente.", 409);
+  }
   const inserted = await query<{ id: string; session_date: string }>(
-    `INSERT INTO patient_sessions (patient_id, title, session_date, notes_enc, recorded_by)
-     VALUES ($1,$2, COALESCE($3::date, CURRENT_DATE), $4, $5) RETURNING id, session_date::text AS session_date`,
-    [patientId, title, date, encryptPhi(input.notes), actor.staff.id]
+    `INSERT INTO patient_sessions (patient_id, title, session_date, notes_enc, recorded_by, granola_note_id)
+     VALUES ($1,$2, COALESCE($3::date, CURRENT_DATE), $4, $5, $6) RETURNING id, session_date::text AS session_date`,
+    [patientId, title, date, encryptPhi(input.notes), actor.staff.id, granolaNoteId]
   );
   await writeAudit({
     actorType: "staff",

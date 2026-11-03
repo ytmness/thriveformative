@@ -10,6 +10,10 @@ type InboxRow = {
   title: string | null;
   noteDate: string | null;
   createdAt: string;
+  unassignedReason?: string | null;
+  hasSummary?: boolean;
+  hasNotes?: boolean;
+  hasTranscript?: boolean;
 };
 
 type PatientOpt = { id: string; firstName?: string; lastName?: string };
@@ -21,6 +25,9 @@ export function GranolaInbox() {
   const [patients, setPatients] = useState<PatientOpt[]>([]);
   const [patientId, setPatientId] = useState("");
   const [folderKey, setFolderKey] = useState("plan90");
+  const [includeSummary, setIncludeSummary] = useState(true);
+  const [includeNotes, setIncludeNotes] = useState(true);
+  const [includeTranscript, setIncludeTranscript] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   async function reload() {
@@ -42,11 +49,16 @@ export function GranolaInbox() {
         <div>
           <p className="admin-header__eyebrow">Granola</p>
           <h1 className="admin-header__title">{english ? "Unassigned Granola notes" : "Notas Granola sin asignar"}</h1>
+          <p className="admin-header__desc">
+            {english
+              ? "TF-00013 = 90-day plan · TF-00013-S1 = Session 1"
+              : "TF-00013 = Plan 90 días · TF-00013-S1 = Sesión 1"}
+          </p>
         </div>
       </header>
       {!configured ? <p className="admin-banner">{english ? "Connect Granola in Settings." : "Conecta Granola en Configuración."}</p> : null}
       {error ? <div className="admin-alert" role="alert">{error}</div> : null}
-      <div className="admin-toolbar">
+      <div className="admin-toolbar" style={{ flexWrap: "wrap", gap: "0.75rem" }}>
         <select value={patientId} onChange={(e) => setPatientId(e.target.value)}>
           <option value="">{english ? "Patient" : "Paciente"}</option>
           {patients.map((patient) => (
@@ -55,8 +67,13 @@ export function GranolaInbox() {
         </select>
         <select value={folderKey} onChange={(e) => setFolderKey(e.target.value)}>
           <option value="plan90">{english ? "90-day plan" : "Plan de 90 días"}</option>
+          <option value="prioridades">{english ? "Functional priorities" : "Prioridades funcionales"}</option>
+          <option value="desequilibrios">{english ? "Initial imbalances" : "Desequilibrios iniciales"}</option>
           <option value="sesiones">{english ? "Sessions" : "Sesiones"}</option>
         </select>
+        <label className="admin-check"><input type="checkbox" checked={includeSummary} onChange={(e) => setIncludeSummary(e.target.checked)} /> {english ? "Summary" : "Resumen"}</label>
+        <label className="admin-check"><input type="checkbox" checked={includeNotes} onChange={(e) => setIncludeNotes(e.target.checked)} /> {english ? "Notes" : "Notas"}</label>
+        <label className="admin-check"><input type="checkbox" checked={includeTranscript} onChange={(e) => setIncludeTranscript(e.target.checked)} /> {english ? "Transcript" : "Transcripción"}</label>
       </div>
       <div className="admin-table-wrap">
         {rows.map((row) => (
@@ -66,6 +83,9 @@ export function GranolaInbox() {
               <div className="admin-table__cell-sub">
                 {row.noteDate ? new Date(row.noteDate).toLocaleString(english ? "en-US" : "es-MX") : new Date(row.createdAt).toLocaleString(english ? "en-US" : "es-MX")}
               </div>
+              {row.unassignedReason ? (
+                <div className="admin-alert" role="status" style={{ marginTop: "0.5rem" }}>{row.unassignedReason}</div>
+              ) : null}
             </div>
             <button
               className="admin-btn admin-btn--primary"
@@ -78,7 +98,13 @@ export function GranolaInbox() {
                 try {
                   await api("/api/admin/granola", {
                     method: "POST",
-                    body: JSON.stringify({ action: "assign", inboxId: row.id, patientId, folderKey }),
+                    body: JSON.stringify({
+                      action: "assign",
+                      inboxId: row.id,
+                      patientId,
+                      folderKey,
+                      include: { summary: includeSummary, notes: includeNotes, transcript: includeTranscript },
+                    }),
                   });
                   setRows(rows.filter((item) => item.id !== row.id));
                 } catch (err) {

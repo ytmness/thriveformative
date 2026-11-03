@@ -21,6 +21,9 @@ export function GranolaActions({
   const [notes, setNotes] = useState<GranolaNote[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [includeSummary, setIncludeSummary] = useState(true);
+  const [includeNotes, setIncludeNotes] = useState(true);
+  const [includeTranscript, setIncludeTranscript] = useState(true);
 
   async function loadNotes() {
     setError(null);
@@ -44,6 +47,11 @@ export function GranolaActions({
           {english ? "Import from Granola" : "Importar de Granola"}
         </button>
       </div>
+      <p className="admin-table__cell-sub" style={{ marginTop: "0.35rem" }}>
+        {english
+          ? "Title tip: TF-00013 = 90-day plan · TF-00013-S1 = Session 1"
+          : "Ayuda: TF-00013 = Plan 90 días · TF-00013-S1 = Sesión 1"}
+      </p>
       {configured === false ? (
         <p className="admin-banner">{english ? "Connect Granola in Settings." : "Conecta Granola en Configuración."}</p>
       ) : null}
@@ -54,6 +62,11 @@ export function GranolaActions({
             <div className="admin-toolbar">
               <strong>{english ? "Recent Granola notes" : "Notas recientes de Granola"}</strong>
               <button className="admin-btn" type="button" onClick={() => setOpen(false)}>{english ? "Close" : "Cerrar"}</button>
+            </div>
+            <div className="admin-toolbar" style={{ flexWrap: "wrap", gap: "0.75rem" }}>
+              <label className="admin-check"><input type="checkbox" checked={includeSummary} onChange={(e) => setIncludeSummary(e.target.checked)} /> {english ? "Summary" : "Resumen"}</label>
+              <label className="admin-check"><input type="checkbox" checked={includeNotes} onChange={(e) => setIncludeNotes(e.target.checked)} /> {english ? "Notes" : "Notas"}</label>
+              <label className="admin-check"><input type="checkbox" checked={includeTranscript} onChange={(e) => setIncludeTranscript(e.target.checked)} /> {english ? "Transcript" : "Transcripción"}</label>
             </div>
             {!notes.length ? <p className="admin-table__empty">{english ? "No notes to import." : "No hay notas para importar."}</p> : null}
             {notes.map((note) => (
@@ -73,7 +86,13 @@ export function GranolaActions({
                     try {
                       await api("/api/admin/granola", {
                         method: "POST",
-                        body: JSON.stringify({ action: "import", granolaNoteId: note.id, patientId, folderKey }),
+                        body: JSON.stringify({
+                          action: "import",
+                          granolaNoteId: note.id,
+                          patientId,
+                          folderKey,
+                          include: { summary: includeSummary, notes: includeNotes, transcript: includeTranscript },
+                        }),
                       });
                       onImported?.();
                       setOpen(false);

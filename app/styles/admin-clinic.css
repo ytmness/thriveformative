@@ -23,9 +23,13 @@
   padding-bottom: 0.65rem;
   border-bottom: 1px solid rgb(var(--border) / 0.18);
 }
-.chart-tabs .admin-nav__item:hover:not(.admin-nav__item--active) {
+.chart-tabs .admin-nav__item:not(.admin-nav__item--active),
+.chart-tabs .admin-nav__item:hover:not(.admin-nav__item--active),
+.admin-tabs.admin-chart-tabs a:not(.is-active),
+.admin-tabs.admin-chart-tabs button:not(.is-active) {
   background: transparent;
   border-color: transparent;
+  color: inherit;
 }
 .chart-drop { position: relative; }
 .chart-drop > summary {

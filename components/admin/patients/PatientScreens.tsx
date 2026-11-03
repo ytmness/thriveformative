@@ -647,7 +647,7 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
               folderKey={folder}
               heading={currentFolderLabel}
               english={english}
-              enableGranola={folder === "plan90"}
+              enableGranola
             />
           ) : null}
           {folder === "sesiones" ? (
@@ -799,6 +799,25 @@ export function PatientChart({ id, tab }: { id: string; tab: string }) {
                     {` · ${interval}`}
                     {row.renewal_mode === "square" ? " · Square" : ` · ${english ? "Manual renewal" : "Renovación manual"}`}
                   </div>
+                  <label className="admin-check" style={{ display: "inline-flex", gap: "0.4rem", marginTop: "0.55rem" }}>
+                    <input
+                      type="checkbox"
+                      checked={Boolean(row.auto_renew)}
+                      onChange={async (event) => {
+                        const enabled = event.target.checked;
+                        try {
+                          await api(`/api/admin/patients/${id}/memberships`, {
+                            method: "POST",
+                            body: JSON.stringify({ action: "auto_renew", id: row.id, enabled }),
+                          });
+                          setRows(rows.map((item) => (item.id === row.id ? { ...item, auto_renew: enabled } : item)));
+                        } catch (err) {
+                          setError(err instanceof Error ? err.message : (english ? "Could not update auto-renew." : "No se pudo actualizar la auto-renovación."));
+                        }
+                      }}
+                    />
+                    {english ? "Auto-renew with saved card" : "Auto-renovar con tarjeta guardada"}
+                  </label>
                   {credits.length ? (
                     <ul style={{ margin: "0.55rem 0 0", paddingLeft: "1.1rem", color: "rgb(var(--muted))" }}>
                       {credits.map((credit, index) => (

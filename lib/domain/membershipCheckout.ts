@@ -109,6 +109,8 @@ export async function subscribePublic(input: {
       renewalMode: sub.renewalMode,
       squareSubscriptionId: sub.subscriptionId,
       squareCustomerId: customerId,
+      squareCardId: cardId,
+      autoRenew: Boolean(cardId),
     });
   } catch (error) {
     log.error("memberships", "pago de membresía sin activar el plan", {

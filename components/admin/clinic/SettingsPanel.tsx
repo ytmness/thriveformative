@@ -6,6 +6,7 @@ import { api } from "@/components/admin/clinic/client";
 import { countryCode, useClinicScope } from "@/components/admin/clinic/ClinicScope";
 import { CloseButton, EmptyState, SegmentedControl } from "@/components/admin/ui";
 import { CreateOffer } from "@/components/admin/tutorial";
+import { RemindersPanel } from "@/components/admin/clinic/RemindersPanel";
 
 function settingGroups(english: boolean): [string, [string, string][]][] {
   return english
@@ -14,14 +15,14 @@ function settingGroups(english: boolean): [string, [string, string][]][] {
         ["Team", [["equipo", "Team and roles"]]],
         ["Finance", [["impuestos", "Taxes"], ["pagos", "Payment methods"], ["facturacion", "Billing"]]],
         ["Marketing and sales", [["fuentes", "Sources"], ["etapas", "Lead stages"]]],
-        ["Advanced", [["campos", "Custom fields"], ["politicas", "Policies"], ["granola", "Granola"]]],
+        ["Advanced", [["campos", "Custom fields"], ["politicas", "Policies"], ["recordatorios", "Reminders"], ["granola", "Granola"]]],
       ]
     : [
         ["Clínica", [["sedes", "Sedes"], ["salas", "Salas"], ["horarios", "Horarios"]]],
         ["Equipo", [["equipo", "Equipo y roles"]]],
         ["Finanzas", [["impuestos", "Impuestos"], ["pagos", "Métodos de pago"], ["facturacion", "Facturación"]]],
         ["Marketing y ventas", [["fuentes", "Fuentes"], ["etapas", "Etapas de leads"]]],
-        ["Avanzado", [["campos", "Campos personalizados"], ["politicas", "Políticas"], ["granola", "Granola"]]],
+        ["Avanzado", [["campos", "Campos personalizados"], ["politicas", "Políticas"], ["recordatorios", "Recordatorios"], ["granola", "Granola"]]],
       ];
 }
 
@@ -38,6 +39,7 @@ const MAP: Record<string, string> = {
   politicas: "booking",
   facturacion: "clinic",
   granola: "granola",
+  recordatorios: "reminders",
 };
 
 const DAYS_ES = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
@@ -67,6 +69,7 @@ export default function SettingsPanel({ section }: { section: string }) {
   const [depsReady, setDepsReady] = useState(false);
 
   async function load() {
+    if (section === "recordatorios") return;
     if (section === "granola") {
       const status = await api<{ configured: boolean }>("/api/admin/granola");
       setRows([{ configured: status.configured }]);
@@ -225,11 +228,14 @@ export default function SettingsPanel({ section }: { section: string }) {
           <Link href={`/admin/configuracion/${section}`}>{title}</Link>
           {openForm && recordName ? ` › ${recordName}` : null}
         </p>
-        <header className="admin-header">
-          <h1 className="admin-header__title">{title}</h1>
-        </header>
-        {error ? <div className="admin-alert" role="alert">{error}</div> : null}
-        {saved ? <p className="admin-notice" role="status">{english ? "Changes saved." : "Cambios guardados."}</p> : null}
+        {section !== "recordatorios" ? (
+          <header className="admin-header">
+            <h1 className="admin-header__title">{title}</h1>
+          </header>
+        ) : null}
+        {section === "recordatorios" ? <RemindersPanel /> : null}
+        {section !== "recordatorios" && error ? <div className="admin-alert" role="alert">{error}</div> : null}
+        {section !== "recordatorios" && saved ? <p className="admin-notice" role="status">{english ? "Changes saved." : "Cambios guardados."}</p> : null}
         {section === "granola" ? (
           <section className="admin-card">
             <p>
@@ -239,12 +245,12 @@ export default function SettingsPanel({ section }: { section: string }) {
             </p>
             <p className="admin-table__cell-sub">
               {english
-                ? "Optional GRANOLA_WEBHOOK_SECRET verifies note.generated webhooks at /api/webhooks/granola."
-                : "GRANOLA_WEBHOOK_SECRET opcional verifica los webhooks note.generated en /api/webhooks/granola."}
+                ? "GRANOLA_WEBHOOK_SECRET is required. Invalid or missing signatures are rejected with 401 at /api/webhooks/granola."
+                : "GRANOLA_WEBHOOK_SECRET es obligatorio. Firmas inválidas o ausentes se rechazan con 401 en /api/webhooks/granola."}
             </p>
             <p><Link href="/admin/granola">{english ? "Open unassigned notes" : "Abrir notas sin asignar"}</Link></p>
           </section>
-        ) : singleton ? (
+        ) : section === "recordatorios" ? null : singleton ? (
           <section className="admin-card">
             {editor}
             <div className="admin-drawer__foot" style={{ marginTop: "1rem", padding: 0, border: 0 }}>

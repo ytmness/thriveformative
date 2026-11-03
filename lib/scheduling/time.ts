@@ -88,17 +88,26 @@ export function locationTimezone(timezone?: string | null, country?: string | nu
   return "America/Monterrey";
 }
 
-export function isQuietHour(date: Date, timeZone: string) {
+export type QuietHours = { start: number; end: number };
+
+export function isQuietHour(date: Date, timeZone: string, quiet: QuietHours = { start: 21, end: 8 }) {
   const hour = parts(date, timeZone).hour;
-  return hour >= 21 || hour < 8;
+  const start = ((Number(quiet.start) % 24) + 24) % 24;
+  const end = ((Number(quiet.end) % 24) + 24) % 24;
+  if (start === end) return false;
+  if (start > end) return hour >= start || hour < end;
+  return hour >= start && hour < end;
 }
 
-export function nextSendableAt(date: Date, timeZone: string) {
-  if (!isQuietHour(date, timeZone)) return date;
+export function nextSendableAt(date: Date, timeZone: string, quiet: QuietHours = { start: 21, end: 8 }) {
+  if (!isQuietHour(date, timeZone, quiet)) return date;
   const day = formatDate(date, timeZone);
   const hour = parts(date, timeZone).hour;
-  const nextDay = hour >= 21 ? addDaysToDateKey(day, 1) : day;
-  return zonedTimeToUtc(nextDay, "08:00", timeZone);
+  const start = ((Number(quiet.start) % 24) + 24) % 24;
+  const end = ((Number(quiet.end) % 24) + 24) % 24;
+  const nextDay = start > end && hour >= start ? addDaysToDateKey(day, 1) : day;
+  const wake = `${String(end).padStart(2, "0")}:00`;
+  return zonedTimeToUtc(nextDay, wake, timeZone);
 }
 
 export function formatLocalDateTime(

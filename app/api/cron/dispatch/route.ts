@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { dispatchDueMessages } from "@/lib/messaging/queue";
 import { notifyExpiringMemberships } from "@/lib/domain/membershipPolicy";
+import { renewDueMemberships } from "@/lib/domain/membershipRenewal";
 import { retryWebhooks } from "@/lib/webhooks/emit";
 
 function authorized(req: Request) {
@@ -14,10 +15,11 @@ function authorized(req: Request) {
 export async function POST(req: Request) {
   const denied = authorized(req);
   if (denied) return denied;
-  const [messages, webhooks, memberships] = await Promise.all([
+  const [messages, webhooks, memberships, renewals] = await Promise.all([
     dispatchDueMessages(),
     retryWebhooks(),
     notifyExpiringMemberships(),
+    renewDueMemberships(),
   ]);
-  return Response.json({ messages, webhooks, memberships });
+  return Response.json({ messages, webhooks, memberships, renewals });
 }
