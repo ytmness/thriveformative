@@ -11,6 +11,7 @@ type InboxRow = {
   noteDate: string | null;
   createdAt: string;
   unassignedReason?: string | null;
+  matchedSession?: number | null;
   hasSummary?: boolean;
   hasNotes?: boolean;
   hasTranscript?: boolean;
@@ -25,6 +26,7 @@ export function GranolaInbox() {
   const [patients, setPatients] = useState<PatientOpt[]>([]);
   const [patientId, setPatientId] = useState("");
   const [folderKey, setFolderKey] = useState("plan90");
+  const [sessionNumber, setSessionNumber] = useState("1");
   const [includeSummary, setIncludeSummary] = useState(true);
   const [includeNotes, setIncludeNotes] = useState(true);
   const [includeTranscript, setIncludeTranscript] = useState(true);
@@ -51,8 +53,8 @@ export function GranolaInbox() {
           <h1 className="admin-header__title">{english ? "Unassigned Granola notes" : "Notas Granola sin asignar"}</h1>
           <p className="admin-header__desc">
             {english
-              ? "TF-00013 = 90-day plan · TF-00013-S1 = Session 1"
-              : "TF-00013 = Plan 90 días · TF-00013-S1 = Sesión 1"}
+              ? "Title in Granola: TF-00013 = 90-day plan · TF-00013-S1 = Session 1"
+              : "Título en Granola: TF-00013 = Plan 90 días · TF-00013-S1 = Sesión 1"}
           </p>
         </div>
       </header>
@@ -71,9 +73,22 @@ export function GranolaInbox() {
           <option value="desequilibrios">{english ? "Initial imbalances" : "Desequilibrios iniciales"}</option>
           <option value="sesiones">{english ? "Sessions" : "Sesiones"}</option>
         </select>
+        {folderKey === "sesiones" ? (
+          <label>
+            {english ? "Session #" : "Sesión N"}{" "}
+            <input
+              type="number"
+              min={1}
+              max={99}
+              value={sessionNumber}
+              onChange={(e) => setSessionNumber(e.target.value)}
+              style={{ width: "4.5rem" }}
+            />
+          </label>
+        ) : null}
         <label className="admin-check"><input type="checkbox" checked={includeSummary} onChange={(e) => setIncludeSummary(e.target.checked)} /> {english ? "Summary" : "Resumen"}</label>
-        <label className="admin-check"><input type="checkbox" checked={includeNotes} onChange={(e) => setIncludeNotes(e.target.checked)} /> {english ? "Notes" : "Notas"}</label>
-        <label className="admin-check"><input type="checkbox" checked={includeTranscript} onChange={(e) => setIncludeTranscript(e.target.checked)} /> {english ? "Transcript" : "Transcripción"}</label>
+        <label className="admin-check"><input type="checkbox" checked={includeNotes} onChange={(e) => setIncludeNotes(e.target.checked)} /> {english ? "Private notes" : "Notas propias"}</label>
+        <label className="admin-check"><input type="checkbox" checked={includeTranscript} onChange={(e) => setIncludeTranscript(e.target.checked)} /> {english ? "Full transcript" : "Transcripción completa"}</label>
       </div>
       <div className="admin-table-wrap">
         {rows.map((row) => (
@@ -95,6 +110,10 @@ export function GranolaInbox() {
                   setError(english ? "Choose a patient first." : "Elige un paciente primero.");
                   return;
                 }
+                if (folderKey === "sesiones" && !Number(sessionNumber)) {
+                  setError(english ? "Enter a session number." : "Indica el número de sesión.");
+                  return;
+                }
                 try {
                   await api("/api/admin/granola", {
                     method: "POST",
@@ -103,6 +122,7 @@ export function GranolaInbox() {
                       inboxId: row.id,
                       patientId,
                       folderKey,
+                      sessionNumber: folderKey === "sesiones" ? Number(sessionNumber || row.matchedSession || 1) : null,
                       include: { summary: includeSummary, notes: includeNotes, transcript: includeTranscript },
                     }),
                   });

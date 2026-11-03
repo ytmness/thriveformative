@@ -6,6 +6,7 @@ import {
   type GranolaInclude,
 } from "@/lib/domain/granolaInbox";
 import { granolaConfigured, listGranolaNotes } from "@/lib/granola/client";
+import { getSiteUrl } from "@/lib/env/server";
 import { readJson, toErrorResponse, DomainError } from "@/lib/http";
 
 function parseInclude(body: Record<string, unknown>): GranolaInclude {
@@ -28,7 +29,10 @@ export async function GET(req: Request) {
       const listed = await listGranolaNotes(30);
       return Response.json(listed);
     }
-    return Response.json({ configured: granolaConfigured() });
+    return Response.json({
+      configured: granolaConfigured(),
+      webhookUrl: `${getSiteUrl().replace(/\/$/, "")}/api/webhooks/granola`,
+    });
   } catch (error) {
     return toErrorResponse(error);
   }
@@ -42,13 +46,17 @@ export async function POST(req: Request) {
     const action = String(body.action || "import");
     const include = parseInclude(body);
     if (action === "assign") {
+      const sessionNumberRaw = body.sessionNumber ?? body.session;
+      const sessionNumber =
+        sessionNumberRaw === "" || sessionNumberRaw == null ? null : Number(sessionNumberRaw);
       return Response.json(
         await assignGranolaNote(
           String(body.inboxId || ""),
           String(body.patientId || ""),
           String(body.folderKey || "plan90"),
           session,
-          include
+          include,
+          Number.isFinite(sessionNumber) ? sessionNumber : null
         )
       );
     }

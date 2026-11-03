@@ -1,7 +1,7 @@
 import type { StaffSession } from "@/lib/auth/session";
 import { decryptPhi, encryptPhi } from "@/lib/crypto/phi";
 import { query } from "@/lib/db";
-import { composeGranolaBody, getGranolaNote, type GranolaNoteParts } from "@/lib/granola/client";
+import { composeGranolaBody, extractParts, getGranolaNote, type GranolaNoteParts } from "@/lib/granola/client";
 import { DomainError } from "@/lib/http";
 import { log } from "@/lib/log";
 import { sendClinicEmail } from "@/lib/emailServer";
@@ -101,7 +101,7 @@ async function tryAutoAssign(input: {
   );
   const patientId = patient.rows[0]?.id;
   if (!patientId) {
-    const reason = `Código ${identifier} no encontrado`;
+    const reason = `Código ${identifier} no existe`;
     await query(
       `UPDATE granola_notes_inbox
        SET unassigned_reason = $2, matched_identifier = $3, matched_session = $4
@@ -114,7 +114,7 @@ async function tryAutoAssign(input: {
 
   if (sessionNumber != null) {
     if (await sessionTitleExists(patientId, sessionNumber)) {
-      const reason = `Sesión ${sessionNumber} ya existe para ${identifier}`;
+      const reason = `Sesión duplicada: Sesión ${sessionNumber} ya existe para ${identifier}`;
       await query(
         `UPDATE granola_notes_inbox
          SET unassigned_reason = $2, matched_identifier = $3, matched_session = $4
@@ -257,32 +257,7 @@ export async function ingestGranolaEvent(payload: unknown) {
 }
 
 function extractPartsFromPayload(data: Record<string, unknown>): GranolaNoteParts {
-  const summary =
-    (typeof data.summary_markdown === "string" && data.summary_markdown.trim()) ||
-    (typeof data.summary_text === "string" && data.summary_text.trim()) ||
-    (typeof data.summary === "string" && data.summary.trim()) ||
-    "";
-  const notes =
-    (typeof data.private_notes_markdown === "string" && data.private_notes_markdown.trim()) ||
-    (typeof data.markdown === "string" && data.markdown.trim()) ||
-    (typeof data.body === "string" && data.body.trim()) ||
-    "";
-  let transcript = "";
-  if (Array.isArray(data.transcript)) {
-    transcript = data.transcript
-      .map((item) => {
-        const row = asRecord(item);
-        if (!row) return "";
-        const speaker = String(row.speaker || row.speaker_name || "Hablante");
-        const text = String(row.text || row.content || "").trim();
-        return text ? `${speaker}: ${text}` : "";
-      })
-      .filter(Boolean)
-      .join("\n");
-  } else if (typeof data.transcript === "string") {
-    transcript = data.transcript.trim();
-  }
-  return { summary, notes, transcript };
+  return extractParts(data);
 }
 
 export async function listGranolaInbox(unassignedOnly = true) {
@@ -337,7 +312,8 @@ export async function assignGranolaNote(
   patientId: string,
   folderKey: string,
   actor: StaffSession,
-  include?: GranolaInclude
+  include?: GranolaInclude,
+  sessionNumber?: number | null
 ) {
   const row = await query<{
     id: string;
@@ -348,8 +324,9 @@ export async function assignGranolaNote(
     private_notes_enc: Buffer | null;
     transcript_enc: Buffer | null;
     note_date: string | null;
+    matched_session: number | null;
   }>(
-    `SELECT id, granola_note_id, title, body_enc, summary_enc, private_notes_enc, transcript_enc, note_date
+    `SELECT id, granola_note_id, title, body_enc, summary_enc, private_notes_enc, transcript_enc, note_date, matched_session
      FROM granola_notes_inbox WHERE id = $1`,
     [inboxId]
   );
@@ -359,21 +336,41 @@ export async function assignGranolaNote(
   const flags = defaultInclude(include);
   const parts = partsFromEncrypted(note);
   const body = composeGranolaBody(parts, flags);
-  const title = note.title || "Granola";
   const key = folderKey === "prioridades" || folderKey === "desequilibrios" || folderKey === "sesiones" ? folderKey : "plan90";
+  const sessionN =
+    typeof sessionNumber === "number" && Number.isFinite(sessionNumber) && sessionNumber > 0
+      ? Math.floor(sessionNumber)
+      : note.matched_session && note.matched_session > 0
+        ? note.matched_session
+        : null;
 
   if (await alreadyImported(patientId, granolaNoteId, key === "sesiones" ? "sesiones" : "plan90")) {
     throw new DomainError("Esta nota de Granola ya está en el expediente.", 409);
   }
 
   if (key === "sesiones") {
+    if (!sessionN) throw new DomainError("Indica el número de sesión (1–99).");
+    if (await sessionTitleExists(patientId, sessionN)) {
+      throw new DomainError(`Sesión duplicada: Sesión ${sessionN} ya existe.`, 409);
+    }
     const sessionDate = note.note_date ? String(note.note_date).slice(0, 10) : null;
-    await saveSession(patientId, { id: null, title, sessionDate, notes: body, durationSeconds: 0, granolaNoteId }, actor);
+    await saveSession(
+      patientId,
+      {
+        id: null,
+        title: `Sesión ${sessionN}`,
+        sessionDate,
+        notes: body,
+        durationSeconds: 0,
+        granolaNoteId,
+      },
+      actor
+    );
   } else {
     await createNote(
       patientId,
       {
-        title,
+        title: note.title || "Granola",
         body,
         noteType: "free",
         folderKey: key,
@@ -384,9 +381,10 @@ export async function assignGranolaNote(
   }
   await query(
     `UPDATE granola_notes_inbox
-     SET assigned_patient_id = $2, assigned_folder_key = $3, assigned_at = now(), unassigned_reason = NULL
+     SET assigned_patient_id = $2, assigned_folder_key = $3, assigned_at = now(),
+         unassigned_reason = NULL, matched_session = COALESCE($4, matched_session)
      WHERE id = $1`,
-    [inboxId, patientId, key]
+    [inboxId, patientId, key, key === "sesiones" ? sessionN : null]
   );
   log.info("granola", "nota asignada", { inboxId, folderKey: key });
   return { ok: true };
@@ -408,10 +406,16 @@ export async function importGranolaNoteToPatient(
   }
   const body = composeGranolaBody(fetched.note.parts, defaultInclude(include));
   if (key === "sesiones") {
+    const match = TITLE_CODE.exec(fetched.note.title || "");
+    const sessionN = match?.[2] ? Number(match[2]) : null;
+    const sessionTitle = sessionN ? `Sesión ${sessionN}` : fetched.note.title;
+    if (sessionN && (await sessionTitleExists(patientId, sessionN))) {
+      throw new DomainError(`Sesión duplicada: Sesión ${sessionN} ya existe.`, 409);
+    }
     await saveSession(
       patientId,
       {
-        title: fetched.note.title,
+        title: sessionTitle,
         sessionDate: fetched.note.createdAt ? fetched.note.createdAt.slice(0, 10) : null,
         notes: body,
         granolaNoteId,

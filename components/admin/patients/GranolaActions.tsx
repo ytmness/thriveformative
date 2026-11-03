@@ -49,8 +49,8 @@ export function GranolaActions({
       </div>
       <p className="admin-table__cell-sub" style={{ marginTop: "0.35rem" }}>
         {english
-          ? "Title tip: TF-00013 = 90-day plan · TF-00013-S1 = Session 1"
-          : "Ayuda: TF-00013 = Plan 90 días · TF-00013-S1 = Sesión 1"}
+          ? "Title in Granola: TF-00013 = 90-day plan · TF-00013-S1 = Session 1"
+          : "Título en Granola: TF-00013 = Plan 90 días · TF-00013-S1 = Sesión 1"}
       </p>
       {configured === false ? (
         <p className="admin-banner">{english ? "Connect Granola in Settings." : "Conecta Granola en Configuración."}</p>
@@ -65,8 +65,8 @@ export function GranolaActions({
             </div>
             <div className="admin-toolbar" style={{ flexWrap: "wrap", gap: "0.75rem" }}>
               <label className="admin-check"><input type="checkbox" checked={includeSummary} onChange={(e) => setIncludeSummary(e.target.checked)} /> {english ? "Summary" : "Resumen"}</label>
-              <label className="admin-check"><input type="checkbox" checked={includeNotes} onChange={(e) => setIncludeNotes(e.target.checked)} /> {english ? "Notes" : "Notas"}</label>
-              <label className="admin-check"><input type="checkbox" checked={includeTranscript} onChange={(e) => setIncludeTranscript(e.target.checked)} /> {english ? "Transcript" : "Transcripción"}</label>
+              <label className="admin-check"><input type="checkbox" checked={includeNotes} onChange={(e) => setIncludeNotes(e.target.checked)} /> {english ? "Private notes" : "Notas propias"}</label>
+              <label className="admin-check"><input type="checkbox" checked={includeTranscript} onChange={(e) => setIncludeTranscript(e.target.checked)} /> {english ? "Full transcript" : "Transcripción completa"}</label>
             </div>
             {!notes.length ? <p className="admin-table__empty">{english ? "No notes to import." : "No hay notas para importar."}</p> : null}
             {notes.map((note) => (

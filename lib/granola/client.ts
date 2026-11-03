@@ -1,6 +1,7 @@
 import { log } from "@/lib/log";
 
 const BASE = "https://public-api.granola.ai/v1";
+const MIN_INTERVAL_MS = 220; // stay under sustained 5 req/s
 
 export type GranolaNoteSummary = {
   id: string;
@@ -27,23 +28,63 @@ export function granolaConfigured() {
   return Boolean(apiKey());
 }
 
+let lastRequestAt = 0;
+let chain: Promise<void> = Promise.resolve();
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function throttle() {
+  const wait = Math.max(0, MIN_INTERVAL_MS - (Date.now() - lastRequestAt));
+  if (wait > 0) await sleep(wait);
+  lastRequestAt = Date.now();
+}
+
+function enqueue<T>(fn: () => Promise<T>): Promise<T> {
+  const run = chain.then(fn, fn);
+  chain = run.then(
+    () => undefined,
+    () => undefined
+  );
+  return run;
+}
+
 async function granolaFetch(path: string, init?: RequestInit) {
   const key = apiKey();
   if (!key) return { configured: false as const, ok: false as const, status: 0, json: null as unknown };
-  const res = await fetch(`${BASE}${path}`, {
-    ...init,
-    headers: {
-      Authorization: `Bearer ${key}`,
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      ...(init?.headers || {}),
-    },
+
+  return enqueue(async () => {
+    let attempt = 0;
+    while (attempt < 5) {
+      attempt += 1;
+      await throttle();
+      const res = await fetch(`${BASE}${path}`, {
+        ...init,
+        headers: {
+          Authorization: `Bearer ${key}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          ...(init?.headers || {}),
+        },
+      });
+      const json = await res.json().catch(() => null);
+      if (res.status === 429) {
+        const retryAfter = Number(res.headers.get("retry-after") || 0);
+        const backoff = retryAfter > 0 ? retryAfter * 1000 : Math.min(8000, 400 * 2 ** (attempt - 1));
+        log.warn("granola", "rate limit, reintento", { status: 429, path, attempt, backoffMs: backoff });
+        await sleep(backoff);
+        continue;
+      }
+      if (!res.ok) {
+        // Never log response bodies (PHI: summaries/transcripts).
+        log.warn("granola", "llamada fallida", { status: res.status, path, code: errorCode(json) || undefined });
+      }
+      return { configured: true as const, ok: res.ok, status: res.status, json };
+    }
+    log.warn("granola", "rate limit agotado", { path });
+    return { configured: true as const, ok: false as const, status: 429, json: null as unknown };
   });
-  const json = await res.json().catch(() => null);
-  if (!res.ok) {
-    log.warn("granola", "llamada fallida", { status: res.status, path });
-  }
-  return { configured: true as const, ok: res.ok, status: res.status, json };
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -76,6 +117,22 @@ function asString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function speakerLabel(value: unknown): string {
+  if (typeof value === "string" && value.trim()) return value.trim();
+  const row = asRecord(value);
+  if (!row) return "Hablante";
+  const label =
+    asString(row.diarization_label) ||
+    asString(row.name) ||
+    asString(row.attribution) ||
+    asString(row.source);
+  if (label === "me") return "Yo";
+  if (label === "them") return "Otro";
+  if (label === "microphone") return "Micrófono";
+  if (label === "speaker") return "Altavoz";
+  return label || "Hablante";
+}
+
 function formatTranscript(value: unknown): string {
   if (typeof value === "string") return value.trim();
   if (!Array.isArray(value)) return "";
@@ -83,7 +140,7 @@ function formatTranscript(value: unknown): string {
     .map((item) => {
       const row = asRecord(item);
       if (!row) return "";
-      const speaker = asString(row.speaker || row.speaker_name || row.name) || "Hablante";
+      const speaker = speakerLabel(row.speaker || row.speaker_name || row.name);
       const text = asString(row.text || row.content || row.utterance);
       if (!text) return "";
       return `${speaker}: ${text}`;
@@ -98,22 +155,12 @@ function errorCode(json: unknown) {
   return String(row.code || row.error_code || asRecord(row.error)?.code || "").toUpperCase();
 }
 
+/** Map real Granola Get Note fields (docs.granola.ai). */
 export function extractParts(raw: unknown): GranolaNoteParts {
   const row = asRecord(raw);
   if (!row) return { summary: "", notes: "", transcript: "" };
-  const summary =
-    asString(row.summary_markdown) ||
-    asString(row.summary_text) ||
-    asString(row.summary) ||
-    "";
-  const notes =
-    asString(row.private_notes_markdown) ||
-    asString(row.private_notes) ||
-    asString(row.notes_markdown) ||
-    asString(row.markdown) ||
-    asString(row.content) ||
-    asString(row.body) ||
-    "";
+  const summary = asString(row.summary_markdown) || asString(row.summary_text) || "";
+  const notes = asString(row.private_notes_markdown) || asString(row.private_notes_text) || "";
   const transcript = formatTranscript(row.transcript);
   return { summary, notes, transcript };
 }
@@ -127,13 +174,17 @@ export function composeGranolaBody(
     notes: include.notes !== false,
     transcript: include.transcript !== false,
   };
-  return [
-    flags.summary && parts.summary ? parts.summary : "",
-    flags.notes && parts.notes ? parts.notes : "",
-    flags.transcript && parts.transcript ? parts.transcript : "",
-  ]
-    .filter(Boolean)
-    .join("\n\n");
+  const sections: string[] = [];
+  if (flags.summary && parts.summary) {
+    sections.push(`## Resumen\n\n${parts.summary}`);
+  }
+  if (flags.notes && parts.notes) {
+    sections.push(`## Notas propias\n\n${parts.notes}`);
+  }
+  if (flags.transcript && parts.transcript) {
+    sections.push(`## Transcripción completa\n\n${parts.transcript}`);
+  }
+  return sections.join("\n\n");
 }
 
 async function fetchTranscriptPaged(noteId: string): Promise<string> {
@@ -157,6 +208,8 @@ async function fetchTranscriptPaged(noteId: string): Promise<string> {
       asString(record?.cursor) ||
       asString(asRecord(record?.pagination)?.next_cursor) ||
       "";
+    const hasMore = record?.has_more === true || record?.hasMore === true;
+    if ((!next || next === cursor) && !hasMore) break;
     if (!next || next === cursor) break;
     cursor = next;
   }
@@ -177,15 +230,22 @@ export async function getGranolaNote(id: string): Promise<{ configured: boolean;
   const result = await granolaFetch(`/notes/${encodeURIComponent(id)}?include=transcript`);
   if (!result.configured) return { configured: false, note: null };
   const summary = mapSummary(result.json);
+  if (!summary && !result.ok) return { configured: true, note: null };
   if (!summary) return { configured: true, note: null };
-  const parts = extractParts(result.json);
+  const parts = result.ok ? extractParts(result.json) : { summary: "", notes: "", transcript: "" };
   const tooLarge = result.status === 413 || errorCode(result.json) === "TRANSCRIPT_TOO_LARGE";
-  if ((!result.ok && tooLarge) || (!parts.transcript && tooLarge)) {
-    parts.transcript = await fetchTranscriptPaged(id);
-  } else if (!parts.transcript && result.ok) {
-    // Some payloads omit the embedded transcript even on 200; try dedicated endpoint once.
+  if (tooLarge || (!parts.transcript && result.ok)) {
     const paged = await fetchTranscriptPaged(id);
     if (paged) parts.transcript = paged;
+  }
+  // When 413, summary/notes may still be in the error payload or absent — refetch without transcript.
+  if (tooLarge && (!parts.summary || !parts.notes)) {
+    const plain = await granolaFetch(`/notes/${encodeURIComponent(id)}`);
+    if (plain.ok) {
+      const plainParts = extractParts(plain.json);
+      if (!parts.summary) parts.summary = plainParts.summary;
+      if (!parts.notes) parts.notes = plainParts.notes;
+    }
   }
   return {
     configured: true,

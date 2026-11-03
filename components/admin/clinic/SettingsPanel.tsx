@@ -71,8 +71,8 @@ export default function SettingsPanel({ section }: { section: string }) {
   async function load() {
     if (section === "recordatorios") return;
     if (section === "granola") {
-      const status = await api<{ configured: boolean }>("/api/admin/granola");
-      setRows([{ configured: status.configured }]);
+      const status = await api<{ configured: boolean; webhookUrl?: string }>("/api/admin/granola");
+      setRows([{ configured: status.configured, webhookUrl: status.webhookUrl || "" }]);
       return;
     }
     const data = await api<{ rows: Row[] }>(`/api/admin/settings/${apiSection}`);
@@ -245,8 +245,18 @@ export default function SettingsPanel({ section }: { section: string }) {
             </p>
             <p className="admin-table__cell-sub">
               {english
-                ? "GRANOLA_WEBHOOK_SECRET is required. Invalid or missing signatures are rejected with 401 at /api/webhooks/granola."
-                : "GRANOLA_WEBHOOK_SECRET es obligatorio. Firmas inválidas o ausentes se rechazan con 401 en /api/webhooks/granola."}
+                ? "Paste this webhook URL in Granola → Settings → Connectors → Webhooks. GRANOLA_WEBHOOK_SECRET is required; invalid or missing signatures return 401."
+                : "Pega esta URL del webhook en Granola → Settings → Connectors → Webhooks. GRANOLA_WEBHOOK_SECRET es obligatorio; firmas inválidas o ausentes responden 401."}
+            </p>
+            <p>
+              <code style={{ wordBreak: "break-all" }}>
+                {String(rows[0]?.webhookUrl || "https://thriveformative.com/api/webhooks/granola")}
+              </code>
+            </p>
+            <p className="admin-table__cell-sub">
+              {english
+                ? "Title tip: TF-00013 = 90-day plan · TF-00013-S1 = Session 1"
+                : "Título en Granola: TF-00013 = Plan 90 días · TF-00013-S1 = Sesión 1"}
             </p>
             <p><Link href="/admin/granola">{english ? "Open unassigned notes" : "Abrir notas sin asignar"}</Link></p>
           </section>
