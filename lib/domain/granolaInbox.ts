@@ -78,6 +78,32 @@ async function sessionTitleExists(patientId: string, sessionNumber: number) {
   return Boolean(row.rows[0]);
 }
 
+function hasUsableContent(parts: GranolaNoteParts) {
+  return Boolean(parts.summary?.trim() || parts.notes?.trim() || parts.transcript?.trim());
+}
+
+/** Push latest Granola content into the chart when the note was already imported. */
+async function syncChartFromGranola(granolaNoteId: string, title: string, parts: GranolaNoteParts) {
+  const body = composeGranolaBody(parts);
+  const bodyEnc = encryptPhi(body);
+  const clinical = await query<{ id: string }>(
+    `UPDATE clinical_notes
+     SET body_enc = $2,
+         title = CASE WHEN $3 <> '' THEN $3 ELSE title END
+     WHERE granola_note_id = $1 AND locked_at IS NULL
+     RETURNING id`,
+    [granolaNoteId, bodyEnc, title.trim()]
+  );
+  const sessions = await query<{ id: string }>(
+    `UPDATE patient_sessions
+     SET notes_enc = $2
+     WHERE granola_note_id = $1
+     RETURNING id`,
+    [granolaNoteId, bodyEnc]
+  );
+  return { clinical: clinical.rows.length, sessions: sessions.rows.length };
+}
+
 async function tryAutoAssign(input: {
   inboxId: string;
   granolaNoteId: string;
@@ -85,6 +111,13 @@ async function tryAutoAssign(input: {
   noteDate: string | null;
   parts: GranolaNoteParts;
 }) {
+  // Never invent content: only assign after a successful GET with real payload.
+  if (!hasUsableContent(input.parts)) {
+    const reason = "Nota sin resumen/contenido en API; se reintentará automáticamente";
+    await query(`UPDATE granola_notes_inbox SET unassigned_reason = $2 WHERE id = $1`, [input.inboxId, reason]);
+    return { assigned: false as const, reason };
+  }
+
   const match = TITLE_CODE.exec(input.title || "");
   if (!match) {
     await query(`UPDATE granola_notes_inbox SET unassigned_reason = $2 WHERE id = $1`, [
@@ -122,6 +155,17 @@ async function tryAutoAssign(input: {
   }
 
   if (sessionNumber != null) {
+    if (await alreadyImported(patientId, input.granolaNoteId, "sesiones")) {
+      await syncChartFromGranola(input.granolaNoteId, `Sesión ${sessionNumber}`, input.parts);
+      await query(
+        `UPDATE granola_notes_inbox
+         SET assigned_patient_id = $2, assigned_folder_key = 'sesiones', assigned_at = coalesce(assigned_at, now()),
+             unassigned_reason = NULL, matched_identifier = $3, matched_session = $4
+         WHERE id = $1`,
+        [input.inboxId, patientId, identifier, sessionNumber]
+      );
+      return { assigned: true as const, synced: true as const, patientId, folderKey: "sesiones" };
+    }
     if (await sessionTitleExists(patientId, sessionNumber)) {
       const reason = `Sesión duplicada: Sesión ${sessionNumber} ya existe para ${identifier}`;
       await query(
@@ -133,20 +177,9 @@ async function tryAutoAssign(input: {
       await alertUnassigned(input.title, reason, input.granolaNoteId);
       return { assigned: false as const, reason };
     }
-    if (await alreadyImported(patientId, input.granolaNoteId, "sesiones")) {
-      await query(
-        `UPDATE granola_notes_inbox
-         SET assigned_patient_id = $2, assigned_folder_key = 'sesiones', assigned_at = now(),
-             unassigned_reason = NULL, matched_identifier = $3, matched_session = $4
-         WHERE id = $1`,
-        [input.inboxId, patientId, identifier, sessionNumber]
-      );
-      return { assigned: true as const, patientId, folderKey: "sesiones" };
-    }
     const systemActor = {
       staff: { id: "00000000-0000-0000-0000-000000000000", email: "system@thriveformative.com" },
     } as StaffSession;
-    // Prefer a real staff user if available for FK.
     const staff = await query<{ id: string; email: string }>(
       `SELECT id, email FROM staff_users WHERE is_active ORDER BY id ASC LIMIT 1`
     );
@@ -174,14 +207,15 @@ async function tryAutoAssign(input: {
   }
 
   if (await alreadyImported(patientId, input.granolaNoteId, "plan90")) {
+    await syncChartFromGranola(input.granolaNoteId, input.title, input.parts);
     await query(
       `UPDATE granola_notes_inbox
-       SET assigned_patient_id = $2, assigned_folder_key = 'plan90', assigned_at = now(),
+       SET assigned_patient_id = $2, assigned_folder_key = 'plan90', assigned_at = coalesce(assigned_at, now()),
            unassigned_reason = NULL, matched_identifier = $3, matched_session = NULL
        WHERE id = $1`,
       [input.inboxId, patientId, identifier]
     );
-    return { assigned: true as const, patientId, folderKey: "plan90" };
+    return { assigned: true as const, synced: true as const, patientId, folderKey: "plan90" };
   }
 
   const staff = await query<{ id: string; email: string }>(
@@ -279,10 +313,10 @@ export async function ingestGranolaEvent(payload: unknown) {
     return { ok: true, granolaNoteId, duplicate: true, assigned: false as const };
   }
 
-  // Get Note can briefly 404 right after note.generated (summary not queryable yet).
+  // Get Note can briefly 404 right after note.generated. Keep webhook fast; cron retries pending.
   let fetched = await getGranolaNote(granolaNoteId);
   if (fetched.configured && !fetched.note) {
-    for (const delayMs of [1500, 3000, 5000]) {
+    for (const delayMs of [800, 1600]) {
       await new Promise((resolve) => setTimeout(resolve, delayMs));
       fetched = await getGranolaNote(granolaNoteId);
       if (fetched.note) break;
@@ -293,22 +327,23 @@ export async function ingestGranolaEvent(payload: unknown) {
     return { skipped: true, reason: "api_key" };
   }
   if (!fetched.note) {
-    // Keep a pending inbox row so "Reintentar asignación" can pick it up once the note is visible.
+    // Never assign without a live GET. Pending row is retried by cron / admin retry.
     const pendingReason =
-      "Nota no disponible en API Granola (404). Espera el resumen AI o reintenta; revisa scopes de la API key.";
+      "Nota no disponible en API Granola (404). Se reintentará automáticamente.";
     const pending = await query<{ id: string }>(
       `INSERT INTO granola_notes_inbox (granola_note_id, title, unassigned_reason)
        VALUES ($1, $2, $3)
        ON CONFLICT (granola_note_id) DO UPDATE SET
-         unassigned_reason = COALESCE(granola_notes_inbox.unassigned_reason, EXCLUDED.unassigned_reason)
+         unassigned_reason = EXCLUDED.unassigned_reason
+       WHERE granola_notes_inbox.assigned_patient_id IS NULL
        RETURNING id`,
       [granolaNoteId, "Granola (pendiente)", pendingReason]
     );
     log.warn("granola", "nota no encontrada en API", { granolaNoteId, inboxId: pending.rows[0]?.id });
-    return { ok: true, granolaNoteId, assigned: false as const, reason: pendingReason };
+    return { ok: true, granolaNoteId, assigned: false as const, pending: true, reason: pendingReason };
   }
 
-  // Title MUST come from GET /v1/notes/{id}; webhook payload has no title.
+  // Title and body MUST come from GET /v1/notes/{id}; webhook payload has neither.
   const title = String(fetched.note.title || "").trim() || "Granola";
   const noteDate = fetched.note.createdAt || (data.occurred_at ? String(data.occurred_at) : null);
   const parts = fetched.note.parts;
@@ -324,6 +359,12 @@ export async function ingestGranolaEvent(payload: unknown) {
     [inboxId]
   );
   if (alreadyAssigned.rows[0]?.assigned_patient_id) {
+    // note.edited / regenerations: refresh chart from the live API payload.
+    if (hasUsableContent(parts)) {
+      const synced = await syncChartFromGranola(granolaNoteId, title, parts);
+      log.info("granola", "nota ya asignada, contenido sincronizado", { granolaNoteId, ...synced });
+      return { ok: true, granolaNoteId, title, assigned: true as const, alreadyAssigned: true, synced: true as const };
+    }
     log.info("granola", "nota ya asignada", { granolaNoteId });
     return { ok: true, granolaNoteId, assigned: true as const, alreadyAssigned: true };
   }
@@ -352,69 +393,51 @@ export async function retryGranolaAutoAssign(inboxId: string) {
   }>(`SELECT id, granola_note_id, assigned_patient_id FROM granola_notes_inbox WHERE id = $1`, [inboxId]);
   const note = row.rows[0];
   if (!note) throw new DomainError("Nota de Granola no encontrada.", 404);
-  if (note.assigned_patient_id) return { ok: true, assigned: true as const, alreadyAssigned: true };
 
   let fetched = await getGranolaNote(note.granola_note_id);
   if (fetched.configured && !fetched.note) {
-    for (const delayMs of [1000, 2500]) {
+    for (const delayMs of [800, 1600]) {
       await new Promise((resolve) => setTimeout(resolve, delayMs));
       fetched = await getGranolaNote(note.granola_note_id);
       if (fetched.note) break;
     }
   }
   if (!fetched.configured) throw new DomainError("Conecta Granola en Configuración.", 503);
-
-  if (fetched.note) {
-    const title = String(fetched.note.title || "").trim() || "Granola";
-    const noteDate = fetched.note.createdAt;
-    const parts = fetched.note.parts;
-    await upsertInboxFromFetched({
-      granolaNoteId: note.granola_note_id,
-      title,
-      noteDate,
-      parts,
-    });
-    const assigned = await tryAutoAssign({
-      inboxId: note.id,
-      granolaNoteId: note.granola_note_id,
-      title,
-      noteDate,
-      parts,
-    });
-    return { ok: true, title, ...assigned };
+  if (!fetched.note) {
+    const reason = "Nota no disponible en API Granola (404). Se reintentará automáticamente.";
+    if (!note.assigned_patient_id) {
+      await query(`UPDATE granola_notes_inbox SET unassigned_reason = $2 WHERE id = $1`, [note.id, reason]);
+    }
+    throw new DomainError(reason, 404);
   }
 
-  // API 404: still try with a stored TF title (prior successful fetch or corrected row).
-  const stored = await query<{
-    title: string | null;
-    note_date: string | null;
-    summary_enc: Buffer | null;
-    private_notes_enc: Buffer | null;
-    transcript_enc: Buffer | null;
-    body_enc: Buffer | null;
-  }>(
-    `SELECT title, note_date, summary_enc, private_notes_enc, transcript_enc, body_enc
-     FROM granola_notes_inbox WHERE id = $1`,
-    [note.id]
-  );
-  const storedRow = stored.rows[0];
-  const storedTitle = String(storedRow?.title || "").trim();
-  if (storedRow && TITLE_CODE.test(storedTitle)) {
-    const parts = partsFromEncrypted(storedRow);
-    const assigned = await tryAutoAssign({
-      inboxId: note.id,
-      granolaNoteId: note.granola_note_id,
-      title: storedTitle,
-      noteDate: storedRow.note_date,
-      parts,
-    });
-    return { ok: true, title: storedTitle, fromStoredTitle: true, ...assigned };
+  const title = String(fetched.note.title || "").trim() || "Granola";
+  const noteDate = fetched.note.createdAt;
+  const parts = fetched.note.parts;
+  await upsertInboxFromFetched({
+    granolaNoteId: note.granola_note_id,
+    title,
+    noteDate,
+    parts,
+  });
+
+  // Already in chart: refresh body from live API (no stale/manual content).
+  if (note.assigned_patient_id) {
+    if (!hasUsableContent(parts)) {
+      return { ok: true, title, assigned: true as const, alreadyAssigned: true, synced: false as const };
+    }
+    const synced = await syncChartFromGranola(note.granola_note_id, title, parts);
+    return { ok: true, title, assigned: true as const, alreadyAssigned: true, synced: true as const, ...synced };
   }
 
-  const reason =
-    "Nota no disponible en API Granola (404). Espera el resumen AI o reintenta; revisa scopes de la API key.";
-  await query(`UPDATE granola_notes_inbox SET unassigned_reason = $2 WHERE id = $1`, [note.id, reason]);
-  throw new DomainError(reason, 404);
+  const assigned = await tryAutoAssign({
+    inboxId: note.id,
+    granolaNoteId: note.granola_note_id,
+    title,
+    noteDate,
+    parts,
+  });
+  return { ok: true, title, ...assigned };
 }
 
 export async function reprocessUnassignedGranolaNotes(limit = 40) {
