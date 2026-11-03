@@ -23,6 +23,19 @@ echo "==> npm run build"
 export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=2048}"
 npm run build
 
+echo "==> Copiar .env al standalone (PM2 lee .next/standalone)"
+STANDALONE_DIR="$APP_DIR/.next/standalone"
+if [ -d "$STANDALONE_DIR" ]; then
+  if [ -f "$APP_DIR/.env" ]; then
+    cp -f "$APP_DIR/.env" "$STANDALONE_DIR/.env"
+    echo "    .env → .next/standalone/.env"
+  fi
+  if [ -f "$APP_DIR/.env.local" ]; then
+    cp -f "$APP_DIR/.env.local" "$STANDALONE_DIR/.env.local"
+    echo "    .env.local → .next/standalone/.env.local"
+  fi
+fi
+
 echo "==> PM2 restart $PM2_APP"
 if pm2 describe "$PM2_APP" >/dev/null 2>&1; then
   pm2 restart "$PM2_APP" --update-env

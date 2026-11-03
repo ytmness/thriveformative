@@ -3,6 +3,8 @@ import {
   assignGranolaNote,
   importGranolaNoteToPatient,
   listGranolaInbox,
+  reprocessUnassignedGranolaNotes,
+  retryGranolaAutoAssign,
   type GranolaInclude,
 } from "@/lib/domain/granolaInbox";
 import { granolaConfigured, listGranolaNotes } from "@/lib/granola/client";
@@ -24,7 +26,15 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const view = url.searchParams.get("view") || "status";
   try {
-    if (view === "inbox") return Response.json({ configured: granolaConfigured(), rows: await listGranolaInbox(true) });
+    if (view === "inbox") {
+      const retry = url.searchParams.get("retry") === "1";
+      const reprocess = retry ? await reprocessUnassignedGranolaNotes() : null;
+      return Response.json({
+        configured: granolaConfigured(),
+        rows: await listGranolaInbox(true),
+        reprocess,
+      });
+    }
     if (view === "notes") {
       const listed = await listGranolaNotes(30);
       return Response.json(listed);
@@ -59,6 +69,11 @@ export async function POST(req: Request) {
           Number.isFinite(sessionNumber) ? sessionNumber : null
         )
       );
+    }
+    if (action === "retry") {
+      const inboxId = String(body.inboxId || "");
+      if (inboxId) return Response.json(await retryGranolaAutoAssign(inboxId));
+      return Response.json(await reprocessUnassignedGranolaNotes());
     }
     const granolaNoteId = String(body.granolaNoteId || "");
     const patientId = String(body.patientId || "");

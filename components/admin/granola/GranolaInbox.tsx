@@ -31,15 +31,29 @@ export function GranolaInbox() {
   const [includeNotes, setIncludeNotes] = useState(true);
   const [includeTranscript, setIncludeTranscript] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  async function reload() {
-    const result = await api<{ configured: boolean; rows: InboxRow[] }>("/api/admin/granola?view=inbox");
+  async function reload(withRetry = false) {
+    const result = await api<{
+      configured: boolean;
+      rows: InboxRow[];
+      reprocess?: { processed: number; assigned: number; failed: number } | null;
+    }>(`/api/admin/granola?view=inbox${withRetry ? "&retry=1" : ""}`);
     setConfigured(result.configured);
     setRows(result.rows || []);
+    if (result.reprocess && result.reprocess.processed > 0) {
+      setNotice(
+        english
+          ? `Retried ${result.reprocess.processed}: ${result.reprocess.assigned} assigned.`
+          : `Reintento ${result.reprocess.processed}: ${result.reprocess.assigned} asignada(s).`
+      );
+    }
   }
 
   useEffect(() => {
-    reload().catch((err) => setError(err instanceof Error ? err.message : "No se pudo cargar la bandeja."));
+    // On load, re-fetch titles from Granola API and retry TF auto-assignment for stuck rows.
+    reload(true).catch((err) => setError(err instanceof Error ? err.message : "No se pudo cargar la bandeja."));
     api<{ rows: PatientOpt[] }>("/api/admin/patients?limit=80")
       .then((result) => setPatients(result.rows || []))
       .catch(() => undefined);
@@ -57,9 +71,37 @@ export function GranolaInbox() {
               : "Título en Granola: TF-00013 = Plan 90 días · TF-00013-S1 = Sesión 1"}
           </p>
         </div>
+        <button
+          className="admin-btn"
+          type="button"
+          disabled={busy}
+          onClick={async () => {
+            setBusy(true);
+            setError(null);
+            try {
+              const result = await api<{ processed: number; assigned: number }>("/api/admin/granola", {
+                method: "POST",
+                body: JSON.stringify({ action: "retry" }),
+              });
+              setNotice(
+                english
+                  ? `Retried ${result.processed}: ${result.assigned} assigned.`
+                  : `Reintento ${result.processed}: ${result.assigned} asignada(s).`
+              );
+              await reload(false);
+            } catch (err) {
+              setError(err instanceof Error ? err.message : "No se pudo reintentar.");
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          {english ? "Retry assignment" : "Reintentar asignación"}
+        </button>
       </header>
       {!configured ? <p className="admin-banner">{english ? "Connect Granola in Settings." : "Conecta Granola en Configuración."}</p> : null}
       {error ? <div className="admin-alert" role="alert">{error}</div> : null}
+      {notice ? <p className="admin-notice" role="status">{notice}</p> : null}
       <div className="admin-toolbar" style={{ flexWrap: "wrap", gap: "0.75rem" }}>
         <select value={patientId} onChange={(e) => setPatientId(e.target.value)}>
           <option value="">{english ? "Patient" : "Paciente"}</option>
@@ -102,38 +144,62 @@ export function GranolaInbox() {
                 <div className="admin-alert" role="status" style={{ marginTop: "0.5rem" }}>{row.unassignedReason}</div>
               ) : null}
             </div>
-            <button
-              className="admin-btn admin-btn--primary"
-              type="button"
-              onClick={async () => {
-                if (!patientId) {
-                  setError(english ? "Choose a patient first." : "Elige un paciente primero.");
-                  return;
-                }
-                if (folderKey === "sesiones" && !Number(sessionNumber)) {
-                  setError(english ? "Enter a session number." : "Indica el número de sesión.");
-                  return;
-                }
-                try {
-                  await api("/api/admin/granola", {
-                    method: "POST",
-                    body: JSON.stringify({
-                      action: "assign",
-                      inboxId: row.id,
-                      patientId,
-                      folderKey,
-                      sessionNumber: folderKey === "sesiones" ? Number(sessionNumber || row.matchedSession || 1) : null,
-                      include: { summary: includeSummary, notes: includeNotes, transcript: includeTranscript },
-                    }),
-                  });
-                  setRows(rows.filter((item) => item.id !== row.id));
-                } catch (err) {
-                  setError(err instanceof Error ? err.message : "No se pudo asignar.");
-                }
-              }}
-            >
-              {english ? "Assign" : "Asignar"}
-            </button>
+            <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+              <button
+                className="admin-btn"
+                type="button"
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true);
+                  setError(null);
+                  try {
+                    await api("/api/admin/granola", {
+                      method: "POST",
+                      body: JSON.stringify({ action: "retry", inboxId: row.id }),
+                    });
+                    await reload(false);
+                  } catch (err) {
+                    setError(err instanceof Error ? err.message : "No se pudo reintentar.");
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                {english ? "Retry" : "Reintentar"}
+              </button>
+              <button
+                className="admin-btn admin-btn--primary"
+                type="button"
+                onClick={async () => {
+                  if (!patientId) {
+                    setError(english ? "Choose a patient first." : "Elige un paciente primero.");
+                    return;
+                  }
+                  if (folderKey === "sesiones" && !Number(sessionNumber)) {
+                    setError(english ? "Enter a session number." : "Indica el número de sesión.");
+                    return;
+                  }
+                  try {
+                    await api("/api/admin/granola", {
+                      method: "POST",
+                      body: JSON.stringify({
+                        action: "assign",
+                        inboxId: row.id,
+                        patientId,
+                        folderKey,
+                        sessionNumber: folderKey === "sesiones" ? Number(sessionNumber || row.matchedSession || 1) : null,
+                        include: { summary: includeSummary, notes: includeNotes, transcript: includeTranscript },
+                      }),
+                    });
+                    setRows(rows.filter((item) => item.id !== row.id));
+                  } catch (err) {
+                    setError(err instanceof Error ? err.message : "No se pudo asignar.");
+                  }
+                }}
+              >
+                {english ? "Assign" : "Asignar"}
+              </button>
+            </div>
           </div>
         ))}
         {!rows.length ? <div className="admin-table__empty">{english ? "No unassigned notes." : "Sin notas pendientes."}</div> : null}

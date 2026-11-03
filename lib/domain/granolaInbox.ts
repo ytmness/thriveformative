@@ -1,7 +1,7 @@
 import type { StaffSession } from "@/lib/auth/session";
 import { decryptPhi, encryptPhi } from "@/lib/crypto/phi";
 import { query } from "@/lib/db";
-import { composeGranolaBody, extractParts, getGranolaNote, type GranolaNoteParts } from "@/lib/granola/client";
+import { composeGranolaBody, getGranolaNote, type GranolaNoteParts } from "@/lib/granola/client";
 import { DomainError } from "@/lib/http";
 import { log } from "@/lib/log";
 import { sendClinicEmail } from "@/lib/emailServer";
@@ -210,18 +210,25 @@ async function tryAutoAssign(input: {
   return { assigned: true as const, patientId, folderKey: "plan90" };
 }
 
-export async function ingestGranolaEvent(payload: unknown) {
-  const root = asRecord(payload);
-  const data = asRecord(root?.data) || root;
-  if (!data) return { skipped: true };
-  const granolaNoteId = String(data.id || data.note_id || "");
-  if (!granolaNoteId) return { skipped: true };
-  const title = String(data.title || data.name || "Granola");
-  const noteDate = data.created_at || data.createdAt || data.note_date || null;
-  let parts: GranolaNoteParts = extractPartsFromPayload(data);
-  const fetched = await getGranolaNote(granolaNoteId);
-  if (fetched.note?.parts) parts = fetched.note.parts;
-  const body = composeGranolaBody(parts);
+async function rememberWebhookEvent(eventId: string | null, granolaNoteId: string, eventType: string | null) {
+  if (!eventId) return { duplicate: false as const };
+  const inserted = await query<{ event_id: string }>(
+    `INSERT INTO granola_webhook_events (event_id, granola_note_id, event_type)
+     VALUES ($1, $2, $3)
+     ON CONFLICT (event_id) DO NOTHING
+     RETURNING event_id`,
+    [eventId, granolaNoteId, eventType]
+  );
+  return { duplicate: !inserted.rows[0] };
+}
+
+async function upsertInboxFromFetched(input: {
+  granolaNoteId: string;
+  title: string;
+  noteDate: string | null;
+  parts: GranolaNoteParts;
+}) {
+  const body = composeGranolaBody(input.parts);
   const upserted = await query<{ id: string }>(
     `INSERT INTO granola_notes_inbox (
        granola_note_id, title, note_date, body_enc, summary_enc, private_notes_enc, transcript_enc
@@ -229,35 +236,138 @@ export async function ingestGranolaEvent(payload: unknown) {
      ON CONFLICT (granola_note_id) DO UPDATE SET
        title = EXCLUDED.title,
        note_date = coalesce(EXCLUDED.note_date, granola_notes_inbox.note_date),
-       body_enc = coalesce(EXCLUDED.body_enc, granola_notes_inbox.body_enc),
-       summary_enc = coalesce(EXCLUDED.summary_enc, granola_notes_inbox.summary_enc),
-       private_notes_enc = coalesce(EXCLUDED.private_notes_enc, granola_notes_inbox.private_notes_enc),
-       transcript_enc = coalesce(EXCLUDED.transcript_enc, granola_notes_inbox.transcript_enc)
+       body_enc = EXCLUDED.body_enc,
+       summary_enc = EXCLUDED.summary_enc,
+       private_notes_enc = EXCLUDED.private_notes_enc,
+       transcript_enc = EXCLUDED.transcript_enc
      RETURNING id`,
     [
-      granolaNoteId,
-      title,
-      noteDate ? String(noteDate) : null,
+      input.granolaNoteId,
+      input.title,
+      input.noteDate,
       encryptPhi(body),
-      encryptPhi(parts.summary),
-      encryptPhi(parts.notes),
-      encryptPhi(parts.transcript),
+      encryptPhi(input.parts.summary),
+      encryptPhi(input.parts.notes),
+      encryptPhi(input.parts.transcript),
     ]
   );
-  const inboxId = upserted.rows[0].id;
+  return upserted.rows[0].id;
+}
+
+export async function ingestGranolaEvent(payload: unknown) {
+  const root = asRecord(payload);
+  if (!root) return { skipped: true };
+  // Webhook body is flat: { event_id, event_type, note_id, occurred_at } — no nested title.
+  const data = asRecord(root.data) || root;
+  const granolaNoteId = String(data.note_id || data.id || "").trim();
+  if (!granolaNoteId) return { skipped: true };
+  const eventId = String(data.event_id || root.event_id || "").trim() || null;
+  const eventType = String(data.event_type || root.event_type || data.type || root.type || "").trim() || null;
+
+  const remembered = await rememberWebhookEvent(eventId, granolaNoteId, eventType);
+  if (remembered.duplicate) {
+    log.info("granola", "evento duplicado omitido", { eventId, granolaNoteId });
+    return { ok: true, granolaNoteId, duplicate: true, assigned: false as const };
+  }
+
+  const fetched = await getGranolaNote(granolaNoteId);
+  if (!fetched.configured) {
+    log.warn("granola", "ingest sin API key", { granolaNoteId });
+    return { skipped: true, reason: "api_key" };
+  }
+  if (!fetched.note) {
+    log.warn("granola", "nota no encontrada en API", { granolaNoteId });
+    return { skipped: true, reason: "note_not_found" };
+  }
+
+  // Title MUST come from GET /v1/notes/{id}; webhook payload has no title.
+  const title = String(fetched.note.title || "").trim() || "Granola";
+  const noteDate = fetched.note.createdAt || (data.occurred_at ? String(data.occurred_at) : null);
+  const parts = fetched.note.parts;
+  const inboxId = await upsertInboxFromFetched({
+    granolaNoteId,
+    title,
+    noteDate,
+    parts,
+  });
+
+  const alreadyAssigned = await query<{ assigned_patient_id: string | null }>(
+    `SELECT assigned_patient_id FROM granola_notes_inbox WHERE id = $1`,
+    [inboxId]
+  );
+  if (alreadyAssigned.rows[0]?.assigned_patient_id) {
+    log.info("granola", "nota ya asignada", { granolaNoteId });
+    return { ok: true, granolaNoteId, assigned: true as const, alreadyAssigned: true };
+  }
+
   const assigned = await tryAutoAssign({
     inboxId,
     granolaNoteId,
     title,
-    noteDate: noteDate ? String(noteDate) : null,
+    noteDate,
     parts,
   });
-  log.info("granola", "nota en bandeja", { granolaNoteId, assigned: assigned.assigned });
-  return { ok: true, granolaNoteId, ...assigned };
+  log.info("granola", "nota en bandeja", {
+    granolaNoteId,
+    assigned: assigned.assigned,
+    titleMatched: TITLE_CODE.test(title),
+  });
+  return { ok: true, granolaNoteId, title, ...assigned };
 }
 
-function extractPartsFromPayload(data: Record<string, unknown>): GranolaNoteParts {
-  return extractParts(data);
+/** Re-fetch note from Granola API and retry TF auto-assignment for an inbox row. */
+export async function retryGranolaAutoAssign(inboxId: string) {
+  const row = await query<{
+    id: string;
+    granola_note_id: string;
+    assigned_patient_id: string | null;
+  }>(`SELECT id, granola_note_id, assigned_patient_id FROM granola_notes_inbox WHERE id = $1`, [inboxId]);
+  const note = row.rows[0];
+  if (!note) throw new DomainError("Nota de Granola no encontrada.", 404);
+  if (note.assigned_patient_id) return { ok: true, assigned: true as const, alreadyAssigned: true };
+
+  const fetched = await getGranolaNote(note.granola_note_id);
+  if (!fetched.configured) throw new DomainError("Conecta Granola en Configuración.", 503);
+  if (!fetched.note) throw new DomainError("No se encontró la nota de Granola.", 404);
+
+  const title = String(fetched.note.title || "").trim() || "Granola";
+  const noteDate = fetched.note.createdAt;
+  const parts = fetched.note.parts;
+  await upsertInboxFromFetched({
+    granolaNoteId: note.granola_note_id,
+    title,
+    noteDate,
+    parts,
+  });
+  const assigned = await tryAutoAssign({
+    inboxId: note.id,
+    granolaNoteId: note.granola_note_id,
+    title,
+    noteDate,
+    parts,
+  });
+  return { ok: true, title, ...assigned };
+}
+
+export async function reprocessUnassignedGranolaNotes(limit = 40) {
+  const rows = await query<{ id: string }>(
+    `SELECT id FROM granola_notes_inbox
+     WHERE assigned_patient_id IS NULL
+     ORDER BY created_at DESC
+     LIMIT $1`,
+    [limit]
+  );
+  let assigned = 0;
+  let failed = 0;
+  for (const row of rows.rows) {
+    try {
+      const result = await retryGranolaAutoAssign(row.id);
+      if (result.assigned) assigned += 1;
+    } catch {
+      failed += 1;
+    }
+  }
+  return { processed: rows.rows.length, assigned, failed };
 }
 
 export async function listGranolaInbox(unassignedOnly = true) {
