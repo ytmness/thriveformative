@@ -397,15 +397,15 @@ export async function retryGranolaAutoAssign(inboxId: string) {
      FROM granola_notes_inbox WHERE id = $1`,
     [note.id]
   );
-  const row = stored.rows[0];
-  const storedTitle = String(row?.title || "").trim();
-  if (row && TITLE_CODE.test(storedTitle)) {
-    const parts = partsFromEncrypted(row);
+  const storedRow = stored.rows[0];
+  const storedTitle = String(storedRow?.title || "").trim();
+  if (storedRow && TITLE_CODE.test(storedTitle)) {
+    const parts = partsFromEncrypted(storedRow);
     const assigned = await tryAutoAssign({
       inboxId: note.id,
       granolaNoteId: note.granola_note_id,
       title: storedTitle,
-      noteDate: row.note_date,
+      noteDate: storedRow.note_date,
       parts,
     });
     return { ok: true, title: storedTitle, fromStoredTitle: true, ...assigned };
