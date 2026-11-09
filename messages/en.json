@@ -2,13 +2,13 @@
   "nav": {
     "home": "Home",
     "services": "Services",
-    "doctor": "Doctor",
+    "doctor": "Team",
     "news": "Blog",
     "booking": "Book appointment",
     "tshape": "T-Shape 2",
     "shapescale": "ShapeScale",
     "plans": "Plans",
-    "about": "About the Doctor",
+    "about": "Our Team",
     "faq": "FAQ",
     "contact": "Contact",
     "schedule": "Book",
@@ -214,7 +214,7 @@
     "followUp": "Follow-up: symptom evaluation, lab review, adjustments, and monthly goals.",
     "policies": "Policies: rescheduling >12h, payment before consultation, no prescriptions without consultation.",
     "script": "Confirmation script",
-    "scriptText": "Hello, this is from the doctor's office. Your appointment is confirmed for tomorrow. Please bring your lab results and arrive 10 minutes early."
+    "scriptText": "Hello, this is from the office. Your appointment is confirmed for tomorrow. Please bring your lab results and arrive 10 minutes early."
   },
   "approach": {
     "sectionEyebrow": "PURPOSE",
@@ -474,7 +474,7 @@
     "policyBody": "Thrive Formative uses your name, contact details, date of birth, sex, and address to create your account and provide care.\n\nThose details are used for appointments, your chart, clinical studies, and the messages you allow.\n\nYour emergency contact is used only if we cannot reach you.\n\nWe do not sell your information.\n\nYou can ask to see or correct your data.\n\nChecking the box confirms that you read this notice, the care consents, and the clinic policies.",
     "referralSource": "How did you hear about Thrive Formative?",
     "refWebsite": "Website",
-    "refDoctor": "Doctor",
+    "refDoctor": "Professional referral",
     "refFriendFamily": "Friend or family",
     "refSocial": "Social media",
     "refAdsMetaTiktok": "Ads (Instagram/Facebook/TikTok)",
@@ -486,17 +486,17 @@
     "staffLoginHint": "Clinic staff only"
   },
   "doctor": {
-    "photoPlaceholder": "Doctor photo (placeholder)",
-    "title": "About the Doctor",
+    "photoPlaceholder": "Team photo (placeholder)",
+    "title": "Our Team",
     "subtitle": "Experience, knowledge, and a human-centered approach focused on you.",
-    "name": "Dr. Roel Maldonado",
+    "name": "Roel Maldonado",
     "specialty": "Family Medicine",
     "subspecialty": "General Family Medicine",
     "location": "Del Valle, San Pedro Garza García, N.L.",
     "experience": "20+ years of experience",
     "languages": "Languages",
     "languagesList": "Spanish & English",
-    "bio": "Dr. Roel Maldonado is a family medicine doctor in Laredo, Texas, affiliated with Doctors Hospital of Laredo and Laredo Medical Center. He received his medical degree from Universidad Autónoma de Nuevo León and has been in practice for more than 20 years.",
+    "bio": "Roel Maldonado is a family medicine specialist in Laredo, Texas, affiliated with Doctors Hospital of Laredo and Laredo Medical Center. He received his medical degree from Universidad Autónoma de Nuevo León and has been in practice for more than 20 years.",
     "approach": "Clinical Approach",
     "description": "Personalized care based on scientific evidence and clinical experience. We focus on disease prevention, health optimization, and longevity. Each plan is unique, specifically designed for your needs, goals, and lifestyle. Secure and transparent clinical documentation.",
     "educationTitle": "Education & Training",
@@ -573,7 +573,7 @@
   },
   "info": {
     "pageTitle": "About Us",
-    "pageSubtitle": "Meet the doctor, get your questions answered, and get in touch with us.",
+    "pageSubtitle": "Meet the team, get your questions answered, and get in touch with us.",
     "pageSubtitleUs": "Get your questions answered and get in touch with us."
   },
   "news": {
@@ -636,7 +636,7 @@
     "linkHome": "Home",
     "linkServices": "Services",
     "linkPlans": "Plans",
-    "linkDoctor": "About the Doctor",
+    "linkDoctor": "Our Team",
     "linkFaq": "FAQ",
     "linkContact": "Contact",
     "contactTitle": "Contact",

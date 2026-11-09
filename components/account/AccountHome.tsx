@@ -8,7 +8,8 @@ import { PatientAvatar } from "@/components/PatientAvatar";
 import { ImageCropDialog } from "@/components/ImageCropDialog";
 import { ProfilePhotoGate } from "@/components/account/ProfilePhotoGate";
 import { Plan90ProgressCard } from "@/components/account/Plan90ProgressCard";
-import { WHATSAPP_LINK } from "@/lib/branding";
+import { getWhatsAppLink } from "@/lib/branding";
+import { readMarket } from "@/lib/site/market";
 import type { Plan90Progress } from "@/lib/domain/plan90Progress";
 
 type Order = {
@@ -71,8 +72,11 @@ export default function AccountHome() {
   const [uploading, setUploading] = useState(false);
   const [cropImage, setCropImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [whatsappLink, setWhatsappLink] = useState<string | null>(null);
 
   useEffect(() => {
+    const market = readMarket();
+    setWhatsappLink(getWhatsAppLink(market));
     api<Home>("/api/account")
       .then(setHome)
       .catch(() => {
@@ -242,7 +246,9 @@ export default function AccountHome() {
         ) : (
           <>
             <Link href={`/${locale}/reservar`} className="btn-primary">{t("bookCta")}</Link>
-            <a href={WHATSAPP_LINK} target="_blank" rel="noreferrer" className="btn-primary">{t("messagesCta")}</a>
+            {whatsappLink && (
+              <a href={whatsappLink} target="_blank" rel="noreferrer" className="btn-primary">{t("messagesCta")}</a>
+            )}
           </>
         )}
       </section>

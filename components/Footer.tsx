@@ -1,18 +1,26 @@
 "use client";
 
 import { useTranslations, useLocale } from "next-intl";
+import { useState, useEffect } from "react";
 import BrandCtaLink from "@/components/ui/BrandCtaLink";
 import {
   CLINIC_ADDRESS_LINE,
-  CLINIC_PHONE_DISPLAY,
-  CLINIC_PHONE_TEL,
   SITE_LOGO_SRC,
+  getClinicPhone,
 } from "@/lib/branding";
 import { PABAU_BOOKING_URL } from "@/lib/pabau";
+import { readMarket } from "@/lib/site/market";
 
 export default function Footer() {
   const t = useTranslations();
   const locale = useLocale();
+  const [phone, setPhone] = useState({ display: "+52 81 2003 6699", tel: "tel:+528120036699" });
+
+  useEffect(() => {
+    const market = readMarket();
+    const phoneData = getClinicPhone(market);
+    setPhone({ display: phoneData.display, tel: phoneData.tel });
+  }, []);
 
   const quickLinks = [
     { label: t("footer.linkHome"), href: `/${locale}#inicio` },
@@ -68,8 +76,8 @@ export default function Footer() {
             </h4>
             <div className="space-y-3 type-ui-muted">
               <div>{t("contact.emailPlaceholder")}</div>
-              <a href={CLINIC_PHONE_TEL} className="block hover:text-[rgb(var(--primary))] transition-colors">
-                {CLINIC_PHONE_DISPLAY}
+              <a href={phone.tel} className="block hover:text-[rgb(var(--primary))] transition-colors">
+                {phone.display}
               </a>
               <div>{CLINIC_ADDRESS_LINE}</div>
             </div>

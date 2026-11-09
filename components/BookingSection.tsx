@@ -1,15 +1,23 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useState, useEffect } from "react";
 import AnimatedSection from "@/components/AnimatedSection";
 import { useCmsContext } from "@/components/cms/CmsProvider";
 import { resolveCmsText } from "@/lib/cms/fetch";
-import { WHATSAPP_LINK } from "@/lib/branding";
+import { getWhatsAppLink } from "@/lib/branding";
+import { readMarket } from "@/lib/site/market";
 import PublicCalendar from "@/components/booking/PublicCalendar";
 
 export default function BookingSection() {
   const t = useTranslations("booking");
   const { textOverrides } = useCmsContext();
+  const [whatsappLink, setWhatsappLink] = useState<string | null>(null);
+
+  useEffect(() => {
+    const market = readMarket();
+    setWhatsappLink(getWhatsAppLink(market));
+  }, []);
 
   const bookingTitle = resolveCmsText(textOverrides, "booking.title", t("title"));
   const bookingSubtitle = resolveCmsText(
@@ -44,19 +52,21 @@ export default function BookingSection() {
 
         <PublicCalendar />
 
-        <div className="booking-section__secondary">
-          <p className="booking-section__cta-hint booking-section__cta-hint--inline">
-            {whatsappHint}
-          </p>
-          <a
-            href={WHATSAPP_LINK}
-            target="_blank"
-            rel="noreferrer"
-            className="booking-section__whatsapp-link"
-          >
-            {whatsappCta}
-          </a>
-        </div>
+        {whatsappLink && (
+          <div className="booking-section__secondary">
+            <p className="booking-section__cta-hint booking-section__cta-hint--inline">
+              {whatsappHint}
+            </p>
+            <a
+              href={whatsappLink}
+              target="_blank"
+              rel="noreferrer"
+              className="booking-section__whatsapp-link"
+            >
+              {whatsappCta}
+            </a>
+          </div>
+        )}
       </section>
     </AnimatedSection>
   );
