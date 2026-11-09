@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { BRAND_CTA_BASE_CLASS } from "@/lib/brandCta";
-import { WHATSAPP_LINK } from "@/lib/branding";
+import { getWhatsAppLink } from "@/lib/branding";
 import { readMarket } from "@/lib/site/market";
 
 export type PublicPlan = {
@@ -21,9 +21,11 @@ export default function MembershipPlans() {
   const locale = useLocale();
   const [plans, setPlans] = useState<PublicPlan[] | null>(null);
   const [currency, setCurrency] = useState("USD");
+  const [whatsappLink, setWhatsappLink] = useState<string | null>(null);
 
   useEffect(() => {
     const market = readMarket();
+    setWhatsappLink(getWhatsAppLink(market));
     fetch("/api/public/memberships")
       .then(async (response) => {
         const body = (await response.json()) as { ok?: boolean; plans?: PublicPlan[]; currency?: string };
@@ -46,9 +48,11 @@ export default function MembershipPlans() {
           <p className="services-editorial-section__eyebrow">{t("eyebrow")}</p>
           <h2 className="plans-section__title">{t("title")}</h2>
           <p className="plans-section__subtitle">{t("empty")}</p>
-          <a href={WHATSAPP_LINK} target="_blank" rel="noreferrer" className={`${BRAND_CTA_BASE_CLASS} brand-cta`} style={{ marginTop: "1.25rem" }}>
-            {t("whatsappCta")}
-          </a>
+          {whatsappLink && (
+            <a href={whatsappLink} target="_blank" rel="noreferrer" className={`${BRAND_CTA_BASE_CLASS} brand-cta`} style={{ marginTop: "1.25rem" }}>
+              {t("whatsappCta")}
+            </a>
+          )}
         </div>
       </section>
     );

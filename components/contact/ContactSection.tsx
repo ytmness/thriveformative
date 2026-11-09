@@ -1,23 +1,33 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useState, useEffect } from "react";
 import ContactForm from "@/components/ContactForm";
 import ContactLocationMap from "@/components/ContactLocationMap";
 import BrandCtaLink from "@/components/ui/BrandCtaLink";
 import {
   CLINIC_ADDRESS_LINE,
   CLINIC_MAP_DIRECTIONS_URL,
-  CLINIC_PHONE_DISPLAY,
-  CLINIC_PHONE_TEL,
-  WHATSAPP_LINK,
+  getClinicPhone,
+  getWhatsAppLink,
 } from "@/lib/branding";
 import { PABAU_BOOKING_URL } from "@/lib/pabau";
+import { readMarket } from "@/lib/site/market";
 import "@/app/styles/contact-section.css";
 
 export default function ContactSection() {
   const t = useTranslations();
 
   const email = t("contact.emailPlaceholder");
+  const [phone, setPhone] = useState({ display: "+52 81 2003 6699", tel: "tel:+528120036699" });
+  const [whatsappLink, setWhatsappLink] = useState<string | null>(null);
+
+  useEffect(() => {
+    const market = readMarket();
+    const phoneData = getClinicPhone(market);
+    setPhone({ display: phoneData.display, tel: phoneData.tel });
+    setWhatsappLink(getWhatsAppLink(market));
+  }, []);
 
   return (
     <section id="contacto" className="contact-section" aria-labelledby="contact-section-title">
@@ -37,14 +47,16 @@ export default function ContactSection() {
               <BrandCtaLink href={PABAU_BOOKING_URL} block>
                 {t("contact.scheduleBtn")}
               </BrandCtaLink>
-              <a
-                href={WHATSAPP_LINK}
-                target="_blank"
-                rel="noreferrer"
-                className="contact-section__whatsapp-secondary"
-              >
-                {t("booking.whatsappCta")}
-              </a>
+              {whatsappLink && (
+                <a
+                  href={whatsappLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="contact-section__whatsapp-secondary"
+                >
+                  {t("booking.whatsappCta")}
+                </a>
+              )}
             </div>
             <ul className="contact-section__details">
               <li>
@@ -56,7 +68,7 @@ export default function ContactSection() {
               <li>
                 <span className="contact-section__detail-label">{t("contact.phone")}</span>
                 <span className="contact-section__detail-value">
-                  <a href={CLINIC_PHONE_TEL}>{CLINIC_PHONE_DISPLAY}</a>
+                  <a href={phone.tel}>{phone.display}</a>
                 </span>
               </li>
             </ul>
